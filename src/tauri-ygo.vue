@@ -41,13 +41,12 @@
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
-	import Voice, { voice } from './pages/voice/voice';
+	import Voice from './pages/voice/voice';
 
 	import mainGame from './script/game';
 	import fs from './script/fs';
 	import { I18N_KEYS } from './script/language/i18n';
 	import Dialog from './pages/ui/dialog';
-	import { FILES } from './script/constant';
 
 	const page = reactive({
 		show : {
@@ -122,7 +121,6 @@
 			}, true)
 		};
 		await mainGame.chk.file() ? await on() : await dialog();
-		voice.play(FILES.BACK_BGM);
 	});
 
 	onMounted(async () => {
@@ -166,7 +164,7 @@
 	}
 </style>
 <style lang = 'scss'>
-	@import '@/pages/toast/toast.scss';
+	@use '@/pages/toast/toast.scss';
 	.var-icon, .cursor {
 		&:hover {
 			cursor: pointer;

@@ -11,7 +11,7 @@ import Zh_CN from './language/Zh-CN';
 import TAURI_STR from './language/string';
 
 
-import voice from '@/pages/voice/voice';
+import { voice } from '@/pages/voice/voice';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/server/post/network';
 import { reactive } from 'vue';

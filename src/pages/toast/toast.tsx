@@ -74,6 +74,7 @@ class Toast {
 	};
 
 	info = (str : string | number, chk : boolean = false) : void => {
+		console.log(1)
 		if (this.unshow || !chk)
 			this.push(str, 'info');
 	};
@@ -96,34 +97,33 @@ class Toast {
 
 const toast = new Toast();
 
-export default defineComponent({
-	name : 'Voice',
-	setup() {
-		const Toast = reactive(toast);
-		return {
-			Toast
-		};
-	},
-	template : `
-		<div class = 'toast'>
-			<div
-				v-for = '(i, v) in Toast.list'
-				:class = '[i.type, i.status]'
-				:id = 'i.id'
-				:key = 'i.id'
-				:style = "{ '--top' : i.top + 'px', '--time' : Toast.time + 's' }"
-				:ref = '(el) => Toast.set_elements(el, i)'
-			>
-				<div>
-					<p>{{ i.text }}</p>
-				</div>
-				<div class = 'pointer' @click = 'Toast.splice(v)'>
-					<span>&times;</span>
-				</div>
+const _Toast =  defineComponent({
+	name : 'Toast',
+	setup () {
+		return () => (
+			<div class = 'toast'>
+				{toast.list.map((i, v) =>
+					<div
+						class = {[i.type, i.status]}
+						id = {i.id}
+						key = {i.id}
+						style = {{ '--top' : `${i.top}px`, '--time' : `${toast.time}s` }}
+						ref = {(el) => toast.set_elements(el as HTMLDivElement | null, i)}
+					>
+						<div>
+							<p>{i.text}</p>
+						</div>
+						<div class = 'pointer' onClick = {toast.splice.bind(null, v)}>
+							<span>&times;</span>
+						</div>
+					</div>
+				)}
 			</div>
-		</div>
-	`
+				
+		);
+	},
 });
 
+export default _Toast;
 export { toast };
 export type { Hint };
