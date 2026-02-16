@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import GLOBAL from '@/script/global';
 import mainGame from '@/script/game';
 
@@ -16,7 +16,7 @@ class Toast {
 	unshow : boolean = true;
 	list : Array<Hint> = reactive([]);
 	elements : Map<Hint, HTMLDivElement> = new Map()
-	time : number = 3;
+	time : number = 10;
 	arr : Array<Function> = [];
 	chk : boolean = false;
 
@@ -94,6 +94,36 @@ class Toast {
 	}
 };
 
-const toast = reactive(new Toast());
-export default toast;
+const toast = new Toast();
+
+export default defineComponent({
+	name : 'Voice',
+	setup() {
+		const Toast = reactive(toast);
+		return {
+			Toast
+		};
+	},
+	template : `
+		<div class = 'toast'>
+			<div
+				v-for = '(i, v) in Toast.list'
+				:class = '[i.type, i.status]'
+				:id = 'i.id'
+				:key = 'i.id'
+				:style = "{ '--top' : i.top + 'px', '--time' : Toast.time + 's' }"
+				:ref = '(el) => Toast.set_elements(el, i)'
+			>
+				<div>
+					<p>{{ i.text }}</p>
+				</div>
+				<div class = 'pointer' @click = 'Toast.splice(v)'>
+					<span>&times;</span>
+				</div>
+			</div>
+		</div>
+	`
+});
+
+export { toast };
 export type { Hint };

@@ -1,5 +1,6 @@
-import { KEYS } from '@/script/constant';
+import { defineComponent } from 'vue';
 import mainGame from '@/script/game';
+import { KEYS } from '@/script/constant';
 
 class Voice {
 	playing ?: HTMLAudioElement = undefined;
@@ -24,4 +25,30 @@ class Voice {
 
 const voice = new Voice();
 
-export default voice;
+export default defineComponent({
+	name : 'Voice',
+	setup() {
+		const Voice = {
+			bgm : mainGame.bgm,
+			voice : voice
+		};
+		return {
+			Voice
+		};
+	},
+	template : `
+		<div>
+			<audio
+				loop
+				v-for = '[i, v] in Voice.bgm'
+				:key = 'i'
+				:id = 'i'
+				:ref = '(el) => Voice.voice.set_elements(el, i)'
+			>
+				<source :src = 'v'>
+			</audio>
+		</div>
+	`
+});
+
+export { voice };

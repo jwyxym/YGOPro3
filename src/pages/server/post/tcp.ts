@@ -11,7 +11,7 @@ import Client_Card from '@/pages/server/scene/client_card';
 import Plaid from '@/pages/server/scene/plaid';
 import { Idle } from '@/pages/server/idle';
 import Deck from '@/pages/deck/deck';
-import toast from '@/pages/toast/toast';
+import { toast } from '@/pages/toast/toast';
 
 import Message from './message';
 import { CTOS, STOC, LOCATION, MSG, ERROR, PLAYERCHANGE, HINT, QUERY, PHASE, COMMAND, EDESC, POS } from './network';

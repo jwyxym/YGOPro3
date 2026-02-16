@@ -1,30 +1,8 @@
-<template>
-	<div class = 'toast'>
-		<div
-			v-for = '(i, v) in toast.list'
-			:class = '`${i.type} ${i.status}`'
-			:id = 'i.id'
-			:key = 'i.id'
-			:style = "{ '--top' : `${i.top}px`, '--time' : `${toast.time}s` }"
-			:ref = '($el) => toast.set_elements($el as HTMLDivElement | null, i)'
-		>
-			<div>
-				<p>{{ i.text }}</p>
-			</div>
-			<div class = 'pointer' @click = 'toast.splice(v)'>
-				<span>&times;</span>
-			</div>
-		</div>
-	</div>
-</template>
-<script setup lang = 'ts'>
-	import toast from './toast';
-</script>
-<style scoped lang = 'scss'>
+.main {
 	$info: #2196f3;
 	$warn: #ffc107;
 	$err: #ff5252;
-	.toast {
+	> .toast {
 		color: white;
 		position: fixed;
 		right: 0;
@@ -110,4 +88,4 @@
 			}
 		}
 	}
-</style>
+}

@@ -328,7 +328,7 @@
 	// import Float_Buttons from '@/pages/ui/float_buttons.vue';
 	import Picker from '@/pages/ui/picker';
 	import Deck from '@/pages/deck/deck';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 
 	import Duel from './scene/duel.vue';
 	import RPS from './scene/rps.vue';

@@ -40,13 +40,12 @@
 	import Duel from './pages/duel/duel.vue';
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
-	import Voice from './pages/voice/voice.vue';
-	import Toast from './pages/toast/toast.vue';
+	import Toast from './pages/toast/toast';
+	import Voice, { voice } from './pages/voice/voice';
 
 	import mainGame from './script/game';
 	import fs from './script/fs';
 	import { I18N_KEYS } from './script/language/i18n';
-	import voice from './pages/voice/voice';
 	import Dialog from './pages/ui/dialog';
 	import { FILES } from './script/constant';
 
@@ -130,7 +129,7 @@
 	});
 
 </script>
-<style scoped lang = 'scss'> 
+<style scoped lang = 'scss'>
 	.main {
 		position: relative;
 		> div:last-child {
@@ -167,6 +166,7 @@
 	}
 </style>
 <style lang = 'scss'>
+	@import '@/pages/toast/toast.scss';
 	.var-icon, .cursor {
 		&:hover {
 			cursor: pointer;
