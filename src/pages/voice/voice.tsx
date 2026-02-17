@@ -25,11 +25,11 @@ class Voice {
 
 const voice = new Voice();
 
-const _Voice =  defineComponent({
+const _Voice = defineComponent({
 	name : 'Voice',
 	setup () {
 		onMounted(() => voice.play(FILES.BACK_BGM));
-		return () => (
+		return () => 
 			<div>
 				{Array.from(mainGame.bgm).map(([i, v]) =>
 					<audio
@@ -41,8 +41,7 @@ const _Voice =  defineComponent({
 						<source src = {v}/>
 					</audio>
 				)}
-			</div>
-		);
+			</div>;
 	},
 });
 
