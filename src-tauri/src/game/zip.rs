@@ -3,7 +3,6 @@ use regex::Regex;
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
 use tokio::task::{JoinHandle, spawn_blocking};
-use base64::{engine::general_purpose, Engine as _};
 use std::{
 	fs::File,
 	io::Read,
@@ -13,7 +12,7 @@ use std::{
 #[derive(Serialize, Clone, Debug)]
 pub struct Zip {
 	path: String,
-	pics: BTreeMap<i64, String>,
+	pics: BTreeMap<i64, Vec<u8>>,
 	db: Vec<Vec<u8>>,
 	ini: Vec<String>,
 	lflist: Vec<String>,
@@ -23,7 +22,7 @@ pub struct Zip {
 impl Zip {
 	pub fn new (path: String) -> JoinHandle<Result<Self, Error>> {
 		spawn_blocking(move || {
-			let mut pics: BTreeMap<i64, String> = BTreeMap::new();
+			let mut pics: BTreeMap<i64, Vec<u8>> = BTreeMap::new();
 			let mut db: Vec<Vec<u8>>= Vec::new();
 			let mut ini: Vec<String>= Vec::new();
 			let mut lflist: Vec<String>= Vec::new();
@@ -39,11 +38,7 @@ impl Zip {
 					let mut content: Vec<u8> = Vec::new();
 					if let Ok(code) = _match.as_str().parse::<i64>()
 						&& zip.read_to_end(&mut content).is_ok() {
-						pics.insert(code, format!(
-							"data:image/{};base64,{}",
-							if content.starts_with(&[0xFF, 0xD8, 0xFF]) { "jpeg" } else { "png" },
-							general_purpose::STANDARD.encode(&content)
-						));
+						pics.insert(code, content);
 					}
 				}
 				else if name.ends_with("ini") {
