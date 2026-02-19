@@ -1,174 +1,198 @@
 <template>
-<div class="waitting-background">
-	<div class="waitting-title">XX的决斗房间</div>
-    <div class="waitting-text">
-		<div class="waitting-information">
-			<div class="waitting-player-background">
-				<div class="waitting-player-team">→决斗者</div>
-				<div v-for="(name, index) in props.name.slice(0, 4)" :key="index" class="waitting-player-name">
-					<span class="waitting-player-logo">X</span>
-					<div>{{ name }}</div>
-					<var-checkbox readonly v-model="value" class="waitting-player-checkbox" />
+	<div class = 'wait'>
+		<div><b>{{ info.room_name }}</b></div>
+		<div>
+			<div>
+				<div>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.SERVER_TO_DUELIST)'
+					></Button>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.SERVER_TO_WATCHER)'
+					></Button>
+					{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_WATCH)} : ${info.watch}` }}
+				</div>
+				<div>
+					<div v-for = '(i, v) in player.slice(0, info.mode === 2 ? 4 : 2)'>
+						<div><span>{{ i.name }}</span></div>
+						<div>
+							<var-checkbox
+								class = 'readonly'
+								:readonly = 'true'
+								v-model = 'i.status'
+							></var-checkbox>
+							<var-icon
+								v-if = 'is_host'
+								:color = "self === v ? '#555' : 'white'"
+								name = 'close-circle-outline'
+								@click = "emit('kick', v as 0 | 1 | 2 | 3)"
+							/>
+						</div>
+					</div>
 				</div>
 			</div>
-			<div class="waitting-rules-background">
-				<div class="waitting-rules-text">
-					<div>禁限卡表：</div>
-					<div>???</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>卡片允许：</div>
-					<div>所有卡片</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>决斗模式：</div>
-					<div>单局模式</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>每回合时间：</div>
-					<div>6000</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>初始基本分：</div>
-					<div>8000</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>初始手卡数：</div>
-					<div>5</div>
-				</div>
-				<div class="waitting-rules-text">
-					<div>每回合抽卡：</div>
-					<div>1</div>
-				</div>
+			<div>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_LFLIST)} : ${mainGame.get.lflist(info.lflist)}` }}</span>
+				<span>
+					{{
+						`${mainGame.get.text(I18N_KEYS.SERVER_HOME_RULE)} : ${mainGame.get.text([
+							I18N_KEYS.SERVER_RULE_OCG, I18N_KEYS.SERVER_RULE_TCG, I18N_KEYS.SERVER_RULE_SC, I18N_KEYS.SERVER_RULE_CUSTOM, I18N_KEYS.SERVER_RULE_NO_EXCLUSIVE, I18N_KEYS.SERVER_RULE_ALL
+						][info.rule] ?? I18N_KEYS.UNKNOW)}`
+					}}
+				</span>
+				<span>
+					{{
+						`${mainGame.get.text(I18N_KEYS.SERVER_HOME_MODE)} : ${mainGame.get.text([
+							I18N_KEYS.SERVER_MODE_SINGLE, I18N_KEYS.SERVER_MODE_MATCH, I18N_KEYS.SERVER_MODE_TAG
+						][info.mode] ?? I18N_KEYS.UNKNOW)}`
+					}}
+				</span>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_TIME_LIMIT)} : ${info.time_limit}` }}</span>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_LP)} : ${info.start_lp}` }}</span>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_HAND)} : ${info.start_hand}` }}</span>
+				<span v-show = 'info.no_check_deck'>{{ mainGame.get.text(I18N_KEYS.SERVER_NO_CHECK_DECK) }}</span>
+				<span v-show = 'info.no_shuffle_deck'>{{ mainGame.get.text(I18N_KEYS.SERVER_NO_SHUFFLE_DECK) }}</span>
 			</div>
+		</div>
+		<div>
+			<Select
+				name = 'deck'
+				v-model = 'page.deck'
+				@change = "(deck : Deck | undefined) => emit('deck', deck)"
+				:rules = 'page.rules'
+			></Select>
+			<div>
+				<Button
+					v-if = 'is_host'
+					:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
+					@click = "emit('connect')"
+				/>
+			</div>
+		</div>
 	</div>
-	<div class="waitting-buttons-background">
-		<button class="waitting-buttons-text">→观战</button>
-		<button class="waitting-buttons-text" @click="ready">{{readytext}}</button>
-	</div>
-    <div class="waitting-deck-background">
-        <span>卡组选择：</span>
-        <select v-model="deckclass1" class="waitting-deck-text">
-        	<option>未分类卡组</option>
-        </select>
-        <select v-model="deck1" class="waitting-deck-text">
-        	<option>AI_Maliss</option>
-        </select>
-    </div>
-    </div>
-</div>
 </template>
 
-<script setup lang="ts">
+<script setup lang = 'ts'>
+	import { reactive } from 'vue'
+	import Button from '@/pages/ui/button.vue';
+	import Select from '@/pages/ui/select.vue';
+	import mainGame from '@/script/game';
+	import { I18N_KEYS } from '@/script/language/i18n';
+	import Deck from '@/pages/deck/deck';
 
-import { ref,computed } from 'vue'
+	interface Player {
+		name : string;
+		status : boolean;
+	};
+	type Players = [Player, Player, Player, Player];
+	const props  = defineProps<{
+		player : Players;
+		is_host : boolean;
+		self : 0 | 1 | 2 | 3;
+		deck : true | string
+		info : {
+			room_name : string;
+			lflist : number;
+			rule : number;
+			mode : number;
+			duel_rule : number;
+			no_check_deck : boolean;
+			no_shuffle_deck : boolean;
+			start_lp : number;
+			start_hand : number;
+			draw_count : number;
+			time_limit : number;
+			watch : number;
+		}
+	}>();
 
-const props = defineProps<{
-	name : string[];
-	value : boolean;
-}>();
+	const emit = defineEmits<{
+		kick : [v : 0 | 1 | 2 | 3];
+		deck : [deck ?: Deck];
+		connect : [];
+		disconnect : [];
+	}>();
 
-const value = ref(false)
-const readytext = computed(() => value.value ? '取消准备' : '准备')
-const ready = () => {
-	value.value = !value.value
-}
-
-const deckclass1 = ref('未分类卡组')
-const deck1 = ref('AI_Maliss')
-
+	const page = reactive({
+		deck : undefined as undefined | Deck,
+		rules : () => props.deck
+	});
 </script>
 
-<style scoped lang="scss">
-.waitting-background {
-	display: contents;
-	color: white;
-
-	.waitting-title {
-    	background: #1a1a4d;
-    	padding: 8px 16px;
-    	font-weight: bold;
-    	border-radius: 4px 4px 0 0;
-	}
-
-	.waitting-text {
+<style scoped lang = 'scss'>
+	.wait {
 		display: flex;
 		flex-direction: column;
-    	background: #010112;
-    	border-radius: 4px;
-    	padding: 20px;
-    	box-shadow: 0 4px 8px #1a1a4d;
-
-		.waitting-information { 
+		align-items: center;
+		justify-content: center;
+		height: 400px;
+		width: 800px;
+		border-radius: 4px;
+		background-color: rgba(0, 0, 0, 0.2);
+		color: white;
+		> div {
+			width: calc(100% - 40px);
+		}
+		> div:first-child {
+			height: 50px;
 			display: flex;
-			flex-direction: row;
-
-			.waitting-player-background {
-				margin-bottom: 20px;
-
-				.waitting-player-team {
-					padding: 6px 12px;
-					margin-bottom: 10px;
-				}
-
-				.waitting-player-name {
-					display: flex;
-					flex-direction: row;
-					align-items: center;
-					margin: 8px 0;
-				
-					.waitting-player-logo {
-						width: 24px;
-						text-align: center;
-						font-weight: bold;
-					}
-
-					.waitting-player-box {
-						flex: 1;
-						padding: 4px 8px;
-						border: 1px solid #999;
-						margin: 0 8px;
-					}
-				}
-			}
-			
-			.waitting-rules-background {
+			justify-content: center;
+			align-items: center;
+		}
+		> div:nth-child(2) {
+			height: calc(100% - 130px);
+			display: flex;
+			> div {
+				height: 100%;
+				width: 70%;
 				display: flex;
 				flex-direction: column;
-				margin-bottom: 20px;
-
-				.waitting-rules-text {
+				> div:first-child {
+					width: 100%;
+					height: 50px;
+					margin-left: 10px;
 					display: flex;
-					flex-direction: row;
-					margin: 4px 0;
+					gap: 10px;
+					align-items: center;
+				}
+				> div:last-child {
+					width: 100%;
+					height: calc(100% - 50px);
+					> div {
+						display: flex;
+						border-bottom: 1px solid white;
+						align-items: center;
+						height: 23%;
+						> div:first-child {
+							width: calc(100% - 60px);
+							> span {
+								margin-left: 10px;
+							}
+						}
+						> div:last-child {
+							width: 60px;
+							display: flex;
+							align-items: center;
+						}
+					}
 				}
 			}
-		}
-		.waitting-buttons-background {
-			display: flex;
-			gap: 16px;
-			margin: 20px 0;
-
-			.waitting-buttons-text {
-				flex: 1;
-				background: #e0e0e0;
-				border: 1px solid #999;
-				padding: 8px;
-				cursor: pointer;
+			> div:last-child {
+				height: 100%;
+				width: 30%;
+				margin-left: 20px;
 			}
 		}
-		
-		.waitting-deck-background {
+		> div:last-child {
+			width: 80%;
+			height: 80px;
 			display: flex;
 			align-items: center;
-			margin: 16px 0;
-
-			.waitting-deck-text {
-				flex: 1;
-				padding: 4px 8px;
-				border: 1px solid #999;
+			justify-content: space-between;
+			> div {
+				width: 40%;
 			}
-    	}
+		}
+
 	}
-}
 </style>
