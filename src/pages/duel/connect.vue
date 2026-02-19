@@ -4,6 +4,11 @@
 			<Server
 				v-if = '!connect.state'
 				@connect = 'connect.on'
+				key = '0'
+			/>
+			<Scene
+				v-if = 'connect.state === 1'
+				key = '2'
 			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'opacity'>
@@ -24,6 +29,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import connect from './connect';
+	import Scene from './scene/scene';
 
 	onMounted(() => {
 
@@ -45,6 +51,12 @@
 			left: 50%;
 			top: 50%;
 			transform: translate(-50%, -50%);
+			> div {
+				position: absolute;
+				left: 50%;
+				top: 50%;
+				transform: translate(-50%, -50%);
+			}
 		}
 		> div:last-child {
 			position: absolute;

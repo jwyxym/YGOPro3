@@ -97,10 +97,10 @@ class Toast {
 
 const toast = new Toast();
 
-const _Toast =  defineComponent({
+const _Toast = defineComponent({
 	name : 'Toast',
 	setup () {
-		return () => (
+		return () =>
 			<div class = 'toast'>
 				{toast.list.map((i, v) =>
 					<div
@@ -118,9 +118,7 @@ const _Toast =  defineComponent({
 						</div>
 					</div>
 				)}
-			</div>
-				
-		);
+			</div>;
 	},
 });
 

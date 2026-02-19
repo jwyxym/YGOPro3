@@ -37,7 +37,7 @@
 
 	import YGOMenu from './pages/menu/menu.vue';
 	import Deck from './pages/deck/deck_list.vue';
-	import Duel from './pages/duel/duel.vue';
+	import Duel from './pages/duel/connect.vue';
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
