@@ -6,15 +6,28 @@
 				@connect = 'connect.on'
 				key = '0'
 			/>
-			<Scene
+			<Wait
 				v-if = 'connect.state === 1'
+				:player = 'connect.wait.players'
+				:self = 'connect.wait.self'
+				:info = 'connect.wait.info'
+				@kick = 'connect.wait.kick'
+				@deck = 'connect.wait.deck'
+				@duelist = 'connect.wait.duelist'
+				@watcher = 'connect.wait.watcher'
+				@connect = 'connect.on'
+				@disconnect = 'connect.clear'
+				key = '1'
+			/>
+			<Scene
+				v-if = 'connect.state === 2'
 				key = '2'
 			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.EXIT)'
-				@click = "emit('exit')"
+				@click = 'exit'
 				key = '0'
 			/>
 		</TransitionGroup>
@@ -24,6 +37,7 @@
 	import { onMounted, onUnmounted } from 'vue';
 
 	import Server from './server.vue';
+	import Wait from './wait.vue';
 	import Button from '@/pages/ui/button.vue';
 
 	import mainGame from '@/script/game';
@@ -36,6 +50,8 @@
 	});
 
 	onUnmounted(connect.clear);
+
+	const exit = () => connect.state ? connect.clear() : emit('exit');
 
 	const emit = defineEmits<{
 		exit : []

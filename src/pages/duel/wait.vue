@@ -6,9 +6,13 @@
 				<div>
 					<Button
 						:content = 'mainGame.get.text(I18N_KEYS.SERVER_TO_DUELIST)'
+						:class = "{ 'readonly' : self.position < 4 && info.mode !== 2 }"
+						@click = "emit('duelist')"
 					></Button>
 					<Button
 						:content = 'mainGame.get.text(I18N_KEYS.SERVER_TO_WATCHER)'
+						:class = "{ 'readonly' : self.position >= 4 }"
+						@click = "emit('watcher')"
 					></Button>
 					{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_WATCH)} : ${info.watch}` }}
 				</div>
@@ -22,8 +26,8 @@
 								v-model = 'i.status'
 							></var-checkbox>
 							<var-icon
-								v-if = 'is_host'
-								:color = "self === v ? '#555' : 'white'"
+								v-if = 'self.is_host'
+								:color = "self.position === v ? '#555' : 'white'"
 								name = 'close-circle-outline'
 								@click = "emit('kick', v as 0 | 1 | 2 | 3)"
 							/>
@@ -63,7 +67,7 @@
 			></Select>
 			<div>
 				<Button
-					v-if = 'is_host'
+					v-if = 'self.is_host'
 					:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
 					@click = "emit('connect')"
 				/>
@@ -80,16 +84,16 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Deck from '@/pages/deck/deck';
 
-	interface Player {
-		name : string;
-		status : boolean;
-	};
-	type Players = [Player, Player, Player, Player];
 	const props  = defineProps<{
-		player : Players;
-		is_host : boolean;
-		self : 0 | 1 | 2 | 3;
-		deck : true | string
+		player : Array<{
+			name : string;
+			status : boolean;
+		}>;
+		self : {
+			is_host : boolean;
+			position : 0 | 1 | 2 | 3;
+			deck : true | string
+		};
 		info : {
 			room_name : string;
 			lflist : number;
@@ -109,13 +113,15 @@
 	const emit = defineEmits<{
 		kick : [v : 0 | 1 | 2 | 3];
 		deck : [deck ?: Deck];
+		duelist : [];
+		watcher : [];
 		connect : [];
 		disconnect : [];
 	}>();
 
 	const page = reactive({
 		deck : undefined as undefined | Deck,
-		rules : () => props.deck
+		rules : () => props.self.deck
 	});
 </script>
 
