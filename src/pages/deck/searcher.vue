@@ -553,7 +553,7 @@
 			}
 			.select, .link {
 				> div:first-child {
-					width: calc(var(--vw) / 2);
+					width: calc(var(--width) / 2);
 					display: flex;
 					align-items: center;
 					gap: 5px;
@@ -627,9 +627,11 @@
 			.input {
 				> div {
 					display: flex;
-					gap: 10px;
-					min-height: 100px;
-					width: calc(var(--vw) / 2);
+					gap: 5px;
+					min-height: 50px;
+					.var-input {
+						width: 40%;
+					}
 					img {
 						width: 40px;
 						height: 40px;
