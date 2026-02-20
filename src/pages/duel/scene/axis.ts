@@ -1,6 +1,6 @@
 import { LOCATION } from '@/script/ygo-protocol/network';
 import Client_Card from './client_card';
-import * as CONSTANT from './scene-size';
+import * as SIZE from './scene-size';
 
 class Axis {
 	x : number;
@@ -109,11 +109,11 @@ class Axis {
 	static computed = {
 		card : (card : Client_Card) : Axis => {
 			const axis : Axis = Axis.map.get(card.location)![card.owner];
-			const x : number = (CONSTANT.HEIGHT + CONSTANT.GAP.SCENE) * axis.x;
-			let y : number = (CONSTANT.HEIGHT + CONSTANT.GAP.SCENE) * axis.y
-			const z : number  = card.seq * CONSTANT.TOP;
+			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
+			let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
+			const z : number  = card.seq * SIZE.TOP;
 			if (axis.x % 3 === 0 && axis.x !== 0) {
-				y += CONSTANT.OFFSET * 
+				y += SIZE.OFFSET * 
 					(axis.y > 0 ? 1
 						: axis.y < 0 ? - 1
 						: axis.x === - 3 ? 1 : - 1
@@ -122,10 +122,10 @@ class Axis {
 			return new Axis(x, y, z);
 		},
 		back : (axis : Axis) : Axis => {
-			const x : number = (CONSTANT.HEIGHT + CONSTANT.GAP.SCENE) * axis.x;
-			let y : number = (CONSTANT.HEIGHT + CONSTANT.GAP.SCENE) * axis.y
+			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
+			let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
 			if (axis.x % 3 === 0 && axis.x !== 0) {
-				y += CONSTANT.OFFSET * 
+				y += SIZE.OFFSET * 
 					(axis.y > 0 ? 1
 						: axis.y < 0 ? - 1
 						: axis.x === - 3 ? 1 : - 1

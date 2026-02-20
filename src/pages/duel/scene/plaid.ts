@@ -3,7 +3,7 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { LOCATION } from '@/script/ygo-protocol/network';
-import * as CONSTANT from './scene-size';
+import * as SIZE from './scene-size';
 
 class Plaid {
 	three : CSS.CSS3DObject;
@@ -16,8 +16,8 @@ class Plaid {
 		const dom = document.createElement('div');
 		const child = document.createElement('div');
 		Object.assign(child.style, {
-			width : `${CONSTANT.HEIGHT}px`,
-			height : `${CONSTANT.HEIGHT}px`,
+			width : `${SIZE.HEIGHT}px`,
+			height : `${SIZE.HEIGHT}px`,
 			border : '2px solid #9ed3ff',
 			transition : 'all 0.2s ease'
 		});

@@ -1,14 +1,17 @@
 import { defineComponent, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
+import { gsap } from 'gsap';
 
 import mainGame from '@/script/game';
 import { FILES } from '@/script/constant';
-import * as CONSTANT from './scene-size';
+import { LOCATION } from '@/script/ygo-protocol/network';
+import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
 import GLOBAL from '@/script/scale';
 import Btn from './btn';
+import Client_Card from './client_card';
 
 class Duel {
 	element : HTMLDivElement | null = null;
@@ -18,6 +21,7 @@ class Duel {
 	scene : THREE.Scene = new THREE.Scene();
 	camera : THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
 	plaids : Array<Plaid> = [];
+	cards : Array<Client_Card> = [];
 	btn : Btn | null = null;
 	animation_id : number = 0;
 
@@ -58,18 +62,65 @@ class Duel {
 		this.btn = null;
 		this.animation_id = 0;
 	};
+	sort = (location : number, owner : 0 | 1) : gsap.core.Timeline => {
+		const tl = gsap.timeline();
+		if (location === LOCATION.DECK) {
+			const cards = this.cards.filter(i => i.owner === owner && i.location === location);
+			const len = cards.length;
+			if (len > 1) {
+				for (let v = 0; v < 4; v ++) {
+					const card = cards[len - 1];
+					tl.to(card.three.position, {
+						x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						duration : 0.05
+					}, 0 + v * 0.2);
+					const z = Math.floor(len / 2) * SIZE.TOP;
+					tl.to(card.three.position, {
+						z : z,
+						duration : 0.05
+					}, 0.05 + v * 0.2);
+					tl.to(card.three.position, {
+						x : `${!!owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						duration : 0.05
+					}, 0.1 + v * 0.2);
+					tl.to(card.three.position, {
+						z : len * SIZE.TOP,
+						duration : 0.05
+					}, 0.15 + v * 0.2);
+				}
+			}
+		} else if (location === LOCATION.HAND) {
+			const width = SIZE.WIDTH * SIZE.MAX_HAND;
+			const axis = Axis.map.get(LOCATION.HAND)![owner];
+			const cards = this.cards.filter(i => i.owner === owner && i.location === location);
+			const ct = cards.length;
+			cards.forEach((card, v) => {
+				const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.HEIGHT) * v * (!!owner ? -1 : 1);
+				const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
+				const z = v * SIZE.GAP.HAND + (!!owner ? 0 : 60);
+				if (card.three.position.x !== x || card.three.position.y !== y || card.three.position.z !== z)
+					tl.to(card.three.position, {
+						x : x,
+						y : y,
+						z : z,
+						duration : 0.15
+					}, 0);
+			});
+		}
+		return tl;
+	};
 	add = {
 		back : (pic : Array<string | undefined> = mainGame.get.textures(FILES.TEXTURE_BACK) as Array<string>) : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
-				dom.style.width = `${CONSTANT.WIDTH * 12}px`;
+				dom.style.width = `${SIZE.WIDTH * 12}px`;
 				for (const [v, src] of srcs.entries()) {
 					const child = document.createElement('img');
 					child.src = src;
 					Object.assign(child.style, {
 						display : 'block',
-						width : `${CONSTANT.WIDTH * 12}px`,
-						height : `${CONSTANT.HEIGHT * 4}px`,
+						width : `${SIZE.WIDTH * 12}px`,
+						height : `${SIZE.HEIGHT * 4}px`,
 						transform : !!v ? 'initial' : 'scaleY(-1)'
 					});
 					dom.appendChild(child);
@@ -110,3 +161,4 @@ const _Duel = defineComponent({
 });
 
 export default _Duel;
+export { duel };
