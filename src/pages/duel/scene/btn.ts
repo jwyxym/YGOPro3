@@ -2,8 +2,8 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
-import { PHASE } from '@/pages/duel/post/network';
-import * as CONSTANT from './constant';
+import { PHASE } from '@/script/ygo-protocol/network';
+import * as CONSTANT from './scene-size';
 
 class Btn {
 	three : CSS.CSS3DObject;

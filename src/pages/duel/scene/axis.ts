@@ -1,6 +1,6 @@
-import { LOCATION } from '../post/network';
+import { LOCATION } from '@/script/ygo-protocol/network';
 import Client_Card from './client_card';
-import * as CONSTANT from './constant';
+import * as CONSTANT from './scene-size';
 
 class Axis {
 	x : number;

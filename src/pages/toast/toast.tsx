@@ -1,5 +1,5 @@
 import { defineComponent, reactive } from 'vue';
-import GLOBAL from '@/script/global';
+import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';
 
 type HintType = 'info' | 'warn' | 'err';

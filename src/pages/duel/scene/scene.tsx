@@ -3,10 +3,10 @@ import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import mainGame from '@/script/game';
 import { FILES } from '@/script/constant';
-import * as CONSTANT from './constant';
+import * as CONSTANT from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
-import GLOBAL from '@/script/global';
+import GLOBAL from '@/script/scale';
 import Btn from './btn';
 
 class Duel {

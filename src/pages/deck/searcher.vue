@@ -184,7 +184,7 @@
 	import Card, { TYPE } from '@/script/card';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { FILES, KEYS, REG } from '@/script/constant';
-	import GLOBAL from '@/script/global';
+	import GLOBAL from '@/script/scale';
 	import Search from '@/script/search';
 
 	import Pic, { CardPic } from '@/pages/ui/pic.vue';
