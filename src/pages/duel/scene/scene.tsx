@@ -1,6 +1,7 @@
 import { defineComponent, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
+
 import mainGame from '@/script/game';
 import { FILES } from '@/script/constant';
 import * as CONSTANT from './scene-size';
@@ -55,6 +56,7 @@ class Duel {
 		this.camera = new THREE.PerspectiveCamera();
 		this.plaids.length = 0;
 		this.btn = null;
+		this.animation_id = 0;
 	};
 	add = {
 		back : (pic : Array<string | undefined> = mainGame.get.textures(FILES.TEXTURE_BACK) as Array<string>) : void => {
@@ -89,6 +91,9 @@ class Duel {
 			btn.three.position.set(...Axis.computed.back(new Axis(2, 0, 0)).get.xyz());
 			this.scene.add(btn.three);
 			this.btn = btn;
+		},
+		card : () : void => {
+			
 		}
 	}
 };
