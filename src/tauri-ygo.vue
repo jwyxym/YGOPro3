@@ -127,8 +127,12 @@
 	});
 
 import { invoke } from '@tauri-apps/api/core';
+import * as CONSTANT from '@/script/constant';
 	onMounted(async () => {
-		invoke<any>('init').then(r => console.log(r))
+		const r = await invoke<any>('init', {
+			path : await CONSTANT.BASE_PATH()
+		})
+		console.log(r)
 	});
 
 </script>

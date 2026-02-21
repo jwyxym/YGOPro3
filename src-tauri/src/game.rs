@@ -26,7 +26,7 @@ use crate::game::{
 	file::{File, FileContent},
 };
 
-use serde::{Serialize, Deserialize};
+use serde::Serialize;
 use anyhow::{Result, Error};
 use walkdir::WalkDir;
 use tokio::{
@@ -40,13 +40,14 @@ use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
-	strings: Vec<(String, Strings)>,
-	cards: Vec<(String, (Vec<i64>, Vec<String>))>,
-	pics: Vec<(i64, String)>,
-	system: (Vec<(String, String)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>),
-	textures: Vec<(String, String)>,
-	sound: Vec<(String, String)>,
-	font: Vec<(String, String)>,
+	strings: Vec<Strings>,
+	system: System,
+	textures: Textures,
+	lflist: LFList,
+	card_info: CardInfo,
+	server: Server,
+	pics: Pic,
+	cards: Vec<Card>
 }
 
 impl Game  {	
@@ -60,33 +61,30 @@ impl Game  {
 		Ok(())
 	}
 
-	pub async fn init (app: AppHandle, path: String) -> Result<(), Error> {
+	pub async fn init (app: AppHandle, path: String) -> Result<Self, Error> {
 		let start = std::time::Instant::now();
 		println!("开始");
 		
 		let path: &Path = Path::new(&path);
-		let pics: Pic = Pic::new();
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
 
-		let ((strings, system, textures, lflist, card_info, servers), cards, _, _) = join!(
+		let (game, cards, _, _) = join!(
 			Self::load_config(path),
 			Self::load_card(path),
 			font.read_dir(path.join("font")),
 			sound.read_dir(path.join("sound"))
 		);
 
-		let (strings, lflist, db, mut pics) = Self::load_expansion(path, strings, lflist, pics, &system).await;
-		
-		pics.read_dir(path.join("expansions").join("pics"));
-		pics.read_dir(path.join("pics"));
+		let mut game: Game = Self::load_expansion(path, game).await;
+		game.cards = cards;
 
 		let duration = start.elapsed();
 		println!("执行时间: {:?}", duration);
-		Ok(())
+		Ok(game)
 	}
 
-	async fn load_config (path: &Path) -> (Vec<Strings>, System, Textures, LFList, CardInfo, Server) {
+	async fn load_config (path: &Path) -> Self {
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		WalkDir::new(path.join("config"))
 			.into_iter()
@@ -103,9 +101,11 @@ impl Game  {
 							} else if file.name() == "servers.toml" {
 								let text: String = read_to_string(i.path()).await?;
 								Ok(FileContent::Servers(text))
-							} else {
+							} else if file.ext() == "toml" && file.name().starts_with("cardinfo-") {
 								let text: String = read_to_string(i.path()).await?;
 								Ok(FileContent::CardInfo((String::from(file.name()), text)))
+							} else {
+								Ok(FileContent::None)
 							}
 						}));
 					}
@@ -136,6 +136,7 @@ impl Game  {
 		let mut card_info: Vec<CardInfo> = Vec::new();
 		let mut servers: Server = Server::new();
 		let mut lflist: LFList = LFList::new();
+		let mut pics: Pic = Pic::new();
 
 		let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
 		while let Some(task) = tasks.next().await {
@@ -165,7 +166,71 @@ impl Game  {
 			.get(0)
 			.cloned()
 			.unwrap_or_else(|| { CardInfo::default() });
-		(strings, system, textures, lflist, card_info, servers)
+		pics.read_dir(path.join("pics"));
+		pics.read_dir(path.join("expansions").join("pics"));
+		Self {
+			strings: strings,
+			system: system,
+			textures: textures,
+			lflist: lflist,
+			card_info: card_info,
+			server: servers,
+			pics: pics,
+			cards: Vec::new()
+		}
+	}
+
+	async fn load_expansion (path: &Path, mut game: Self) -> Self {
+		let mut tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
+		WalkDir::new(path.join("expansions"))
+			.into_iter()
+			.for_each(|i| {
+				if let Ok(i) = i {
+					if let Some(file) = File::new(i.path()) {
+						if game.system
+							.array()
+							.get("LOADING_EXPANSION")
+							.unwrap_or(&Vec::new())
+							.contains(&String::from(file.name())) {
+							tasks.push(Zip::new(String::from(file.path())));
+						}
+					}
+				}
+			});
+		let mut tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
+		let mut strings: Vec<Strings> = Vec::new();
+		let mut db: Vec<Vec<u8>> = Vec::new();
+		while let Some(task) = tasks.next().await {
+			if let Ok(task) = task {
+				if let Ok(zip) = task {
+					zip.lflist().into_iter().for_each(|text: String| {
+						game.lflist.init(text);
+					});
+					game.strings.iter().for_each(|i: &Strings| {
+						zip.strings().into_iter().for_each(|text: String| {
+							strings.push(i.clone().init(text.clone()));
+						});
+					});
+					zip.db().into_iter().for_each(|i: Vec<u8>| {
+						db.push(i.clone());
+					});
+					zip.pics().into_iter().for_each(|(k, v)| {
+						game.pics.insert(k, PicContent::Buffer(v.clone()));
+					});
+					zip.servers().into_iter().for_each(|text: String| {
+						game.server.init_conf(text);
+					});
+					zip.ini().into_iter().for_each(|text: String| {
+						game.server.init_ini(text);
+					});
+					zip.lflist().into_iter().for_each(|text: String| {
+						game.lflist.init(text);
+					});
+				}
+			}
+		}
+		game.strings = strings;
+		game
 	}
 
 	async fn load_card (path: &Path) -> Vec<Card> {
@@ -196,50 +261,5 @@ impl Game  {
 			}
 		}
 		dbs
-	}
-
-	async fn load_expansion (path: &Path, strings: Vec<Strings>, mut lflist: LFList, mut pics: Pic, system: &System) -> (Vec<Strings>, LFList, Vec<Vec<u8>>, Pic) {
-		let mut tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
-		WalkDir::new(path.join("expansions"))
-			.into_iter()
-			.for_each(|i| {
-				if let Ok(i) = i {
-					if let Some(file) = File::new(i.path()) {
-						if system
-							.array()
-							.get("LOADING_EXPANSION")
-							.unwrap_or(&Vec::new())
-							.contains(&String::from(file.name())) {
-							tasks.push(Zip::new(String::from(file.path())));
-						}
-					}
-				}
-			});
-		let mut tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
-		let old_strings: Vec<Strings> = strings;
-		let mut strings: Vec<Strings> = Vec::new();
-		let mut db: Vec<Vec<u8>> = Vec::new();
-		while let Some(task) = tasks.next().await {
-			if let Ok(task) = task {
-				if let Ok(zip) = task {
-					zip.lflist().into_iter().for_each(|text: String| {
-						lflist.init(text);
-					});
-					old_strings.iter().for_each(|i: &Strings| {
-						zip.strings().into_iter().for_each(|text: String| {
-							strings.push(i.clone().init(text.clone()));
-						});
-					});
-					zip.db().into_iter().for_each(|i: Vec<u8>| {
-						db.push(i.clone());
-					});
-					zip.pics().into_iter().for_each(|(k, v)| {
-						pics.insert(k, PicContent::Buffer(v.clone()));
-					});
-					//缺少 server.ini/server.conf/lflist.conf
-				}
-			}
-		}
-		(strings, lflist, db, pics)
 	}
 }

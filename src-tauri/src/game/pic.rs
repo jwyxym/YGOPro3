@@ -1,12 +1,14 @@
 use crate::game::file::File;
 use std::{collections::BTreeMap, path::Path};
+use serde::Serialize;
 use walkdir::WalkDir;
 
-#[derive(Clone, Debug)]
+#[derive(Serialize, Clone, Debug)]
 pub enum PicContent {
 	Path(String),
 	Buffer(Vec<u8>)
 }
+#[derive(Serialize, Clone, Debug)]
 pub struct Pic {
 	content: BTreeMap<i64, PicContent>,
 }
@@ -37,9 +39,7 @@ impl Pic {
 				None
 			})
 			.for_each(|i| {
-				if !self.content.contains_key(&i.0) {
-					self.content.insert(i.0, PicContent::Path(i.1));
-				}
+				self.content.insert(i.0, PicContent::Path(i.1));
 			});
 	}
 

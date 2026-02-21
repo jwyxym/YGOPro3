@@ -18,7 +18,8 @@ pub struct Zip {
 	db: Vec<Vec<u8>>,
 	ini: Vec<String>,
 	lflist: Vec<String>,
-	strings: Vec<String>
+	strings: Vec<String>,
+	servers: Vec<String>
 }
 
 impl Zip {
@@ -29,6 +30,7 @@ impl Zip {
 			let mut ini: Vec<String>= Vec::new();
 			let mut lflist: Vec<String>= Vec::new();
 			let mut strings: Vec<String>= Vec::new();
+			let mut servers: Vec<String>= Vec::new();
 
 			let _ = Self::read(&path, |name, mut file| {
 				if let Some(_match) = PIC_REGEX
@@ -57,6 +59,11 @@ impl Zip {
 					if file.read_to_string(&mut content).is_ok() {
 						lflist.push(content);
 					}
+				} else if name.ends_with("servers.conf") {
+					let mut content: String = String::new();
+					if file.read_to_string(&mut content).is_ok() {
+						servers.push(content);
+					}
 				} else if name.ends_with("cdb") {
 					let mut content: Vec<u8> = Vec::new();
 					if file.read_to_end(&mut content).is_ok() {
@@ -72,7 +79,8 @@ impl Zip {
 				db: db,
 				ini: ini,
 				lflist: lflist,
-				strings: strings
+				strings: strings,
+				servers: servers
 			})
 		})
 	}
@@ -138,5 +146,8 @@ impl Zip {
 	}
 	pub fn strings (&self) -> Vec<String> {
 		self.strings.clone()
+	}
+	pub fn servers (&self) -> Vec<String> {
+		self.servers.clone()
 	}
 }

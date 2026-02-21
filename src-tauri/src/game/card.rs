@@ -1,7 +1,9 @@
 use tokio_rusqlite::Connection;
 use std::{collections::BTreeMap, path::Path};
+use serde::Serialize;
 use anyhow::{Result, Error, anyhow};
 
+#[derive(Serialize, Clone, Debug)]
 pub struct Card {
 	name: String,
 	content: BTreeMap<i64, (Vec<i64>, Vec<String>)>
