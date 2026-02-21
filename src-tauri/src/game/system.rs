@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 pub struct System {
 	string: BTreeMap<String, String>,
 	number: BTreeMap<String, f64>,
-	array: BTreeMap<String, Vec<String>>,
+	array: BTreeMap<String, Vec<String>>
 }
 
 impl System {
@@ -32,6 +32,10 @@ impl System {
 			self.number.clone().into_iter().collect(),
 			self.array.clone().into_iter().collect()
 		)
+	}
+
+	pub fn array (&self) -> &BTreeMap<String, Vec<String>> {
+		&self.array
 	}
 
 }

@@ -14,9 +14,6 @@ impl Server {
 		}
 	}
 
-	pub fn init (&mut self, text: String) -> () {
-	}
-
 	pub fn to_array (&self) -> Vec<(String, String)> {
 		self.content.clone().into_iter().collect()
 	}

@@ -1,12 +1,14 @@
 use serde::Serialize;
 use regex::Regex;
+use tauri::{AppHandle, Emitter};
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
 use tokio::task::{JoinHandle, spawn_blocking};
 use std::{
-	fs::File,
+	fs::{File, write, exists, create_dir_all},
 	io::Read,
-	collections::BTreeMap
+	collections::BTreeMap,
+	path::{Path, PathBuf}
 };
 
 #[derive(Serialize, Clone, Debug)]
@@ -29,7 +31,7 @@ impl Zip {
 			let mut strings: Vec<String>= Vec::new();
 
 			let regex: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$")?;
-			let _ = Self::read(&path, |name, mut zip| {
+			let _ = Self::read(&path, |name, mut file| {
 				if let Some(_match) = regex
 					.captures(&name)
 					.and_then(|i| Some(i)?
@@ -37,28 +39,28 @@ impl Zip {
 				{
 					let mut content: Vec<u8> = Vec::new();
 					if let Ok(code) = _match.as_str().parse::<i64>()
-						&& zip.read_to_end(&mut content).is_ok() {
+						&& file.read_to_end(&mut content).is_ok() {
 						pics.insert(code, content);
 					}
 				}
 				else if name.ends_with("ini") {
 					let mut content: String = String::new();
-					if zip.read_to_string(&mut content).is_ok() {
+					if file.read_to_string(&mut content).is_ok() {
 						ini.push(content);
 					}
 				} else if name.ends_with("strings.conf") {
 					let mut content: String = String::new();
-					if zip.read_to_string(&mut content).is_ok() {
+					if file.read_to_string(&mut content).is_ok() {
 						strings.push(content);
 					}
 				} else if name.ends_with("lflist.conf") {
 					let mut content: String = String::new();
-					if zip.read_to_string(&mut content).is_ok() {
+					if file.read_to_string(&mut content).is_ok() {
 						lflist.push(content);
 					}
 				} else if name.ends_with("cdb") {
 					let mut content: Vec<u8> = Vec::new();
-					if zip.read_to_end(&mut content).is_ok() {
+					if file.read_to_end(&mut content).is_ok() {
 						db.push(content);
 					}
 				}
@@ -75,8 +77,38 @@ impl Zip {
 			})
 		})
 	}
-	pub fn read (
-		path: &str,
+	pub async fn unzip (app: &AppHandle, path: String, overwrite: bool) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
+		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
+		let path: &Path = Path::new(&path);
+		let zip_path: PathBuf = path.join("assets.zip");
+		let file: File = File::open(&zip_path)?;
+		let archive: ZipArchive<File> = ZipArchive::new(file)?;
+		let len: usize = archive.len();
+		app.emit("started",  len * 2)?;
+		let _ = Self::read(&zip_path, |name, mut file| {
+			let path: PathBuf = path.join(&name);
+			if !file.is_dir() && (overwrite || !exists(&path)?) {
+				let mut content: Vec<u8> = Vec::new();
+				if file.read_to_end(&mut content).is_ok() {
+					tasks.push(spawn_blocking(move || {
+						if let Some(parent) = path.parent() {
+							let _ = create_dir_all(parent);
+						}
+						write(path, content)?;
+						Ok(())
+					}));
+				}
+			}
+			app.emit("progress", 1)?;
+			Ok(())
+		});
+		(0..len - tasks.len()).for_each(|_| {
+			let _ = app.emit("progress", 1);
+		});
+		Ok(tasks)
+	}
+	pub fn read<P: AsRef<Path>> (
+		path: P,
 		mut callback: impl FnMut(String, ZipFile) -> Result<(), Error>
 	) -> Result<(), Error> {
 		let file: File = File::open(path)?;

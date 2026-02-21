@@ -4,6 +4,7 @@ use regex::Regex;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Strings {
+	name: String,
 	system: BTreeMap<i64, String>,
 	victory: BTreeMap<i64, String>,
 	counter: BTreeMap<i64, String>,
@@ -11,20 +12,21 @@ pub struct Strings {
 }
 
 impl Strings {
-	pub fn new () -> Self {
+	pub fn new (name: String) -> Self {
 		let system: BTreeMap<i64, String> = BTreeMap::new();
 		let victory: BTreeMap<i64, String> = BTreeMap::new();
 		let counter: BTreeMap<i64, String> = BTreeMap::new();
 		let setname: BTreeMap<i64, String> = BTreeMap::new();
 
 		Self {
+			name: name,
 			system: system,
 			victory: victory,
 			counter: counter,
 			setname: setname
 		}
 	}
-	pub fn init (&mut self, text: String) -> () {
+	pub fn init (mut self, text: String) -> Self {
 		let re: Regex = Regex::new(r"\r?\n").unwrap();
 		let parts: Vec<Vec<String>> = re.split(&text)
 			.map(|i|
@@ -52,5 +54,6 @@ impl Strings {
 					};
 				}
 			});
+		self
 	}
 }
