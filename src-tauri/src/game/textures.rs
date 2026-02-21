@@ -17,35 +17,35 @@ impl Textures {
 	pub fn new (text: String, path: &Path) -> Self {
 		let mut textures: Self = from_str::<Self>(&text).unwrap_or(Self::default());
 		for (_, value) in textures.ot.iter_mut() {
-			let p: PathBuf = path.join(&value).with_added_extension("png");
+			let p: PathBuf = path.join(&value).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*value = p.url();
 			}
 		}
 		for (_, value) in textures.attribute.iter_mut() {
-			let p: PathBuf = path.join(&value).with_added_extension("png");
+			let p: PathBuf = path.join(&value).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*value = p.url();
 			}
 		}
 		for (_, value) in textures.race.iter_mut() {
-			let p: PathBuf = path.join(&value).with_added_extension("png");
+			let p: PathBuf = path.join(&value).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*value = p.url();
 			}
 		}
 		for (_, value) in textures.types.iter_mut() {
-			let p: PathBuf = path.join(&value).with_added_extension("png");
+			let p: PathBuf = path.join(&value).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*value = p.url();
 			}
 		}
 		for (_, (valueI, valueII)) in textures.link.iter_mut() {
-			let p: PathBuf = path.join(&valueI).with_added_extension("png");
+			let p: PathBuf = path.join(&valueI).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*valueI = p.url();
 			}
-			let p: PathBuf = path.join(&valueII).with_added_extension("png");
+			let p: PathBuf = path.join(&valueII).with_extension("png");
 			if let Some(p) = File::new(&p) {
 				*valueII = p.url();
 			}
