@@ -10,8 +10,8 @@ use game::Game;
 use tauri::AppHandle;
 
 #[tauri::command]
-async fn init(app: AppHandle) -> Result<(), String> {
-	Ok(())
+async fn init(app: AppHandle, path: String) -> Result<Game, String> {
+	Ok(Game::init(app, path).await.map_err(|e| e.to_string())?)
 }
 
 #[tauri::command]
