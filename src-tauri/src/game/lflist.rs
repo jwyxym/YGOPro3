@@ -4,7 +4,7 @@ use regex::Regex;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFList {
-	content: BTreeMap<String, BTreeMap<i64, String>>
+	content: BTreeMap<String, BTreeMap<i64, i64>>
 }
 
 impl LFList {
