@@ -1,5 +1,5 @@
+use crate::game::regex::PIC_REGEX;
 use serde::Serialize;
-use regex::Regex;
 use tauri::{AppHandle, Emitter};
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
@@ -30,9 +30,8 @@ impl Zip {
 			let mut lflist: Vec<String>= Vec::new();
 			let mut strings: Vec<String>= Vec::new();
 
-			let regex: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$")?;
 			let _ = Self::read(&path, |name, mut file| {
-				if let Some(_match) = regex
+				if let Some(_match) = PIC_REGEX
 					.captures(&name)
 					.and_then(|i| Some(i)?
 					.get(1))
@@ -124,5 +123,20 @@ impl Zip {
 	}
 	pub fn path (&self) -> &str {
 		&self.path
+	}
+	pub fn pics (&self) -> Vec<(i64, Vec<u8>)> {
+		self.pics.clone().into_iter().collect()
+	}
+	pub fn db (&self) -> Vec<Vec<u8>> {
+		self.db.clone()
+	}
+	pub fn ini (&self) -> Vec<String> {
+		self.ini.clone()
+	}
+	pub fn lflist (&self) -> Vec<String> {
+		self.lflist.clone()
+	}
+	pub fn strings (&self) -> Vec<String> {
+		self.strings.clone()
 	}
 }

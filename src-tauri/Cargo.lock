@@ -4648,6 +4648,7 @@ dependencies = [
  "chrono",
  "content_disposition",
  "futures",
+ "lazy_static",
  "rand 0.9.2",
  "regex",
  "rusqlite",

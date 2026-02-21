@@ -1,9 +1,14 @@
 use crate::game::file::File;
 use std::{collections::BTreeMap, path::Path};
-use serde_json::value;
 use walkdir::WalkDir;
+
+#[derive(Clone, Debug)]
+pub enum PicContent {
+	Path(String),
+	Buffer(Vec<u8>)
+}
 pub struct Pic {
-	content: BTreeMap<i64, String>
+	content: BTreeMap<i64, PicContent>,
 }
 impl Pic {
 	pub fn new () -> Self {
@@ -12,7 +17,7 @@ impl Pic {
 		}
 	}
 
-	pub fn insert<P: AsRef<Path>> (&mut self, key: i64	, value: String) -> () {
+	pub fn insert (&mut self, key: i64, value: PicContent) -> () {
 		self.content.insert(key, value);
 	}
 
@@ -33,12 +38,12 @@ impl Pic {
 			})
 			.for_each(|i| {
 				if !self.content.contains_key(&i.0) {
-					self.content.insert(i.0, i.1);
+					self.content.insert(i.0, PicContent::Path(i.1));
 				}
 			});
 	}
 
-	pub fn to_array (&self) -> Vec<(i64, String)> {
+	pub fn to_array (&self) -> Vec<(i64, PicContent)> {
 		self.content.clone().into_iter().collect()
 	}
 }

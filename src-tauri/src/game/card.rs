@@ -1,18 +1,20 @@
 use tokio_rusqlite::Connection;
-use std::{collections::BTreeMap};
+use std::{collections::BTreeMap, path::Path};
 use anyhow::{Result, Error, anyhow};
 
 pub struct Card {
+	name: String,
 	content: BTreeMap<i64, (Vec<i64>, Vec<String>)>
 }
 
 impl Card  {
-	pub fn new () -> Self {
+	pub fn new (name: String) -> Self {
 		Self {
+			name: name,
 			content: BTreeMap::new()
 		}
 	}
-	pub async fn init (&mut self, path: String) -> Result<(), Error> {
+	pub async fn init<P: AsRef<Path>> (&mut self, path: P) -> Result<(), Error> {
 		let conn: Connection = Connection::open(path).await?;
 		let results: Vec<(i64, (Vec<i64>, Vec<String>))> = conn
 			.call(|conn| {

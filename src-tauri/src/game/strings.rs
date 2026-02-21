@@ -1,6 +1,6 @@
+use crate::game::regex::LINE_REGEX;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use regex::Regex;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Strings {
@@ -27,8 +27,7 @@ impl Strings {
 		}
 	}
 	pub fn init (mut self, text: String) -> Self {
-		let re: Regex = Regex::new(r"\r?\n").unwrap();
-		let parts: Vec<Vec<String>> = re.split(&text)
+		let parts: Vec<Vec<String>> = LINE_REGEX.split(&text)
 			.map(|i|
 				String::from(i)
 					.split_whitespace()

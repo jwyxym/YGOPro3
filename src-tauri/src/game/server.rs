@@ -1,20 +1,38 @@
-use serde::Serialize;
+use crate::game::regex::LINE_REGEX;
 use std::collections::BTreeMap;
-use regex::Regex;
+use serde::{Serialize, Deserialize};
+use basic_toml::from_str;
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Server {
-	content: BTreeMap<String, String>
+	servers: BTreeMap<String, String>
 }
 
 impl Server {
-	pub fn new (text: String) -> Self {
+	pub fn new () -> Self {
 		Self {
-			content: BTreeMap::new()
+			servers: BTreeMap::new()
 		}
 	}
 
+	pub fn init_toml(&mut self, text: String) -> () {
+		if let Ok(servers) = from_str::<Self>(&text) {
+			servers.to_array().into_iter().for_each(|(k, v)| {
+				self.servers.insert(k, v);
+			});
+		}
+		
+	}
+
+	pub fn init_conf(&mut self, text: String) -> () {
+		
+	}
+
+	pub fn init_ini(&mut self, text: String) -> () {
+		
+	}
+
 	pub fn to_array (&self) -> Vec<(String, String)> {
-		self.content.clone().into_iter().collect()
+		self.servers.clone().into_iter().collect()
 	}
 }

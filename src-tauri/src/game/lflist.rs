@@ -1,6 +1,6 @@
+use crate::game::regex::LINE_REGEX;
 use serde::Serialize;
 use std::collections::BTreeMap;
-use regex::Regex;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFList {
@@ -14,6 +14,5 @@ impl LFList {
 		}
 	}
 	pub fn init (&mut self, text: String) -> () {
-		let re: Regex = Regex::new(r"\r?\n").unwrap();
 	}
 }

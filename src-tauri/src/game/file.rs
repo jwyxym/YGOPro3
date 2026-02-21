@@ -5,10 +5,8 @@ use urlencoding::encode;
 
 #[derive(Serialize, Clone, Debug)]
 pub enum FileContent {
-	Buffer(Vec<u8>),
 	LFList(String),
 	Servers(String),
-	Path(String),
 	System(String),
 	Textures(String),
 	CardInfo((String, String)),

@@ -1,0 +1,26 @@
+[string]
+SERVER_PLAYER_NAME = ""
+SERVER_ADDRESS = ""
+SERVER_PASS = ""
+[number]
+BACK_BGM = 0.00
+CT_CARD = 3
+CT_DECK_MAIN = 60
+CT_DECK_EX = 15
+CT_DECK_SIDE = 15
+CT_CLICK_TIME = 150
+[boolean]
+DELETE_YPK = true
+DELETE_DECK = true
+EXIT_DECK = true
+SWAP_BUTTON = true
+SORT_DECK = true
+DISRUPT_DECK = true
+CLEAR_DECK = true
+SELECT_SORT = true
+SELECT_SLIDER = true
+SELECT_VOICE = true
+HIDDEN_NAME = false
+HIDDEN_CHAT = false
+[array]
+LOADING_EXPANSION = []
