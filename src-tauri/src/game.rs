@@ -51,24 +51,27 @@ pub struct Game {
 }
 
 impl Game  {	
-	pub async fn unzip (app: AppHandle, path: String, overwrite: bool) -> Result<(), Error> {
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<(), Error> {
 		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(&app, path, overwrite).await?;
 		let mut tasks: FuturesUnordered<JoinHandle<Result<(), Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
 		while let Some(_) = tasks.next().await {
 			app.emit("progress", 1)?;
 		}
-		app.emit("end", 0)?;
+		if overwrite {
+			app.emit("progress", 3)?;
+			app.emit("end", 0)?;
+		}
 		Ok(())
 	}
 
-	pub async fn init (app: AppHandle, path: String) -> Result<Self, Error> {
-		let start = std::time::Instant::now();
-		println!("开始");
-		
+	pub async fn init (app: &AppHandle, path: String) -> Result<Self, Error> {
 		let path: &Path = Path::new(&path);
+		Self::unzip(app, path, false).await?;
+
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
 
+		app.emit("progress", 1)?;
 		let (game, cards, _, _) = join!(
 			Self::load_config(path),
 			Self::load_card(path),
@@ -76,11 +79,12 @@ impl Game  {
 			sound.read_dir(path.join("sound"))
 		);
 
+		app.emit("progress", 1)?;
 		let mut game: Game = Self::load_expansion(path, game).await;
 		game.cards = cards;
 
-		let duration = start.elapsed();
-		println!("执行时间: {:?}", duration);
+		app.emit("progress", 1)?;
+		app.emit("end", 0)?;
 		Ok(game)
 	}
 
@@ -131,9 +135,9 @@ impl Game  {
 			Ok(FileContent::LFList(text))
 		}));
 		let mut strings: Vec<Strings> = Vec::new();
-		let mut system: Vec<System> = Vec::new();
-		let mut textures: Vec<Textures> = Vec::new();
-		let mut card_info: Vec<CardInfo> = Vec::new();
+		let mut system: Option<System> = None;
+		let mut textures: Option<Textures> = None;
+		let mut card_info: Option<CardInfo> = None;
 		let mut servers: Server = Server::new();
 		let mut lflist: LFList = LFList::new();
 		let mut pics: Pic = Pic::new();
@@ -143,29 +147,32 @@ impl Game  {
 			if let Ok(task) = task {
 				if let Ok(task) = task {
 					match task {
-						FileContent::System(text) => system.push(System::new(text)),
-						FileContent::Textures(text) => textures.push(Textures::new(text, &path.join("textures"))),
-						FileContent::Servers(text) => servers.init_toml(text),
-						FileContent::CardInfo((name, text)) => card_info.push(CardInfo::new(text, name)),
-						FileContent::Strings((name, text)) => strings.push(Strings::new(name).init(text)),
-						FileContent::LFList(text) => lflist.init(text),
+						FileContent::System(text) => {
+							system.get_or_insert_with(|| System::new(text));
+						}
+						FileContent::Textures(text) => {
+							textures.get_or_insert_with(|| Textures::new(text, &path.join("textures")));
+						}
+						FileContent::Servers(text) => {
+							servers.init_toml(text)
+						}
+						FileContent::CardInfo((name, text)) => {
+							card_info.get_or_insert_with(|| CardInfo::new(text, name));
+						}
+						FileContent::Strings((name, text)) => {
+							strings.push(Strings::new(name).init(text))
+						}
+						FileContent::LFList(text) => {
+							lflist.init(text)
+						}
 						_ => ()
 					};
 				}
 			}
 		}
-		let system: System = system
-			.get(0)
-			.cloned()
-			.unwrap_or_else(|| { System::default() });
-		let textures: Textures = textures
-			.get(0)
-			.cloned()
-			.unwrap_or_else(|| { Textures::default() });
-		let card_info: CardInfo = card_info
-			.get(0)
-			.cloned()
-			.unwrap_or_else(|| { CardInfo::default() });
+		let system: System = system.unwrap_or_else(|| { System::default() });
+		let textures: Textures = textures.unwrap_or_else(|| { Textures::default() });
+		let card_info: CardInfo = card_info.unwrap_or_else(|| { CardInfo::default() });
 		pics.read_dir(path.join("pics"));
 		pics.read_dir(path.join("expansions").join("pics"));
 		Self {

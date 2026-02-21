@@ -84,14 +84,14 @@ impl Zip {
 			})
 		})
 	}
-	pub async fn unzip (app: &AppHandle, path: String, overwrite: bool) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
-		let path: &Path = Path::new(&path);
+		let path: &Path = path.as_ref();
 		let zip_path: PathBuf = path.join("assets.zip");
 		let file: File = File::open(&zip_path)?;
 		let archive: ZipArchive<File> = ZipArchive::new(file)?;
 		let len: usize = archive.len();
-		app.emit("started",  len * 2)?;
+		app.emit("started",  len * 2 + 3)?;
 		let _ = Self::read(&zip_path, |name, mut file| {
 			let path: PathBuf = path.join(&name);
 			if !file.is_dir() && (overwrite || !exists(&path)?) {

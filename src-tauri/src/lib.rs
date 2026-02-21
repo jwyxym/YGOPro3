@@ -11,7 +11,7 @@ use tauri::AppHandle;
 
 #[tauri::command]
 async fn init(app: AppHandle, path: String) -> Result<Game, String> {
-	Ok(Game::init(app, path).await.map_err(|e| e.to_string())?)
+	Ok(Game::init(&app, path).await.map_err(|e| e.to_string())?)
 }
 
 #[tauri::command]

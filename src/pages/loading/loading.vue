@@ -26,6 +26,7 @@
 		}));
 		page.funcs.push(await listen.progress((progress : number) => page.now += progress));
 		page.funcs.push(await listen.end(async () => {
+			page.now = page.all;
 			page.show = false;
 			await mainGame.sleep(100);
 			page.all = 0;
