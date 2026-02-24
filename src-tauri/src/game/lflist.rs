@@ -1,6 +1,18 @@
 use crate::game::COMMENTS_REGEX;
 use serde::Serialize;
 use std::collections::BTreeMap;
+use lazy_static::lazy_static;
+
+lazy_static! {
+	pub static ref HASH: u32 = {
+		let mut h: u32 = 2166136261;
+		for byte in "genesys".bytes() {
+			h ^= byte as u32;
+			h *= 16777619;
+		}
+		h
+	};
+}
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFList {
@@ -9,7 +21,7 @@ pub struct LFList {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFListContent {
-	genesys: i64,
+	genesys: u32,
 	hash: u32,
 	glist: BTreeMap<u32, u32>,
 	lflist: BTreeMap<u32, u32>,
@@ -26,36 +38,42 @@ impl LFList {
 			.filter(|i|i.lines().count() > 1)
 			.for_each(|text| {
 				if let Some(key) = text.lines().nth(0) {
-					let mut value: BTreeMap<u32, u32> = BTreeMap::new();
-					let mut genesys_value: BTreeMap<u32, u32> = BTreeMap::new();
-					let mut genesys: i64 = -1;
+					let mut lflist: BTreeMap<u32, u32> = BTreeMap::new();
+					let mut glist: BTreeMap<u32, u32> = BTreeMap::new();
+					let mut genesys: u32 = 0;
 					let mut hash: u32 = 0x7dfcee6a;
 					if let Some(genesy) = text.lines().find(|i| i.starts_with("$genesys")) {
 						genesys = {
 							let parts: Vec<String> = genesy.split_whitespace().map(String::from).collect();
-							if parts.len() > 1 && let Ok(ct) = parts[1].parse::<i64>() { ct } else { -1 }
+							if parts.len() > 1 && let Ok(ct) = parts[1].parse::<u32>() {
+								hash ^= ((*HASH << 18) | (*HASH >> 14)) ^ ((ct << 9) | (ct >> 23)) ^ ((0x43524544 << 27) | (0x43524544 >> 5));
+								ct
+							} else { 0 }
 						};
 					}
 					text.lines()
 						.filter(|i: &&str| !i.starts_with("#"))
-						.for_each(|i: &str| {
-							let parts: Vec<String> = i.split_whitespace().map(String::from).collect();
-							if parts.len() > 0 && let Ok(code) = parts[0].parse::<u32>() {
-								if parts.len() > 2
-									&& parts[1].starts_with("$genesys")
-									&& let Ok(ct) = parts[2].parse::<u32>() {
-									genesys_value.insert(code, ct);
-								} else if parts.len() > 1
-									&& let Ok(ct) = parts[1].parse::<u32>() {
-									value.insert(code, ct);
+						.filter_map(|i: &str| {
+							let i: Vec<String> = i.split_whitespace().map(String::from).collect();
+							if i.len() > 1 { Some(i) } else { None }
+						})
+						.for_each(|i: Vec<String>| {
+							if let Ok(code) = i[0].parse::<u32>() {
+								if i.len() > 2
+									&& i[1].starts_with("$genesys")
+									&& let Ok(ct) = i[2].parse::<u32>() {
+									glist.insert(code, ct);
+									hash ^= ((code << 18) | (code >> 14)) ^ ((*HASH << 9) | (*HASH >> 23)) ^ ((ct << 27) | (ct >> 5));
+								} else if let Ok(ct) = i[1].parse::<u32>() {
+									lflist.insert(code, ct);
 									hash ^= ((code << 18) | (code >> 14)) ^ ((code << (27 + ct)) | (code >> (5 - ct)));
 								}
 							}
 						});
 					self.content.insert(String::from(key), LFListContent {
-						lflist: value,
+						lflist: lflist,
 						hash: hash,
-						glist: genesys_value,
+						glist: glist,
 						genesys: genesys
 					});
 				}
