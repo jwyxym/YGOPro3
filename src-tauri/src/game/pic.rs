@@ -10,7 +10,7 @@ pub enum PicContent {
 }
 #[derive(Serialize, Clone, Debug)]
 pub struct Pic {
-	content: BTreeMap<i64, PicContent>,
+	content: BTreeMap<u32, PicContent>,
 }
 impl Pic {
 	pub fn new () -> Self {
@@ -19,18 +19,18 @@ impl Pic {
 		}
 	}
 
-	pub fn insert (&mut self, key: i64, value: PicContent) -> () {
+	pub fn insert (&mut self, key: u32, value: PicContent) -> () {
 		self.content.insert(key, value);
 	}
 
-	pub fn read_dir<P: AsRef<Path>> (&mut self, path: P) -> () {
+	pub fn read_dir<P: AsRef<Path>> (mut self, path: P) -> Self {
 		WalkDir::new(path)
 			.into_iter()
 			.filter_map(|i| {
 				if let Ok(i) = i {
 					let file: File = File::new(i.path())?;
 					if ["jpg", "jpeg", "png"].contains(&file.ext()) {
-						let code: i64 = i64::from_str_radix(file.stem(), 16).unwrap_or(0);
+						let code: u32 = file.stem().parse::<u32>().unwrap_or(0);
 						if code > 0 {
 							return Some((code, file.url()));
 						}
@@ -41,9 +41,9 @@ impl Pic {
 			.for_each(|i| {
 				self.content.insert(i.0, PicContent::Path(i.1));
 			});
+		self
 	}
-
-	pub fn to_array (&self) -> Vec<(i64, PicContent)> {
+	pub fn to_array (&self) -> Vec<(u32, PicContent)> {
 		self.content.clone().into_iter().collect()
 	}
 }

@@ -2,6 +2,7 @@
 SERVER_PLAYER_NAME = ""
 SERVER_ADDRESS = ""
 SERVER_PASS = ""
+I18N = ""
 [number]
 BACK_BGM = 0.00
 CT_CARD = 3

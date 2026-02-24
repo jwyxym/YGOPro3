@@ -126,13 +126,7 @@
 		// voice.play(FILES.BACK_BGM);
 	});
 
-import { invoke } from '@tauri-apps/api/core';
-import * as CONSTANT from '@/script/constant';
 	onMounted(async () => {
-		const r = await invoke<any>('init', {
-			path : await CONSTANT.BASE_PATH()
-		})
-		console.log(r)
 	});
 
 </script>
@@ -212,10 +206,10 @@ import * as CONSTANT from '@/script/constant';
 		color: #555 !important;
 	}
 	.font-title {
-		font-family: 'title' !important;
+		font-family: 'TITLE' !important;
 	}
 	.font-menu {
-		font-family: 'menu' !important;
+		font-family: 'MENU' !important;
 	}
 	.var-picker__picked {
 		border: 1px solid white !important;

@@ -1,33 +1,30 @@
-use crate::game::regex::LINE_REGEX;
 use serde::Serialize;
 use std::collections::BTreeMap;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Strings {
-	name: String,
-	system: BTreeMap<i64, String>,
-	victory: BTreeMap<i64, String>,
-	counter: BTreeMap<i64, String>,
-	setname: BTreeMap<i64, String>
+	system: BTreeMap<u32, String>,
+	victory: BTreeMap<u32, String>,
+	counter: BTreeMap<u32, String>,
+	setname: BTreeMap<u32, String>
 }
 
 impl Strings {
-	pub fn new (name: String) -> Self {
-		let system: BTreeMap<i64, String> = BTreeMap::new();
-		let victory: BTreeMap<i64, String> = BTreeMap::new();
-		let counter: BTreeMap<i64, String> = BTreeMap::new();
-		let setname: BTreeMap<i64, String> = BTreeMap::new();
+	pub fn new () -> Self {
+		let system: BTreeMap<u32, String> = BTreeMap::new();
+		let victory: BTreeMap<u32, String> = BTreeMap::new();
+		let counter: BTreeMap<u32, String> = BTreeMap::new();
+		let setname: BTreeMap<u32, String> = BTreeMap::new();
 
 		Self {
-			name: name,
 			system: system,
 			victory: victory,
 			counter: counter,
 			setname: setname
 		}
 	}
-	pub fn init (mut self, text: String) -> Self {
-		let parts: Vec<Vec<String>> = LINE_REGEX.split(&text)
+	pub fn init (&mut self, text: String) -> () {
+		let parts: Vec<Vec<String>> = text.lines()
 			.map(|i|
 				String::from(i)
 					.split_whitespace()
@@ -39,7 +36,7 @@ impl Strings {
 			.into_iter()
 			.for_each(|i| {
 				if i.len() > 2
-					&& let Ok(key) = i64::from_str_radix(
+					&& let Ok(key) = u32::from_str_radix(
 						&i[1].trim_start_matches("0x"),
 						if i[1].starts_with("0x") { 16 } else { 10 }
 				) {
@@ -53,6 +50,5 @@ impl Strings {
 					};
 				}
 			});
-		self
 	}
 }

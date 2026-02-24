@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import fs from '@/script/fs';
+import * as bincode from 'bincode-ts';
 
 interface Srv {
 	priority : number;
@@ -21,21 +22,90 @@ interface Resp {
 }
 
 interface Result<T> {
-	content ?: T;
+	ok ?: T;
 	error ?: string;
 };
 
 type DataBase = Array<[Array<number>, Array<string>]>;
-type File<T> = Array<[T, { content : string | Uint8Array }]>;
-type StringFile<T> = Array<[T, { content : string }]>;
-type BufferFile<T> = Array<[T, { content : Uint8Array }]>;
+type File<T> = Array<[T, { ok : string | Uint8Array }]>;
+type StringFile<T> = Array<[T, { ok : string }]>;
+type BufferFile<T> = Array<[T, { ok : Uint8Array }]>;
 
 class Invoke {
+	game = {
+		init : async (path: string, i18n: string) : Promise<void> => {
+			try {
+				await invoke<void>('init', {
+					path : path,
+					i18n: i18n
+				})
+			} catch (error) {
+				fs.write.log(error);
+			}
+		},
+		get_pic : async () : Promise<Array<[number, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_pic');
+				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] =  bincode.decode(bincode.Tuple(
+					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))
+				), result).value as [Array<[number, string]>, Array<[number, Array<number>]>];
+				const jpeg_header = [255, 216, 255, 224, 0, 16, 74, 70];
+				const buffer_url : Array<[number, string]> = pics[1].map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
+					type : i[1].slice(0, 8).every((v, i) => jpeg_header[i] === v) ? 'image/jpeg' : 'image/png'
+				}))]);
+				return [pics[0], buffer_url].flat();
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_font : async () : Promise<Array<[string, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_font');
+				const fonts : Array<[string, Array<number>]> = bincode.decode(
+					bincode.Collection(bincode.Tuple(bincode.String, bincode.Collection(bincode.u8))), result
+				).value as Array<[string, Array<number>]>;
+				return fonts.map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
+					type : 'application/x-font-ttf'
+				}))]);
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_sound : async () : Promise<Array<[string, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_sound');
+				const fonts : Array<[string, Array<number>]> = bincode.decode(
+					bincode.Collection(bincode.Tuple(bincode.String, bincode.Collection(bincode.u8))), result
+				).value as Array<[string, Array<number>]>;
+				return fonts.map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
+					type : 'audio/mp3'
+				}))]);
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_textures : async () : Promise<Array<[string, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_textures');
+				return bincode.decode(
+					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
+				).value as Array<[string, string]>;
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+	}
+	
 	read = {
 		time : async (time : string) : Promise<Result<string>> => {
 			const result : Result<string> = {};
 			try {
-				result.content = await invoke<string>('read_time', {
+				result.ok = await invoke<string>('read_time', {
 					time : time
 				});
 			} catch (error) {
@@ -47,7 +117,7 @@ class Invoke {
 		db : async (path : string) : Promise<Result<DataBase>> => {
 			const result : Result<DataBase> = {};
 			try {
-				result.content = await invoke<DataBase>('read_db', {
+				result.ok = await invoke<DataBase>('read_db', {
 					path : path,
 				});
 			} catch (error) {
@@ -59,7 +129,7 @@ class Invoke {
 		texts : async (dirs : string | Array<string>, file_type : string | Array<string>) : Promise<Result<StringFile<string>>> => {
 			const result : Result<StringFile<string>> = {};
 			try {
-				result.content = await invoke<StringFile<string>>('read_texts', {
+				result.ok = await invoke<StringFile<string>>('read_texts', {
 					dirs : typeof dirs === 'string' ? [dirs] : dirs,
 					fileType : typeof file_type === 'string' ? [file_type] : file_type
 				});
@@ -72,7 +142,7 @@ class Invoke {
 		files : async (dir : string, file_type : string | Array<string>) : Promise<Result<BufferFile<string>>> => {
 			const result : Result<BufferFile<string>> = {};
 			try {
-				result.content = await invoke<BufferFile<string>>('read_files', {
+				result.ok = await invoke<BufferFile<string>>('read_files', {
 					dirs : [dir],
 					fileType : typeof file_type === 'string' ? [file_type] : file_type
 				});
@@ -85,7 +155,7 @@ class Invoke {
 		pics : async (dirs : Array<string>, codes : Array<number>) : Promise<Result<[Array<Pic>, Array<number>]>> => {
 			const result : Result<[Array<Pic>, Array<number>]> = {};
 			try {
-				result.content = await invoke<[Array<Pic>, Array<number>]>('read_pics', {
+				result.ok = await invoke<[Array<Pic>, Array<number>]>('read_pics', {
 					dirs : dirs, codes: codes
 				});
 			} catch (error) {
@@ -97,7 +167,7 @@ class Invoke {
 		zip : async (path : string, file_type : Array<string>) : Promise<Result<File<string>>> => {
 			const result : Result<File<string>> = {};
 			try {
-				result.content = await invoke<File<string>>('read_zip', {
+				result.ok = await invoke<File<string>>('read_zip', {
 					path : path, fileType: file_type
 				});
 			} catch (error) {
@@ -112,7 +182,7 @@ class Invoke {
 		version : async (url : string, headers : Array<[string, string]> = []) : Promise<Result<string>> => {
 			const result : Result<string> = {};
 			try {
-				result.content = await invoke<string>('network_version', {
+				result.ok = await invoke<string>('network_version', {
 					url : url, headers : headers
 				});
 			} catch (error) {
@@ -129,7 +199,7 @@ class Invoke {
 				});
 				if (res.target.endsWith('.'))
 					res.target = res.target.slice(0, -1);
-				result.content = res;
+				result.ok = res;
 			} catch (error) {
 				fs.write.log(error);
 				result.error = error;
@@ -139,7 +209,7 @@ class Invoke {
 		time : async (urls : Array<string>) : Promise<Result<Resp | undefined>> => {
 			const result : Result<Resp | undefined> = {};
 			try {
-				result.content = (await invoke<Array<Resp>>('network_time', {
+				result.ok = (await invoke<Array<Resp>>('network_time', {
 					urls : urls
 				}))[0];
 			} catch (error) {
@@ -151,7 +221,7 @@ class Invoke {
 		download : async (url : string, path : string, name : string, ex_name : string = '') : Promise<Result<string>> => {
 			const result : Result<string> = {};
 			try {
-				result.content = await invoke<string>('network_download', {
+				result.ok = await invoke<string>('network_download', {
 					url : url,
 					path : path,
 					name : name,

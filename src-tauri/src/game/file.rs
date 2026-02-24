@@ -1,16 +1,22 @@
+use crate::game::cdb::Cdb;
+
 use std::path::Path;
 use serde::Serialize;
 use tauri_plugin_os::{OsType, type_};
 use urlencoding::encode;
 
+
 #[derive(Serialize, Clone, Debug)]
 pub enum FileContent {
 	LFList(String),
 	Servers(String),
+	ServersIni(String),
+	ServersConf(String),
 	System(String),
-	Textures(String),
-	CardInfo((String, String)),
-	Strings((String, String)),
+	Resource(String),
+	CardInfo(String),
+	Strings(String),
+	Cdb(Cdb),
 	None
 }
 

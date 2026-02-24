@@ -36,6 +36,7 @@
 		"@three-ts/orbit-controls": "^1.4.7",
 		"@tweenjs/tween.js": "^25.0.0",
 		"@varlet/ui": "^3.11.3",
+		"bincode-ts": "^1.0.0",
 		"conversation-vue": "github:jwyxym/conversation-vue",
 		"gsap": "^3.13.0",
 		"mathjs": "^15.1.0",

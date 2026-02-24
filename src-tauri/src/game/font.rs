@@ -1,11 +1,13 @@
 use crate::game::file::File;
 use std::{collections::BTreeMap, path::Path};
 use walkdir::WalkDir;
+use serde::Serialize;
 use anyhow::{Result, Error};
 use tokio::{
 	task::{JoinHandle, spawn},
 	fs::read
 };
+#[derive(Serialize, Clone, Debug)]
 pub struct Font {
 	content: BTreeMap<String, Vec<u8>>
 }
@@ -20,16 +22,19 @@ impl Font {
 		self.content.insert(key, value);
 	}
 
-	pub async fn read_dir<P: AsRef<Path>> (&mut self, path: P) -> Result<(), Error> {
+	pub async fn read_dir<P: AsRef<Path>> (&mut self, path: P, fonts: Vec<(String, String)>) -> Result<(), Error> {
 		let tasks: Vec<JoinHandle<Result<(String, Vec<u8>), Error>>> = WalkDir::new(path)
+			.max_depth(1)
 			.into_iter()
 			.filter_map(|i| {
 				if let Ok(i) = i {
 					let file: File = File::new(i.path())?;
-					if file.ext() == "ttf" {
+					if file.ext() == "ttf"
+						&& let Some(i) = fonts.iter().find(|i| i.1 == String::from(file.name())) {
+						let key: String = i.0.clone();
 						return Some(spawn(async move {
 							let content: Vec<u8> = read(file.path()).await?;
-							Ok((String::from(file.name()), content))
+							Ok((key, content))
 						}));
 					}
 				}

@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct System {
 	string: BTreeMap<String, String>,
+	boolean: BTreeMap<String, bool>,
 	number: BTreeMap<String, f64>,
 	array: BTreeMap<String, Vec<String>>
 }
@@ -16,6 +17,7 @@ impl System {
 	pub fn default () -> Self {
 		Self {
 			string: BTreeMap::new(),
+			boolean: BTreeMap::new(),
 			number: BTreeMap::new(),
 			array: BTreeMap::new()
 		}
@@ -26,16 +28,18 @@ impl System {
 				.unwrap_or(String::from(""))
 			)
 	}
-
-	pub fn to_array (&self) -> (Vec<(String, String)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>) {
+	pub fn to_array (&self) -> (Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>) {
 		(self.string.clone().into_iter().collect(),
+			self.boolean.clone().into_iter().collect(),
 			self.number.clone().into_iter().collect(),
 			self.array.clone().into_iter().collect()
 		)
 	}
-
 	pub fn array (&self) -> &BTreeMap<String, Vec<String>> {
 		&self.array
+	}
+	pub fn string (&self) -> &BTreeMap<String, String> {
+		&self.string
 	}
 
 }
