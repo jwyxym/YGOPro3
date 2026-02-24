@@ -1,31 +1,25 @@
-mod server_ini;
-use server_ini::ServerINI;
-
-use std::collections::BTreeMap;
-use serde::{Serialize, Deserialize};
 use basic_toml::from_str;
+use indexmap::IndexMap;
+use serde::{Serialize, Deserialize};
 
-#[derive(Deserialize, Serialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Server {
-	servers: BTreeMap<String, String>
+	servers: IndexMap<String, String>
 }
 
 impl Server {
 	pub fn new () -> Self {
 		Self {
-			servers: BTreeMap::new()
+			servers: IndexMap::new()
 		}
 	}
-
 	pub fn init_by_toml(&mut self, text: String) -> () {
 		if let Ok(servers) = from_str::<Self>(&text) {
 			servers.to_array().into_iter().for_each(|(k, v)| {
 				self.servers.insert(k, v);
 			});
 		}
-		
 	}
-
 	pub fn init_by_conf(&mut self, text: String) -> () {
 		text
 			.lines()
@@ -37,13 +31,30 @@ impl Server {
 				}
 			});
 	}
-
 	pub fn init_by_ini(&mut self, text: String) -> () {
-		if let Ok(servers) = from_str::<ServerINI>(&text) {
-			self.servers.insert(servers.host(), servers.name());
+		let mut host: String = String::new();
+		let mut port: String = String::new();
+		let mut name: String = String::new();
+		text
+			.lines()
+			.filter_map(|i| {
+				let parts: Vec<&str> = i.split("=").collect();
+				if parts.len() > 1 { Some(parts) } else { None }
+			})
+			.map(|i| [i[0].trim(), i[1].trim()])
+			.for_each(|i: [&str; 2]| {
+				if i[0] == "ServerName" {
+					name = String::from(i[1]);
+				} else if i[0] == "ServerHost" {
+					host = String::from(i[1]);
+				} else if i[0] == "ServerPort" {
+					port = String::from(i[1]);
+				}
+			});
+		if !name.is_empty() && !host.is_empty() {
+			self.servers.insert(if port.is_empty() { host } else { format!("{}:{}", host, port) }, name);
 		}
 	}
-
 	pub fn to_array (&self) -> Vec<(String, String)> {
 		self.servers.clone().into_iter().collect()
 	}
