@@ -29,7 +29,8 @@ impl System {
 			)
 	}
 	pub fn to_array (&self) -> (Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>) {
-		(self.string.clone().into_iter().collect(),
+		(
+			self.string.clone().into_iter().collect(),
 			self.boolean.clone().into_iter().collect(),
 			self.number.clone().into_iter().collect(),
 			self.array.clone().into_iter().collect()

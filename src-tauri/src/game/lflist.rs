@@ -8,7 +8,7 @@ lazy_static! {
 		let mut h: u32 = 2166136261;
 		for byte in "genesys".bytes() {
 			h ^= byte as u32;
-			h *= 16777619;
+			h = h.wrapping_mul(16777619);
 		}
 		h
 	};
@@ -78,5 +78,19 @@ impl LFList {
 					});
 				}
 			});
+	}
+	pub fn content (&self) -> &BTreeMap<String, LFListContent> {
+		&self.content
+	}
+}
+
+impl LFListContent {
+	pub fn to_array (&self) -> (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>) {
+		(
+			self.hash,
+			self.genesys,
+			self.lflist.clone().into_iter().collect(),
+			self.glist.clone().into_iter().collect()
+		)
 	}
 }

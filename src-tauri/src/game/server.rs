@@ -15,8 +15,8 @@ impl Server {
 	}
 	pub fn init_by_toml(&mut self, text: String) -> () {
 		if let Ok(servers) = from_str::<Self>(&text) {
-			servers.to_array().into_iter().for_each(|(k, v)| {
-				self.servers.insert(k, v);
+			servers.content().into_iter().for_each(|(k, v)| {
+				self.servers.insert(String::from(k), String::from(v));
 			});
 		}
 	}
@@ -55,7 +55,7 @@ impl Server {
 			self.servers.insert(if port.is_empty() { host } else { format!("{}:{}", host, port) }, name);
 		}
 	}
-	pub fn to_array (&self) -> Vec<(String, String)> {
-		self.servers.clone().into_iter().collect()
+	pub fn content (&self) -> &IndexMap<String, String> {
+		&self.servers
 	}
 }

@@ -99,6 +99,101 @@ class Invoke {
 				return [];
 			}
 		},
+		get_cards : async () : Promise<Array<Array<number | string>>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_cards');
+				return (bincode.decode(bincode.Collection(
+					bincode.Tuple(
+						bincode.Collection(bincode.u32),
+						bincode.Collection(bincode.String),
+					)), result).value as Array<[Array<number>, Array<string>]>)
+						.map(i => i.flat());
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_system : async () : Promise<{
+			string : Array<[string, string]>,
+			bool : Array<[string, boolean]>,
+			number : Array<[string, number]>,
+			array : Array<[string, Array<string>]>,
+		}> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_system');
+				return bincode.decode(
+					bincode.Struct({
+						string : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
+						bool : bincode.Collection(bincode.Tuple(bincode.String, bincode.bool)),
+						number : bincode.Collection(bincode.Tuple(bincode.String, bincode.f64)),
+						array : bincode.Collection(bincode.Tuple(bincode.String,  bincode.Collection(bincode.String))),
+					}), result).value as any;
+			} catch (error) {
+				fs.write.log(error);
+				return {
+					string : [],
+					bool : [],
+					number : [],
+					array : []
+				};
+			}
+		},
+		get_server : async () : Promise<Array<[string, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_server');
+				return bincode.decode(bincode.Collection(
+					bincode.Tuple(bincode.String, bincode.String)
+				), result).value as Array<[string, string]>;
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_lflist : async () : Promise<Array<[string, {
+			hash : number,
+			genesys : number,
+			lflist : Array<[number, number]>,
+			glist : Array<[number, number]>
+		}]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_lflist');
+				return bincode.decode(bincode.Collection(
+					bincode.Tuple(bincode.String, bincode.Struct({
+						hash : bincode.u32,
+						genesys : bincode.u32,
+						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
+						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32))
+					}))
+				), result).value as any;
+			} catch (error) {
+				fs.write.log(error);
+				return [];
+			}
+		},
+		get_strings : async () : Promise<{
+			system : Array<[number, string]>,
+			victory : Array<[number, string]>,
+			counter : Array<[number, string]>,
+			setname : Array<[number, string]>,
+		}> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_strings');
+				return bincode.decode(bincode.Struct({
+					system : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					victory : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					counter : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					setname : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
+				}), result).value as any;
+			} catch (error) {
+				fs.write.log(error);
+				return {
+					system : [],
+					victory : [],
+					counter : [],
+					setname : []
+				};
+			}
+		},
 	}
 	
 	read = {

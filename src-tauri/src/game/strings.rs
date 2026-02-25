@@ -51,4 +51,16 @@ impl Strings {
 				}
 			});
 	}
+	pub fn system (&self) -> &BTreeMap<u32, String> {
+		&self.system
+	}
+	pub fn victory (&self) -> &BTreeMap<u32, String> {
+		&self.victory
+	}
+	pub fn counter (&self) -> &BTreeMap<u32, String> {
+		&self.counter
+	}
+	pub fn setname (&self) -> &BTreeMap<u32, String> {
+		&self.setname
+	}
 }

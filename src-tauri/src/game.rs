@@ -15,7 +15,7 @@ use crate::game::{
 	cdb::Cdb,
 	file::{File, FileContent},
 	font::Font,
-	lflist::LFList,
+	lflist::{LFList, LFListContent},
 	pic::{Pic, PicContent},
 	resource::{Resource, Textures},
 	server::Server,
@@ -40,7 +40,7 @@ use futures::{stream::FuturesUnordered, StreamExt};
 use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
-pub async fn init(path: String) -> Result<&'static RwLock<Game>, Error> {
+pub async fn init<P: AsRef<Path>> (path: P) -> Result<&'static RwLock<Game>, Error> {
 	let game: RwLock<Game> = RwLock::new(Game::init(path).await?);
 	Ok(GAME.get_or_init(|| async {
 		game
@@ -82,8 +82,8 @@ impl Game  {
 		Ok(())
 	}
 
-	pub async fn init (path: String) -> Result<Self, Error> {
-		let path: &Path = Path::new(&path);
+	pub async fn init<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
+		let path: &Path = path.as_ref();
 		Self::unzip( path, false).await?;
 
 		let mut font: Font = Font::new();
@@ -401,12 +401,15 @@ impl Game  {
 	}
 
 	pub async fn get_pic () -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("GAME HAVENT INIT"))?;
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		let mut buffer: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
 		let mut path: BTreeMap<u32, String> = BTreeMap::new();
-		game.pack.clone().into_values().for_each(|pack: GamePack| {
-			if pack.on {
+		game.pack
+			.clone()
+			.into_values()
+			.filter(|pack: &GamePack| pack.on)
+			.for_each(|pack: GamePack| {
 				pack.pics.to_array().into_iter().for_each(|(k, v)| {
 					match v {
 						PicContent::Buffer(v) => {
@@ -417,28 +420,117 @@ impl Game  {
 						}
 					}
 				});
-			}
-		});
+			});
 		let buffer: Vec<(u32, Vec<u8>)> = buffer.into_iter().collect();
 		let path: Vec<(u32, String)> = path.into_iter().collect();
 		Ok((path, buffer))
 	}
 
 	pub async fn get_font () -> Result<Vec<(String, Vec<u8>)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("GAME HAVENT INIT"))?;
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		Ok(game.font.to_array())
 	}
 
 	pub async fn get_sound () -> Result<Vec<(String, Vec<u8>)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("GAME HAVENT INIT"))?;
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		Ok(game.sound.to_array())
 	}
 
 	pub async fn get_textures () -> Result<Textures, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("GAME HAVENT INIT"))?;
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		Ok(game.resource.to_array())
+	}
+
+	pub async fn get_cards () -> Result<Vec<(Vec<u32>, Vec<String>)>, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let mut cards: BTreeMap<u32, (Vec<u32>, Vec<String>)> = BTreeMap::new();
+		game.pack
+			.clone()
+			.into_values()
+			.filter(|pack: &GamePack| pack.on)
+			.for_each(|pack: GamePack| {
+				pack.db.content().into_iter().for_each(|(k, v)| {
+					cards.insert(*k, v.clone());
+				});
+			});
+		Ok(cards.values().cloned().collect())
+	}
+
+	pub async fn get_system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		Ok(game.system.to_array())
+	}
+
+	pub async fn get_server () -> Result<Vec<(String, String)>, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let mut servers: BTreeMap<String, String> = BTreeMap::new();
+		game.pack
+			.clone()
+			.into_values()
+			.filter(|pack: &GamePack| pack.on)
+			.rev()
+			.for_each(|pack: GamePack| {
+				pack.server.content().into_iter().for_each(|(k, v)| {
+					servers.insert(String::from(k), String::from(v));
+				});
+			});
+		Ok(servers.into_iter().collect())
+	}
+
+	pub async fn get_lflist () -> Result<Vec<(String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>))>, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let mut lflist: BTreeMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = BTreeMap::new();
+		game.pack
+			.clone()
+			.into_values()
+			.filter(|pack: &GamePack| pack.on)
+			.rev()
+			.for_each(|pack: GamePack| {
+				pack.lflist.content().into_iter().for_each(|(k, v)| {
+					lflist.insert(String::from(k), v.to_array());
+				});
+			});
+		Ok(lflist.into_iter().collect())
+	}
+
+	pub async fn get_strings () -> Result<(Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let mut system: BTreeMap<u32, String> = BTreeMap::new();
+		let mut victory: BTreeMap<u32, String> = BTreeMap::new();
+		let mut counter: BTreeMap<u32, String> = BTreeMap::new();
+		let mut setname: BTreeMap<u32, String> = BTreeMap::new();
+		game.pack
+			.clone()
+			.into_values()
+			.filter(|pack: &GamePack| pack.on)
+			.rev()
+			.for_each(|pack: GamePack| {
+				pack.strings.system().into_iter().for_each(|(k, v)| {
+					system.insert(*k, String::from(v));
+				});
+				pack.strings.victory().into_iter().for_each(|(k, v)| {
+					victory.insert(*k, String::from(v));
+				});
+				pack.strings.counter().into_iter().for_each(|(k, v)| {
+					counter.insert(*k, String::from(v));
+				});
+				pack.strings.setname().into_iter().for_each(|(k, v)| {
+					setname.insert(*k, String::from(v));
+				});
+			});
+		Ok((
+			system.into_iter().collect(),
+			victory.into_iter().collect(),
+			counter.into_iter().collect(),
+			setname.into_iter().collect()
+		))
 	}
 }

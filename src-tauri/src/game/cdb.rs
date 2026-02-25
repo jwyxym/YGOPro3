@@ -36,4 +36,7 @@ impl Cdb  {
 	pub fn to_array (&self) -> Vec<(Vec<u32>, Vec<String>)> {
 		self.content.values().cloned().collect()
 	}
+	pub fn content (&self) -> &BTreeMap<u32, (Vec<u32>, Vec<String>)> {
+		&self.content
+	}
 }
