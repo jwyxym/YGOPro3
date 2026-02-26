@@ -19,5 +19,7 @@ pub fn init<R: Runtime> (build: Builder<R>) -> Builder<R> {
 		commands::get_server,
 		commands::get_strings,
 		commands::get_lflist,
+		commands::get_info,
+		commands::get_deck,
 	])
 }

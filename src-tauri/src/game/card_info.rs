@@ -4,12 +4,12 @@ use std::{collections::BTreeMap};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct CardInfo {
-	ot: BTreeMap<String, String>,
-	attribute: BTreeMap<String, String>,
-	link: BTreeMap<String, String>,
-	category: BTreeMap<String, String>,
-	race: BTreeMap<String, String>,
-	types: BTreeMap<String, String>
+	ot: BTreeMap<u32, String>,
+	attribute: BTreeMap<u32, String>,
+	link: BTreeMap<u32, String>,
+	category: BTreeMap<u32, String>,
+	race: BTreeMap<u32, String>,
+	types: BTreeMap<u32, String>
 }
 
 impl CardInfo {
@@ -25,5 +25,22 @@ impl CardInfo {
 			race: BTreeMap::new(),
 			types: BTreeMap::new()
 		}
+	}
+	pub fn to_array (&self) -> (
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>
+	) {
+		(
+			self.ot.clone().into_iter().collect(),
+			self.attribute.clone().into_iter().collect(),
+			self.link.clone().into_iter().collect(),
+			self.category.clone().into_iter().collect(),
+			self.race.clone().into_iter().collect(),
+			self.types.clone().into_iter().collect()
+		)
 	}
 }

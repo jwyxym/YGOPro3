@@ -1,6 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import fs from '@/script/fs';
 import * as bincode from 'bincode-ts';
+import Deck from '@/pages/deck/deck';
+import Card from '../card';
+import LFList from '../lflist';
 
 interface Srv {
 	priority : number;
@@ -88,18 +91,37 @@ class Invoke {
 				return [];
 			}
 		},
-		get_textures : async () : Promise<Array<[string, string]>> => {
+		get_textures : async () : Promise<{
+			ot : Array<[number, string]>,
+			attribute : Array<[number, string]>,
+			link : Array<[number, [string, string]]>,
+			category : Array<[number, string]>,
+			race : Array<[number, string]>,
+			types : Array<[number, string]>
+		}> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_textures');
-				return bincode.decode(
-					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
-				).value as Array<[string, string]>;
+				return bincode.decode(bincode.Struct({
+					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					link : bincode.Collection(bincode.Tuple(bincode.u32, bincode.Tuple(bincode.String, bincode.String))),
+					category : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					race : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
+				}), result).value as any;
 			} catch (error) {
 				fs.write.log(error);
-				return [];
+				return {
+					ot : [],
+					attribute : [],
+					link : [],
+					category : [],
+					race : [],
+					types : []
+				};
 			}
 		},
-		get_cards : async () : Promise<Array<Array<number | string>>> => {
+		get_cards : async () : Promise<Array<[number, Card]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_cards');
 				return (bincode.decode(bincode.Collection(
@@ -107,7 +129,7 @@ class Invoke {
 						bincode.Collection(bincode.u32),
 						bincode.Collection(bincode.String),
 					)), result).value as Array<[Array<number>, Array<string>]>)
-						.map(i => i.flat());
+						.map(i => [i[0][0], new Card(i.flat())]);
 			} catch (error) {
 				fs.write.log(error);
 				return [];
@@ -149,22 +171,22 @@ class Invoke {
 				return [];
 			}
 		},
-		get_lflist : async () : Promise<Array<[string, {
-			hash : number,
-			genesys : number,
-			lflist : Array<[number, number]>,
-			glist : Array<[number, number]>
-		}]>> => {
+		get_lflist : async () : Promise<Array<[string, LFList]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_lflist');
-				return bincode.decode(bincode.Collection(
+				return (bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.Struct({
 						hash : bincode.u32,
 						genesys : bincode.u32,
 						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
 						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32))
 					}))
-				), result).value as any;
+				), result).value as Array<[string, {
+					hash : number,
+					genesys : number,
+					lflist : Array<[number, number]>,
+					glist : Array<[number, number]>
+				}]>).map(i => [i[0], new LFList(i[1])]);
 			} catch (error) {
 				fs.write.log(error);
 				return [];
@@ -192,6 +214,48 @@ class Invoke {
 					counter : [],
 					setname : []
 				};
+			}
+		},
+		get_info : async () : Promise<{
+			ot : Array<[number, string]>,
+			attribute : Array<[number, string]>,
+			link : Array<[number, string]>,
+			category : Array<[number, string]>,
+			race : Array<[number, string]>,
+			types : Array<[number, string]>
+		}> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_info');
+				return bincode.decode(bincode.Struct({
+					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					link : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					category : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					race : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
+				}), result).value as any;
+			} catch (error) {
+				fs.write.log(error);
+				return {
+					ot : [],
+					attribute : [],
+					link : [],
+					category : [],
+					race : [],
+					types : []
+				};
+			}
+		},
+		get_deck : async () : Promise<Array<[string, Deck]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_deck');
+				return (bincode.decode(bincode.Collection(
+					bincode.Tuple(bincode.String, bincode.String)
+				), result).value as Array<[string, string]>)
+					.map(i => [i[0], Deck.fromYdkString(i[1])]);
+			} catch (error) {
+				fs.write.log(error);
+				return [];
 			}
 		},
 	}

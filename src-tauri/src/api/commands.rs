@@ -101,3 +101,21 @@ pub async fn get_strings () -> Response {
 		.map(Response::new)
 		.unwrap_or_else(|| Response::new(Vec::new()))
 }
+
+#[tauri::command]
+pub async fn get_info () -> Response {
+	Game::get_info().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, *CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_deck () -> Response {
+	Game::get_deck().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, *CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}

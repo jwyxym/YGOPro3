@@ -27,20 +27,6 @@ const REG = {
 	NUMBER : /^\d+$/
 };
 
-const DIRS = {
-	TEXTURE : 'textures',
-	EXPANSION : 'expansions',
-	LUA : 'lua',
-	DECK : 'deck',
-	CACHE : 'cache',
-	SOUND : 'sound',
-	STRING : 'strings',
-	INFO : 'info',
-	DB : 'cdb',
-	PIC : 'pics',
-	FONT : 'font'
-};
-
 const LANGUAGE = {
 	Zh_CN : 'zh-CN'
 };
@@ -116,6 +102,10 @@ const URL = {
 }
 
 const KEYS = {
+	BOOL : 'BOOL',
+	ARRAY : 'ARRAY',
+	NUMBER : 'NUMBER',
+	STRING : 'STRING',
 	SYSTEM : '!system',
 	VICTORY : '!victory',
 	COUNTER : '!counter',
@@ -154,4 +144,4 @@ const KEYS = {
 	SETTING_SELECT_VOICE : 'SELECT_VOICE'
 };
 
-export { REG, DIRS, FILES, LANGUAGE, URL, KEYS, BASE_DIR, BASE_PATH, LINE_FEED, SYSTEM };
+export { REG, FILES, LANGUAGE, URL, KEYS, BASE_DIR, BASE_PATH, LINE_FEED, SYSTEM };

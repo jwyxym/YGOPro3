@@ -1,34 +1,38 @@
+import { reactive } from 'vue';
 import { exit } from '@tauri-apps/plugin-process';
 import { DirEntry } from '@tauri-apps/plugin-fs';
 import { fetch } from '@tauri-apps/plugin-http';
 
 import fs from './fs';
 import * as CONSTANT from './constant';
-import invoke from './tauri-api/invoke';
 import Card from './card';
+import LFList from './lflist';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import TAURI_STR from './language/string';
+import invoke from './tauri-api/invoke';
 
 
 import voice from '@/pages/voice/voice';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/server/post/network';
-import { reactive } from 'vue';
 
 class Game {
-	strings : Map<string, Map<number, string>> = new Map([
-		[CONSTANT.KEYS.SYSTEM, new Map],
-		[CONSTANT.KEYS.VICTORY, new Map],
-		[CONSTANT.KEYS.COUNTER, new Map],
-		[CONSTANT.KEYS.SETCODE, new Map],
-		[CONSTANT.KEYS.OT, new Map],
-		[CONSTANT.KEYS.ATTRIBUTE, new Map],
-		[CONSTANT.KEYS.CATEGORY, new Map],
-		[CONSTANT.KEYS.LINK, new Map],
-		[CONSTANT.KEYS.RACE, new Map],
-		[CONSTANT.KEYS.TYPE, new Map]
-	]);
+	inited = false;
+	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
+	textures : Map<string, Map<number, string | [string, string]>> = new Map();
+	bgm : Map<string, string> = new Map();
+	strings : Map<string, Map<number, string>> = new Map();
+	servers : Map<string, string> = new Map();
+	lflist : Map<string, LFList> = new Map;
+	font : {
+		dom : HTMLStyleElement,
+		url : Array<string>
+	} = {
+		dom : document.createElement('style'),
+		url : []
+	};
+
 	icons : Map<string, Map<number, string>> = new Map([
 		[CONSTANT.KEYS.OT, new Map],
 		[CONSTANT.KEYS.ATTRIBUTE, new Map],
@@ -37,12 +41,7 @@ class Game {
 		[CONSTANT.KEYS.RACE, new Map],
 		[CONSTANT.KEYS.TYPE, new Map]
 	]);
-	lflist : Map<string, {hash : number, map : Map<number, number>}> = new Map;
-	system : Map<string, string> = new Map;
-	servers : Map<string, string> = new Map;
 	cards : Map<number, Card> = new Map;
-	textures : Map<string, string> = new Map;
-	bgm : Map<string, string> = new Map;
 	duel_model : Map<string, string> = new Map([
 		['T', '双打'],
 		['S', '单局'],
@@ -56,109 +55,127 @@ class Game {
 	interval_ct = 0;
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
-	font = document.createElement('style');
 
 	private lflist_now : string = '';
 
-    init = async (chk : boolean = true) : Promise<void> => {
+	init = async () : Promise<void> => {
+		if (this.inited) return;
 		try {
-			//新建所需要的文件夹
-			for (const [k, i] of Object.entries(CONSTANT.DIRS)) {
-				if (k !== 'PIC' && !await fs.exists(i))
-					await fs.write.dir(i);
-			}
+			await fs.init_path();
+			const startTime = Date.now();
+			await invoke.game.init(fs.path!, CONSTANT.LANGUAGE.Zh_CN);
 
-			//初始化资源
-			if (chk)
-				await fs.init();
+			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, info] = await Promise.all([
+				invoke.game.get_font(),
+				invoke.game.get_sound(),
+				invoke.game.get_textures(),
+				invoke.game.get_cards(),
+				invoke.game.get_system(),
+				invoke.game.get_server(),
+				invoke.game.get_lflist(),
+				invoke.game.get_strings(),
+				invoke.game.get_info(),
+			]);
+			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
+			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
+			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
+			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
+			this.bgm = new Map(sounds);
+			this.cards = new Map(cards);
+			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
+			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
+			this.strings.set(CONSTANT.KEYS.COUNTER, new Map(strings.counter));
+			this.strings.set(CONSTANT.KEYS.SETCODE, new Map(strings.setname));
+			this.strings.set(CONSTANT.KEYS.OT, new Map(info.ot));
+			this.strings.set(CONSTANT.KEYS.ATTRIBUTE, new Map(info.attribute));
+			this.strings.set(CONSTANT.KEYS.CATEGORY, new Map(info.category));
+			this.strings.set(CONSTANT.KEYS.LINK, new Map(info.link));
+			this.strings.set(CONSTANT.KEYS.RACE, new Map(info.race));
+			this.strings.set(CONSTANT.KEYS.TYPE, new Map(info.types));
 
-			//读取./textures文件夹
-			for (const i of await fs.read.dir(CONSTANT.DIRS.TEXTURE, false)) {
-				if (i.name.match(CONSTANT.REG.PICTURE)) {
-					const url : string | undefined = await fs.read.file.as_url(await fs.join(CONSTANT.DIRS.TEXTURE, i.name));
-					if (url)
-						this.textures.set(i.name, url);
-				}
-			}
+			this.textures.set(CONSTANT.KEYS.OT, new Map(textures.ot));
+			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, new Map(textures.attribute));
+			this.textures.set(CONSTANT.KEYS.CATEGORY, new Map(textures.category));
+			this.textures.set(CONSTANT.KEYS.LINK, new Map(textures.link));
+			this.textures.set(CONSTANT.KEYS.RACE, new Map(textures.race));
+			this.textures.set(CONSTANT.KEYS.TYPE, new Map(textures.types));
 
-			//读取./font文件夹
-			for (const i of await fs.read.dir(CONSTANT.DIRS.FONT, false)) {
-				if (i.name.match(CONSTANT.REG.FONT)) {
-					const url : string | undefined = await fs.read.file.as_url(await fs.join(CONSTANT.DIRS.FONT, i.name));
-					if (url) {
-						this.font.textContent += `
-							@font-face {
-								font-family: '${i.name.split('.')[0]}';
-								src: url('${url}');
-								font-weight: normal;
-								font-style: normal;
-							}
-						`
-					}
-				}
-			}
-			document.head.appendChild(this.font);
+			this.servers = new Map(servers);
+			this.lflist = new Map(lflist);
 
-			//读取./sound文件夹
-			for (const i of await fs.read.dir(CONSTANT.DIRS.SOUND, false)) {
-				if (i.name.match(CONSTANT.REG.BGM)) {
-					const url : string | undefined = await fs.read.bgm([CONSTANT.DIRS.SOUND, i.name]);
-					if (url)
-						this.bgm.set(i.name, url);
-				}
-			}
+			this.font.url = fonts.map(([_, url]) => url);
+			this.font.dom.textContent = fonts.map(([name, url]) =>
+				`@font-face {
+					font-family: '${name}';
+					src: url('${url}');
+					font-weight: normal;
+					font-style: normal;
+				}`
+			).join('\n');
+			document.head.appendChild(this.font.dom);
 
-			//读取system.conf文件
-			if (await fs.exists(CONSTANT.FILES.SYSTEM_CONF)) {
-				const text : string | undefined = await fs.read.text(CONSTANT.FILES.SYSTEM_CONF);
-				if (text !== undefined) {
-					const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-					for (const i of lines) {
-						const line : string = i.trim();
-						this.read.system_conf(line);
-					}
-				}
-				if (!this.system.has(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME))
-					this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
-				if (!this.system.has(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM))
-					this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_CT_CARD))
-					this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_MAIN))
-					this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_EX))
-					this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_SIDE))
-					this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SORT))
-					this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SLIDER))
-					this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
-				if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_VOICE))
-					this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
-			} else {
-				this.push.system(CONSTANT.KEYS.SETTING_DOWMLOAD_TIME, new Date().toISOString());
-				this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
-				this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
-				this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
-				this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
-				this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
-				this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
-				this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
-				this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
-				this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
-				await fs.write.system();
-			}
 
-			this.unknown.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_UNKNOW) ?? '');
-			this.back.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_COVER) ?? '');
-			
-			await this.load.card();
-			await this.load.expansion();
+				const endTime = Date.now();
+				const elapsedSeconds = (endTime - startTime) / 1000;
+				console.log(`运行了 ${elapsedSeconds.toFixed(3)} 秒`);
 		} catch (error) {
 			fs.write.log(error);
 		}
-	};
+		this.inited = true;
+	}
+
+    // init = async (chk : boolean = true) : Promise<void> => {
+
+
+	// 		//读取system.conf文件
+	// 		// if (await fs.exists(CONSTANT.FILES.SYSTEM_CONF)) {
+	// 		// 	const text : string | undefined = await fs.read.text(CONSTANT.FILES.SYSTEM_CONF);
+	// 		// 	if (text !== undefined) {
+	// 		// 		const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
+	// 		// 		for (const i of lines) {
+	// 		// 			const line : string = i.trim();
+	// 		// 			this.read.system_conf(line);
+	// 		// 		}
+	// 		// 	}
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_CARD))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_MAIN))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_EX))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_SIDE))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SORT))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SLIDER))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
+	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_VOICE))
+	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
+	// 		// } else {
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_DOWMLOAD_TIME, new Date().toISOString());
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
+	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
+	// 		// 	await fs.write.system();
+	// 		// }
+
+	// 		this.unknown.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_UNKNOW) ?? '');
+	// 		this.back.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_COVER) ?? '');
+			
+	// 	} catch (error) {
+	// 		fs.write.log(error);
+	// 	}
+	// };
 
 	reload = async () : Promise<boolean> => {
 		try {

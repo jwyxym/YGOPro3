@@ -15,7 +15,7 @@ use crate::game::{
 	cdb::Cdb,
 	file::{File, FileContent},
 	font::Font,
-	lflist::{LFList, LFListContent},
+	lflist::LFList,
 	pic::{Pic, PicContent},
 	resource::{Resource, Textures},
 	server::Server,
@@ -30,6 +30,7 @@ use anyhow::{Error, Result, anyhow};
 use regex::Regex;
 use walkdir::WalkDir;
 use lazy_static::lazy_static;
+use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
 	fs::{read_to_string, metadata},
@@ -54,11 +55,12 @@ lazy_static! {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
+	path: PathBuf,
 	system: System,
 	resource: Resource,
 	font: Font,
 	sound: Sound,
-	pack: BTreeMap<String, GamePack>
+	pack: IndexMap<String, GamePack>
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -72,7 +74,7 @@ pub struct GamePack {
 	pics: Pic
 }
 
-impl Game  {
+impl Game {
 	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(), Error> {
 		metadata(path.as_ref().join("assets.zip")).await?;
 		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(path, overwrite).await?;
@@ -106,7 +108,9 @@ impl Game  {
 			lflist: lflist,
 			pics: Pic::new().read_dir(path.join("pics"))
 		});
+		pack.reverse();
 		Ok(Self {
+			path: path.to_path_buf(),
 			system: system,
 			resource: resource,
 			font: font,
@@ -222,7 +226,7 @@ impl Game  {
 		(card_info, db, strings)
 	}
 
-	async fn load_expansion (path: &Path, system: &System) -> BTreeMap<String, GamePack> {
+	async fn load_expansion (path: &Path, system: &System) -> IndexMap<String, GamePack> {
 		let mut zip_tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		WalkDir::new(path.join("expansions"))
@@ -267,7 +271,7 @@ impl Game  {
 					}
 				}
 			});
-		let mut packs: BTreeMap<String, GamePack> = BTreeMap::new();
+		let mut packs: IndexMap<String, GamePack> = IndexMap::new();
 		let mut zip_tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = zip_tasks.into_iter().collect::<FuturesUnordered<_>>();
 		let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
 		let (_, gamepack) = join!(
@@ -532,5 +536,52 @@ impl Game  {
 			counter.into_iter().collect(),
 			setname.into_iter().collect()
 		))
+	}
+
+	pub async fn get_info () -> Result<(
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>,
+		Vec<(u32, String)>
+	), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let (_, pack) = game.pack.first().ok_or(anyhow!(""))?;
+		Ok(pack
+			.clone()
+			.card_info
+			.to_array())
+	}
+
+	pub async fn get_deck () -> Result<Vec<(String, String)>, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let mut tasks: Vec<JoinHandle<Result<(String, String), Error>>> = Vec::new();
+		let mut deck: Vec<(String, String)> = Vec::new();
+		WalkDir::new(game.path.join("deck"))
+			.max_depth(1)
+			.into_iter()
+			.for_each(|i| {
+				if let Ok(i) = i {
+					if let Some(file) = File::new(i.path()) {
+						tasks.push(spawn(async move {
+							let text: String = read_to_string(i.path()).await?;
+							let name: &str = file.name();
+							Ok((String::from(name), text))
+						}));
+					}
+				}
+			});
+		let mut tasks: FuturesUnordered<JoinHandle<Result<(String, String), Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
+		while let Some(task) = tasks.next().await {
+			if let Ok(task) = task {
+				if let Ok(i) = task {
+					deck.push(i);
+				}
+			}
+		}
+		Ok(deck)
 	}
 }

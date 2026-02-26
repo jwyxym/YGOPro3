@@ -5,23 +5,23 @@ use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Resource {
-	ot: BTreeMap<String, String>,
-	attribute: BTreeMap<String, String>,
-	link: BTreeMap<String, (String, String)>,
-	category: BTreeMap<String, String>,
-	race: BTreeMap<String, String>,
-	types: BTreeMap<String, String>,
+	ot: BTreeMap<u32, String>,
+	attribute: BTreeMap<u32, String>,
+	link: BTreeMap<u32, (String, String)>,
+	category: BTreeMap<u32, String>,
+	race: BTreeMap<u32, String>,
+	types: BTreeMap<u32, String>,
 	sound: BTreeMap<String, String>,
 	font: BTreeMap<String, String>,
 }
 
 pub type Textures = (
-	Vec<(String, String)>,
-	Vec<(String, String)>,
-	Vec<(String, (String, String))>,
-	Vec<(String, String)>,
-	Vec<(String, String)>,
-	Vec<(String, String)>,
+	Vec<(u32, String)>,
+	Vec<(u32, String)>,
+	Vec<(u32, (String, String))>,
+	Vec<(u32, String)>,
+	Vec<(u32, String)>,
+	Vec<(u32, String)>,
 );
 
 impl Resource {
