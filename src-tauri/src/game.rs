@@ -9,6 +9,7 @@ mod font;
 mod sound;
 mod card_info;
 mod lflist;
+mod model;
 mod file;
 use crate::game::{
 	card_info::CardInfo,
@@ -22,6 +23,7 @@ use crate::game::{
 	sound::Sound,
 	strings::Strings,
 	system::System,
+	model::Model,
 	zip::Zip
 };
 
@@ -56,6 +58,7 @@ lazy_static! {
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
 	path: PathBuf,
+	model: Model,
 	system: System,
 	resource: Resource,
 	font: Font,
@@ -91,11 +94,11 @@ impl Game {
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
 
-		let (system, resource, lflist, servers) = Self::load_config(path).await;
+		let (system, resource, lflist, servers, model) = Self::load_config(path).await;
 
 		let (mut pack, (card_info, db, strings), _, _) = join!(
 			Self::load_expansion(path, &system),
-			Self::load_i18n(path, String::from(system.string().get("I18N").unwrap_or(&String::from("zh-CN")))),
+			Self::load_i18n(path, system.i18n()),
 			font.read_dir(path.join("font"), resource.font()),
 			sound.read_dir(path.join("sound"), resource.sound())
 		);
@@ -111,6 +114,7 @@ impl Game {
 		pack.reverse();
 		Ok(Self {
 			path: path.to_path_buf(),
+			model: model,
 			system: system,
 			resource: resource,
 			font: font,
@@ -119,7 +123,7 @@ impl Game {
 		})
 	}
 
-	async fn load_config (path: &Path) -> (System, Resource, LFList, Server) {
+	async fn load_config (path: &Path) -> (System, Resource, LFList, Server, Model) {
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		WalkDir::new(path.join("config"))
 			.max_depth(1)
@@ -137,8 +141,11 @@ impl Game {
 							} else if file.name() == "servers.toml" {
 								let text: String = read_to_string(i.path()).await?;
 								Ok(FileContent::Servers(text))
+							} else if file.name() == "room_model.toml" {
+								let text: String = read_to_string(i.path()).await?;
+								Ok(FileContent::Model(text))
 							} else {
-								Ok(FileContent::None)
+								Err(anyhow!(""))
 							}
 						}));
 					}
@@ -153,6 +160,7 @@ impl Game {
 		let mut resources: Option<Resource> = None;
 		let mut servers: Server = Server::new();
 		let mut lflist: LFList = LFList::new();
+		let mut model: Model = Model::new();
 
 		let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
 		while let Some(task) = tasks.next().await {
@@ -171,6 +179,9 @@ impl Game {
 						FileContent::LFList(text) => {
 							lflist.init(text)
 						}
+						FileContent::Model(text) => {
+							model.init(text)
+						}
 						_ => ()
 					};
 				}
@@ -178,7 +189,7 @@ impl Game {
 		}
 		let system: System = system.unwrap_or_else(|| { System::default() });
 		let resources: Resource = resources.unwrap_or_else(|| { Resource::default() });
-		(system, resources, lflist, servers)
+		(system, resources, lflist, servers, model)
 	}
 
 	async fn load_i18n (path: &Path, i18n: String) -> (CardInfo, Cdb, Strings) {
@@ -552,6 +563,14 @@ impl Game {
 		Ok(pack
 			.clone()
 			.card_info
+			.to_array())
+	}
+
+	pub async fn get_model () -> Result<Vec<(String, String)>, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		Ok(game
+			.model
 			.to_array())
 	}
 

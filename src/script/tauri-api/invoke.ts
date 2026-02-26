@@ -36,12 +36,9 @@ type BufferFile<T> = Array<[T, { ok : Uint8Array }]>;
 
 class Invoke {
 	game = {
-		init : async (path: string, i18n: string) : Promise<void> => {
+		init : async () : Promise<void> => {
 			try {
-				await invoke<void>('init', {
-					path : path,
-					i18n: i18n
-				})
+				await invoke<void>('init');
 			} catch (error) {
 				fs.write.log(error);
 			}
@@ -94,20 +91,27 @@ class Invoke {
 		get_textures : async () : Promise<{
 			ot : Array<[number, string]>,
 			attribute : Array<[number, string]>,
-			link : Array<[number, [string, string]]>,
 			category : Array<[number, string]>,
 			race : Array<[number, string]>,
-			types : Array<[number, string]>
+			types : Array<[number, string]>,
+			link : Array<[number, [string, string]]>,
+			info : Array<[string, string]>,
+			other : Array<[string, string]>,
+			btn : Array<[string, [string, string]]>,
+			avatar : Array<string>,
 		}> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_textures');
 				return bincode.decode(bincode.Struct({
 					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
-					link : bincode.Collection(bincode.Tuple(bincode.u32, bincode.Tuple(bincode.String, bincode.String))),
 					category : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					race : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
-					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
+					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					link : bincode.Collection(bincode.Tuple(bincode.u32, bincode.Tuple(bincode.String, bincode.String))),
+					info : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
+					other : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
+					btn : bincode.Collection(bincode.Tuple(bincode.String, bincode.Tuple(bincode.String, bincode.String))),
 				}), result).value as any;
 			} catch (error) {
 				fs.write.log(error);
@@ -117,7 +121,11 @@ class Invoke {
 					link : [],
 					category : [],
 					race : [],
-					types : []
+					types : [],
+					info : [],
+					other : [],
+					btn : [],
+					avatar : []
 				};
 			}
 		},
@@ -244,6 +252,17 @@ class Invoke {
 					race : [],
 					types : []
 				};
+			}
+		},
+		get_model : async () : Promise<Array<[string, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_model');
+				return bincode.decode(bincode.Collection(
+					bincode.Tuple(bincode.String, bincode.String)
+				), result).value as Array<[string, string]>;
+			} catch (error) {
+				fs.write.log(error);
+				return [];
 			}
 		},
 		get_deck : async () : Promise<Array<[string, Deck]>> => {

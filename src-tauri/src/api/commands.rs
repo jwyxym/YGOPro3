@@ -1,5 +1,11 @@
-use crate::game::{self, Game};
 
+use crate::{
+	game::{self, Game},
+	api::PATH
+};
+
+use std::path::PathBuf;
+use anyhow::anyhow;
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use lazy_static::lazy_static;
 use tauri::{
@@ -11,13 +17,15 @@ lazy_static! {
 }
 
 #[tauri::command]
-pub async fn init (path: String) -> Result<(), String> {
+pub async fn init () -> Result<(), String> {
+	let path: PathBuf = PATH.get().ok_or(anyhow!("get path error")).map_err(|e| e.to_string())?.to_path_buf();
 	game::init(path).await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
 #[tauri::command]
-pub async fn unzip (path: String) -> Result<(), String> {
+pub async fn unzip () -> Result<(), String> {
+	let path: PathBuf = PATH.get().ok_or(anyhow!("get path error")).map_err(|e| e.to_string())?.to_path_buf();
 	Ok(Game::unzip(path, true).await.map_err(|e| e.to_string())?)
 }
 
@@ -105,6 +113,15 @@ pub async fn get_strings () -> Response {
 #[tauri::command]
 pub async fn get_info () -> Response {
 	Game::get_info().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, *CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_model () -> Response {
+	Game::get_model().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, *CONFIG).ok())
 		.map(Response::new)

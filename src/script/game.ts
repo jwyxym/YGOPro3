@@ -25,6 +25,8 @@ class Game {
 	strings : Map<string, Map<number, string>> = new Map();
 	servers : Map<string, string> = new Map();
 	lflist : Map<string, LFList> = new Map;
+	model : Map<string, string> = new Map();
+	cards : Map<number, Card> = new Map;
 	font : {
 		dom : HTMLStyleElement,
 		url : Array<string>
@@ -32,40 +34,21 @@ class Game {
 		dom : document.createElement('style'),
 		url : []
 	};
-
-	icons : Map<string, Map<number, string>> = new Map([
-		[CONSTANT.KEYS.OT, new Map],
-		[CONSTANT.KEYS.ATTRIBUTE, new Map],
-		[CONSTANT.KEYS.CATEGORY, new Map],
-		[CONSTANT.KEYS.LINK, new Map],
-		[CONSTANT.KEYS.RACE, new Map],
-		[CONSTANT.KEYS.TYPE, new Map]
-	]);
-	cards : Map<number, Card> = new Map;
-	duel_model : Map<string, string> = new Map([
-		['T', '双打'],
-		['S', '单局'],
-		['M', '比赛'],
-	]);
 	version = 0x1362;
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
 	i18n = CONSTANT.LANGUAGE.Zh_CN;
-	interval = -1;
-	interval_ct = 0;
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
-
-	private lflist_now : string = '';
 
 	init = async () : Promise<void> => {
 		if (this.inited) return;
 		try {
 			await fs.init_path();
 			const startTime = Date.now();
-			await invoke.game.init(fs.path!, CONSTANT.LANGUAGE.Zh_CN);
+			await invoke.game.init();
 
-			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, info] = await Promise.all([
+			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
 				invoke.game.get_font(),
 				invoke.game.get_sound(),
 				invoke.game.get_textures(),
@@ -74,14 +57,14 @@ class Game {
 				invoke.game.get_server(),
 				invoke.game.get_lflist(),
 				invoke.game.get_strings(),
+				invoke.game.get_model(),
 				invoke.game.get_info(),
 			]);
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
 			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
 			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
 			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
-			this.bgm = new Map(sounds);
-			this.cards = new Map(cards);
+
 			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
 			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
 			this.strings.set(CONSTANT.KEYS.COUNTER, new Map(strings.counter));
@@ -102,6 +85,9 @@ class Game {
 
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
+			this.model = new Map(model);
+			this.bgm = new Map(sounds);
+			this.cards = new Map(cards);
 
 			this.font.url = fonts.map(([_, url]) => url);
 			this.font.dom.textContent = fonts.map(([name, url]) =>
@@ -114,7 +100,7 @@ class Game {
 			).join('\n');
 			document.head.appendChild(this.font.dom);
 
-
+			console.log([fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info])
 				const endTime = Date.now();
 				const elapsedSeconds = (endTime - startTime) / 1000;
 				console.log(`运行了 ${elapsedSeconds.toFixed(3)} 秒`);
@@ -122,60 +108,9 @@ class Game {
 			fs.write.log(error);
 		}
 		this.inited = true;
-	}
-
-    // init = async (chk : boolean = true) : Promise<void> => {
-
-
-	// 		//读取system.conf文件
-	// 		// if (await fs.exists(CONSTANT.FILES.SYSTEM_CONF)) {
-	// 		// 	const text : string | undefined = await fs.read.text(CONSTANT.FILES.SYSTEM_CONF);
-	// 		// 	if (text !== undefined) {
-	// 		// 		const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-	// 		// 		for (const i of lines) {
-	// 		// 			const line : string = i.trim();
-	// 		// 			this.read.system_conf(line);
-	// 		// 		}
-	// 		// 	}
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_CARD))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_MAIN))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_EX))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_CT_DECK_SIDE))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SORT))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_SLIDER))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
-	// 		// 	if (!this.system.has(CONSTANT.KEYS.SETTING_SELECT_VOICE))
-	// 		// 		this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
-	// 		// } else {
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_DOWMLOAD_TIME, new Date().toISOString());
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, '今晚有宵夜吗');
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_VOICE_BACK_BGM, 0);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_CARD, 3);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_EX, 15);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_SORT, this.is_windows() ? 0 : 1);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_SLIDER, this.is_windows() ? 0 : 1);
-	// 		// 	this.push.system(CONSTANT.KEYS.SETTING_SELECT_VOICE, this.is_windows() ? 0 : 1);
-	// 		// 	await fs.write.system();
-	// 		// }
-
-	// 		this.unknown.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_UNKNOW) ?? '');
-	// 		this.back.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_COVER) ?? '');
-			
-	// 	} catch (error) {
-	// 		fs.write.log(error);
-	// 	}
-	// };
+		this.unknown.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_UNKNOW) ?? '');
+		this.back.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_COVER) ?? '');
+	};
 
 	reload = async () : Promise<boolean> => {
 		try {
@@ -353,198 +288,6 @@ class Game {
 		}
 	}
 
-	load = {
-		ypk : async (path : string) : Promise<void> => {
-			const ypk : Map<RegExp, Map<string, Blob | Uint8Array | string>> = await fs.read.zip(path);
-			for (const [_, v] of ypk.get(CONSTANT.REG.DATABASE) ?? new Map()) {
-				const db = await fs.read.db_by_vecu8(v as Uint8Array<ArrayBuffer>);
-				if (db !== undefined)
-					this.read.database(db);
-			}
-			for (const [i, v] of ypk.get(CONSTANT.REG.CONF) ?? new Map()) {
-				if (i.endsWith(CONSTANT.FILES.STRING_CONF.get('')!)) {
-					const lines : Array<string> = v.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.strings_conf(line);
-					}
-				} else if (i.endsWith(CONSTANT.FILES.SERVER_CONF)) {
-					const lines : Array<string> = v.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.servers_conf(line);
-					}
-				} else if (i.endsWith(CONSTANT.FILES.LFLIST_CONF)) {
-					const lines : Array<string> = v.split(CONSTANT.REG.LINE_FEED);
-					for (const [v, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.lflist_conf(line);
-						if (v === (lines.length - 1))
-							this.lflist_now = '';
-					}
-				} else if (i.endsWith(CONSTANT.FILES.INFO_CONF.get('')!)) {
-					const lines : Array<string> = v.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.info_conf(line);
-					}
-				}
-			}
-			for (const [_, v] of ypk.get(CONSTANT.REG.INI) ?? new Map()) {
-				this.read.ini(v);
-			}
-		},
-		deck : async () : Promise<Array<Deck>> => {
-			return await fs.read.ydk();
-		},
-		pic : async (deck : Array<number> | Deck) : Promise<number> => {
-			const data = Date.now();
-			deck = deck instanceof Deck ? deck.main.concat(deck.side, deck.extra) : deck;
-			const filter = (i : number, v : number, a : Array<number>) => {
-				const card = this.cards.get(i);
-				return a.indexOf(i) === v && card != undefined && card.pic === '';
-			}
-			deck = deck.filter(filter);
-			if (deck.length === 0) return 0;
-			const load = (await this.get.expansions()).loading;
-			for (const i of load.filter(i => i.match(CONSTANT.REG.ZIP))) {
-				const ypk : Map<RegExp, Map<string, Blob | Uint8Array | string>> = await fs.read.zip(i, deck);
-				for (const code of deck) {
-					const blob = ypk.get(CONSTANT.REG.PICTURE)!.get(code.toString());
-					if (blob != undefined)
-						this.cards.get(code)!.update_pic(URL.createObjectURL(blob as Blob));
-				}
-				deck = deck.filter(filter);
-			}
-			if (this.is_pic_zip()) {
-				deck = deck.filter(filter);
-				const ypk : Map<RegExp, Map<string, Blob | Uint8Array | string>> = await fs.read.zip(CONSTANT.FILES.PIC_ZIP, deck);
-				for (const code of deck) {
-					const blob = ypk.get(CONSTANT.REG.PICTURE)!.get(code.toString());
-					if (blob != undefined)
-						this.cards.get(code)!.update_pic(URL.createObjectURL(blob as Blob));
-				}
-			}
-			deck = deck.filter(filter);
-			if (deck.length === 0) return Date.now() - data;
-			const [pics, unknow] = await fs.read.pics(deck);
-			for (const i of pics) {
-				this.cards.get(i.code)!.update_pic(i.url!);
-			}
-			for (const code of unknow) {
-				this.cards.get(code)!.update_pic(this.get.textures(CONSTANT.FILES.TEXTURE_UNKNOW) as string | undefined ?? '');
-			}
-			return Date.now() - data;
-		},
-		card : async () : Promise<void> => {
-			//读取servers.conf
-			if (await fs.exists(CONSTANT.FILES.SERVER_CONF)) {
-				const servers : string | undefined = await fs.read.text(CONSTANT.FILES.SERVER_CONF);
-				if (servers !== undefined) {
-					const lines : Array<string> = servers.split(CONSTANT.REG.LINE_FEED);
-					for (const i of lines) {
-						const line : string = i.trim();
-						this.read.servers_conf(line);
-					}
-				}
-			}
-			//读取lflist.conf
-			if (await fs.exists(CONSTANT.FILES.LFLIST_CONF)) {
-				const lflist : string | undefined = await fs.read.text(CONSTANT.FILES.LFLIST_CONF);
-				if (lflist !== undefined) {
-					const lines : Array<string> = lflist.split(CONSTANT.REG.LINE_FEED);
-					for (const i of lines) {
-						const line : string = i.trim();
-						this.read.lflist_conf(line);
-					}
-				}
-			}
-			//读取strings.conf
-			const strings : string | undefined = await fs.read.text([CONSTANT.DIRS.STRING, CONSTANT.FILES.STRING_CONF.get(this.i18n)!]);
-			if (strings !== undefined) {
-				const lines : Array<string> = strings.split(CONSTANT.REG.LINE_FEED);
-				for (const i of lines) {
-					const line : string = i.trim();
-					this.read.strings_conf(line);
-				}
-			}
-
-			//读取cardinfo.conf
-			const info : string | undefined = await fs.read.text([CONSTANT.DIRS.INFO, CONSTANT.FILES.INFO_CONF.get(this.i18n)!]);
-			if (info !== undefined) {
-				const lines : Array<string> = info.split(CONSTANT.REG.LINE_FEED);
-				for (const i of lines) {
-					const line : string = i.trim();
-					this.read.info_conf(line);
-				}
-			}
-			//读取cards.cdb
-			const database : Array<Array<string | number>> | undefined = await fs.read.db([CONSTANT.DIRS.DB, CONSTANT.FILES.DB.get(this.i18n)!]);
-			if (database !== undefined)
-				this.read.database(database);
-		},
-		expansion : async () : Promise<void> => {
-			// 读取expnasions文件夹
-			const expansion = await this.get.expansions();
-			const files = expansion.files.map(i => i.name);
-			const load = expansion.loading;
-			//读取cdb
-			for (const i of files.filter(i => i.match(CONSTANT.REG.DATABASE))) {
-				const database : Array<Array<string | number>> | undefined = await fs.read.db(i);
-				if (database !== undefined)
-					this.read.database(database);
-			}
-			//读取conf
-			for (const i of files.filter(i => i.match(CONSTANT.REG.CONF))) {
-				if (i.endsWith(CONSTANT.FILES.STRING_CONF.get('')!)) {
-					const text : string | undefined = await fs.read.text(i);
-					if (text === undefined) continue;
-					const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.strings_conf(line);
-					}
-				} else if (i.endsWith(CONSTANT.FILES.SERVER_CONF)) {
-					const text : string | undefined = await fs.read.text(i);
-					if (text === undefined) continue;
-					const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.servers_conf(line);
-					}
-				} else if (i.endsWith(CONSTANT.FILES.LFLIST_CONF)) {
-					const text : string | undefined = await fs.read.text(i);
-					if (text === undefined) continue;
-					const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-					for (const [v, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.lflist_conf(line);
-						if (v === (lines.length - 1))
-							this.lflist_now = '';
-					}
-				} else if (i.endsWith(CONSTANT.FILES.INFO_CONF.get('')!)) {
-					const text : string | undefined = await fs.read.text(i);
-					if (text === undefined) continue;
-					const lines : Array<string> = text.split(CONSTANT.REG.LINE_FEED);
-					for (const [_, i] of lines.entries()) {
-						const line : string = i.trim();
-						this.read.info_conf(line);
-					}
-				}
-			}
-			//读取ini
-			for (const i of files.filter(i => i.match(CONSTANT.REG.INI))) {
-				const string : string | undefined = await fs.read.text(i);
-				if (string !== undefined)
-					this.read.ini(string);
-			}
-			//读取ypk\zip
-			for (const i of load.filter(i => i.match(CONSTANT.REG.ZIP))) {
-				this.load.ypk(i);
-			}
-		}
-	}
-
 	clear = () : void => {
 		this.cards.forEach(i => {
 			i.clear();
@@ -555,222 +298,6 @@ class Game {
 		this.strings.forEach(i => i.clear());
 		this.icons.forEach(i => i.clear());
 	}
-
-	read = {
-		servers_conf : (line : string) : void => {
-			const key_value : Array<string> = line.split('|');
-			if (key_value.length == 2)
-				this.servers.set(key_value[0], key_value[1])
-		},
-		strings_conf : (line : string) : void => {
-			if (line.startsWith('#'))
-				return;
-			const key_value = line.split(' ');
-			if (key_value.length == 3) {
-				const key = parseInt(key_value[1]);
-				if (isNaN(key)) return;
-				switch (key_value[0]) {
-					case CONSTANT.KEYS.SYSTEM:
-						this.strings.get(
-							CONSTANT.KEYS.SYSTEM
-						)!.set(
-							key,
-							key_value[2]
-						);
-						break;
-					case CONSTANT.KEYS.VICTORY:
-						this.strings.get(
-							CONSTANT.KEYS.VICTORY
-						)!.set(
-							key,
-							key_value[2]
-						);
-						break;
-					case CONSTANT.KEYS.COUNTER:
-						this.strings.get(
-							CONSTANT.KEYS.COUNTER
-						)!.set(
-							key,
-							key_value[2]
-						);
-						break;
-					case CONSTANT.KEYS.SETCODE:
-						this.strings.get(
-							CONSTANT.KEYS.SETCODE
-						)!.set(
-							key,
-							key_value[2]
-						);
-						break;
-				}
-			}
-		},
-		lflist_conf : (line : string) : void => {
-			if (line.startsWith('#'))
-				return;
-			if (line.startsWith('!')) {
-				this.lflist.set(line.slice(1), {hash : 0x7dfcee6a, map : new Map()});
-				this.lflist_now = line.slice(1);
-			} else if (this.lflist_now !== '') {
-				const key_value = line.split(' ');
-				if (key_value.length >= 2) {
-					const code = parseInt(key_value[0]);
-					const count = parseInt(key_value[1]);
-					const lflist = this.lflist.get(this.lflist_now)!;
-					lflist.map.set(code, count);
-					lflist.hash ^= ((code << 18) | (code >> 14)) ^ ((code << (27 + count)) | (code >> (5 - count)));
-				}
-			}
-		},
-		system_conf : (line : string) : void => {
-			if (line.startsWith('#') || line.length === 0)
-				return;
-			const key_value = line.split('=', 2);
-			if (key_value.length == 2) {
-				this.system.set(key_value[0].trim(), key_value[1].trim());
-			}
-		},
-		database : (db : Array<Array<string | number>>) : void => {
-			for (const i of db) {
-				const code : number = i[0] as number;
-				if (this.cards.has(code))
-					this.cards.get(code)!.clear()
-				const card = new Card(i);
-				this.cards.set(code, card);
-			}
-		},
-		ini : (string : string) : void => {
-			const lines = string.split(CONSTANT.REG.LINE_FEED);
-			let name : string = '';
-			let host : string = '';
-			let port : string = '';
-			for (const l of lines) {
-				const line = l.trim();
-				if (line.startsWith(CONSTANT.KEYS.SERVER_NAME)) {
-					const i = line.split('=');
-					if (i.length == 2)
-						name = i[1].trim();
-				} else if (line.startsWith(CONSTANT.KEYS.SERVER_HOST)) {
-					const i = line.split('=');
-					if (i.length == 2)
-						host = i[1].trim();
-				} else if (line.startsWith(CONSTANT.KEYS.SERVER_PORT)) {
-					const i = line.split('=');
-					if (i.length == 2)
-						port = i[1].trim();
-				}
-			}
-			if (name.length > 0 && host.length > 0)
-				this.servers.set(name, `${host}${port.length > 0 ? `:${port}` : ''}`);
-		},
-		info_conf : (line : string) : void => {
-			if (line.startsWith('#'))
-				return;
-			const key_value = line.split(' ');
-			if (key_value.length >= 3) {
-				const key = parseInt(key_value[1]);
-				if (isNaN(key)) return;
-				switch (key_value[0]) {
-					case CONSTANT.KEYS.OT:
-						this.strings.get(
-							CONSTANT.KEYS.OT
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.OT
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-					case CONSTANT.KEYS.ATTRIBUTE:
-						this.strings.get(
-							CONSTANT.KEYS.ATTRIBUTE
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.ATTRIBUTE
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-					case CONSTANT.KEYS.LINK:
-						this.strings.get(
-							CONSTANT.KEYS.LINK
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.LINK
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-					case CONSTANT.KEYS.CATEGORY:
-						this.strings.get(
-							CONSTANT.KEYS.CATEGORY
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.CATEGORY
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-					case CONSTANT.KEYS.RACE:
-						this.strings.get(
-							CONSTANT.KEYS.RACE
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.RACE
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-					case CONSTANT.KEYS.TYPE:
-						this.strings.get(
-							CONSTANT.KEYS.TYPE
-						)!.set(
-							key,
-							key_value[2]
-						);
-						if (key_value[3]) {
-							this.icons.get(
-								CONSTANT.KEYS.TYPE
-							)!.set(
-								key,
-								key_value[3]
-							);
-						}
-						break;
-				}
-			}
-		}
-	};
 
 	push = {
 		system : (key : string, n : string | number | boolean) : void => {
@@ -850,18 +377,6 @@ class Game {
 
 	exit = async () : Promise<void> => {
 		return await exit(1);
-	};
-
-	is_android = () : boolean => {
-		return CONSTANT.SYSTEM === 'android';
-	};
-
-	is_windows = () : boolean => {
-		return CONSTANT.SYSTEM === 'windows';
-	};
-
-	is_pic_zip = () : boolean => {
-		return this.is_android();
 	};
 
 	sleep = async (time : number, func : Function = () => {}, para : Array<any> = []) : Promise<void> => {

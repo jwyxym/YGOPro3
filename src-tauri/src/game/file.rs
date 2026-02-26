@@ -8,6 +8,7 @@ use urlencoding::encode;
 
 #[derive(Serialize, Clone, Debug)]
 pub enum FileContent {
+	Model(String),
 	LFList(String),
 	Servers(String),
 	ServersIni(String),
@@ -16,8 +17,7 @@ pub enum FileContent {
 	Resource(String),
 	CardInfo(String),
 	Strings(String),
-	Cdb(Cdb),
-	None
+	Cdb(Cdb)
 }
 
 #[derive(Serialize, Clone, Debug)]
