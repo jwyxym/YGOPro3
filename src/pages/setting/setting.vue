@@ -231,7 +231,7 @@
 	import * as CONSTANT from '@/script/constant';
 	import fs from '@/script/fs';
 	import listen from '@/script/tauri-api/listen';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 
 	import Dialog from '@/pages/ui/dialog';
 	import Input from '@/pages/ui/input.vue';

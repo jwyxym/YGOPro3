@@ -1,4 +1,4 @@
-import toast from '@/pages/toast/toast';
+import { toast } from '@/pages/toast/toast';
 import fs from '@/script/fs';
 
 declare global {

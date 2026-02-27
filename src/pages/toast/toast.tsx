@@ -1,5 +1,5 @@
-import { reactive } from 'vue';
-import GLOBAL from '@/script/global';
+import { defineComponent, reactive } from 'vue';
+import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';
 
 type HintType = 'info' | 'warn' | 'err';
@@ -16,7 +16,7 @@ class Toast {
 	unshow : boolean = true;
 	list : Array<Hint> = reactive([]);
 	elements : Map<Hint, HTMLDivElement> = new Map()
-	time : number = 3;
+	time : number = 10;
 	arr : Array<Function> = [];
 	chk : boolean = false;
 
@@ -74,6 +74,7 @@ class Toast {
 	};
 
 	info = (str : string | number, chk : boolean = false) : void => {
+		console.log(1)
 		if (this.unshow || !chk)
 			this.push(str, 'info');
 	};
@@ -94,6 +95,33 @@ class Toast {
 	}
 };
 
-const toast = reactive(new Toast());
-export default toast;
+const toast = new Toast();
+
+const _Toast = defineComponent({
+	name : 'Toast',
+	setup () {
+		return () =>
+			<div class = 'toast'>
+				{toast.list.map((i, v) =>
+					<div
+						class = {[i.type, i.status]}
+						id = {i.id}
+						key = {i.id}
+						style = {{ '--top' : `${i.top}px`, '--time' : `${toast.time}s` }}
+						ref = {(el) => toast.set_elements(el as HTMLDivElement | null, i)}
+					>
+						<div>
+							<p>{i.text}</p>
+						</div>
+						<div class = 'pointer' onClick = {toast.splice.bind(null, v)}>
+							<span>&times;</span>
+						</div>
+					</div>
+				)}
+			</div>;
+	},
+});
+
+export default _Toast;
+export { toast };
 export type { Hint };

@@ -184,7 +184,7 @@
 	import Card, { TYPE } from '@/script/card';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { FILES, KEYS, REG } from '@/script/constant';
-	import GLOBAL from '@/script/global';
+	import GLOBAL from '@/script/scale';
 	import Search from '@/script/search';
 
 	import Pic, { CardPic } from '@/pages/ui/pic.vue';
@@ -192,7 +192,7 @@
 	import Button, { Icon } from '@/pages/ui/button.vue';
 	import { Hover } from '@/pages/ui/deck.vue';
 	import Select from '@/pages/ui/select.vue';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 	import Deck from './deck';
 
 	const search_div = ref<HTMLDivElement | null>(null);

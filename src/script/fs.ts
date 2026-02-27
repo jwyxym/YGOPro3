@@ -9,7 +9,7 @@ import { I18N_KEYS } from './language/i18n';
 import SQL from './sql';
 
 import Deck from '@/pages/deck/deck';
-import toast from '@/pages/toast/toast';
+import { toast } from '@/pages/toast/toast';
 
 interface File {
 	name : string;

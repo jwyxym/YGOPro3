@@ -19,7 +19,7 @@
 	import * as CONSTANT from '@/script/constant';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 
 	const page = reactive({
 		height : 0,

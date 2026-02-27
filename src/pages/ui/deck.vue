@@ -73,9 +73,9 @@
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card from '@/script/card';
-	import GLOBAL from '@/script/global';
+	import GLOBAL from '@/script/scale';
 	import Deck from '@/pages/deck/deck';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 	import Pic, { CardPic, CardPics } from './pic.vue';
 
 	const deck = ref<HTMLElement | null>(null);

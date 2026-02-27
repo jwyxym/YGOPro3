@@ -96,7 +96,7 @@
 	import Button from '@/pages/ui/button.vue';
 	import Input from '@/pages/ui/input.vue';
 	import Dialog from '@/pages/ui/dialog';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
 	import mainGame from '@/script/game';

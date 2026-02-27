@@ -13,7 +13,7 @@ import TAURI_STR from './language/string';
 import invoke from './tauri-api/invoke';
 
 
-import voice from '@/pages/voice/voice';
+import { voice } from '@/pages/voice/voice';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/server/post/network';
 

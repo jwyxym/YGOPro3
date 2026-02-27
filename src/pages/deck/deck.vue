@@ -47,7 +47,7 @@
 	import Deck_Box, { Hover } from '@/pages/ui/deck.vue';
 	import Card_Box from '@/pages/ui/card_info.vue';
 	import { CardPic, CardPics } from '@/pages/ui/pic.vue';
-	import toast from '@/pages/toast/toast';
+	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
 	import Search_Box from './searcher.vue';

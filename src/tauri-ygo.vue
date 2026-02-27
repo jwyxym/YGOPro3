@@ -37,18 +37,16 @@
 
 	import YGOMenu from './pages/menu/menu.vue';
 	import Deck from './pages/deck/deck_list.vue';
-	import Duel from './pages/duel/duel.vue';
+	import Duel from './pages/duel/connect.vue';
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
-	import Voice from './pages/voice/voice.vue';
-	import Toast from './pages/toast/toast.vue';
+	import Toast from './pages/toast/toast';
+	import Voice from './pages/voice/voice';
 
 	import mainGame from './script/game';
 	import fs from './script/fs';
 	import { I18N_KEYS } from './script/language/i18n';
-	import voice from './pages/voice/voice';
 	import Dialog from './pages/ui/dialog';
-	import { FILES } from './script/constant';
 
 	const page = reactive({
 		show : {
@@ -130,7 +128,7 @@
 	});
 
 </script>
-<style scoped lang = 'scss'> 
+<style scoped lang = 'scss'>
 	.main {
 		position: relative;
 		> div:last-child {
@@ -167,6 +165,7 @@
 	}
 </style>
 <style lang = 'scss'>
+	@use '@/pages/toast/toast.scss';
 	.var-icon, .cursor {
 		&:hover {
 			cursor: pointer;

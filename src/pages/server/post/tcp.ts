@@ -11,7 +11,7 @@ import Client_Card from '@/pages/server/scene/client_card';
 import Plaid from '@/pages/server/scene/plaid';
 import { Idle } from '@/pages/server/idle';
 import Deck from '@/pages/deck/deck';
-import toast from '@/pages/toast/toast';
+import { toast } from '@/pages/toast/toast';
 
 import Message from './message';
 import { CTOS, STOC, LOCATION, MSG, ERROR, PLAYERCHANGE, HINT, QUERY, PHASE, COMMAND, EDESC, POS } from './network';
@@ -138,11 +138,11 @@ class Tcp {
 			array : new Uint8Array() as Uint8Array<ArrayBuffer>,
 			pos : 0,
 			on : false,
-			process : async (chk : boolean = false) : Promise<void> => {
-				if ((!chk && messages.on) || messages.array.length <= messages.pos) {
-					messages.on = messages.array.length > messages.pos;
-					return;
-				}
+			process : async (chk : boolean = false) => {
+				if ((!chk && messages.on)) return;
+				if (messages.array.length <= messages.pos)
+					return messages.on = false;
+				console.log(messages.array.length, messages.pos)
 				messages.on = true;
 				await listen();
 				messages.process(true);
@@ -155,6 +155,7 @@ class Tcp {
 					this.address = '';
 				} else if (x.payload.event.message) {
 					messages.array = new Uint8Array([...messages.array, ...x.payload.event.message.data]);
+					console.log(x.payload.event.message.data)
 					messages.process();
 				}
 			}
@@ -173,8 +174,9 @@ class Tcp {
 					if (messages.pos + len + 2 > length) {
 						buffer = messages.array.buffer;
 						data = new DataView(buffer);
+						console.log('test')
 						if (buffer.byteLength === length)
-							break;
+							return await mainGame.sleep(100);
 						length = buffer.byteLength;
 					} else {
 						const proto = data.getUint8(messages.pos + 2);
@@ -193,7 +195,7 @@ class Tcp {
 					buffer = messages.array.buffer;
 					data = new DataView(buffer);
 					if (buffer.byteLength === length)
-						break;
+						return await mainGame.sleep(100);
 					length = buffer.byteLength;
 				}
 			}
