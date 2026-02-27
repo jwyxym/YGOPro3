@@ -1,23 +1,24 @@
 use crate::game::File;
 use serde::{Serialize, Deserialize};
 use basic_toml::from_str;
-use std::{collections::BTreeMap, path::{Path, PathBuf}};
+use std::path::{Path, PathBuf};
+use indexmap::IndexMap;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Resource {
-	ot: BTreeMap<String, String>,
-	attribute: BTreeMap<String, String>,
-	category: BTreeMap<String, String>,
-	race: BTreeMap<String, String>,
-	types: BTreeMap<String, String>,
-	info: BTreeMap<String, String>,
-	counter: BTreeMap<String, String>,
-	other: BTreeMap<String, String>,
-	sound: BTreeMap<String, String>,
-	font: BTreeMap<String, String>,
-	avatar: BTreeMap<String, Vec<String>>,
-	link: BTreeMap<String, (String, String)>,
-	btn: BTreeMap<String, (String, String)>,
+	ot: IndexMap<String, String>,
+	attribute: IndexMap<String, String>,
+	category: IndexMap<String, String>,
+	race: IndexMap<String, String>,
+	types: IndexMap<String, String>,
+	info: IndexMap<String, String>,
+	counter: IndexMap<String, String>,
+	other: IndexMap<String, String>,
+	sound: IndexMap<String, String>,
+	font: IndexMap<String, String>,
+	avatar: IndexMap<String, Vec<String>>,
+	link: IndexMap<String, (String, String)>,
+	btn: IndexMap<String, (String, String)>,
 }
 
 pub type Textures = (
@@ -81,26 +82,28 @@ impl Resource {
 	}
 	pub fn default () -> Self {
 		Self {
-			ot: BTreeMap::new(),
-			attribute: BTreeMap::new(),
-			link: BTreeMap::new(),
-			category: BTreeMap::new(),
-			race: BTreeMap::new(),
-			types: BTreeMap::new(),
-			sound: BTreeMap::new(),
-			font: BTreeMap::new(),
-			btn: BTreeMap::new(),
-			info: BTreeMap::new(),
-			counter: BTreeMap::new(),
-			avatar: BTreeMap::new(),
-			other: BTreeMap::new()
+			ot: IndexMap::new(),
+			attribute: IndexMap::new(),
+			link: IndexMap::new(),
+			category: IndexMap::new(),
+			race: IndexMap::new(),
+			types: IndexMap::new(),
+			sound: IndexMap::new(),
+			font: IndexMap::new(),
+			btn: IndexMap::new(),
+			info: IndexMap::new(),
+			counter: IndexMap::new(),
+			avatar: IndexMap::new(),
+			other: IndexMap::new()
 		}
 	}
 	pub fn to_array (&self) -> Textures {
 		(
 			self.ot.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -108,7 +111,9 @@ impl Resource {
 				.collect(),
 			self.attribute.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -116,7 +121,9 @@ impl Resource {
 				.collect(),
 			self.category.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -124,7 +131,9 @@ impl Resource {
 				.collect(),
 			self.race.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -132,7 +141,9 @@ impl Resource {
 				.collect(),
 			self.types.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -140,7 +151,9 @@ impl Resource {
 				.collect(),
 			self.counter.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None
@@ -148,7 +161,9 @@ impl Resource {
 				.collect(),
 			self.link.clone().into_iter()
 				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0, 16) {
+					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
+						if i.0.starts_with("0x") { 16 } else { 10 }
+					) {
 						Some((code, i.1))
 					} else {
 						None

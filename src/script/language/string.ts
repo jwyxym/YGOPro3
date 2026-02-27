@@ -1,4 +1,4 @@
-class TAURI_STR {
+class YGOPRO_STR {
 	content : string;
 	constructor (str : string) {
 		this.content = str;
@@ -15,4 +15,4 @@ class TAURI_STR {
 	}
 }
 
-export default TAURI_STR;
+export default YGOPRO_STR;

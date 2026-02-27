@@ -43,9 +43,16 @@ class Invoke {
 				fs.write.log(error);
 			}
 		},
-		get_pic : async () : Promise<Array<[number, string]>> => {
+		reload : async (overwrite : boolean) : Promise<void> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_pic');
+				await invoke<void>('reload', { overwrite : overwrite });
+			} catch (error) {
+				fs.write.log(error);
+			}
+		},
+		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_pic', { deck : deck });
 				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] =  bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))
@@ -94,6 +101,7 @@ class Invoke {
 			category : Array<[number, string]>,
 			race : Array<[number, string]>,
 			types : Array<[number, string]>,
+			counter : Array<[number, string]>,
 			link : Array<[number, [string, string]]>,
 			info : Array<[string, string]>,
 			other : Array<[string, string]>,
@@ -108,6 +116,7 @@ class Invoke {
 					category : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					race : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
+					counter : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					link : bincode.Collection(bincode.Tuple(bincode.u32, bincode.Tuple(bincode.String, bincode.String))),
 					info : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
 					other : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
@@ -122,6 +131,7 @@ class Invoke {
 					category : [],
 					race : [],
 					types : [],
+					counter : [],
 					info : [],
 					other : [],
 					btn : [],
@@ -194,7 +204,7 @@ class Invoke {
 					genesys : number,
 					lflist : Array<[number, number]>,
 					glist : Array<[number, number]>
-				}]>).map(i => [i[0], new LFList(i[1])]);
+				}]>).map(i => [i[0], new LFList(i[0], i[1])]);
 			} catch (error) {
 				fs.write.log(error);
 				return [];

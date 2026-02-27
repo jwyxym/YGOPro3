@@ -84,7 +84,7 @@ class Card {
 	};
 
 	has_pic = () : boolean => {
-		return this.pic !== '' && this.pic !== mainGame.get.textures(CONSTANT.FILES.TEXTURE_UNKNOW);
+		return this.pic !== '' && this.pic !== mainGame.unknown.pic;
 	};
 
 	is_link = () : boolean => {

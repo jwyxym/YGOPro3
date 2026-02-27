@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use basic_toml::{from_str, to_string};
-use std::{collections::BTreeMap, hash::Hash};
+use std::collections::BTreeMap;
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct System {
@@ -43,15 +43,25 @@ impl System {
 		system.number
 			.entry(String::from("CT_DECK_SIDE"))
 			.or_insert(15.0);
+		system.number
+			.entry(String::from("CT_AVATAR_SELF"))
+			.or_insert(0.0);
+		system.number
+			.entry(String::from("CT_AVATAR_OPPO"))
+			.or_insert(0.0);
 		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
 			.into_iter().for_each(|i| {
 				system.string
 					.entry(String::from(i))
 					.or_insert(String::from(""));
 			});
-		system.string
+		
+		let i18n: &mut String = system.string
 			.entry(String::from("I18N"))
 			.or_insert(String::from("zh-CN"));
+		if !["zh-CN", "ko-KR"].contains(&i18n.as_str()) {
+			*i18n = String::from("zh-CN");
+		}
 		system
 
 	}

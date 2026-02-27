@@ -211,10 +211,8 @@
 		plaids : [] as Array<Plaid>,
 		btn : undefined as undefined | Btn,
 		src : {
-			unknown : mainGame.get.textures(CONSTANT.FILES.TEXTURE_UNKNOW) as string | undefined ?? '',
-			cover : mainGame.get.textures(CONSTANT.FILES.TEXTURE_COVER) as string | undefined
-				?? mainGame.get.textures(CONSTANT.FILES.TEXTURE_UNKNOW) as string | undefined
-					?? ''
+			unknown : mainGame.get.textures(CONSTANT.KEYS.OTHER, CONSTANT.KEYS.UNKNOWN) as string,
+			cover : mainGame.get.textures(CONSTANT.KEYS.OTHER, CONSTANT.KEYS.COVER) as string
 		},
 		resize : () => {
 			three.renderer.setSize(window.innerWidth, window.innerHeight);

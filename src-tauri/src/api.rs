@@ -15,6 +15,7 @@ static PATH: OnceLock<PathBuf> = OnceLock::new();
 pub fn init<R: Runtime> (build: Builder<R>) -> Builder<R> {
 	build.invoke_handler(generate_handler![
 		commands::init,
+		commands::reload,
 		commands::unzip,
 		commands::get_pic,
 		commands::get_font,

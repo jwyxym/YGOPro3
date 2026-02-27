@@ -1,6 +1,6 @@
 import { defineComponent, onMounted } from 'vue';
 import mainGame from '@/script/game';
-import { FILES, KEYS } from '@/script/constant';
+import { KEYS } from '@/script/constant';
 
 class Voice {
 	playing ?: HTMLAudioElement = undefined;
@@ -28,7 +28,7 @@ const voice = new Voice();
 const _Voice = defineComponent({
 	name : 'Voice',
 	setup () {
-		onMounted(() => voice.play(FILES.BACK_BGM));
+		onMounted(() => voice.play(KEYS.BACK_BGM));
 		return () => 
 			<div>
 				{Array.from(mainGame.bgm).map(([i, v]) =>

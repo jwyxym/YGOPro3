@@ -1,7 +1,7 @@
 <template>
-	<div class = 'main' @contextmenu = 'page.contextmenu'>
+	<div class = 'main'>
 		<starry-sky :stars-count = '1500' :distance = '800' id = 'back'/>
-		<Voice v-if = 'page.show.voice'></Voice>
+		<Voice></Voice>
 		<Loading/>
 		<Toast/>
 		<div>
@@ -45,7 +45,6 @@
 
 	import mainGame from './script/game';
 	import fs from './script/fs';
-	import { I18N_KEYS } from './script/language/i18n';
 	import Dialog from './pages/ui/dialog';
 
 	const page = reactive({
@@ -86,13 +85,12 @@
 		loading : {
 			progress : 0,
 			start : 0
-		},
-		contextmenu : (event : MouseEvent) : void => {
-			if (!import.meta.env.DEV) event.preventDefault();
 		}
 	});
 
 	onBeforeMount(async () : Promise<void> => {
+		await mainGame.init();
+
 		// const on = async (chk : boolean = true) : Promise<void> => {
 		// 	await mainGame.init(chk);
 		// 	setTimeout(() => {
@@ -122,6 +120,7 @@
 		// };
 		// await mainGame.chk.file() ? await on() : await dialog();
 		// voice.play(FILES.BACK_BGM);
+		page.show.menu = true
 	});
 
 	onMounted(async () => {

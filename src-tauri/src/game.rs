@@ -36,7 +36,7 @@ use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
 	fs::{read_to_string, metadata},
-	sync::{OnceCell, RwLock, RwLockReadGuard},
+	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
 use futures::{stream::FuturesUnordered, StreamExt};
@@ -44,10 +44,16 @@ use std::{collections::BTreeMap, path::{Path, PathBuf}};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub async fn init<P: AsRef<Path>> (path: P) -> Result<&'static RwLock<Game>, Error> {
-	let game: RwLock<Game> = RwLock::new(Game::init(path).await?);
+	let game: RwLock<Game> = RwLock::new(Game::init(path, false).await?);
 	Ok(GAME.get_or_init(|| async {
 		game
 	}).await)
+}
+pub async fn reload<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(), Error> {
+	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+	*game = Game::init(path, overwrite).await?;
+	Ok(())
 }
 
 lazy_static! {
@@ -87,9 +93,9 @@ impl Game {
 		Ok(())
 	}
 
-	pub async fn init<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
+	pub async fn init<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Self, Error> {
 		let path: &Path = path.as_ref();
-		Self::unzip( path, false).await?;
+		Self::unzip( path, overwrite).await?;
 
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
@@ -415,7 +421,7 @@ impl Game {
 		})
 	}
 
-	pub async fn get_pic () -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
+	pub async fn get_pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		let mut buffer: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
@@ -426,12 +432,14 @@ impl Game {
 			.filter(|pack: &GamePack| pack.on)
 			.for_each(|pack: GamePack| {
 				pack.pics.to_array().into_iter().for_each(|(k, v)| {
-					match v {
-						PicContent::Buffer(v) => {
-							buffer.insert(k, v.clone());
-						}
-						PicContent::Path(v) => {
-							path.insert(k, v.clone());
+					if deck.contains(&k) {
+						match v {
+							PicContent::Buffer(v) => {
+								buffer.insert(k, v.clone());
+							}
+							PicContent::Path(v) => {
+								path.insert(k, v.clone());
+							}
 						}
 					}
 				});
@@ -501,7 +509,7 @@ impl Game {
 	pub async fn get_lflist () -> Result<Vec<(String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>))>, Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		let mut lflist: BTreeMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = BTreeMap::new();
+		let mut lflist: IndexMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = IndexMap::new();
 		game.pack
 			.clone()
 			.into_values()

@@ -64,6 +64,7 @@
 				/>
 			</div>
 			<div
+				class = 'select'
 				v-for = "j in [
 					{ span : I18N_KEYS.CARD_INFO_OT, results : search.info.ot, cards : search.list.ot, key : KEYS.OT, strings : mainGame.get.strings.ot, class : 'ot' },
 					{ span : I18N_KEYS.CARD_INFO_TYPE, results : search.info.type[0], cards : search.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i - ((i & 0x3) === i ? 0 : (i & 0x3)) },
@@ -74,7 +75,6 @@
 					{ span : I18N_KEYS.CARD_INFO_RACE, results : search.info.race, cards : search.list.race, key : KEYS.RACE, strings : mainGame.get.strings.race },
 					{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : search.info.category, cards : search.list.category, key : KEYS.CATEGORY, strings : mainGame.get.strings.category, switchs : 'category' },
 				]"
-				class = 'select'
 			>
 				<div>
 					<span>{{ mainGame.get.text(j.span) }}&nbsp;:</span>
@@ -88,7 +88,7 @@
 						class = 'cursor'
 						@click = 'search.select(j.results, j.value ? j.value(i) : i)'
 					>
-						<img :src = 'mainGame.get.icon(j.key, i)!'/>
+						<img :src = '(mainGame.get.textures(j.key, i) as string)'/>
 						<span>{{ j.strings(j.value ? j.value(i) : i)}}</span>
 					</div>
 				</div>
@@ -102,15 +102,15 @@
 				<div></div>
 				<div>
 					<img
-						v-for = '(i, v) in search.list.link[0]'
-						:src = "(mainGame.get.textures(FILES.TEXTURE_LINK_PIC[search.info.link.includes(i) ? 1 : 0].replace('{:?}', (v + 1).toString())) as string)"
+						v-for = 'i in search.list.link[0]'
+						:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[search.info.link.includes(i) ? 1 : 0]'
 						@click = 'search.select(search.info.link, i)'
 						class = 'cursor'
 					/>
 					<div></div>
 					<img
-						v-for = '(i, v) in search.list.link[1]'
-						:src = "(mainGame.get.textures(FILES.TEXTURE_LINK_PIC[search.info.link.includes(i) ? 1 : 0].replace('{:?}', (v + 5).toString())) as string)"
+						v-for = 'i in search.list.link[1]'
+						:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[search.info.link.includes(i) ? 1 : 0]'
 						@click = 'search.select(search.info.link, i)'
 						class = 'cursor'
 					/>
@@ -120,7 +120,7 @@
 				class = 'input'
 			>
 				<div>
-					<img :src = '(mainGame.get.textures(FILES.TEXTURE_INFO_LV_RANK_LINK) as string)'/>
+					<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.STAR_RANK_LINK) as string)'/>
 					<Input
 						variant = 'outlined'
 						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_LV)'
@@ -129,7 +129,7 @@
 					/>
 				</div>
 				<div>
-					<img :src = '(mainGame.get.textures(FILES.TEXTURE_INFO_SCALE) as string)'/>
+					<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.SCALE) as string)'/>
 					<Input
 						variant = 'outlined'
 						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_SCALE)'
@@ -183,7 +183,7 @@
 	import mainGame from '@/script/game';
 	import Card, { TYPE } from '@/script/card';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import { FILES, KEYS, REG } from '@/script/constant';
+	import { KEYS, REG } from '@/script/constant';
 	import GLOBAL from '@/script/scale';
 	import Search from '@/script/search';
 
@@ -285,11 +285,11 @@
 		] as Array<{ icon : Icon; key : number; func : Function; }>,
 		name_rule : async (name ?: string) : Promise<string | boolean> => {
 			if (name === undefined || name.length === 0)
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_LEN);
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_LEN).value;
 			if (name.match(REG.NAME))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_UNLAWFUL);
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_UNLAWFUL).value;
 			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_EXIST);
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_EXIST).value;
 			return true;
 		}
 	});
@@ -356,7 +356,7 @@
 			ot : Array.from(mainGame.strings.get(KEYS.OT)?.keys() ?? []) as Array<number>,
 			except : monster_type.slice(),
 			link : (() => {
-				const arr = Array.from(mainGame.strings.get(KEYS.LINK)?.keys() ?? []);
+				const arr = Array.from(mainGame.textures.get(KEYS.LINK)?.keys() ?? []);
 				return [
 					arr.slice(0, Math.ceil(arr.length / 2)),
 					arr.slice(Math.ceil(arr.length / 2))
@@ -386,12 +386,12 @@
 		rule : {
 			number : (lv : string) : string | boolean => {
 				if (!lv.match(REG.LV))
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_LV);
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_LV).value;
 				return true;
 			},
 			atk : (lv : string) : string | boolean => {
 				if (!lv.match(REG.ATK))
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_ATK);
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_ATK).value;
 				return true;
 			}
 		},
@@ -399,7 +399,7 @@
 			page.list.length = 0;
 			page.finished = false;
 			const searcher = new Search()
-				.set.cards(mainGame.get.cards())
+				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
 				.set.ot(search.info.ot)
 				.set.type(search.info.type)
 				.set.race(search.info.race)
@@ -442,6 +442,7 @@
 	}>();
 
 	onMounted(async () => {
+			console.log(search.list.link)
 		page.size.resize();
 		window.addEventListener('mousedown', page.mousedown);
 		window.addEventListener('touchstart', page.touchstart);

@@ -71,7 +71,7 @@ class Search {
 				)
 			)
 			|| (this.lflist && this.lflist.length && this.forbidden && this.forbidden.length && (() => {
-				const ct = mainGame.get.lflist(this.lflist, card.id) as number;
+				const ct = mainGame.get.lflist(this.lflist)?.get.lflist(card.id);
 				return this.forbidden.findIndex(i => compare(i, ct)) === -1;
 			})())
 		);

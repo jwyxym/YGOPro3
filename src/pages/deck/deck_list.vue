@@ -178,8 +178,8 @@
 				}
 			}
 			await Dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE),
-				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? ''),
+				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE).value,
+				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '').value,
 				onConfirm : confirm
 			});
 		},

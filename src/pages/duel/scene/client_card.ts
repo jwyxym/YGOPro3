@@ -2,7 +2,7 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 
 import Card from '@/script/card';
-import { FILES } from '@/script/constant';
+import { FILES, KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
 import { LOCATION, POS } from '@/script/ygo-protocol/network';
 
@@ -119,16 +119,16 @@ class Client_Card {
 				userSelect : 'none',
 				pointerEvents : 'none'
 			});
-			for (const [key, src] of [
-				['link', FILES.TEXTURE_INFO_LINK],
-				['rank', FILES.TEXTURE_INFO_RANK],
-				['overlay', FILES.TEXTURE_INFO_OVERLAY],
-				['scale', FILES.TEXTURE_INFO_SCALE],
-				['tuner', FILES.TEXTURE_INFO_TUNER],
-				['level', FILES.TEXTURE_INFO_LV],
+			for (const i of [
+				KEYS.LINK,
+				KEYS.RANK,
+				KEYS.OVERLAY,
+				KEYS.SCALE,
+				KEYS.TUNER,
+				KEYS.LEVEL
 			]) {
 				const div = document.createElement('div');
-				div.classList.add(key);
+				div.classList.add(i);
 				Object.assign(div.style, {
 					height : '100%',
 					width : '28px',
@@ -138,13 +138,13 @@ class Client_Card {
 					transition : 'all 0.2s ease'
 				});
 				const img = document.createElement('img');
-				img.src = mainGame.get.textures(src) as string | undefined ?? '';
+				img.src = mainGame.get.textures(KEYS.INFO, i) as string;
 				img.style.height = '100%';
 				div.appendChild(img);
 				const span = document.createElement('span');
 				span.style.transition = 'all 0.1s ease';
 				span.innerText = '';
-				if (key === 'tuner')
+				if (i === KEYS.TUNER)
 					span.style.color = 'lightgreen';
 				div.appendChild(span);
 				child.appendChild(div);
@@ -186,17 +186,17 @@ class Client_Card {
 				transition : 'all 0.2s ease'
 			});
 			for (const i of [
-				FILES.TEXTURE_BTN_ACTIVATE,
-				FILES.TEXTURE_BTN_ATTACK,
-				FILES.TEXTURE_BTN_MSET,
-				FILES.TEXTURE_BTN_SSET,
-				FILES.TEXTURE_BTN_POS_ATTACK,
-				FILES.TEXTURE_BTN_POS_DEFENCE,
-				FILES.TEXTURE_BTN_FILP,
-				FILES.TEXTURE_BTN_SUMMON,
-				FILES.TEXTURE_BTN_PSUMMON,
-				FILES.TEXTURE_BTN_SPSUMMON,
-				FILES.TEXTURE_BTN_SCALE,
+				KEYS.ACTIVATE,
+				KEYS.ATTACK,
+				KEYS.MSET,
+				KEYS.SSET,
+				KEYS.POS_ATTACK,
+				KEYS.POS_DEFENCE,
+				KEYS.FLIP,
+				KEYS.SUMMON,
+				KEYS.PSUMMON,
+				KEYS.SPSUMMON,
+				KEYS.SCALE,
 			]) {
 				const img = document.createElement('img');
 				img.classList.add(i[0]);
@@ -205,7 +205,7 @@ class Client_Card {
 					height : '100%',
 					display : 'none'
 				});
-				const srcs = mainGame.get.textures(i[1]) as Array<string> | undefined ?? ['', ''];
+				const srcs = mainGame.get.textures(KEYS.BTN, i[1]) as [string, string];
 				img.src = srcs[0];
 				img.addEventListener('mouseenter', () => {
 					img.src = srcs[1];
@@ -248,10 +248,10 @@ class Client_Card {
 				this.pos = pos;
 				switch (pos) {
 					case POS.FACEDOWN_ATTACK:
-						img.src = (mainGame.get.textures(FILES.TEXTURE_COVER) ?? '') as string;
+						img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
 						break;
 					case POS.FACEDOWN_DEFENSE:
-						img.src = (mainGame.get.textures(FILES.TEXTURE_COVER) ?? '') as string;
+						img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
 						break;
 					case POS.FACEUP_ATTACK:
 						img.src = this.pic ?? mainGame.unknown.pic;
@@ -280,7 +280,7 @@ class Client_Card {
 					}, 0.125);
 				}
 				if ((pos & POS.FACEDOWN) && !(this.pos & POS.FACEDOWN))
-					turn(img, (mainGame.get.textures(FILES.TEXTURE_COVER) ?? '') as string);
+					turn(img, mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string);
 				else if ((pos & POS.FACEUP) && !(this.pos & POS.FACEUP))
 					turn(img, this.pic ?? mainGame.unknown.pic);
 				if ((pos & POS.ATTACK) && !(this.pos & POS.ATTACK))

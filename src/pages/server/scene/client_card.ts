@@ -133,16 +133,16 @@ class Client_Card {
 				transition : 'all 0.2s ease',
 				userSelect: 'none'
 			});
-			for (const [key, src] of [
-				['link', CONSTANT.FILES.TEXTURE_INFO_LINK],
-				['rank', CONSTANT.FILES.TEXTURE_INFO_RANK],
-				['overlay', CONSTANT.FILES.TEXTURE_INFO_OVERLAY],
-				['scale', CONSTANT.FILES.TEXTURE_INFO_SCALE],
-				['tuner', CONSTANT.FILES.TEXTURE_INFO_TUNER],
-				['level', CONSTANT.FILES.TEXTURE_INFO_LV],
+			for (const i of [
+				CONSTANT.KEYS.LINK,
+				CONSTANT.KEYS.RANK,
+				CONSTANT.KEYS.OVERLAY,
+				CONSTANT.KEYS.SCALE,
+				CONSTANT.KEYS.TUNER,
+				CONSTANT.KEYS.LEVEL
 			]) {
 				const div = document.createElement('div');
-				div.classList.add(key);
+				div.classList.add(i);
 				Object.assign(div.style, {
 					height : '100%',
 					width : '28px',
@@ -152,13 +152,13 @@ class Client_Card {
 					transition : 'all 0.2s ease'
 				});
 				const img = document.createElement('img');
-				img.src = mainGame.get.textures(src) as string | undefined ?? '';
+				img.src = mainGame.get.textures(CONSTANT.KEYS.INFO, i) as string;
 				img.style.height = '100%';
 				div.appendChild(img);
 				const span = document.createElement('span');
 				span.style.transition = 'all 0.1s ease';
 				span.innerText = '';
-				if (key === 'tuner')
+				if (i === CONSTANT.KEYS.TUNER)
 					span.style.color = 'lightgreen';
 				div.appendChild(span);
 				child.appendChild(div);

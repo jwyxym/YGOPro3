@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { computed, ComputedRef, reactive } from 'vue';
 import { exit } from '@tauri-apps/plugin-process';
 import { DirEntry } from '@tauri-apps/plugin-fs';
 import { fetch } from '@tauri-apps/plugin-http';
@@ -9,24 +9,25 @@ import Card from './card';
 import LFList from './lflist';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
-import TAURI_STR from './language/string';
+import YGOPRO_STR from './language/string';
 import invoke from './tauri-api/invoke';
 
 
-import { voice } from '@/pages/voice/voice';
+import voice from '@/pages/voice/voice';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/server/post/network';
 
 class Game {
 	inited = false;
 	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
-	textures : Map<string, Map<number, string | [string, string]>> = new Map();
-	bgm : Map<string, string> = new Map();
+	textures : Map<string, Map<string | number, string | [string, string]>> = new Map();
 	strings : Map<string, Map<number, string>> = new Map();
 	servers : Map<string, string> = new Map();
 	lflist : Map<string, LFList> = new Map;
 	model : Map<string, string> = new Map();
 	cards : Map<number, Card> = new Map;
+	bgm : Array<[string, string]> = reactive(new Array());
+	avatars : Array<string> = new Array();
 	font : {
 		dom : HTMLStyleElement,
 		url : Array<string>
@@ -41,13 +42,14 @@ class Game {
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 
+	constructor () {
+		document.head.appendChild(this.font.dom);
+	};
+
 	init = async () : Promise<void> => {
 		if (this.inited) return;
 		try {
-			await fs.init_path();
-			const startTime = Date.now();
 			await invoke.game.init();
-
 			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
 				invoke.game.get_font(),
 				invoke.game.get_sound(),
@@ -79,15 +81,21 @@ class Game {
 			this.textures.set(CONSTANT.KEYS.OT, new Map(textures.ot));
 			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, new Map(textures.attribute));
 			this.textures.set(CONSTANT.KEYS.CATEGORY, new Map(textures.category));
-			this.textures.set(CONSTANT.KEYS.LINK, new Map(textures.link));
 			this.textures.set(CONSTANT.KEYS.RACE, new Map(textures.race));
 			this.textures.set(CONSTANT.KEYS.TYPE, new Map(textures.types));
+			this.textures.set(CONSTANT.KEYS.LINK, new Map(textures.link));
+			this.textures.set(CONSTANT.KEYS.COUNTER, new Map(textures.counter));
+			this.textures.set(CONSTANT.KEYS.INFO, new Map(textures.info));
+			this.textures.set(CONSTANT.KEYS.OTHER, new Map(textures.other));
+			this.textures.set(CONSTANT.KEYS.BTN, new Map(textures.btn));
 
+			this.avatars = textures.avatar;
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
+			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA).value, { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(model);
-			this.bgm = new Map(sounds);
-			this.cards = new Map(cards);
+			this.bgm.push(...sounds);
+			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
 			this.font.url = fonts.map(([_, url]) => url);
 			this.font.dom.textContent = fonts.map(([name, url]) =>
@@ -98,25 +106,21 @@ class Game {
 					font-style: normal;
 				}`
 			).join('\n');
-			document.head.appendChild(this.font.dom);
-
-			console.log([fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info])
-				const endTime = Date.now();
-				const elapsedSeconds = (endTime - startTime) / 1000;
-				console.log(`运行了 ${elapsedSeconds.toFixed(3)} 秒`);
 		} catch (error) {
 			fs.write.log(error);
 		}
 		this.inited = true;
-		this.unknown.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_UNKNOW) ?? '');
-		this.back.update_pic(this.textures.get(CONSTANT.FILES.TEXTURE_COVER) ?? '');
+		this.unknown.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');
+		this.back.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '');
 	};
 
-	reload = async () : Promise<boolean> => {
+	reload = async (overwrite : boolean) : Promise<boolean> => {
 		try {
-			this.clear();
-			await this.load.card();
-			await this.load.expansion();
+			await Promise.all([
+				this.clear(),
+				await invoke.game.reload(overwrite)
+			]);
+			await this.init();
 			return true;
 		} catch (error) {
 			fs.write.log(error);
@@ -133,87 +137,36 @@ class Game {
 	};
 
 	get = {
-		icon : (type : string, key : number) : string => {
-			return (this.get.textures((this.icons.get(type)!.get(key) ?? '') + '.png') as string | undefined) ?? '';
-		},
-		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
+		textures : (type : string, key : string | number) : [string, string] | string => this.textures.get(type)?.get(key) ?? '',
+		lflist : (key : string | number) : LFList => (typeof key === 'string'
+				? this.lflist.get(key) : Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
+			)
+			?? this.lflist.get(CONSTANT.KEYS.NA)!,
+		// expansions : invoke.game.get_expansion,
+		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : ComputedRef<string> => computed(() => {
 			switch (this.i18n) {
 				case CONSTANT.LANGUAGE.Zh_CN:
-					return new TAURI_STR(Zh_CN[key]).toString(replace);
+					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
 			}
-			return new TAURI_STR(Zh_CN[key]).toString();
-		},
+			return new YGOPRO_STR(Zh_CN[key]).toString();
+		}),
 		system : (key : string) : Array<string> | string | number | boolean | undefined => {
-			const value = this.system.get(key);
-			const number = Number(value)
-			const obj_key = Object.entries(CONSTANT.KEYS).find(([_, v]) => v === key);
-			if (obj_key === undefined)
-				return undefined;
-			if ([
-					CONSTANT.KEYS.SETTING_AVATAR,
-					CONSTANT.KEYS.SETTING_LOADING_EXPANSION,
-				].includes(key)
-			) {
-				return value?.split('&&').filter(i => i !== '') ?? [];
-			} else if (key === CONSTANT.KEYS.SETTING_VOICE_BACK_BGM
-				|| obj_key[0].startsWith('SETTING_CT_')
-				|| obj_key[0].startsWith('SETTING_SELECT_')
-			) {
-				return isNaN(number) ? 0 : number;
-			} else if (obj_key[0].startsWith('SETTING_CHK_')) {
-				return !!number;
-			} else {
-				return value ?? '';
-			}
-		},
-		textures : (key : string | Array<string>) : Array<string | undefined> | string | undefined => {
-			return typeof key === 'object' ? (key as Array<string>).map(i => this.textures.get(i)) : this.textures.get(key);
+			for (const i of this.system)
+				if (i[1].has(key))
+					return i[1].get(key);
+			return undefined;
 		},
 		card : (key : string | number) : Card => {
 			key = typeof key == 'string' ? parseInt(key) : key;
-			return reactive(this.cards.get(key) ?? this.unknown);
-		},
-		cards : () : Array<Card> => Array.from(this.cards.values()),
-		expansions : async () : Promise<{
-			loading : Array<string>;
-			ypk :  Array<DirEntry>;
-			files : Array<DirEntry>;
-		}> => {
-			const load_expansion : Array<string> = this.get.system(CONSTANT.KEYS.SETTING_LOADING_EXPANSION) as Array<string> ?? [];
-			const expansion_files : Array<DirEntry> = await fs.read.dir(CONSTANT.DIRS.EXPANSION, false);
-			const expansion_ypk : Array<DirEntry> = expansion_files.filter(i => i.isFile && i.name.match(CONSTANT.REG.ZIP));
-			const load : Array<string> = load_expansion.filter(i => { return expansion_ypk.findIndex(j => j.name === i) > -1; });
-			this.system.set(CONSTANT.KEYS.SETTING_LOADING_EXPANSION, load.join('&&'));
-			for (let i = 0; i < load.length; i++) {
-				load[i] = await fs.join(CONSTANT.DIRS.EXPANSION, load[i]);
-			}
-			return {
-				loading : load,
-				ypk : expansion_ypk,
-				files : await fs.read.dir(CONSTANT.DIRS.EXPANSION)
-			};
-		},
-		lflist : (key : string | number, card : string | number | undefined = undefined) : string | number => {
-			if (typeof key === 'string' && card) {
-				const lflist = this.lflist.get(key);
-				if (lflist) {
-					const c = this.get.card(card);
-					card = Math.abs(c.alias - c.id) <= 20 ? c.alias : c.id;
-					return lflist.map.get(card) ?? this.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
-				}
-				return this.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
-			} else {
-				const name = Array.from(this.lflist).find(i => i[1].hash === key) ?? [this.get.text(I18N_KEYS.UNKNOW)];
-				return name[0];
-			}
+			return this.cards.get(key) ?? this.unknown;
 		},
 		strings : {
 			system : (key : number, replace : Array<string | number> | string | number = []) : string => {
-				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
+				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW).value;
 				return this.replace(value, replace);
 			},
 			victory : (key : number, replace : Array<string | number> | string | number = []) : string => {
-				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
+				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW).value;
 				replace = typeof replace === 'object' ? replace : [replace];
 				for (const str of replace) {
 					value = value.replace(typeof str === 'string' ? '%ls' : '%d', `${str}`);
@@ -264,7 +217,7 @@ class Game {
 			const code = (data >> 4) & this.max_card_id;
 			const offset = data & 0xf;
 			const card =  mainGame.get.card(code);
-			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW)
+			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW).value
 				: this.replace(card.hint[offset], replace);
 		},
 		location : (loc : number, seq : number) : string => {
@@ -274,73 +227,36 @@ class Game {
 		},
 		name : (id : number | undefined) : string => {
 			if (id === undefined)
-				return this.get.text(I18N_KEYS.UNKNOW);
+				return this.get.text(I18N_KEYS.UNKNOW).value;
 			const card = mainGame.get.card(id);
-			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW) : card.name;
+			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW).value : card.name;
 		},
-		avatar : (tp : number) : string => {
-			return this.textures.get(`avatar${(this.get.system(CONSTANT.KEYS.SETTING_AVATAR) as Array<string>)[tp] ?? 0}.png`) ?? '';
-		},
+		avatar : (tp : number) : string => this.avatars[this.get.system(!!tp ? CONSTANT.KEYS.SETTING_AVATAR_OPPO : CONSTANT.KEYS.SETTING_AVATAR_SELF) as number],
 		counter : (counter : number) : string => {
-			return this.get.textures(`counter-${counter.toString(16)}.png`) as string | undefined
-				?? this.get.textures('counter-0.png') as string | undefined
-					?? '';
+			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
+				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;
 		}
-	}
+	};
 
 	clear = () : void => {
 		this.cards.forEach(i => {
 			i.clear();
 		});
-		this.cards.clear();
-		this.lflist.clear();
-		this.servers.clear();
-		this.strings.forEach(i => i.clear());
-		this.icons.forEach(i => i.clear());
+		this.font.url.forEach(i => URL.revokeObjectURL(i));
+		this.font.url.length = 0;
+		this.font.dom.textContent = '';
+		this.bgm.forEach((i) => URL.revokeObjectURL(i[1]));
+		this.bgm.length = 0;
+	};
+
+	load = {
+		pic : async (deck : Deck | Array<number | string>) => {
+			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
+			deck = deck.map(i => typeof i === 'string' ? parseInt(i) : i);
+			(await invoke.game.get_pic(deck as Array<number>))
+				.forEach(i => mainGame.get.card(i[0]).update_pic(i[1]));
+		}
 	}
-
-	push = {
-		system : (key : string, n : string | number | boolean) : void => {
-			const to_string = (str : string) : string => {
-				const value = this.system.get(key) ?? '';
-				return `${value}${value.length > 0 ? '&&' : ''}${str}`
-			}
-			const obj_key = Object.entries(CONSTANT.KEYS).find(([_, v]) => v === key);
-			if (obj_key === undefined)
-				return undefined;
-			switch (key) {
-				case CONSTANT.KEYS.SETTING_LOADING_EXPANSION:
-					this.system.set(key, to_string(n as string));
-					break;
-				case CONSTANT.KEYS.SETTING_VOICE_BACK_BGM:
-					this.system.set(key, `${n ?? 0}`);
-					voice.update();
-					break;
-				default:
-					if (key.startsWith('SETTING_CT_'))
-						this.system.set(key, `${n ?? 0}`);
-					else if (obj_key[0].startsWith('SETTING_CHK_'))
-						this.system.set(key, n ? '1' : '0');
-					else
-						this.system.set(key, n as string);
-			}
-		}
-	};
-
-	remove = {
-		system : (key : string, n : string) : void => {
-			const get = this.get.system(key);
-			if (typeof get === 'object') {
-				const ct = get.indexOf(n)
-				if (ct > -1) {
-					const to_string = () : string => {
-						return get.filter(i => i !== n ).join('&&');
-					}
-					this.system.set(key, to_string());
-				}
-			}
-		}
-	};
 
 	chk = {
 		file : async () : Promise<boolean> => {

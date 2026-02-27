@@ -24,14 +24,21 @@ pub async fn init () -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn reload (overwrite: bool) -> Result<(), String> {
+	let path: PathBuf = PATH.get().ok_or(anyhow!("get path error")).map_err(|e| e.to_string())?.to_path_buf();
+	game::reload(path, overwrite).await.map_err(|e| e.to_string())?;
+	Ok(())
+}
+
+#[tauri::command]
 pub async fn unzip () -> Result<(), String> {
 	let path: PathBuf = PATH.get().ok_or(anyhow!("get path error")).map_err(|e| e.to_string())?.to_path_buf();
 	Ok(Game::unzip(path, true).await.map_err(|e| e.to_string())?)
 }
 
 #[tauri::command]
-pub async fn get_pic () -> Response {
-	Game::get_pic().await
+pub async fn get_pic (deck: Vec<u32>) -> Response {
+	Game::get_pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, *CONFIG).ok())
 		.map(Response::new)

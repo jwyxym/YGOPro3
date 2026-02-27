@@ -4,7 +4,7 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 
 import mainGame from '@/script/game';
-import { FILES } from '@/script/constant';
+import { KEYS } from '@/script/constant';
 import { LOCATION } from '@/script/ygo-protocol/network';
 import * as SIZE from './scene-size';
 import Axis from './axis';
@@ -110,7 +110,7 @@ class Duel {
 		return tl;
 	};
 	add = {
-		back : (pic : Array<string | undefined> = mainGame.get.textures(FILES.TEXTURE_BACK) as Array<string>) : void => {
+		back : () : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
 				dom.style.width = `${SIZE.WIDTH * 12}px`;
@@ -127,7 +127,8 @@ class Duel {
 				}
 				return new CSS.CSS3DObject(dom);
 			};
-			const back = create_back(pic.filter(i => i !== undefined));
+			const pic : Array<string> = [mainGame.get.textures(KEYS.OTHER, KEYS.BACKI), mainGame.get.textures(KEYS.OTHER, KEYS.BACKII)] as [string, string];
+			const back = create_back(pic);
 			back.position.set(...Axis.computed.back(new Axis(0, 0, 0)).get.xyz());
 			this.scene.add(back);
 		},

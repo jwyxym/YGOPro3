@@ -219,11 +219,13 @@
 ]
 
 [other]
-"COVER" = "cover.jpg"
-"UNKNOWN" = "unknown.jpg"
-"S" = "s.png"
-"R" = "r.png"
-"P" = "p.png"
+"COVER" = "other/cover.jpg"
+"UNKNOWN" = "other/unknown.jpg"
+"BACKI" = "other/back_I.jpg"
+"BACKII" = "other/back_II.jpg"
+"S" = "other/s.png"
+"R" = "other/r.png"
+"P" = "other/p.png"
 
 [sound]
 "BACK_BGM" = "Night View.mp3"
