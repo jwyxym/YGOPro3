@@ -68,7 +68,6 @@
 			x : 0,
 			y : 0,
 			on : (x : number, y : number) => {
-				console.log(x, y)
 				page.move.x = x;
 				page.move.y = y;
 			}

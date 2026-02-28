@@ -6,12 +6,12 @@
 				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
 				v-model = 'search.info.desc'
 			/>
+			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
 		</div>
-		<div class = 'no-scrollbar' ref = 'list'>
+		<div class = 'no-scrollbar' @scroll = 'page.load_on' ref = 'list'>
 			<var-list
 				:finished = 'page.finished'
 				v-model:loading = 'page.loading'
-				@scroll = 'page.load_on'
 				@load = 'page.load'
 				:immediate-check = 'false'
 				:style = "{
@@ -41,10 +41,9 @@
 			</var-list>
 		</div>
 		<div>
-			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
-			<Button icon_name = 'setting' @click = 'search.on'/>
-			<Button icon_name = 'deck' @click = 'setting.on'/>
-			<Button icon_name = 'exit' @click = "emit('exit')"/>
+			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH)' @click = 'search.on'/>
+			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SETTING)' @click = 'setting.on'/>
+			<Button :content = 'mainGame.get.text(I18N_KEYS.EXIT)' @click = "emit('exit')"/>
 			<p @click = 'page.back' class = 'pointer'><span>&#9650;</span></p>
 		</div>
 		<div
@@ -185,7 +184,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG } from '@/script/constant';
 	import GLOBAL from '@/script/scale';
-	import Search from '@/script/search';
+	import Search from '@/pages/deck/search';
 
 	import Pic, { CardPic } from '@/pages/ui/pic.vue';
 	import Input from '@/pages/ui/input.vue';
@@ -229,7 +228,7 @@
 		button_loading : false,
 		list : [] as Array<{ card : Card; pic : CardPic; }>,
 		result : [] as Array<{ card : Card; pic : CardPic; }>,
-		load_on : async (event : Event | undefined = undefined) : Promise<void> => {
+		load_on : async (event ?: Event) : Promise<void> => {
 			if (event) {
 				const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
 				if (scrollHeight / page.list.length < scrollHeight - scrollTop - clientHeight)
@@ -356,7 +355,7 @@
 			ot : Array.from(mainGame.strings.get(KEYS.OT)?.keys() ?? []) as Array<number>,
 			except : monster_type.slice(),
 			link : (() => {
-				const arr = Array.from(mainGame.textures.get(KEYS.LINK)?.keys() ?? []);
+				const arr = Array.from(mainGame.textures.get(KEYS.LINK)?.keys() ?? []) as Array<number>;
 				return [
 					arr.slice(0, Math.ceil(arr.length / 2)),
 					arr.slice(Math.ceil(arr.length / 2))
@@ -442,7 +441,6 @@
 	}>();
 
 	onMounted(async () => {
-			console.log(search.list.link)
 		page.size.resize();
 		window.addEventListener('mousedown', page.mousedown);
 		window.addEventListener('touchstart', page.touchstart);
@@ -476,6 +474,12 @@
 		}
 		> div:first-child {
 			height: $head-height;
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			.var-input {
+				width: 80%;
+			}
 		}
 		> div:nth-child(2) {
 			height: calc(100% - $head-height - $foot-height);

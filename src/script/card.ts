@@ -30,6 +30,7 @@ const TYPE = {
 }
 
 class Card {
+	readonly : boolean;
 	ot : number;
 	id : number;
 	alias : number;
@@ -46,10 +47,9 @@ class Card {
 	desc : string;
 	hint : Array<string>;
 	pic : string;
-	row : Array<string | number>
   
 	constructor (row : Array<string | number>) {
-		this.row = row;
+		this.readonly = false;
 		this.pic = '';
 		this.id = row[0] as number;
 		this.ot = row[1] as number;
@@ -69,13 +69,12 @@ class Card {
 		this.hint = row.slice(14, 31) as Array<string>;
 	};
 
-	clone = () : Card => {
-		return new Card(this.row);
-	};
-
-	update_pic = (url : string) : void => {
-		this.clear();
-		this.pic = url;
+	update_pic = (url : string) : Card => {
+		if (!this.readonly) {
+			this.clear();
+			this.pic = url;
+		}
+		return this;
 	};
 
 	clear = () : void => {
@@ -122,6 +121,13 @@ class Card {
 	is_tuner = () : boolean => {
 		return (this.type & TYPE.TUNER) === TYPE.TUNER;
 	};
+
+	set = {
+		readonly : () : Card => {
+			this.readonly = true
+			return this;
+		}
+	}
 
 }
 

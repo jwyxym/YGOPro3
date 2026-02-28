@@ -95,7 +95,7 @@
 
 	watch(() => props.code, (n) => {
 		page.card = {
-			pic : mainGame.unknown.pic,
+			pic : mainGame.back.pic,
 			name : '',
 			id : 0,
 			ot : '',
@@ -157,9 +157,8 @@
 			flex-direction: column;
 			gap: 10px;
 			> div:first-child {
-				width: 60%;
+				width: 25%;
 				aspect-ratio: 1 / 1.45;
-				max-width: 80px;
 				box-shadow: 0 0 10px white;
 				background-image: var(--url);
 				background-size: cover;

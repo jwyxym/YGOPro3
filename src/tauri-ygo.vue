@@ -4,32 +4,26 @@
 		<Voice></Voice>
 		<Loading/>
 		<Toast/>
-		<div>
-			<transition name = 'opacity'>
-				<Deck
-					v-if = 'page.show.deck'
-					@exit = 'page.select.menu'
-				/>
-			</transition>
-			<transition name = 'opacity'>
-				<Duel
-					v-if = 'page.show.server'
-					@exit = 'page.select.menu'
-				/>
-			</transition>
+		<TransitionGroup tag = 'div' name = 'opacity'>
+			<Deck
+				v-if = 'page.show.deck'
+				@exit = 'page.select.menu'
+			/>
+			<Duel
+				v-if = 'page.show.server'
+				@exit = 'page.select.menu'
+			/>
 			<Setting
 				v-if = 'page.show.setting'
 				:select = 'page.select'
 			/>
-			<transition name = 'opacity'>
-				<YGOMenu
-					v-if = 'page.show.menu'
-					@deck = 'page.select.deck'
-					@server = 'page.select.server'
-					@setting = 'page.select.setting'
-				/>
-			</transition>
-		</div>
+			<YGOMenu
+				v-if = 'page.show.menu'
+				@deck = 'page.select.deck'
+				@server = 'page.select.server'
+				@setting = 'page.select.setting'
+			/>
+		</TransitionGroup>
 	</div>
 </template>
 <script setup lang = 'ts'>

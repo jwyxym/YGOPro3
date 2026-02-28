@@ -1,92 +1,94 @@
 <template>
-	<transition name = 'opacity'>
-		<main v-show = 'page.list'>
-			<div>
-				<div class = 'input'>
-					<Input
-						:placeholder = 'mainGame.get.text(I18N_KEYS.DECK_INPUT)'
-						variant = 'outlined'
-						v-model = 'input.value'
-					/>
-					<div>
-						<Button :content = 'mainGame.get.text(I18N_KEYS.CONFIRM)' @click = 'input.confirm'/>
-						<Button :content = 'mainGame.get.text(I18N_KEYS.CANCEL)' @click = 'input.cancel'/>
+	<div>
+		<transition name = 'opacity'>
+			<main v-show = 'page.list'>
+				<div>
+					<div class = 'input'>
+						<Input
+							:placeholder = 'mainGame.get.text(I18N_KEYS.DECK_INPUT)'
+							variant = 'outlined'
+							v-model = 'input.value'
+						/>
+						<div>
+							<Button :content = 'mainGame.get.text(I18N_KEYS.CONFIRM)' @click = 'input.confirm'/>
+							<Button :content = 'mainGame.get.text(I18N_KEYS.CANCEL)' @click = 'input.cancel'/>
+						</div>
 					</div>
+					<TransitionGroup tag = 'div' name = 'move_left' class = 'no-scrollbar'>
+						<h2
+							v-for = '(i, v) in list.decks'
+							:key = 'i.name'
+							:class = "{ 'selected' : list.selected === v }"
+							@click = 'list.select(v)'
+							class = 'pointer'
+						>{{ i.name }}</h2>
+					</TransitionGroup>
 				</div>
-				<TransitionGroup tag = 'div' name = 'move_left' class = 'no-scrollbar'>
-					<h2
-						v-for = '(i, v) in list.decks'
-						:key = 'i.name'
-						:class = "{ 'selected' : list.selected === v }"
-						@click = 'list.select(v)'
-						class = 'pointer'
-					>{{ i.name }}</h2>
+				<TransitionGroup tag = 'div' name = 'opacity'>
+					<div v-if = 'list.selected > -1' key = '0' class = 'deck'>
+						<span class = 'font-title'>
+							{{ list.decks[list.selected].name }}
+						</span>
+						<div>
+							<div class = 'card' v-for = 'card in list.decks[list.selected].main'>
+								<img :src = 'mainGame.get.card(card).pic'>
+							</div>
+						</div>
+						<div>
+							<div class = 'card' v-for = 'card in list.decks[list.selected].extra'>
+								<img :src = 'mainGame.get.card(card).pic'>
+							</div>
+						</div>
+						<div>
+							<div class = 'card' v-for = 'card in list.decks[list.selected].side'>
+								<img :src = 'mainGame.get.card(card).pic'>
+							</div>
+						</div>
+					</div>
 				</TransitionGroup>
-			</div>
-			<TransitionGroup tag = 'div' name = 'opacity'>
-				<div v-if = 'list.selected > -1' key = '0' class = 'deck'>
-					<span class = 'font-title'>
-						{{ list.decks[list.selected].name }}
-					</span>
-					<div>
-						<div class = 'card' v-for = 'card in list.decks[list.selected].main'>
-							<img :src = 'mainGame.get.card(card).pic'>
-						</div>
-					</div>
-					<div>
-						<div class = 'card' v-for = 'card in list.decks[list.selected].extra'>
-							<img :src = 'mainGame.get.card(card).pic'>
-						</div>
-					</div>
-					<div>
-						<div class = 'card' v-for = 'card in list.decks[list.selected].side'>
-							<img :src = 'mainGame.get.card(card).pic'>
-						</div>
-					</div>
-				</div>
-			</TransitionGroup>
-			<TransitionGroup tag = 'div' name = 'opacity'>
-				<Button
-					v-if = 'page.button === 0'
-					:content = 'mainGame.get.text(I18N_KEYS.DECK_NEW)'
-					@click = 'list.add()'
-					key = '0'
-				/>
-				<Button
-					v-if = 'page.button === 1'
-					:content = 'mainGame.get.text(I18N_KEYS.DECK_INIT)'
-					@click = 'page.indeck(list.decks[list.selected])'
-					key = '2'
-				/>
-				<Button
-					v-if = 'page.button === 1'
-					:content = 'mainGame.get.text(I18N_KEYS.DECK_COPY)'
-					@click = 'page.copy(list.decks[list.selected])'
-					key = '3'
-				/>
-				<Button
-					v-if = 'page.button === 1'
-					:content = 'mainGame.get.text(I18N_KEYS.DECK_DEL)'
-					@click = 'list.delete()'
-					key = '4'
-				/>
-				<Button
-					:content = 'mainGame.get.text(I18N_KEYS.EXIT)'
-					@click = "emit('exit')"
-					key = '5'
-				/>
-			</TransitionGroup>
-		</main>
-	</transition>
-	<transition name = 'opacity'>
-		<DeckPage
-			v-if = 'page.deck'
-			:this_deck = 'page.deck!'
-			@update = 'page.update'
-			@copy = 'page.copy'
-			@exit = 'page.offdeck'
-		/>
-	</transition>
+				<TransitionGroup tag = 'div' name = 'opacity'>
+					<Button
+						v-if = 'page.button === 0'
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_NEW)'
+						@click = 'list.add()'
+						key = '0'
+					/>
+					<Button
+						v-if = 'page.button === 1'
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_INIT)'
+						@click = 'page.indeck(list.decks[list.selected])'
+						key = '2'
+					/>
+					<Button
+						v-if = 'page.button === 1'
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_COPY)'
+						@click = 'page.copy(list.decks[list.selected])'
+						key = '3'
+					/>
+					<Button
+						v-if = 'page.button === 1'
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_DEL)'
+						@click = 'list.delete()'
+						key = '4'
+					/>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.EXIT)'
+						@click = "emit('exit')"
+						key = '5'
+					/>
+				</TransitionGroup>
+			</main>
+		</transition>
+		<transition name = 'opacity'>
+			<DeckPage
+				v-if = 'page.deck'
+				:this_deck = 'page.deck!'
+				@update = 'page.update'
+				@copy = 'page.copy'
+				@exit = 'page.offdeck'
+			/>
+		</transition>
+	</div>
 </template>
 <script setup lang = 'ts'>
 	import { reactive, onMounted } from 'vue';
@@ -115,7 +117,7 @@
 		update : (name : string) : void => {
 			if (!page.deck) return;
 			page.deck.is_not_new();
-			page.deck.name = name;
+			page.deck.set_name(name);
 		},
 		indeck : async (deck : Deck) : Promise<void> => {
 			page.list = false;

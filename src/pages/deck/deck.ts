@@ -11,8 +11,9 @@ class Deck extends YGOProDeck {
 		this.new = is_new;
 	};
 
-	push_name = (name : string) : void => {
+	set_name = (name : string) : Deck => {
 		this.name = name;
+		return this;
 	}
 
 	is_new = () : void => {
@@ -57,7 +58,7 @@ class Deck extends YGOProDeck {
 				}
 			}
 		} catch (e) {
-			fs.write.log(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR))
+			fs.write.log(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR).value)
 			return new Deck();
 		}
 		return deck;
@@ -73,7 +74,7 @@ class Deck extends YGOProDeck {
 				name : deck.name
 			})
 		} catch (e) {
-			fs.write.log(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR))
+			fs.write.log(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR).value)
 			return new Deck();
 		}
 	}

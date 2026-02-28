@@ -275,13 +275,13 @@ class Invoke {
 				return [];
 			}
 		},
-		get_deck : async () : Promise<Array<[string, Deck]>> => {
+		get_deck : async () : Promise<Array<Deck>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_deck');
 				return (bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>)
-					.map(i => [i[0], Deck.fromYdkString(i[1])]);
+					.map(i => Deck.fromYdkString(i[1]).set_name(i[0]));
 			} catch (error) {
 				fs.write.log(error);
 				return [];

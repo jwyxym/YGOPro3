@@ -1,6 +1,6 @@
-import Card, { TYPE } from './card';
+import Card, { TYPE } from '@/script/card';
+import mainGame from '@/script/game';
 import calculator from './calculator';
-import mainGame from './game';
 
 interface AndOr {
 	type : boolean;
@@ -53,7 +53,7 @@ class Search {
 		const and_or = (and_or : boolean, ct : number, length : number) => and_or ? ct !== length : ct === 0;
 		const compare = (i : string, num : number) => i.includes('..') ? calculator.interval(i, num) : calculator.compare(i, num);
 		return this.cards.filter(card =>
-			!((this.desc && this.desc.length && this.desc.filter(i => card.name.includes(i) || card.desc.includes(i) || card.id.toString() === i).length !== this.desc.length)
+			!((this.desc && this.desc.length && this.desc.filter(i => card.name.includes(i) || card.desc.includes(i) || card.id.toString() === i || compare(i, card.id)).length !== this.desc.length)
 				|| (this.ot && this.ot.length && this.ot.findIndex(i => i.toString(2).split('1').length > 2 ? card.ot.toString(2).split('1').length > 2 : i === card.ot) === -1)
 				|| (this.attribute && this.attribute.length && !this.attribute.includes(card.attribute))
 				|| (this.race && this.race.length && !this.race.includes(card.race))

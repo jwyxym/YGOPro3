@@ -110,8 +110,12 @@ class Game {
 			fs.write.log(error);
 		}
 		this.inited = true;
-		this.unknown.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');
-		this.back.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '');
+		this.unknown
+			.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
+			.set.readonly();
+		this.back
+			.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
+			.set.readonly();
 	};
 
 	reload = async (overwrite : boolean) : Promise<boolean> => {
@@ -250,11 +254,14 @@ class Game {
 	};
 
 	load = {
+		deck : invoke.game.get_deck,
 		pic : async (deck : Deck | Array<number | string>) => {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
-			deck = deck.map(i => typeof i === 'string' ? parseInt(i) : i);
+			deck = deck
+				.filter(i => !this.get.card(i).has_pic())
+				.map(i => typeof i === 'string' ? parseInt(i) : i);
 			(await invoke.game.get_pic(deck as Array<number>))
-				.forEach(i => mainGame.get.card(i[0]).update_pic(i[1]));
+				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
 		}
 	}
 
