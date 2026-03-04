@@ -1,4 +1,6 @@
 import { defineComponent, reactive } from 'vue';
+import PQueue from 'p-queue'
+
 import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';
 
@@ -17,20 +19,13 @@ class Toast {
 	list : Array<Hint> = reactive([]);
 	elements : Map<Hint, HTMLDivElement> = new Map()
 	time : number = 10;
-	arr : Array<Function> = [];
 	chk : boolean = false;
+	queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
 
 	set_elements = (el : HTMLDivElement | null, key : Hint) => el ? this.elements.set(key, el) : this.elements.delete(key);
-
-	process = async (chk : boolean = false) : Promise<void> => {
-		if (this.arr.length <= 0 || (!chk && this.chk)) {
-			this.chk = this.arr.length > 0;
-			return;
-		}
-		this.chk = true;
-		await this.arr.shift()!();
-		this.process(true);
-	}
 
 	on = () => this.unshow = true;
 
@@ -46,7 +41,7 @@ class Toast {
 
 	push = (str : string | number, type : HintType) => {
 		const obj = this.to_toast(str, type);
-		const func = async () => {
+		this.queue.add(async () => {
 			if (this.list.length > 0 && this.elements.has(this.list[0])) {
 				const height = this.elements.get(this.list[0])!.getBoundingClientRect().height / GLOBAL.SCALE + 20;
 				for (let i = 0; i < this.list.length; i ++)
@@ -63,9 +58,7 @@ class Toast {
 					this.list.splice(ct, 1);
 			}, 200 + time);
 			await mainGame.sleep(100);
-		};
-		this.arr.push(func);
-		this.process();
+		});
 	};
 
 	error = (str : string | number, chk : boolean = false) : void => {
