@@ -10,7 +10,7 @@
 	</var-button>
 </template>
 <script setup lang = 'ts'>
-	import { ComputedRef, type Component } from 'vue';
+	import { type Component } from 'vue';
 	import Cards from './svg/cards.vue';
 	import Deck from './svg/deck.vue';
 	import Save from './svg/save.vue';
@@ -64,7 +64,7 @@
 
 	const props = defineProps<{
 		icon_name ?: Icon;
-		content ?: string | (() => string) | ComputedRef<string>;
+		content ?: string;
 	}>();
 	const svgs : Map<Icon, Component> = new Map ([
 		['cards', Cards],

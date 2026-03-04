@@ -120,7 +120,7 @@
 				});
 			};
 			await Dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT).value,
+				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
 				onConfirm : on
 			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK));
 		},
@@ -131,7 +131,7 @@
 				page.deck[2].length = 0;
 			};
 			await Dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR).value,
+				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
 				onConfirm : on
 			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK));
 		}

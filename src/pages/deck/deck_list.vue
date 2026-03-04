@@ -171,19 +171,14 @@
 			await page.indeck(deck);
 		},
 		delete : async () : Promise<void> => {
-			if (list.selected <= -1) return;
-			const confirm = async () : Promise<void> => {
-				if (await fs.delete.ydk(list.decks[list.selected].name!)) {
-					toast.info(mainGame.get.text(I18N_KEYS.DECK_DELETE_COMPELETE));
-					list.decks.splice(list.selected, 1);
-					list.selected = -1;
-				}
+			if (list.selected > -1 && await Dialog({
+				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE),
+				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '')
+			}) && await fs.delete.ydk(list.decks[list.selected].name!)) {
+				toast.info(mainGame.get.text(I18N_KEYS.DECK_DELETE_COMPELETE));
+				list.decks.splice(list.selected, 1);
+				list.selected = -1;
 			}
-			await Dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE).value,
-				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '').value,
-				onConfirm : confirm
-			});
 		},
 	});
 

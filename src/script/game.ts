@@ -1,4 +1,4 @@
-import { computed, ComputedRef, reactive } from 'vue';
+import { reactive } from 'vue';
 import { exit } from '@tauri-apps/plugin-process';
 import { DirEntry } from '@tauri-apps/plugin-fs';
 import { fetch } from '@tauri-apps/plugin-http';
@@ -46,8 +46,8 @@ class Game {
 		document.head.appendChild(this.font.dom);
 	};
 
-	init = async () : Promise<void> => {
-		if (this.inited) return;
+	init = async () : Promise<boolean> => {
+		if (this.inited) return true;
 		try {
 			await invoke.game.init();
 			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
@@ -92,7 +92,7 @@ class Game {
 			this.avatars = textures.avatar;
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
-			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA).value, { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
+			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(model);
 			this.bgm.push(...sounds);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
@@ -106,16 +106,18 @@ class Game {
 					font-style: normal;
 				}`
 			).join('\n');
+			this.inited = true;
+			this.unknown
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
+				.set.readonly();
+			this.back
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
+				.set.readonly();
+			return true;
 		} catch (error) {
 			fs.write.log(error);
+			return false;
 		}
-		this.inited = true;
-		this.unknown
-			.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
-			.set.readonly();
-		this.back
-			.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
-			.set.readonly();
 	};
 
 	reload = async (overwrite : boolean) : Promise<boolean> => {
@@ -147,13 +149,13 @@ class Game {
 			)
 			?? this.lflist.get(CONSTANT.KEYS.NA)!,
 		// expansions : invoke.game.get_expansion,
-		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : ComputedRef<string> => computed(() => {
+		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.i18n) {
 				case CONSTANT.LANGUAGE.Zh_CN:
 					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
 			}
 			return new YGOPRO_STR(Zh_CN[key]).toString();
-		}),
+		},
 		system : (key : string) : Array<string> | string | number | boolean | undefined => {
 			for (const i of this.system)
 				if (i[1].has(key))
@@ -166,11 +168,11 @@ class Game {
 		},
 		strings : {
 			system : (key : number, replace : Array<string | number> | string | number = []) : string => {
-				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW).value;
+				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
 				return this.replace(value, replace);
 			},
 			victory : (key : number, replace : Array<string | number> | string | number = []) : string => {
-				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW).value;
+				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
 				replace = typeof replace === 'object' ? replace : [replace];
 				for (const str of replace) {
 					value = value.replace(typeof str === 'string' ? '%ls' : '%d', `${str}`);
@@ -221,7 +223,7 @@ class Game {
 			const code = (data >> 4) & this.max_card_id;
 			const offset = data & 0xf;
 			const card =  mainGame.get.card(code);
-			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW).value
+			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW)
 				: this.replace(card.hint[offset], replace);
 		},
 		location : (loc : number, seq : number) : string => {
@@ -231,9 +233,9 @@ class Game {
 		},
 		name : (id : number | undefined) : string => {
 			if (id === undefined)
-				return this.get.text(I18N_KEYS.UNKNOW).value;
+				return this.get.text(I18N_KEYS.UNKNOW);
 			const card = mainGame.get.card(id);
-			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW).value : card.name;
+			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW) : card.name;
 		},
 		avatar : (tp : number) : string => this.avatars[this.get.system(!!tp ? CONSTANT.KEYS.SETTING_AVATAR_OPPO : CONSTANT.KEYS.SETTING_AVATAR_SELF) as number],
 		counter : (counter : number) : string => {
@@ -266,9 +268,7 @@ class Game {
 	}
 
 	chk = {
-		file : async () : Promise<boolean> => {
-			return await fs.exists(CONSTANT.FILES.ASSETS_ZIP);
-		},
+		file : invoke.game.exists,
 		version : {
 			game : async () : Promise<boolean> => {
 				const time = await invoke.network.version(CONSTANT.URL.VERSION, CONSTANT.URL.VERSION_HEAD);
@@ -306,7 +306,9 @@ class Game {
 		const data = Date.now();
 		await func(...para);
 		return new Promise(resolve => setTimeout(resolve, Math.max(0, time - (Date.now() - data))));
-	}
+	};
+
+	download = invoke.game.download;
 };
 
 const mainGame = new Game();

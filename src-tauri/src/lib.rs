@@ -1,54 +1,55 @@
-mod zip;
-mod read;
-mod network;
-use read::{FileContent, Pic};
-use network::{Srv, Resp};
-
 mod api;
 mod game;
 
+use game::PATH;
+use std::path::PathBuf;
+use tauri_plugin_os::{OsType, type_};
 use tauri::{
 	Builder,
-	AppHandle
+	generate_handler,
+	path::BaseDirectory,
+	Manager
 };
-
-#[tauri::command]
-async fn read_time(time : String) -> Result<String, String> {
-	Ok(read::time(time).await.map_err(|e| e.to_string())?)
-}
-
-#[tauri::command]
-async fn network_srv(url: String) -> Result<Srv, String> {
-	Ok(network::srv(url).await.map_err(|e| e.to_string())?)
-}
-
-#[tauri::command]
-async fn network_version(url: String, headers: Vec<(String, String)>) -> Result<String, String> {
-	Ok(network::version(url, headers).await.map_err(|e| e.to_string())?)
-}
-
-#[tauri::command]
-async fn network_time(urls: Vec<String>) -> Result<Vec<Resp>, String> {
-	Ok(network::time(urls).await.map_err(|e| e.to_string())?)
-}
-
-#[tauri::command]
-async fn network_download(app: AppHandle, url: String, path: String, name: String, ex_name: String,) -> Result<String, String> {
-	Ok(network::download(app, url, path, name, ex_name).await.map_err(|e| e.to_string())?)
-}
-
-
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-	api::init(Builder::default()
+	Builder::default()
 		.plugin(tauri_plugin_http::init())
 		.plugin(tauri_plugin_tcp::init())
 		.plugin(tauri_plugin_clipboard_manager::init())
 		.plugin(tauri_plugin_process::init())
 		.plugin(tauri_plugin_os::init())
 		.plugin(tauri_plugin_fs::init())
-		.plugin(tauri_plugin_opener::init()))
+		.plugin(tauri_plugin_opener::init())
+		.invoke_handler(generate_handler![
+			api::exists,
+			api::init,
+			api::reload,
+			api::download_assets,
+			api::get_pic,
+			api::get_font,
+			api::get_sound,
+			api::get_textures,
+			api::get_cards,
+			api::get_system,
+			api::get_server,
+			api::get_strings,
+			api::get_lflist,
+			api::get_info,
+			api::get_model,
+			api::get_deck,
+			api::set_system,
+		])
+		.setup(|app| {
+			let path: PathBuf = app.path().resolve("./", {
+				match type_() {
+					OsType::Android => BaseDirectory::Public,
+					_ => BaseDirectory::Resource
+				}
+			})?;
+			let _ = PATH.set(path);
+			Ok(())
+		})
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
 }

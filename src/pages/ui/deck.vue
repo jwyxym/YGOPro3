@@ -109,31 +109,31 @@
 				const card : Card = mainGame.get.card(code);
 				code = Math.abs(card.alias - card.id) <= 20 ? card.alias : card.id;
 				if (card.is_token())
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE).value;
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE);
 				const cards = page.deck.main.concat(page.deck.extra, page.deck.side);
 				const ct = props.lflist ? mainGame.get.lflist(props.lflist).get.lflist(card.id) : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
 				if (cards.filter(i => (() : number => {
 					const card : Card = mainGame.get.card(i.code);
 					return Math.abs(card.alias - card.id) <= 20 ? card.alias : card.id;
 				})() === code).length >= ct + (page.move.index.from > -1 ? 1 : 0))
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_MAX, ct.toString()).value;
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_MAX, ct.toString());
 				const chk = page.move.index.from === deck ? 0 : 1;
 				switch (deck) {
 					case 0:
 						if (page.deck.main.length + chk > (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN) as number))
-							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN) as number).value;
+							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN) as number);
 						else if (card.is_ex())
-							return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE).value;
+							return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE);
 						return true;
 					case 1:
 						if (page.deck.extra.length + chk > (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_EX) as number))
-							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_EX) as number).value;
+							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_EX) as number);
 						else if (!card.is_ex())
-							return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE).value;
+							return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE);
 						return true;
 					case 2:
 						if (page.deck.side.length + chk > (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE) as number))
-							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE) as number).value;
+							return mainGame.get.text(I18N_KEYS.DECK_RULE_DECK_MAX, mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_SIDE) as number);
 						return true;
 				}
 			}
@@ -382,9 +382,9 @@
 		for (let i = 0; i < props.deck.side.length; i++)
 			page.deck.side.push({ code : props.deck.side[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
 		
-		page.title.main = mainGame.get.text(I18N_KEYS.DECK_MAIN).value;
-		page.title.extra = mainGame.get.text(I18N_KEYS.DECK_EXTRA).value;
-		page.title.side = mainGame.get.text(I18N_KEYS.DECK_SIDE).value;
+		page.title.main = mainGame.get.text(I18N_KEYS.DECK_MAIN);
+		page.title.extra = mainGame.get.text(I18N_KEYS.DECK_EXTRA);
+		page.title.side = mainGame.get.text(I18N_KEYS.DECK_SIDE);
 		page.size.resize();
 		window.addEventListener('mousedown', page.move.mousedown);
 		window.addEventListener('mousemove', page.move.mousemove);

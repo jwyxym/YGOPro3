@@ -284,11 +284,11 @@
 		] as Array<{ icon : Icon; key : number; func : Function; }>,
 		name_rule : async (name ?: string) : Promise<string | boolean> => {
 			if (name === undefined || name.length === 0)
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_LEN).value;
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_LEN);
 			if (name.match(REG.NAME))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_UNLAWFUL).value;
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_UNLAWFUL);
 			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_EXIST).value;
+				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_EXIST);
 			return true;
 		}
 	});
@@ -385,12 +385,12 @@
 		rule : {
 			number : (lv : string) : string | boolean => {
 				if (!lv.match(REG.LV))
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_LV).value;
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_LV);
 				return true;
 			},
 			atk : (lv : string) : string | boolean => {
 				if (!lv.match(REG.ATK))
-					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_ATK).value;
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_ATK);
 				return true;
 			}
 		},

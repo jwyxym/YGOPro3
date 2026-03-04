@@ -1,7 +1,7 @@
 <template>
 	<var-input
 		:variant = "variant ? variant : 'standard'"
-		:placeholder = "typeof placeholder === 'object' ? placeholder.value : placeholder"
+		:placeholder = 'placeholder'
 		:rules = 'rules'
 		:clearable = 'true'
 		:type = "type ?? 'text'"
@@ -11,10 +11,9 @@
 	/>
 </template>
 <script setup lang = 'ts'>
-import { ComputedRef } from 'vue';
 
 	defineProps<{
-		placeholder ?: string | ComputedRef<string>;
+		placeholder ?: string;
 		variant ?: 'outlined' | 'standard';
 		rules ?: ((value ?: string) => string | boolean) | ((value : string) => string | boolean) | ((value ?: string) => Promise<string | boolean>) | ((value : string) => Promise<string | boolean>);
 		type ?: 'text' | 'password' | 'number' | 'tel'

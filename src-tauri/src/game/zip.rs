@@ -1,4 +1,4 @@
-use crate::game::{PIC_REGEX, cdb::Cdb};
+use crate::game::{PIC_REGEX, version::Version, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
@@ -30,7 +30,6 @@ impl Zip {
 			let mut lflist: Vec<String>= Vec::new();
 			let mut strings: Vec<String>= Vec::new();
 			let mut servers: Vec<String>= Vec::new();
-
 			let _ = Self::read(&path, |name, mut file| {
 				if let Some(_match) = PIC_REGEX
 					.captures(&name)
@@ -42,8 +41,7 @@ impl Zip {
 						&& file.read_to_end(&mut content).is_ok() {
 						pics.insert(code, content);
 					}
-				}
-				else if name.ends_with("ini") {
+				} else if name.ends_with("ini") {
 					let mut content: String = String::new();
 					if file.read_to_string(&mut content).is_ok() {
 						ini.push(content);
@@ -86,27 +84,35 @@ impl Zip {
 			})
 		})
 	}
-	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
+	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(Option<Version>, Vec<JoinHandle<Result<(), Error>>>), Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
 		let zip_path: PathBuf = path.join("assets.zip");
+		let mut version: Option<Version> = None;
 		let _ = Self::read(&zip_path, |name, mut file| {
-			let path: PathBuf = path.join(&name);
-			if !file.is_dir() && (overwrite || !exists(&path)?) {
-				let mut content: Vec<u8> = Vec::new();
-				if file.read_to_end(&mut content).is_ok() {
-					tasks.push(spawn_blocking(move || {
-						if let Some(parent) = path.parent() {
-							let _ = create_dir_all(parent);
-						}
-						write(path, content)?;
-						Ok(())
-					}));
+			if name == String::from("version") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					version.get_or_insert_with(|| Version::new(content));
+				}
+			} else {
+				let path: PathBuf = path.join(&name);
+				if !file.is_dir() && (overwrite || !exists(&path)?) {
+					let mut content: Vec<u8> = Vec::new();
+					if file.read_to_end(&mut content).is_ok() {
+						tasks.push(spawn_blocking(move || {
+							if let Some(parent) = path.parent() {
+								let _ = create_dir_all(parent);
+							}
+							write(path, content)?;
+							Ok(())
+						}));
+					}
 				}
 			}
 			Ok(())
 		});
-		Ok(tasks)
+		Ok((version, tasks))
 	}
 	pub fn read<P: AsRef<Path>> (
 		path: P,

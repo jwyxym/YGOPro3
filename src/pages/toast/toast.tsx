@@ -1,11 +1,11 @@
-import { ComputedRef, defineComponent, reactive } from 'vue';
+import { defineComponent, reactive } from 'vue';
 import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';
 
 type HintType = 'info' | 'warn' | 'err';
 type HintStatus = 'unshow' | 'show' | 'leave';
 interface Hint {
-	text : string | number | string | (() => string) | ComputedRef<string>;
+	text : string | number | string;
 	type : HintType;
 	top : number;
 	status : HintStatus;
@@ -44,7 +44,7 @@ class Toast {
 		setTimeout(() => this.list.splice(v, 1), 100);
 	};
 
-	push = (str : string | number | string | (() => string) | ComputedRef<string>, type : HintType) => {
+	push = (str : string | number, type : HintType) => {
 		const obj = this.to_toast(str, type);
 		const func = async () => {
 			if (this.list.length > 0 && this.elements.has(this.list[0])) {
@@ -68,22 +68,22 @@ class Toast {
 		this.process();
 	};
 
-	error = (str : string | number | string | (() => string) | ComputedRef<string>, chk : boolean = false) : void => {
+	error = (str : string | number, chk : boolean = false) : void => {
 		if (this.unshow || !chk)
 			this.push(str, 'err');
 	};
 
-	info = (str : string | number | string | (() => string) | ComputedRef<string>, chk : boolean = false) : void => {
+	info = (str : string | number, chk : boolean = false) : void => {
 		if (this.unshow || !chk)
 			this.push(str, 'info');
 	};
 
-	warn = (str : string | number | string | (() => string) | ComputedRef<string>, chk : boolean = false) : void => {
+	warn = (str : string | number, chk : boolean = false) : void => {
 		if (this.unshow || !chk)
 			this.push(str, 'warn');
 	};
 
-	to_toast = (str : string | number | string | (() => string) | ComputedRef<string>, type : HintType) : Hint => {
+	to_toast = (str : string | number, type : HintType) : Hint => {
 		return {
 			text : str,
 			type : type,

@@ -10,8 +10,10 @@ mod sound;
 mod card_info;
 mod lflist;
 mod model;
+mod request;
+mod version;
 mod file;
-use crate::game::{
+pub use crate::game::{
 	card_info::CardInfo,
 	cdb::Cdb,
 	file::{File, FileContent},
@@ -22,8 +24,10 @@ use crate::game::{
 	server::Server,
 	sound::Sound,
 	strings::Strings,
-	system::System,
+	system::{System, SystemContent},
 	model::Model,
+	request::Request,
+	version::{Version, URL},
 	zip::Zip
 };
 
@@ -40,19 +44,35 @@ use tokio::{
 	join
 };
 use futures::{stream::FuturesUnordered, StreamExt};
-use std::{collections::BTreeMap, path::{Path, PathBuf}};
+use std::{collections::BTreeMap, sync::OnceLock, path::{Path, PathBuf}, fs::{write, self}};
+use tauri::AppHandle;
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
-pub async fn init<P: AsRef<Path>> (path: P) -> Result<&'static RwLock<Game>, Error> {
+pub static PATH: OnceLock<PathBuf> = OnceLock::new();
+
+pub fn exists () -> Result<bool, Error> {
+	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+	Ok(fs::exists(path.join("assets"))?)
+}
+
+pub async fn init () -> Result<&'static RwLock<Game>, Error> {
+	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 	let game: RwLock<Game> = RwLock::new(Game::init(path, false).await?);
 	Ok(GAME.get_or_init(|| async {
 		game
 	}).await)
 }
-pub async fn reload<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(), Error> {
+pub async fn reload (overwrite: bool) -> Result<(), Error> {
+	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
 	*game = Game::init(path, overwrite).await?;
+	Ok(())
+}
+
+pub async fn download (app: &AppHandle) -> Result<(), Error> {
+	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+	Request::download(app, path, "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets.zip/download", "assets").await?;
 	Ok(())
 }
 
@@ -63,7 +83,7 @@ lazy_static! {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
-	path: PathBuf,
+	version: Version,
 	model: Model,
 	system: System,
 	resource: Resource,
@@ -84,18 +104,18 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(), Error> {
-		metadata(path.as_ref().join("assets.zip")).await?;
-		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(path, overwrite).await?;
+	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Version, Error> {
+		metadata(path.as_ref().join("assets")).await?;
+		let (version, tasks) = Zip::unzip(path, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
 		}
-		Ok(())
+		Ok(version.ok_or(anyhow!("")).unwrap_or(Version::default()))
 	}
 
 	pub async fn init<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Self, Error> {
 		let path: &Path = path.as_ref();
-		Self::unzip( path, overwrite).await?;
+		let version: Version = Self::unzip( path, overwrite).await?;
 
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
@@ -119,7 +139,7 @@ impl Game {
 		});
 		pack.reverse();
 		Ok(Self {
-			path: path.to_path_buf(),
+			version: version,
 			model: model,
 			system: system,
 			resource: resource,
@@ -583,11 +603,10 @@ impl Game {
 	}
 
 	pub async fn get_deck () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		let mut tasks: Vec<JoinHandle<Result<(String, String), Error>>> = Vec::new();
 		let mut deck: Vec<(String, String)> = Vec::new();
-		WalkDir::new(game.path.join("deck"))
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		WalkDir::new(path.join("deck"))
 			.max_depth(1)
 			.into_iter()
 			.for_each(|i| {
@@ -610,5 +629,31 @@ impl Game {
 			}
 		}
 		Ok(deck)
+	}
+	pub async fn set_system (key: String, value: SystemContent) -> Result<(), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		game.system.set(key, value);
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		write(path
+			.join("config")
+			.join("system.toml"), 
+			game.system.to_string()
+		)?;
+		Ok(())
+	}
+	pub async fn version () -> Result<bool, Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let url: URL= Request::test_speed(game.version.url()).await?;
+		Ok(Request::version(&url, game.version.version()).await)
+	}
+	pub async fn update (app: &AppHandle) -> Result<(), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let url: URL= Request::test_speed(game.version.url()).await?;
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		Request::download(app, path, url.request_url(), "assets").await?;
+		Ok(())
 	}
 }

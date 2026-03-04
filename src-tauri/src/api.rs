@@ -1,43 +1,148 @@
-mod commands;
 
-use std::{sync::OnceLock, path::PathBuf};
-use tauri_plugin_os::{OsType, type_};
+use crate::game::{self, Game, SystemContent};
+
+use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
-	Builder,
-	Runtime,
-	generate_handler,
-	path::BaseDirectory,
-	Manager
+	AppHandle, ipc::Response
 };
 
-static PATH: OnceLock<PathBuf> = OnceLock::new();
+static CONFIG : Configuration = standard();
 
-pub fn init<R: Runtime> (build: Builder<R>) -> Builder<R> {
-	build.invoke_handler(generate_handler![
-		commands::init,
-		commands::reload,
-		commands::unzip,
-		commands::get_pic,
-		commands::get_font,
-		commands::get_sound,
-		commands::get_textures,
-		commands::get_cards,
-		commands::get_system,
-		commands::get_server,
-		commands::get_strings,
-		commands::get_lflist,
-		commands::get_info,
-		commands::get_model,
-		commands::get_deck,
-	])
-	.setup(|app| {
-		let path: PathBuf = app.path().resolve("./", {
-			match type_() {
-				OsType::Android => BaseDirectory::Public,
-				_ => BaseDirectory::Resource
-			}
-		})?;
-		let _ = PATH.set(path);
-		Ok(())
-	})
+#[tauri::command]
+pub async fn exists () -> Result<bool, String> {
+	game::exists().map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn init () -> Result<(), String> {
+	game::init().await.map_err(|e| e.to_string())?;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn reload (overwrite: bool) -> Result<(), String> {
+	game::reload(overwrite).await.map_err(|e| e.to_string())?;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn download_assets (app: AppHandle) -> Result<(), String> {
+	Ok(game::download(&app).await.map_err(|e| e.to_string())?)
+}
+
+#[tauri::command]
+pub async fn get_pic (deck: Vec<u32>) -> Response {
+	Game::get_pic(deck).await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_font () -> Response {
+	Game::get_font().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_sound () -> Response {
+	Game::get_sound().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_textures () -> Response {
+	Game::get_textures().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_cards () -> Response {
+	Game::get_cards().await
+		.ok()
+		.and_then(|cards| encode_to_vec(cards, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_system () -> Response {
+	Game::get_system().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_server () -> Response {
+	Game::get_server().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_lflist () -> Response {
+	Game::get_lflist().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_strings () -> Response {
+	Game::get_strings().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_info () -> Response {
+	Game::get_info().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_model () -> Response {
+	Game::get_model().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn get_deck () -> Response {
+	Game::get_deck().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn set_system (key: String, value: SystemContent) -> Response {
+	Game::set_system(key, value).await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
 }

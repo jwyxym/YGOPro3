@@ -333,7 +333,7 @@
 	const expansion = reactive({
 		delete : async (v : number) : Promise<void> => {
 			await Dialog({
-				title : mainGame.get.text(I18N_KEYS.SETTING_DELETE_YPK).value,
+				title : mainGame.get.text(I18N_KEYS.SETTING_DELETE_YPK),
 				onConfirm : async () : Promise<void> => {
 					if (await fs.delete.ypk(setting.expansion[v])) {
 						const load = await mainGame.get.expansions();

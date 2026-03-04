@@ -10,6 +10,14 @@ pub struct System {
 	array: BTreeMap<String, Vec<String>>
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+pub enum SystemContent {
+	String(String),
+	Boolean(bool),
+	Number(f64),
+	Array(Vec<String>)
+}
+
 impl System {
 	pub fn new (text: String) -> Self {
 		let mut system: Self = from_str::<Self>(&text).unwrap_or(Self::default());
@@ -101,5 +109,20 @@ impl System {
 			.unwrap_or(&String::from("zh-CN"))
 		)
 	}
-
+	pub fn set (&mut self, key: String, value: SystemContent) -> () {
+		match value {
+			SystemContent::String(v) => {
+				self.string.insert(key, v);
+			}
+			SystemContent::Boolean(v) => {
+				self.boolean.insert(key, v);
+			}
+			SystemContent::Number(v) => {
+				self.number.insert(key, v);
+			}
+			SystemContent::Array(v) => {
+				self.array.insert(key, v);
+			}
+		}
+	}
 }

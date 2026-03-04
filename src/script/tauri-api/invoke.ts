@@ -36,6 +36,14 @@ type BufferFile<T> = Array<[T, { ok : Uint8Array }]>;
 
 class Invoke {
 	game = {
+		exists : async () : Promise<boolean> => {
+			try {
+				return await invoke<boolean>('exists');
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		},
 		init : async () : Promise<void> => {
 			try {
 				await invoke<void>('init');
@@ -46,6 +54,14 @@ class Invoke {
 		reload : async (overwrite : boolean) : Promise<void> => {
 			try {
 				await invoke<void>('reload', { overwrite : overwrite });
+			} catch (error) {
+				fs.write.log(error);
+			}
+		},
+		download : async (url ?: string) : Promise<void> => {
+			try {
+				await (url ? true
+					: invoke<void>('download_assets'));
 			} catch (error) {
 				fs.write.log(error);
 			}
