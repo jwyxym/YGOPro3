@@ -26,7 +26,7 @@ pub use crate::game::{
 	strings::Strings,
 	system::{System, SystemContent},
 	model::Model,
-	request::Request,
+	request::{Request, Srv},
 	version::{Version, URL},
 	zip::Zip
 };
@@ -45,7 +45,7 @@ use tokio::{
 };
 use futures::{stream::FuturesUnordered, StreamExt};
 use std::{collections::BTreeMap, sync::OnceLock, path::{Path, PathBuf}, fs::{write, self}};
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
@@ -55,18 +55,16 @@ pub fn exists () -> Result<bool, Error> {
 	Ok(fs::exists(path.join("assets"))?)
 }
 
-pub async fn init () -> Result<&'static RwLock<Game>, Error> {
-	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	let game: RwLock<Game> = RwLock::new(Game::init(path, false).await?);
+pub async fn init (app: &AppHandle) -> Result<&'static RwLock<Game>, Error> {
+	let game: RwLock<Game> = RwLock::new(Game::init(app, false).await?);
 	Ok(GAME.get_or_init(|| async {
 		game
 	}).await)
 }
-pub async fn reload (overwrite: bool) -> Result<(), Error> {
-	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-	*game = Game::init(path, overwrite).await?;
+	*game = Game::init(app, overwrite).await?;
 	Ok(())
 }
 
@@ -104,30 +102,34 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Version, Error> {
-		metadata(path.as_ref().join("assets")).await?;
-		let (version, tasks) = Zip::unzip(path, overwrite).await?;
+	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<Version, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		metadata(path.join("assets")).await?;
+		let (version, tasks) = Zip::unzip(app, path, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
 		}
 		Ok(version.ok_or(anyhow!("")).unwrap_or(Version::default()))
 	}
 
-	pub async fn init<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<Self, Error> {
-		let path: &Path = path.as_ref();
-		let version: Version = Self::unzip( path, overwrite).await?;
+	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let version: Version = Self::unzip(app, overwrite).await?;
 
+		app.emit("started", 3)?;
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
 
 		let (system, resource, lflist, servers, model) = Self::load_config(path).await;
 
+		app.emit("progress", 1)?;
 		let (mut pack, (card_info, db, strings), _, _) = join!(
 			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n()),
 			font.read_dir(path.join("font"), resource.font()),
 			sound.read_dir(path.join("sound"), resource.sound())
 		);
+		app.emit("progress", 1)?;
 		pack.insert(String::from("./"), GamePack {
 			on: true,
 			card_info: card_info,
@@ -137,7 +139,9 @@ impl Game {
 			lflist: lflist,
 			pics: Pic::new().read_dir(path.join("pics"))
 		});
+		app.emit("progress", 1)?;
 		pack.reverse();
+		app.emit("end", 0)?;
 		Ok(Self {
 			version: version,
 			model: model,
@@ -642,7 +646,7 @@ impl Game {
 		)?;
 		Ok(())
 	}
-	pub async fn version () -> Result<bool, Error> {
+	pub async fn chk_version () -> Result<bool, Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		let url: URL= Request::test_speed(game.version.url()).await?;
@@ -655,5 +659,8 @@ impl Game {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		Request::download(app, path, url.request_url(), "assets").await?;
 		Ok(())
+	}
+	pub async fn get_srv (url: String) -> Result<Srv, Error> {
+		Request::srv(url).await
 	}
 }

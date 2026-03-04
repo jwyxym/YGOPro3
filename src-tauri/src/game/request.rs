@@ -30,7 +30,7 @@ pub struct Srv {
 	target: String,
 }
 
-pub static RESOLVER: OnceLock<Resolver> = OnceLock::new();
+static RESOLVER: OnceLock<Resolver> = OnceLock::new();
 pub struct Request;
 impl Request {
 	pub async  fn test_speed (urls: &Vec<URL>) -> Result<URL, Error> {

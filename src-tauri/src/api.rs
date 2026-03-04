@@ -1,5 +1,5 @@
 
-use crate::game::{self, Game, SystemContent};
+use crate::game::{self, Game, Srv, SystemContent};
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -14,20 +14,35 @@ pub async fn exists () -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub async fn init () -> Result<(), String> {
-	game::init().await.map_err(|e| e.to_string())?;
+pub async fn init (app: AppHandle) -> Result<(), String> {
+	game::init(&app).await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
 #[tauri::command]
-pub async fn reload (overwrite: bool) -> Result<(), String> {
-	game::reload(overwrite).await.map_err(|e| e.to_string())?;
+pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
+	game::reload(&app, overwrite).await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
 #[tauri::command]
 pub async fn download_assets (app: AppHandle) -> Result<(), String> {
 	Ok(game::download(&app).await.map_err(|e| e.to_string())?)
+}
+
+#[tauri::command]
+pub async fn update (app: AppHandle) -> Result<(), String> {
+	Game::update(&app).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn chk_version () -> Result<bool, String> {
+	Game::chk_version().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn get_srv (url: String) -> Result<Srv, String> {
+	Game::get_srv(url).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

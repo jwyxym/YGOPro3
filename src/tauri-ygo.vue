@@ -1,7 +1,7 @@
 <template>
 	<div class = 'main'>
 		<starry-sky :stars-count = '1500' :distance = '800' id = 'back'/>
-		<Voice></Voice>
+		<Voice v-if = 'page.show.voice'/>
 		<Loading/>
 		<Toast/>
 		<TransitionGroup tag = 'div' name = 'opacity'>
@@ -36,10 +36,10 @@
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
 	import Voice from './pages/voice/voice';
+	import Dialog from './pages/ui/dialog';
 
 	import mainGame from './script/game';
-	import Dialog from './pages/ui/dialog';
-import { I18N_KEYS } from './script/language/i18n';
+	import { I18N_KEYS } from './script/language/i18n';
 
 	const page = reactive({
 		show : {
@@ -92,7 +92,8 @@ import { I18N_KEYS } from './script/language/i18n';
 				: mainGame.exit)();
 		}
 		await mainGame.init();
-		page.show.menu = true
+		page.show.voice = true;
+		page.show.menu = true;
 	});
 
 	onMounted(async () => {

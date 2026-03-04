@@ -9,6 +9,7 @@ use std::{
 	collections::BTreeMap,
 	path::{Path, PathBuf}
 };
+use tauri::{AppHandle, Emitter};
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Zip {
@@ -84,12 +85,15 @@ impl Zip {
 			})
 		})
 	}
-	pub async fn unzip<P: AsRef<Path>> (path: P, overwrite: bool) -> Result<(Option<Version>, Vec<JoinHandle<Result<(), Error>>>), Error> {
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<(Option<Version>, Vec<JoinHandle<Result<(), Error>>>), Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
-		let zip_path: PathBuf = path.join("assets.zip");
+		let zip_path: PathBuf = path.join("assets");
+		let zip: ZipArchive<File> = ZipArchive::new(File::open(&zip_path)?)?;
+		app.emit("started", zip.len())?;
 		let mut version: Option<Version> = None;
 		let _ = Self::read(&zip_path, |name, mut file| {
+			app.emit("progress", 1)?;
 			if name == String::from("version") {
 				let mut content: String = String::new();
 				if file.read_to_string(&mut content).is_ok() {
@@ -112,6 +116,7 @@ impl Zip {
 			}
 			Ok(())
 		});
+		app.emit("end", 0)?;
 		Ok((version, tasks))
 	}
 	pub fn read<P: AsRef<Path>> (
