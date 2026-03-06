@@ -5,7 +5,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, onUnmounted, reactive } from 'vue';
+	import { onBeforeMount, onUnmounted, reactive, watch } from 'vue';
 	import { UnlistenFn } from '@tauri-apps/api/event';
 
 	import listen from '@/script/tauri-api/listen';
@@ -38,6 +38,9 @@
 		for (const i of page.funcs)
 			i();
 	});
+
+	const emit = defineEmits<{ loading : [boolean]; }>();
+	watch(() => page.show, (n) => emit('loading', n));
 </script>
 <style scoped lang = 'scss'>
 	.loading {

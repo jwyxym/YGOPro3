@@ -2,7 +2,9 @@
 	<div class = 'main'>
 		<starry-sky :stars-count = '1500' :distance = '800' id = 'back'/>
 		<Voice v-if = 'page.show.voice'/>
-		<Loading/>
+		<Loading
+			@loading = '(n) => page.loading = n'
+		/>
 		<Toast/>
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Deck
@@ -15,7 +17,8 @@
 			/>
 			<Setting
 				v-if = 'page.show.setting'
-				:select = 'page.select'
+				:loading = 'page.loading'
+				@exit = 'page.select.menu'
 			/>
 			<YGOMenu
 				v-if = 'page.show.menu'
@@ -39,9 +42,11 @@
 	import Dialog from './pages/ui/dialog';
 
 	import mainGame from './script/game';
+	import fs from './script/fs';
 	import { I18N_KEYS } from './script/language/i18n';
 
 	const page = reactive({
+		loading : false,
 		show : {
 			voice : false,
 			dialog : false,
@@ -61,29 +66,34 @@
 					}, 600);
 			},
 			server : () : void => {
+				if (page.loading) {
+					return;
+				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.show.server = true;
 				}, 600);
 			},
 			deck : () : void => {
+				if (page.loading) {
+					return;
+				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.show.deck = true;
 				}, 600);
 			},
 			setting : () : void => {
-				page.show.setting = true;
+				page.show.menu = false;
+				setTimeout(() => {
+					page.show.setting = true;
+				}, 600);
 			}
-		},
-		loading : {
-			progress : 0,
-			start : 0
 		}
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		if (!await mainGame.chk.file()) {
+		if (!await fs.exists('assets')) {
 			await (await Dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
@@ -207,6 +217,7 @@
 		--dialog-background: transparent !important;
 		--popup-content-background-color: transparent !important;
 		--tabs-background: transparent !important;
+		--counter-background: transparent !important;
 		--select-scroller-background: rgba(0, 0, 0, 0.5) !important;
 		--menu-select-menu-background-color: rgba(0, 0, 0, 0.5) !important;
 		--dialog-message-color: white !important;

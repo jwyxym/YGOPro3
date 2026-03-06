@@ -85,6 +85,71 @@ impl Zip {
 			})
 		})
 	}
+	pub fn new_with_emit (app: &AppHandle, path: String, name: String) -> Result<Self, Error> {
+		let file: File = File::open(&path)?;
+		let archive: ZipArchive<File> = ZipArchive::new(file)?;
+		let len: usize = archive.len();
+		app.emit("started", len)?;
+		let mut pics: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
+		let mut db: Vec<Cdb>= Vec::new();
+		let mut ini: Vec<String>= Vec::new();
+		let mut lflist: Vec<String>= Vec::new();
+		let mut strings: Vec<String>= Vec::new();
+		let mut servers: Vec<String>= Vec::new();
+		let ct: usize = Self::read(&path, |name, mut file| {
+			app.emit("progress", 1)?;
+			if let Some(_match) = PIC_REGEX
+				.captures(&name)
+				.and_then(|i| Some(i)?
+				.get(1))
+			{
+				let mut content: Vec<u8> = Vec::new();
+				if let Ok(code) = _match.as_str().parse::<u32>()
+					&& file.read_to_end(&mut content).is_ok() {
+					pics.insert(code, content);
+				}
+			} else if name.ends_with("ini") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					ini.push(content);
+				}
+			} else if name.ends_with("strings.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					strings.push(content);
+				}
+			} else if name.ends_with("lflist.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					lflist.push(content);
+				}
+			} else if name.ends_with("servers.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					servers.push(content);
+				}
+			} else if name.ends_with("cdb") {
+				let mut content: Vec<u8> = Vec::new();
+				if file.read_to_end(&mut content).is_ok() {
+					let mut cdb: Cdb = Cdb::new();
+					if cdb.init_by_buffer(content).is_ok() {
+						db.push(cdb);
+					}
+				}
+			}
+			Ok(())
+		})?;
+		app.emit("progress", len - ct)?;
+		Ok::<Self, Error>(Self {
+			name: name,
+			pics: pics,
+			db: db,
+			ini: ini,
+			lflist: lflist,
+			strings: strings,
+			servers: servers
+		})
+	}
 	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<(Option<Version>, Vec<JoinHandle<Result<(), Error>>>), Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
@@ -122,17 +187,19 @@ impl Zip {
 	pub fn read<P: AsRef<Path>> (
 		path: P,
 		mut callback: impl FnMut(String, ZipFile) -> Result<(), Error>
-	) -> Result<(), Error> {
+	) -> Result<usize, Error> {
 		let file: File = File::open(path)?;
 		let mut archive: ZipArchive<File> = ZipArchive::new(file)?;
+		let mut ct: usize = 0;
 		for i in 0..archive.len() {
 			let file: ZipFile<'_> = archive.by_index(i)?;
 			if !file.is_dir() {
 				let name: String = String::from(file.name());
 				let _ = callback(name, file);
+				ct += 1;
 			}
 		}
-		Ok(())
+		Ok(ct)
 	}
 	pub fn name (&self) -> String {
 		String::from(&self.name)

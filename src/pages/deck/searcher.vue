@@ -284,11 +284,11 @@
 		] as Array<{ icon : Icon; key : number; func : Function; }>,
 		name_rule : async (name ?: string) : Promise<string | boolean> => {
 			if (name === undefined || name.length === 0)
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_LEN);
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_LEN);
 			if (name.match(REG.NAME))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_UNLAWFUL);
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
 			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
-				return mainGame.get.text(I18N_KEYS.DECK_RULE_NAME_EXIST);
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_EXIST);
 			return true;
 		}
 	});

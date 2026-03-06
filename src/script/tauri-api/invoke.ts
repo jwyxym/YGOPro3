@@ -4,6 +4,7 @@ import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
 import Card from '../card';
 import LFList from '../lflist';
+import mainGame from '../game';
 
 interface Srv {
 	priority : number;
@@ -36,14 +37,6 @@ type BufferFile<T> = Array<[T, { ok : Uint8Array }]>;
 
 class Invoke {
 	game = {
-		exists : async () : Promise<boolean> => {
-			try {
-				return await invoke<boolean>('exists');
-			} catch (error) {
-				fs.write.log(error);
-				return false;
-			}
-		},
 		init : async () : Promise<void> => {
 			try {
 				await invoke<void>('init');
@@ -58,12 +51,57 @@ class Invoke {
 				fs.write.log(error);
 			}
 		},
-		download : async (url ?: string) : Promise<void> => {
+		update : async () : Promise<boolean> => {
 			try {
-				await (url ? true
-					: invoke<void>('download_assets'));
+				await invoke<void>('update');
+				return true;
 			} catch (error) {
 				fs.write.log(error);
+				return false;
+			}
+		},
+		time : async (path : Array<string>) : Promise<Date | undefined> => {
+			try {
+				const time = await invoke<string>('get_time', { path : path });
+				return time.length > 0 ? new Date(time) : undefined;
+			} catch (error) {
+				fs.write.log(error);
+				return undefined;
+			}
+		},
+		chk_version : async () : Promise<boolean> => {
+			try {
+				return await invoke<boolean>('chk_version');
+			} catch (error) {
+				fs.write.log(error);
+				return true;
+			}
+		},
+		download : async (url ?: string, name ?: string) : Promise<string | undefined> => {
+			try {
+				return await (url ? invoke<string>('download', { url : url, name : name ?? ''})
+					: invoke<void>('download_assets')) ?? undefined;
+			} catch (error) {
+				fs.write.log(error);
+				return undefined;
+			}
+		},
+		load_ypk : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('load_ypk', { name : name });
+				return true;
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		},
+		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>) : Promise<boolean> => {
+			try {
+				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value) });
+				return true;
+			} catch (error) {
+				fs.write.log(error);
+				return false;
 			}
 		},
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {

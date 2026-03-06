@@ -1,5 +1,5 @@
 
-use crate::game::{self, Game, Srv, SystemContent};
+use crate::game::{self, Game, Srv};
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -9,11 +9,6 @@ use tauri::{
 static CONFIG : Configuration = standard();
 
 #[tauri::command]
-pub async fn exists () -> Result<bool, String> {
-	game::exists().map_err(|e| e.to_string())
-}
-
-#[tauri::command]
 pub async fn init (app: AppHandle) -> Result<(), String> {
 	game::init(&app).await.map_err(|e| e.to_string())?;
 	Ok(())
@@ -21,18 +16,32 @@ pub async fn init (app: AppHandle) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
-	game::reload(&app, overwrite).await.map_err(|e| e.to_string())?;
-	Ok(())
+	game::reload(&app, overwrite).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn download_assets (app: AppHandle) -> Result<(), String> {
-	Ok(game::download(&app).await.map_err(|e| e.to_string())?)
+	game::download(&app).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn download (app: AppHandle, url: String, name: String) -> Result<String, String> {
+	Game::download(&app, url, name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn update (app: AppHandle) -> Result<(), String> {
 	Game::update(&app).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn load_ypk (app: AppHandle, name: String) -> Result<(), String> {
+	Game::load_zip(&app, name).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn set_system (key: String, ct: i8, value: String) -> Result<(), String> {
+	Game::set_system(key, ct, value).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -152,12 +161,7 @@ pub async fn get_deck () -> Response {
 		.map(Response::new)
 		.unwrap_or_else(|| Response::new(Vec::new()))
 }
-
 #[tauri::command]
-pub async fn set_system (key: String, value: SystemContent) -> Response {
-	Game::set_system(key, value).await
-		.ok()
-		.and_then(|i| encode_to_vec(i, CONFIG).ok())
-		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+pub async fn get_time (path: Vec<String>) -> Result<String, String> {
+	Game::get_time(path).await.map_err(|e| e.to_string())
 }

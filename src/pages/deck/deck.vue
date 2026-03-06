@@ -43,7 +43,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import fs from '@/script/fs';
 
-	import Dialog from '@/pages/ui/dialog';
+	import dialog from '@/pages/ui/dialog';
 	import Deck_Box, { Hover } from '@/pages/ui/deck.vue';
 	import Card_Box from '@/pages/ui/card_info.vue';
 	import { CardPic, CardPics } from '@/pages/ui/pic.vue';
@@ -82,7 +82,7 @@
 		}),
 		save : async (name : string) => {
 			const deck = page.to_deck(name);
-			const write = await fs.write.ydk(name, deck);
+			const write = await fs.write.ydk(deck);
 			let rename = true;
 			if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
 				rename = await fs.rename.ydk(props.this_deck.name, name);
@@ -119,7 +119,7 @@
 					});
 				});
 			};
-			await Dialog({
+			await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
 				onConfirm : on
 			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK));
@@ -130,7 +130,7 @@
 				page.deck[1].length = 0;
 				page.deck[2].length = 0;
 			};
-			await Dialog({
+			await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
 				onConfirm : on
 			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK));

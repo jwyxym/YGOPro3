@@ -24,7 +24,7 @@ pub use crate::game::{
 	server::Server,
 	sound::Sound,
 	strings::Strings,
-	system::{System, SystemContent},
+	system::System,
 	model::Model,
 	request::{Request, Srv},
 	version::{Version, URL},
@@ -44,16 +44,14 @@ use tokio::{
 	join
 };
 use futures::{stream::FuturesUnordered, StreamExt};
-use std::{collections::BTreeMap, sync::OnceLock, path::{Path, PathBuf}, fs::{write, self}};
+use chrono::{DateTime, Utc};
+use std::{
+	collections::BTreeMap, fs::{exists, write}, path::{Path, PathBuf}, sync::OnceLock
+};
 use tauri::{AppHandle, Emitter};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
-
-pub fn exists () -> Result<bool, Error> {
-	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	Ok(fs::exists(path.join("assets"))?)
-}
 
 pub async fn init (app: &AppHandle) -> Result<&'static RwLock<Game>, Error> {
 	let game: RwLock<Game> = RwLock::new(Game::init(app, false).await?);
@@ -116,20 +114,17 @@ impl Game {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let version: Version = Self::unzip(app, overwrite).await?;
 
-		app.emit("started", 3)?;
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
 
 		let (system, resource, lflist, servers, model) = Self::load_config(path).await;
 
-		app.emit("progress", 1)?;
 		let (mut pack, (card_info, db, strings), _, _) = join!(
-			Self::load_expansion(path, &system),
+			Self::load_expansion(app, path, &system),
 			Self::load_i18n(path, system.i18n()),
 			font.read_dir(path.join("font"), resource.font()),
 			sound.read_dir(path.join("sound"), resource.sound())
 		);
-		app.emit("progress", 1)?;
 		pack.insert(String::from("./"), GamePack {
 			on: true,
 			card_info: card_info,
@@ -139,9 +134,7 @@ impl Game {
 			lflist: lflist,
 			pics: Pic::new().read_dir(path.join("pics"))
 		});
-		app.emit("progress", 1)?;
 		pack.reverse();
-		app.emit("end", 0)?;
 		Ok(Self {
 			version: version,
 			model: model,
@@ -267,7 +260,7 @@ impl Game {
 		(card_info, db, strings)
 	}
 
-	async fn load_expansion (path: &Path, system: &System) -> IndexMap<String, GamePack> {
+	async fn load_expansion (app: &AppHandle, path: &Path, system: &System) -> IndexMap<String, GamePack> {
 		let mut zip_tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		WalkDir::new(path.join("expansions"))
@@ -315,9 +308,11 @@ impl Game {
 		let mut packs: IndexMap<String, GamePack> = IndexMap::new();
 		let mut zip_tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = zip_tasks.into_iter().collect::<FuturesUnordered<_>>();
 		let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
+		let _ = app.emit("started", zip_tasks.len() + tasks.len());
 		let (_, gamepack) = join!(
 			async {
 				while let Some(task) = zip_tasks.next().await {
+					let _ = app.emit("progress", 1);
 					if let Ok(task) = task {
 						if let Ok(zip) = task {
 							let mut lflist: LFList = LFList::new();
@@ -358,6 +353,7 @@ impl Game {
 			},
 			async {
 				while let Some(task) = tasks.next().await {
+					let _ = app.emit("progress", 1);
 					if let Ok(task) = task {
 						if let Ok(file) = task {
 							let mut strings: Strings = Strings::new();
@@ -406,14 +402,21 @@ impl Game {
 			}
 		);
 		packs.insert(String::from("./expansions"), gamepack);
+		let _ = app.emit("end", 0);
 		packs
 	}
 
-	async fn load_zip (path: String, name: String) -> Result<GamePack, Error> {
-		let zip: Zip = Zip::new(format!("{}/expansions/{}", path, name), name).await??;
+	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path.join("expansions").join(&name);
+		let path: &str = path
+			.as_os_str()
+			.to_str()
+			.ok_or(anyhow!("get path error"))?;
+		let zip: Zip = Zip::new_with_emit(app, String::from(path), name.clone())?;
 		let mut lflist: LFList = LFList::new();
 		let mut strings: Strings = Strings::new();
-		let mut db = Vec::new();
+		let mut db: Vec<Cdb> = Vec::new();
 		let mut server: Server = Server::new();
 		let mut pics: Pic = Pic::new();
 		zip.lflist().into_iter().for_each(|text: String| {
@@ -434,7 +437,9 @@ impl Game {
 		zip.ini().into_iter().for_each(|text: String| {
 			server.init_by_ini(text);
 		});
-		Ok(GamePack {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		game.pack.insert(name, GamePack {
 			on: true,
 			card_info: CardInfo::default(),
 			strings:  strings,
@@ -442,7 +447,9 @@ impl Game {
 			server: server,
 			lflist: lflist,
 			pics: pics
-		})
+		});
+		app.emit("end", 0)?;
+		Ok(())
 	}
 
 	pub async fn get_pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
@@ -634,10 +641,10 @@ impl Game {
 		}
 		Ok(deck)
 	}
-	pub async fn set_system (key: String, value: SystemContent) -> Result<(), Error> {
+	pub async fn set_system (key: String, ct: i8, value: String) -> Result<(), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-		game.system.set(key, value);
+		game.system.set(key, ct, value)?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		write(path
 			.join("config")
@@ -660,7 +667,24 @@ impl Game {
 		Request::download(app, path, url.request_url(), "assets").await?;
 		Ok(())
 	}
+	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		Request::download(app, path.join("expansions"), &url, &name).await
+	}
 	pub async fn get_srv (url: String) -> Result<Srv, Error> {
 		Request::srv(url).await
+	}
+	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let mut path: PathBuf = path.clone();
+		for i in p {
+			path = path.join(&i);
+		}
+		if exists(&path)? {
+			let time: DateTime<Utc> = metadata(path).await?.modified()?.into();
+			Ok(time.to_rfc3339())
+		} else {
+			Ok(String::new())
+		}
 	}
 }

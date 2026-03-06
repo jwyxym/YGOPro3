@@ -22,11 +22,12 @@ pub fn run() {
 		.plugin(tauri_plugin_fs::init())
 		.plugin(tauri_plugin_opener::init())
 		.invoke_handler(generate_handler![
-			api::exists,
 			api::init,
 			api::reload,
+			api::download,
 			api::download_assets,
 			api::update,
+			api::load_ypk,
 			api::chk_version,
 			api::get_srv,
 			api::get_pic,
@@ -41,6 +42,7 @@ pub fn run() {
 			api::get_info,
 			api::get_model,
 			api::get_deck,
+			api::get_time,
 			api::set_system,
 		])
 		.setup(|app| {

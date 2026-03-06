@@ -74,7 +74,7 @@ impl Request {
 				let mut reader: BodyReader<'_> = body.as_reader();
 				let mut content: String = String::new();
 				reader.read_to_string(&mut content)?;
-				Ok(!content.contains(&format!("YGOPRO3://{}", version)))
+				Ok(content.contains(&format!("YGOPRO3://{}", version)))
 			} else {
 				Err(anyhow!("{}", response.status()))
 			}

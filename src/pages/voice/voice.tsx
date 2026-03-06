@@ -8,10 +8,10 @@ class Voice {
 
 	set_elements = (el : HTMLAudioElement | null, key : string) => el ? (() => {
 		this.audio.set(key, el);
-		el.volume = mainGame.get.system(KEYS.SETTING_VOICE_BACK_BGM) as number;
+		el.volume = mainGame.get.system(KEYS.SETTING_VOICE) as number;
 	})() : this.audio.delete(key);
 
-	update = () : void => this.audio.forEach(i => i.volume = mainGame.get.system(KEYS.SETTING_VOICE_BACK_BGM) as number);
+	update = () : void => this.audio.forEach(i => i.volume = Math.min(1, mainGame.get.system(KEYS.SETTING_VOICE) as number));
 
 	play = (key : string) : void => {
 		if (this.playing) {

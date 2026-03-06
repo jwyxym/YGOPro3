@@ -9,18 +9,7 @@ const BASE_PATH = SYSTEM == 'android' ? path.publicDir : path.resourceDir;
 const LINE_FEED = SYSTEM == 'windows' ? '\r\n' : '\n';
 
 const REG = {
-	NAME : /[\\/]([^.]*)\./,
-	FULL_NAME : /[\\/:*?"<>|]/,
-	NUMBER_NAME : /[\\/](\d+)\./,
-	DATABASE : /\.(cdb)$/i,
-	PICTURE : /\.(jpg|png|jpeg)$/i,
-	BGM : /\.(mp4|wav)$/i,
-	CONF : /\.(conf)$/i,
-	INI : /\.(ini)$/i,
-	ZIP : /\.(ypk|zip)$/i,
-	FONT : /\.(ttf)$/i,
-	JSON : /\.(json)$/i,
-	DECK : /\.(ydk)$/i,
+	NAME : /[<>:"/\\|?*\x00-\x1F]|^[\s.]|[\s.]$|\.$/g,
 	ATK : /^[0-9?\s<>=.]*$/,
 	LV : /^[0-9<>=.]*$/,
 	LINE_FEED : /\r?\n/,
@@ -35,18 +24,6 @@ const URL = {
 	DECK_SHARE : 'http://deck.ourygo.top',
 	SUPER_PRE : 'https://cdn02.moecube.com:444/ygopro-super-pre/archive/ygopro-super-pre.ypk',
 	SUPER_PRE_VERSION : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/version.txt',
-	ASSETS : new Map([
-		['https://gitcode.com/', SYSTEM === 'android' ?
-			'https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets_android.zip/download' :
-			'https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets.zip/download'
-		],
-		['https://github.com/', SYSTEM === 'android' ?
-			'https://github.com/jwyxym/tauri-ygo/releases/download/assets-latest/assets_android.zip' :
-			'https://github.com/jwyxym/tauri-ygo/releases/download/assets-latest/assets.zip'
-		]
-	]),
-	VERSION : 'https://web-api.gitcode.com/api/v2/projects/jwyxym%2Ftauri-ygo/releases?repoId=jwyxym%252Ftauri-ygo',
-	VERSION_HEAD : [['Referer', 'https://gitcode.com/']] as Array<[string, string]>,
 	MYCARD_NEWS : 'https://sapi.moecube.com:444/apps.json',
 	NEWS_URL : 'https://ygobbs2.com/t/'
 }
@@ -110,7 +87,7 @@ const KEYS = {
 	SETTING_CT_CARD : 'CT_CARD',
 	SETTING_AVATAR_SELF : 'CT_AVATAR_SELF',
 	SETTING_AVATAR_OPPO : 'CT_AVATAR_OPPO',
-	SETTING_VOICE_BACK_BGM : 'BACK_BGM',
+	SETTING_VOICE : 'CT_VOICE',
 	SETTING_LOADING_EXPANSION : 'LOADING_EXPANSION',
 	SETTING_SERVER_ADDRESS : 'SERVER_ADDRESS',
 	SETTING_SERVER_PLAYER_NAME : 'SERVER_PLAYER_NAME',

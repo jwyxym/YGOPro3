@@ -13,7 +13,6 @@ import YGOPRO_STR from './language/string';
 import invoke from './tauri-api/invoke';
 
 
-import voice from '@/pages/voice/voice';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/server/post/network';
 
@@ -62,10 +61,10 @@ class Game {
 				invoke.game.get_model(),
 				invoke.game.get_info(),
 			]);
-			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
-			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
-			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
 			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
+			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
+			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
+			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
 
 			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
 			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
@@ -120,13 +119,24 @@ class Game {
 		}
 	};
 
-	reload = async (overwrite : boolean) : Promise<boolean> => {
+	reload = async (overwrite : boolean = false) : Promise<boolean> => {
 		try {
 			await Promise.all([
 				this.clear(),
-				await invoke.game.reload(overwrite)
+				invoke.game.reload(overwrite)
 			]);
 			await this.init();
+			return true;
+		} catch (error) {
+			fs.write.log(error);
+		}
+		return false;
+	};
+
+	update = async () : Promise<boolean> => {
+		try {
+			await invoke.game.update();
+			await this.reload(true);
 			return true;
 		} catch (error) {
 			fs.write.log(error);
@@ -148,7 +158,6 @@ class Game {
 				? this.lflist.get(key) : Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
 			)
 			?? this.lflist.get(CONSTANT.KEYS.NA)!,
-		// expansions : invoke.game.get_expansion,
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.i18n) {
 				case CONSTANT.LANGUAGE.Zh_CN:
@@ -161,6 +170,12 @@ class Game {
 				if (i[1].has(key))
 					return i[1].get(key);
 			return undefined;
+		},
+		system_index : (key : string) : number => {
+			for (const [v, i] of Array.from(this.system).entries())
+				if (i[1].has(key))
+					return v;
+			return - 1;
 		},
 		card : (key : string | number) : Card => {
 			key = typeof key == 'string' ? parseInt(key) : key;
@@ -257,6 +272,7 @@ class Game {
 
 	load = {
 		deck : invoke.game.get_deck,
+		ypk : invoke.game.load_ypk,
 		pic : async (deck : Deck | Array<number | string>) => {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
 			deck = deck
@@ -268,35 +284,35 @@ class Game {
 	}
 
 	chk = {
-		file : invoke.game.exists,
 		version : {
-			game : async () : Promise<boolean> => {
-				const time = await invoke.network.version(CONSTANT.URL.VERSION, CONSTANT.URL.VERSION_HEAD);
-				const local = this.get.system(CONSTANT.KEYS.SETTING_DOWMLOAD_TIME);
-				if (time.error === undefined && typeof local === 'string') {
-					return new Date(time.content!) <= new Date(local);
-				} else if (local === undefined)
-					return true;
-				return false;
-			},
+			game : invoke.game.chk_version,
 			superpre : async () : Promise<boolean> => {
 				const time = await fetch(CONSTANT.URL.SUPER_PRE_VERSION, {
 					method: 'GET',
 				});
 				if (time.ok) {
 					const date = new Date(Number((await time.text()).trim()) * 1000);
-					const p = await fs.join(CONSTANT.DIRS.EXPANSION, CONSTANT.FILES.SUPER_PRE)
-					if (await fs.exists(p)) {
-						const local = await fs.read.time(p);
+					if (await fs.exists('expansions/ygopro-super-pre.ypk')) {
+						const local = await invoke.game.time(['expansions', 'ygopro-super-pre.ypk']);
 						if (local)
-							return new Date(local) >= date;
+							return local >= date;
 					}
 					return true;
 				}
 				return false;
 			},
 		}
-	}
+	};
+
+	set = {
+		system : async (k : string, v : string | number | boolean | Array<string>) => {
+			this.system.forEach(i => {
+				if (i.has(k))
+					i.set(k, v);
+			});
+			await invoke.game.set_system(k, this.get.system_index(k), v);
+		}
+	};
 
 	exit = async () : Promise<void> => {
 		return await exit(1);

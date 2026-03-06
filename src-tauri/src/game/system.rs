@@ -1,3 +1,4 @@
+use anyhow::Error;
 use serde::{Serialize, Deserialize};
 use basic_toml::{from_str, to_string};
 use std::collections::BTreeMap;
@@ -8,14 +9,6 @@ pub struct System {
 	boolean: BTreeMap<String, bool>,
 	number: BTreeMap<String, f64>,
 	array: BTreeMap<String, Vec<String>>
-}
-
-#[derive(Deserialize, Serialize, Clone, Debug)]
-pub enum SystemContent {
-	String(String),
-	Boolean(bool),
-	Number(f64),
-	Array(Vec<String>)
 }
 
 impl System {
@@ -37,8 +30,8 @@ impl System {
 					.or_insert(true);
 			});
 		system.number
-			.entry(String::from("BACK_BGM"))
-			.or_insert(20.0);
+			.entry(String::from("CT_VOICE"))
+			.or_insert(0.2);
 		system.number
 			.entry(String::from("CT_CARD"))
 			.or_insert(3.0);
@@ -109,20 +102,25 @@ impl System {
 			.unwrap_or(&String::from("zh-CN"))
 		)
 	}
-	pub fn set (&mut self, key: String, value: SystemContent) -> () {
-		match value {
-			SystemContent::String(v) => {
+	pub fn set (&mut self, key: String, ct: i8, value: String) -> Result<(), Error> {
+		Ok(match ct {
+			0 => {
+				let v: String = serde_json::from_str(&value)?;
 				self.string.insert(key, v);
 			}
-			SystemContent::Boolean(v) => {
+			1 => {
+				let v: bool = serde_json::from_str(&value)?;
 				self.boolean.insert(key, v);
 			}
-			SystemContent::Number(v) => {
+			2 => {
+				let v: f64 = serde_json::from_str(&value)?;
 				self.number.insert(key, v);
 			}
-			SystemContent::Array(v) => {
+			3 => {
+				let v: Vec<String> = serde_json::from_str(&value)?;
 				self.array.insert(key, v);
 			}
-		}
+			_ => ()
+		})
 	}
 }
