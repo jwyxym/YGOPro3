@@ -2,7 +2,7 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 
 import Card from '@/script/card';
-import { FILES, KEYS } from '@/script/constant';
+import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
 import { LOCATION, POS } from '@/script/ygo-protocol/network';
 

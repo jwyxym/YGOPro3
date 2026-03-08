@@ -156,6 +156,7 @@
           "path": "http://**"
         }
       ]
-    }
+    },
+    "websocket:default"
   ]
 }

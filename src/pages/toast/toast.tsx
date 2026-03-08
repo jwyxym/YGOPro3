@@ -1,5 +1,5 @@
 import { defineComponent, reactive } from 'vue';
-import PQueue from 'p-queue'
+import PQueue from 'p-queue';
 
 import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';

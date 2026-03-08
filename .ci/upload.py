@@ -17,3 +17,4 @@ while response is None or response.status_code == 401:
 	data = json.loads(response.text)
 	files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
 	response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files)
+	print(response.text)

@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted } from 'vue';
+import { defineComponent, onMounted, onUnmounted, reactive } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
@@ -144,8 +144,14 @@ class Duel {
 			this.scene.add(btn.three);
 			this.btn = btn;
 		},
-		card : () : void => {
+		card : (owner : number, location : number, seq : number) : void => {
+			const card = reactive(new Client_Card());
 			
+			card.set.owner(owner);
+			card.set.location(location, seq);
+
+			card.three.position.set(...Axis.computed.card(new Axis(x, y, 0)).get.xyz());
+			this.scene.add(card.three);
 		}
 	}
 };

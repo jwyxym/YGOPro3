@@ -175,14 +175,3 @@ jobs:
           asset_path: ./build/assets.zip/assets.zip
           asset_name: assets.zip
           asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/assets_android.zip/assets_android.zip
-          asset_name: assets_android.zip
-          asset_content_type: application/octet-stream
-
