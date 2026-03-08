@@ -1,9 +1,9 @@
-name: build tauri-ygo
+name: build YGOPro3
 
 on:
   push:
-    branches:
-      - main
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
     
 jobs:
   push-gitcode:
@@ -31,7 +31,7 @@ jobs:
 
       - name: Push to GitCode
         run: |
-          git remote add gitcode git@gitcode.com:jwyxym/tauri-ygo.git
+          git remote add gitcode git@gitcode.com:jwyxym/YGOPro3.git
           git fetch gitcode
           git checkout -b gitcode-main gitcode/main
           git merge origin/main
@@ -82,7 +82,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:android
+        npm run json:android ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -106,19 +106,19 @@ jobs:
 
     - name: Decode Keystore File
       run: |
-        echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > tauri-ygo.jks
+        echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > YGOPro3.jks
 
     - name: Sign apk
       run: |
         mkdir build
-        apksigner sign --ks ./tauri-ygo.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --out ./build/tauri-ygo.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+        apksigner sign --ks ./YGOPro3.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --out ./build/YGOPro3.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo.apk
+        name: YGOPro3.apk
         retention-days: 7
-        path: ./build/tauri-ygo.apk
+        path: ./build/YGOPro3.apk
 
   build-windows:
     name: build-windows-${{ matrix.target }}
@@ -161,7 +161,7 @@ jobs:
     - name: Write Tauri Config
       shell: cmd
       run: |
-        npm run json:windows
+        npm run json:windows ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -180,14 +180,14 @@ jobs:
 
         for %%f in (.\src-tauri\target\release\bundle\msi\*) do (
             if not defined found_msi (
-                copy "%%f" ".\build\tauri-ygo.msi"
+                copy "%%f" ".\build\YGOPro3.msi"
                 set "found_msi=1"
             )
         )
 
         for %%f in (.\src-tauri\target\release\bundle\nsis\*) do (
             if not defined found_exe (
-                copy "%%f" ".\build\tauri-ygo.exe"
+                copy "%%f" ".\build\YGOPro3.exe"
                 set "found_exe=1"
             )
         )
@@ -195,16 +195,16 @@ jobs:
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-windows-${{ matrix.target }}.exe
+        name: YGOPro3-windows-${{ matrix.target }}.exe
         retention-days: 7
-        path: .\build\tauri-ygo.exe
+        path: .\build\YGOPro3.exe
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-windows-${{ matrix.target }}.msi
+        name: YGOPro3-windows-${{ matrix.target }}.msi
         retention-days: 7
-        path: .\build\tauri-ygo.msi
+        path: .\build\YGOPro3.msi
 
   build-macos:
     name: build-macos-${{ matrix.target }}
@@ -246,7 +246,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:macos
+        npm run json:macos ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -260,19 +260,19 @@ jobs:
       run: |
         mkdir -p ./build
         DMG_FILES=(./src-tauri/target/release/bundle/dmg/*.dmg)
-        cp "${DMG_FILES[0]}" ./build/tauri-ygo.dmg
+        cp "${DMG_FILES[0]}" ./build/YGOPro3.dmg
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-macos-${{ matrix.target }}.dmg
+        name: YGOPro3-macos-${{ matrix.target }}.dmg
         retention-days: 7
-        path: ./build/tauri-ygo.dmg
+        path: ./build/YGOPro3.dmg
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-macos-${{ matrix.target }}.app
+        name: YGOPro3-macos-${{ matrix.target }}.app
         retention-days: 7
         path: ./src-tauri/target/release/bundle/macos/
 
@@ -333,7 +333,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:linux:appimage
+        npm run json:linux:appimage ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -346,11 +346,11 @@ jobs:
     - name: Copy
       run: |
         mkdir -p ./build
-        cp ./src-tauri/target/release/bundle/appimage/*.AppImage ./build/tauri-ygo.AppImage
+        cp ./src-tauri/target/release/bundle/appimage/*.AppImage ./build/YGOPro3.AppImage
 
     - name: Write Tauri Config
       run: |
-        npm run json:linux:deb
+        npm run json:linux:deb ${{ github.ref_name }}
 
     - name: Build Deb
       run: |
@@ -358,21 +358,21 @@ jobs:
 
     - name: Copy
       run: |
-        cp ./src-tauri/target/release/bundle/deb/*.deb ./build/tauri-ygo.deb
+        cp ./src-tauri/target/release/bundle/deb/*.deb ./build/YGOPro3.deb
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-linux-${{ matrix.target }}.deb
+        name: YGOPro3-linux-${{ matrix.target }}.deb
         retention-days: 7
-        path: ./build/tauri-ygo.deb
+        path: ./build/YGOPro3.deb
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: tauri-ygo-linux-${{ matrix.target }}.AppImage
+        name: YGOPro3-linux-${{ matrix.target }}.AppImage
         retention-days: 7
-        path: ./build/tauri-ygo.AppImage
+        path: ./build/YGOPro3.AppImage
 
   create-release:
     needs: [build-android, build-windows, build-macos, build-linux]
@@ -430,8 +430,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo.apk/tauri-ygo.apk
-          asset_name: tauri-ygo.apk
+          asset_path: ./build/YGOPro3.apk/YGOPro3.apk
+          asset_name: YGOPro3.apk
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -440,8 +440,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-windows-x86_64.msi/tauri-ygo.msi
-          asset_name: tauri-ygo-windows-x86_64.msi
+          asset_path: ./build/YGOPro3-windows-x86_64.msi/YGOPro3.msi
+          asset_name: YGOPro3-windows-x86_64.msi
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -450,8 +450,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-windows-x86_64.exe/tauri-ygo.exe
-          asset_name: tauri-ygo-windows-x86_64.exe
+          asset_path: ./build/YGOPro3-windows-x86_64.exe/YGOPro3.exe
+          asset_name: YGOPro3-windows-x86_64.exe
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -460,8 +460,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-windows-aarch64.msi/tauri-ygo.msi
-          asset_name: tauri-ygo-windows-aarch64.msi
+          asset_path: ./build/YGOPro3-windows-aarch64.msi/YGOPro3.msi
+          asset_name: YGOPro3-windows-aarch64.msi
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -470,8 +470,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-windows-aarch64.exe/tauri-ygo.exe
-          asset_name: tauri-ygo-windows-aarch64.exe
+          asset_path: ./build/YGOPro3-windows-aarch64.exe/YGOPro3.exe
+          asset_name: YGOPro3-windows-aarch64.exe
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -480,15 +480,15 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-macos-x86_64.dmg/tauri-ygo.dmg
-          asset_name: tauri-ygo-macos-x86_64.dmg
+          asset_path: ./build/YGOPro3-macos-x86_64.dmg/YGOPro3.dmg
+          asset_name: YGOPro3-macos-x86_64.dmg
           asset_content_type: application/octet-stream
 
       - name: zip
         run: |
           cd build
-          zip -r tauri-ygo-macos-x86_64.app.zip tauri-ygo-macos-x86_64.app/
-          zip -r tauri-ygo-macos-aarch64.app.zip tauri-ygo-macos-aarch64.app/
+          zip -r YGOPro3-macos-x86_64.app.zip YGOPro3-macos-x86_64.app/
+          zip -r YGOPro3-macos-aarch64.app.zip YGOPro3-macos-aarch64.app/
 
       - name: Upload
         uses: actions/upload-release-asset@v1
@@ -496,8 +496,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-macos-x86_64.app.zip
-          asset_name: tauri-ygo-macos-x86_64.app.zip
+          asset_path: ./build/YGOPro3-macos-x86_64.app.zip
+          asset_name: YGOPro3-macos-x86_64.app.zip
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -506,8 +506,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-macos-aarch64.dmg/tauri-ygo.dmg
-          asset_name: tauri-ygo-macos-aarch64.dmg
+          asset_path: ./build/YGOPro3-macos-aarch64.dmg/YGOPro3.dmg
+          asset_name: YGOPro3-macos-aarch64.dmg
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -516,8 +516,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-macos-aarch64.app.zip
-          asset_name: tauri-ygo-macos-aarch64.app.zip
+          asset_path: ./build/YGOPro3-macos-aarch64.app.zip
+          asset_name: YGOPro3-macos-aarch64.app.zip
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -526,8 +526,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-linux-x86_64.deb/tauri-ygo.deb
-          asset_name: tauri-ygo-linux-x86_64.deb
+          asset_path: ./build/YGOPro3-linux-x86_64.deb/YGOPro3.deb
+          asset_name: YGOPro3-linux-x86_64.deb
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -536,8 +536,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-linux-x86_64.AppImage/tauri-ygo.AppImage
-          asset_name: tauri-ygo-linux-x86_64.AppImage
+          asset_path: ./build/YGOPro3-linux-x86_64.AppImage/YGOPro3.AppImage
+          asset_name: YGOPro3-linux-x86_64.AppImage
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -546,8 +546,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-linux-aarch64.deb/tauri-ygo.deb
-          asset_name: tauri-ygo-linux-aarch64.deb
+          asset_path: ./build/YGOPro3-linux-aarch64.deb/YGOPro3.deb
+          asset_name: YGOPro3-linux-aarch64.deb
           asset_content_type: application/octet-stream
 
       - name: Upload
@@ -556,6 +556,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/tauri-ygo-linux-aarch64.AppImage/tauri-ygo.AppImage
-          asset_name: tauri-ygo-linux-aarch64.AppImage
+          asset_path: ./build/YGOPro3-linux-aarch64.AppImage/YGOPro3.AppImage
+          asset_name: YGOPro3-linux-aarch64.AppImage
           asset_content_type: application/octet-stream

@@ -5,7 +5,7 @@ import requests
 token = sys.argv[1]
 file_path = sys.argv[2]
 file_name = file_path.split('/')[-1]
-url = f"https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/upload_url?access_token={token}&file_name={file_name}"
+url = f"https://api.gitcode.com/api/v5/repos/jwyxym/YGOPro3/releases/release-latest/upload_url?access_token={token}&file_name={file_name}"
 
 payload = {}
 headers = {

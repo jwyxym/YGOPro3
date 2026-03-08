@@ -101,7 +101,16 @@
 			}, true) ? mainGame.download
 				: mainGame.exit)();
 		}
-		await mainGame.init();
+		let chk = false;
+		while (!await mainGame.init(chk))
+			if (await Dialog({
+				title : mainGame.get.text(I18N_KEYS.RELOAD_TITLE),
+				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
+				closeOnClickOverlay : false
+			}, true)) {
+				await mainGame.download();
+				chk = true;
+			}
 		page.show.voice = true;
 		page.show.menu = true;
 	});

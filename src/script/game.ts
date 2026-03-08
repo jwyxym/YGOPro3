@@ -1,6 +1,5 @@
 import { reactive } from 'vue';
 import { exit } from '@tauri-apps/plugin-process';
-import { DirEntry } from '@tauri-apps/plugin-fs';
 import { fetch } from '@tauri-apps/plugin-http';
 
 import fs from './fs';
@@ -11,13 +10,11 @@ import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import YGOPRO_STR from './language/string';
 import invoke from './tauri-api/invoke';
-
+import { LOCATION } from './ygo-protocol/network';
 
 import Deck from '@/pages/deck/deck';
-import { LOCATION } from '@/pages/server/post/network';
 
 class Game {
-	inited = false;
 	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
 	textures : Map<string, Map<string | number, string | [string, string]>> = new Map();
 	strings : Map<string, Map<number, string>> = new Map();
@@ -45,10 +42,10 @@ class Game {
 		document.head.appendChild(this.font.dom);
 	};
 
-	init = async () : Promise<boolean> => {
-		if (this.inited) return true;
+	init = async (chk : boolean) : Promise<boolean> => {
 		try {
-			await invoke.game.init();
+			if (!(chk ? await invoke.game.reload(false) : await invoke.game.init()))
+				return false;
 			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
 				invoke.game.get_font(),
 				invoke.game.get_sound(),
@@ -105,7 +102,6 @@ class Game {
 					font-style: normal;
 				}`
 			).join('\n');
-			this.inited = true;
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
 				.set.readonly();
@@ -125,7 +121,7 @@ class Game {
 				this.clear(),
 				invoke.game.reload(overwrite)
 			]);
-			await this.init();
+			await this.init(false);
 			return true;
 		} catch (error) {
 			fs.write.log(error);
@@ -281,11 +277,33 @@ class Game {
 			(await invoke.game.get_pic(deck as Array<number>))
 				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
 		}
+	};
+
+	unload = {
+		ypk : async (name : string, del : boolean = false) : Promise<boolean> => {
+			const i : [boolean, boolean] = await Promise.all([
+				invoke.game.unload_ypk(name),
+				del ? fs.delete.ypk(name) : Promise.resolve(true)
+			]);
+			return i[0] && i[1];
+		}
 	}
 
 	chk = {
+		result : {
+			game : undefined as undefined | [boolean, boolean]
+		},
 		version : {
-			game : invoke.game.chk_version,
+			game : async () : Promise<boolean> => {
+				if (!this.chk.result.game)
+					this.chk.result.game = await invoke.game.chk_version();
+				return this.chk.result.game[0];
+			},
+			assets : async () : Promise<boolean> => {
+				if (!this.chk.result.game)
+					this.chk.result.game = await invoke.game.chk_version();
+				return this.chk.result.game[1];
+			},
 			superpre : async () : Promise<boolean> => {
 				const time = await fetch(CONSTANT.URL.SUPER_PRE_VERSION, {
 					method: 'GET',

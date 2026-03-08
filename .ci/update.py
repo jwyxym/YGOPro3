@@ -5,7 +5,7 @@ import requests
 token = sys.argv[1]
 
 #删除Tag
-url = f"https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/tags/release-latest?access_token={token}"
+url = f"https://api.gitcode.com/api/v5/repos/jwyxym/YGOPro3/tags/release-latest?access_token={token}"
 
 payload = {}
 headers = {
@@ -14,11 +14,11 @@ headers = {
 response = requests.request("DELETE", url, headers=headers, data=payload)
 
 #创建Tag
-url = f"https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/tags?access_token={token}"
+url = f"https://api.gitcode.com/api/v5/repos/jwyxym/YGOPro3/tags?access_token={token}"
 payload = json.dumps({
   "refs": "main",
   "tag_name": "release-latest",
-  "tag_message": "tauri-ygo"
+  "tag_message": "YGOPro3"
 })
 headers = {
   'Content-Type': 'application/json',
@@ -27,11 +27,11 @@ headers = {
 response = requests.request("POST", url, headers=headers, data=payload)
 
 #创建Release
-url = f"https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases?access_token={token}"
+url = f"https://api.gitcode.com/api/v5/repos/jwyxym/YGOPro3/releases?access_token={token}"
 payload = json.dumps({
   "tag_name": "release-latest",
-  "name": "tauri-ygo",
-  "body": "tauri-ygo",
+  "name": "YGOPro3",
+  "body": "YGOPro3",
 })
 headers = {
   'Content-Type': 'application/json',

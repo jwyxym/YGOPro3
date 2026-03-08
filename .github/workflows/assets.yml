@@ -46,15 +46,8 @@ jobs:
         wget https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
         wget --no-check-certificate ${{ secrets.PICS_URL }} -O pics.zip
         unzip pics.zip
-        7z a -tzip -mx=9 assets.zip strings info cdb sound textures font lflist.conf pics
-        7z a -tzip -mx=9 assets_android.zip strings info cdb sound textures font lflist.conf pics.zip
-
-    - name: Upload File
-      uses: actions/upload-artifact@v4
-      with:
-        name: assets_android.zip
-        retention-days: 7
-        path: .\.ci\assets_android.zip
+        echo %date% %time% > version
+        7z a -tzip -mx=9 assets.zip pics config strings cdb sound textures font lflist.conf version
 
     - name: Upload File
       uses: actions/upload-artifact@v4
@@ -62,6 +55,13 @@ jobs:
         name: assets.zip
         retention-days: 7
         path: .\.ci\assets.zip
+
+    - name: Upload File
+      uses: actions/upload-artifact@v4
+      with:
+        name: version
+        retention-days: 7
+        path: .\.ci\version
 
   update-gitcode:
     needs: [make-assets]
@@ -81,36 +81,6 @@ jobs:
         run: |
           pip install requests
           python .ci\update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
-
-  upload-assets_android_zip:
-    needs: [update-gitcode]
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: PrePare
-        shell: cmd
-        run: |
-          copy .ci\upload.py build\upload.py
-          pip install requests
-
-      - name: Upload Zip
-        shell: cmd
-        run: |
-          cd build
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} assets_android.zip/assets_android.zip
 
   upload-assets_zip:
     needs: [update-gitcode]
@@ -140,7 +110,11 @@ jobs:
         shell: cmd
         run: |
           cd build
+          cd version
+          rename version version.txt
+          cd ..
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} assets.zip/assets.zip
+          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version/version.txt
 
   create-release:
     needs: [make-assets]

@@ -9,7 +9,7 @@
     <application
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.tauri_ygo"
+        android:theme="@style/Theme.ygo_pro3"
         android:usesCleartextTraffic="${usesCleartextTraffic}">
         <activity
             android:screenOrientation="landscape"

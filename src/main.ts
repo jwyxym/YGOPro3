@@ -1,11 +1,11 @@
 import { createApp } from 'vue';
-import TauriYGO from './tauri-ygo.vue';
+import YGO from './init.vue';
 import Vue3StarrySky from 'vue3-starry-sky';
 import 'vue3-starry-sky/lib/style.css';
 import Varlet from '@varlet/ui';
 import '@varlet/ui/es/style';
 
-const ygopro = createApp(TauriYGO);
+const ygopro = createApp(YGO);
 
 ygopro.use(Vue3StarrySky);
 ygopro.use(Varlet);

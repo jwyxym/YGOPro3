@@ -26,7 +26,7 @@ class Deck extends YGOProDeck {
 
 	toYdkString () {
 		return [
-		'#created by tauri-ygo',
+		'#created by YGOPro3',
 		'#main',
 		...this.main.map((id) => id.toString()),
 		'#extra',

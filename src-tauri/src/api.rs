@@ -10,8 +10,7 @@ static CONFIG : Configuration = standard();
 
 #[tauri::command]
 pub async fn init (app: AppHandle) -> Result<(), String> {
-	game::init(&app).await.map_err(|e| e.to_string())?;
-	Ok(())
+	game::init(&app).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -40,12 +39,17 @@ pub async fn load_ypk (app: AppHandle, name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn unload_ypk (name: String) -> Result<(), String> {
+	Game::unload_zip(name).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
 pub async fn set_system (key: String, ct: i8, value: String) -> Result<(), String> {
 	Game::set_system(key, ct, value).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn chk_version () -> Result<bool, String> {
+pub async fn chk_version () -> Result<(bool, bool), String> {
 	Game::chk_version().await.map_err(|e| e.to_string())
 }
 

@@ -28,6 +28,7 @@ pub fn run() {
 			api::download_assets,
 			api::update,
 			api::load_ypk,
+			api::unload_ypk,
 			api::chk_version,
 			api::get_srv,
 			api::get_pic,

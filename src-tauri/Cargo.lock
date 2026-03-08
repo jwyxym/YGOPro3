@@ -3,6 +3,42 @@
 version = 4
 
 [[package]]
+name = "YGOPro3"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "basic-toml",
+ "bincode",
+ "chrono",
+ "content_disposition",
+ "futures",
+ "indexmap 2.13.0",
+ "lazy_static",
+ "libsqlite3-sys",
+ "regex",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-clipboard-manager",
+ "tauri-plugin-fs",
+ "tauri-plugin-http",
+ "tauri-plugin-opener",
+ "tauri-plugin-os",
+ "tauri-plugin-process",
+ "tauri-plugin-tcp",
+ "tokio",
+ "tokio-rusqlite",
+ "trust-dns-resolver",
+ "ureq",
+ "urlencoding",
+ "uuid",
+ "walkdir",
+ "zip",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4667,42 +4703,6 @@ checksum = "fd21509dd1fa9bd355dc29894a6ff10635880732396aa38c0066c1e6c1ab8074"
 dependencies = [
  "embed-resource",
  "toml 0.9.5",
-]
-
-[[package]]
-name = "tauri-ygo"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "basic-toml",
- "bincode",
- "chrono",
- "content_disposition",
- "futures",
- "indexmap 2.13.0",
- "lazy_static",
- "libsqlite3-sys",
- "regex",
- "rusqlite",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-clipboard-manager",
- "tauri-plugin-fs",
- "tauri-plugin-http",
- "tauri-plugin-opener",
- "tauri-plugin-os",
- "tauri-plugin-process",
- "tauri-plugin-tcp",
- "tokio",
- "tokio-rusqlite",
- "trust-dns-resolver",
- "ureq",
- "urlencoding",
- "uuid",
- "walkdir",
- "zip",
 ]
 
 [[package]]

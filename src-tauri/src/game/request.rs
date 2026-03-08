@@ -1,4 +1,3 @@
-use crate::game::version::URL;
 use tauri::{AppHandle, Emitter};
 use anyhow::{Result, Error, anyhow};
 use content_disposition::parse_content_disposition;
@@ -8,18 +7,13 @@ use std::{path::Path, io::Read, sync::OnceLock};
 use trust_dns_resolver::{config::{ResolverConfig, ResolverOpts}, Resolver};
 use tokio::{
 	fs::File,
-	io::AsyncWriteExt,
-	task::{JoinHandle, spawn},
-	time::{timeout, Duration}
+	io::AsyncWriteExt
 };
-use futures::{stream::FuturesUnordered, StreamExt};
 use ureq::{
 	get,
 	http::{Response, HeaderMap},
-	typestate::WithoutBody,
 	Body,
-	BodyReader,
-	RequestBuilder
+	BodyReader
 };
 
 #[derive(Serialize, Clone)]
@@ -33,48 +27,15 @@ pub struct Srv {
 static RESOLVER: OnceLock<Resolver> = OnceLock::new();
 pub struct Request;
 impl Request {
-	pub async  fn test_speed (urls: &Vec<URL>) -> Result<URL, Error> {
-		let tasks: Vec<JoinHandle<Result<(URL, bool), Error>>> = urls
-			.clone()
-			.into_iter()
-			.map(|url| {
-				spawn(async move {
-					timeout(
-						Duration::from_secs(3),
-						async {
-							let response: Response<Body> = get(url.speed_test_url()).call()?;
-							Ok((url, response.status().is_success()))
-						}
-					).await?
-				})
-			}).collect();
-		let mut tasks: FuturesUnordered<JoinHandle<Result<(URL, bool), Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
-		let mut result: Vec<URL> = Vec::new();
-		while let Some(task) = tasks.next().await {
-			if let Ok(task) = task {
-				if let Ok(task) = task && task.1 {
-					result.push(task.0)
-				}
-			}
-		}
-		let result: &URL = result.get(0).ok_or(anyhow!(""))?;
-		Ok(result.clone())
-	}
-	pub async fn version (url: &URL, version: i64) -> bool {
+	pub async fn version (url: &str, version: &str) -> bool {
 		async move || -> Result<bool, Error> {
-			let mut req: RequestBuilder<WithoutBody> = get(url.version_url());
-			for (key, value) in url
-				.request_header()
-				.into_iter() {
-				req = req.header(key, value);
-			}
-			let response: Response<Body> = req.call()?;
+			let response: Response<Body> = get(url).call()?;
 			if response.status().is_success() {
 				let mut body: Body = response.into_body();
 				let mut reader: BodyReader<'_> = body.as_reader();
 				let mut content: String = String::new();
 				reader.read_to_string(&mut content)?;
-				Ok(content.contains(&format!("YGOPRO3://{}", version)))
+				Ok(content.contains(version))
 			} else {
 				Err(anyhow!("{}", response.status()))
 			}

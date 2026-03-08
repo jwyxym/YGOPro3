@@ -1,12 +1,12 @@
 [package]
-name = "tauri-ygo"
+name = "YGOPro3"
 version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+description = "YGOPro by tauriv2.0"
+authors = ["jwyxym"]
 edition = "2024"
 
 [lib]
-name = "tauri_ygo_lib"
+name = "ygopro3_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

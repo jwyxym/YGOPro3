@@ -7,9 +7,9 @@ const version = process.argv[4] || '0.1.0';
 
 const tauriConfig = {
 	$schema: "https://schema.tauri.app/config/2",
-	productName: "tauri-ygo",
+	productName: "ygopro3",
 	version: version,
-	identifier: "com.tauri.ygopro",
+	identifier: "pro.jwyxym.ygo3",
 	build: {
 		beforeDevCommand: "npm run dev",
 		devUrl: "http://localhost:1420",
@@ -19,7 +19,7 @@ const tauriConfig = {
 	app: {
 		windows: [
 			{
-				title: "tauri-ygo",
+				title: "ygopro3",
 				width: 1280,
 				height: 720
 			}

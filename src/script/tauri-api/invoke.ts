@@ -4,7 +4,6 @@ import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
 import Card from '../card';
 import LFList from '../lflist';
-import mainGame from '../game';
 
 interface Srv {
 	priority : number;
@@ -13,42 +12,24 @@ interface Srv {
 	target : string;
 };
 
-interface Pic {
-	path : string;
-	code : number;
-	url ?: string;
-}
-
-interface Resp {
-	url : string;
-	state : number;
-	time : number;
-}
-
-interface Result<T> {
-	ok ?: T;
-	error ?: string;
-};
-
-type DataBase = Array<[Array<number>, Array<string>]>;
-type File<T> = Array<[T, { ok : string | Uint8Array }]>;
-type StringFile<T> = Array<[T, { ok : string }]>;
-type BufferFile<T> = Array<[T, { ok : Uint8Array }]>;
-
 class Invoke {
 	game = {
-		init : async () : Promise<void> => {
+		init : async () : Promise<boolean> => {
 			try {
 				await invoke<void>('init');
+				return true;
 			} catch (error) {
 				fs.write.log(error);
+				return false;
 			}
 		},
-		reload : async (overwrite : boolean) : Promise<void> => {
+		reload : async (overwrite : boolean) : Promise<boolean> => {
 			try {
 				await invoke<void>('reload', { overwrite : overwrite });
+				return true;
 			} catch (error) {
 				fs.write.log(error);
+				return false;
 			}
 		},
 		update : async () : Promise<boolean> => {
@@ -69,12 +50,12 @@ class Invoke {
 				return undefined;
 			}
 		},
-		chk_version : async () : Promise<boolean> => {
+		chk_version : async () : Promise<[boolean, boolean]> => {
 			try {
-				return await invoke<boolean>('chk_version');
+				return await invoke<[boolean, boolean]>('chk_version');
 			} catch (error) {
 				fs.write.log(error);
-				return true;
+				return [true, true];
 			}
 		},
 		download : async (url ?: string, name ?: string) : Promise<string | undefined> => {
@@ -89,6 +70,15 @@ class Invoke {
 		load_ypk : async (name : string) : Promise<boolean> => {
 			try {
 				await invoke<void>('load_ypk', { name : name });
+				return true;
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		},
+		unload_ypk : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('unload_ypk', { name : name });
 				return true;
 			} catch (error) {
 				fs.write.log(error);
@@ -341,155 +331,9 @@ class Invoke {
 				return [];
 			}
 		},
-	}
-	
-	read = {
-		time : async (time : string) : Promise<Result<string>> => {
-			const result : Result<string> = {};
-			try {
-				result.ok = await invoke<string>('read_time', {
-					time : time
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		db : async (path : string) : Promise<Result<DataBase>> => {
-			const result : Result<DataBase> = {};
-			try {
-				result.ok = await invoke<DataBase>('read_db', {
-					path : path,
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		texts : async (dirs : string | Array<string>, file_type : string | Array<string>) : Promise<Result<StringFile<string>>> => {
-			const result : Result<StringFile<string>> = {};
-			try {
-				result.ok = await invoke<StringFile<string>>('read_texts', {
-					dirs : typeof dirs === 'string' ? [dirs] : dirs,
-					fileType : typeof file_type === 'string' ? [file_type] : file_type
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		files : async (dir : string, file_type : string | Array<string>) : Promise<Result<BufferFile<string>>> => {
-			const result : Result<BufferFile<string>> = {};
-			try {
-				result.ok = await invoke<BufferFile<string>>('read_files', {
-					dirs : [dir],
-					fileType : typeof file_type === 'string' ? [file_type] : file_type
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		pics : async (dirs : Array<string>, codes : Array<number>) : Promise<Result<[Array<Pic>, Array<number>]>> => {
-			const result : Result<[Array<Pic>, Array<number>]> = {};
-			try {
-				result.ok = await invoke<[Array<Pic>, Array<number>]>('read_pics', {
-					dirs : dirs, codes: codes
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		zip : async (path : string, file_type : Array<string>) : Promise<Result<File<string>>> => {
-			const result : Result<File<string>> = {};
-			try {
-				result.ok = await invoke<File<string>>('read_zip', {
-					path : path, fileType: file_type
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		}
-	};
-
-	network = {
-		version : async (url : string, headers : Array<[string, string]> = []) : Promise<Result<string>> => {
-			const result : Result<string> = {};
-			try {
-				result.ok = await invoke<string>('network_version', {
-					url : url, headers : headers
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		srv : async (url : string) : Promise<Result<Srv>> => {
-			const result : Result<Srv> = {};
-			try {
-				const res = await invoke<Srv>('network_srv', {
-					url : `_ygopro._tcp.${url}`
-				});
-				if (res.target.endsWith('.'))
-					res.target = res.target.slice(0, -1);
-				result.ok = res;
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		time : async (urls : Array<string>) : Promise<Result<Resp | undefined>> => {
-			const result : Result<Resp | undefined> = {};
-			try {
-				result.ok = (await invoke<Array<Resp>>('network_time', {
-					urls : urls
-				}))[0];
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		},
-		download : async (url : string, path : string, name : string, ex_name : string = '') : Promise<Result<string>> => {
-			const result : Result<string> = {};
-			try {
-				result.ok = await invoke<string>('network_download', {
-					url : url,
-					path : path,
-					name : name,
-					exName : ex_name
-				});
-			} catch (error) {
-				fs.write.log(error);
-				result.error = error;
-			}
-			return result;
-		}
-	}
-
-	unzip = async (path : string, file : string, chk : boolean) : Promise<Result<void>> => {
-		const result : Result<void> = {};
-		try {
-			await invoke<void>('unzip', {
-				path : path, file : file, chk : chk
-			});
-	 	} catch (error) {
-			fs.write.log(error);
-			result.error = error;
-		}
-		return result;
 	};
 };
 
-export default new Invoke();
-export type { Result, DataBase, File, StringFile, BufferFile, Srv, Pic, Resp };
+const _Invoke = new Invoke();
+export default _Invoke;
+export type { Srv };

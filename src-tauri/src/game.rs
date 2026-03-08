@@ -11,7 +11,6 @@ mod card_info;
 mod lflist;
 mod model;
 mod request;
-mod version;
 mod file;
 pub use crate::game::{
 	card_info::CardInfo,
@@ -27,7 +26,6 @@ pub use crate::game::{
 	system::System,
 	model::Model,
 	request::{Request, Srv},
-	version::{Version, URL},
 	zip::Zip
 };
 
@@ -43,7 +41,7 @@ use tokio::{
 	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
-use futures::{stream::FuturesUnordered, StreamExt};
+use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap, fs::{exists, write}, path::{Path, PathBuf}, sync::OnceLock
@@ -53,11 +51,16 @@ use tauri::{AppHandle, Emitter};
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
-pub async fn init (app: &AppHandle) -> Result<&'static RwLock<Game>, Error> {
+const URL_DOWNLOAD: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets.zip/download";
+const URL_ASSETS_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/version.txt/download";
+const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/game_version.txt/download";
+
+pub async fn init (app: &AppHandle) -> Result<(), Error> {
 	let game: RwLock<Game> = RwLock::new(Game::init(app, false).await?);
-	Ok(GAME.get_or_init(|| async {
+	GAME.get_or_init(|| async {
 		game
-	}).await)
+	}).await;
+	Ok(())
 }
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
@@ -68,7 +71,7 @@ pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 
 pub async fn download (app: &AppHandle) -> Result<(), Error> {
 	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	Request::download(app, path, "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets.zip/download", "assets").await?;
+	Request::download(app, path, URL_DOWNLOAD, "assets").await?;
 	Ok(())
 }
 
@@ -79,7 +82,7 @@ lazy_static! {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
-	version: Version,
+	version: (String, String),
 	model: Model,
 	system: System,
 	resource: Resource,
@@ -100,19 +103,19 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<Version, Error> {
+	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		metadata(path.join("assets")).await?;
 		let (version, tasks) = Zip::unzip(app, path, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
 		}
-		Ok(version.ok_or(anyhow!("")).unwrap_or(Version::default()))
+		version.ok_or(anyhow!("version error"))
 	}
 
 	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let version: Version = Self::unzip(app, overwrite).await?;
+		let version: String = Self::unzip(app, overwrite).await?;
 
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
@@ -136,7 +139,7 @@ impl Game {
 		});
 		pack.reverse();
 		Ok(Self {
-			version: version,
+			version: (format!("YGOPro3://{}/", app.package_info().version.to_string()), version),
 			model: model,
 			system: system,
 			resource: resource,
@@ -406,49 +409,66 @@ impl Game {
 		packs
 	}
 
-	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let path: PathBuf = path.join("expansions").join(&name);
-		let path: &str = path
-			.as_os_str()
-			.to_str()
-			.ok_or(anyhow!("get path error"))?;
-		let zip: Zip = Zip::new_with_emit(app, String::from(path), name.clone())?;
-		let mut lflist: LFList = LFList::new();
-		let mut strings: Strings = Strings::new();
-		let mut db: Vec<Cdb> = Vec::new();
-		let mut server: Server = Server::new();
-		let mut pics: Pic = Pic::new();
-		zip.lflist().into_iter().for_each(|text: String| {
-			lflist.init(text);
-		});
-		zip.strings().into_iter().for_each(|text: String| {
-			strings.init(text.clone());
-		});
-		zip.db().into_iter().for_each(|i| {
-			db.push(i);
-		});
-		zip.pics().into_iter().for_each(|(k, v)| {
-			pics.insert(k, PicContent::Buffer(v.clone()));
-		});
-		zip.servers().into_iter().for_each(|text: String| {
-			server.init_by_conf(text);
-		});
-		zip.ini().into_iter().for_each(|text: String| {
-			server.init_by_ini(text);
-		});
+	pub async fn unload_zip (name: String) -> Result<(), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-		game.pack.insert(name, GamePack {
-			on: true,
-			card_info: CardInfo::default(),
-			strings:  strings,
-			db: Cdb::new(),
-			server: server,
-			lflist: lflist,
-			pics: pics
-		});
-		app.emit("end", 0)?;
+		if let Some((_, pack)) = game.pack
+			.iter_mut()
+			.find(|i| i.0 == &name) {
+			pack.on = false;
+		}
+		Ok(())
+	}
+
+	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		if let Some((_, pack)) = game.pack
+			.iter_mut()
+			.find(|i| i.0 == &name) {
+			pack.on = true;
+		} else {
+			let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+			let path: PathBuf = path.join("expansions").join(&name);
+			let path: &str = path
+				.as_os_str()
+				.to_str()
+				.ok_or(anyhow!("get path error"))?;
+			let zip: Zip = Zip::new_with_emit(app, String::from(path), name.clone())?;
+			let mut lflist: LFList = LFList::new();
+			let mut strings: Strings = Strings::new();
+			let mut db: Vec<Cdb> = Vec::new();
+			let mut server: Server = Server::new();
+			let mut pics: Pic = Pic::new();
+			zip.lflist().into_iter().for_each(|text: String| {
+				lflist.init(text);
+			});
+			zip.strings().into_iter().for_each(|text: String| {
+				strings.init(text.clone());
+			});
+			zip.db().into_iter().for_each(|i| {
+				db.push(i);
+			});
+			zip.pics().into_iter().for_each(|(k, v)| {
+				pics.insert(k, PicContent::Buffer(v.clone()));
+			});
+			zip.servers().into_iter().for_each(|text: String| {
+				server.init_by_conf(text);
+			});
+			zip.ini().into_iter().for_each(|text: String| {
+				server.init_by_ini(text);
+			});
+			game.pack.insert(name, GamePack {
+				on: true,
+				card_info: CardInfo::default(),
+				strings:  strings,
+				db: Cdb::new(),
+				server: server,
+				lflist: lflist,
+				pics: pics
+			});
+			app.emit("end", 0)?;
+		}
 		Ok(())
 	}
 
@@ -653,18 +673,17 @@ impl Game {
 		)?;
 		Ok(())
 	}
-	pub async fn chk_version () -> Result<bool, Error> {
+	pub async fn chk_version () -> Result<(bool, bool), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		let url: URL= Request::test_speed(game.version.url()).await?;
-		Ok(Request::version(&url, game.version.version()).await)
+		Ok(join!(
+			Request::version(URL_GAME_VERSION, &game.version.0),
+			Request::version(URL_ASSETS_VERSION, &game.version.1)
+		))
 	}
 	pub async fn update (app: &AppHandle) -> Result<(), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		let url: URL= Request::test_speed(game.version.url()).await?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Request::download(app, path, url.request_url(), "assets").await?;
+		Request::download(app, path, URL_DOWNLOAD, "assets").await?;
 		Ok(())
 	}
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {

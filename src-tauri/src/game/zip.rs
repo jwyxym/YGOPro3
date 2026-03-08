@@ -1,4 +1,4 @@
-use crate::game::{PIC_REGEX, version::Version, cdb::Cdb};
+use crate::game::{PIC_REGEX, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
@@ -150,19 +150,19 @@ impl Zip {
 			servers: servers
 		})
 	}
-	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<(Option<Version>, Vec<JoinHandle<Result<(), Error>>>), Error> {
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, overwrite: bool) -> Result<(Option<String>, Vec<JoinHandle<Result<(), Error>>>), Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
 		let zip_path: PathBuf = path.join("assets");
 		let zip: ZipArchive<File> = ZipArchive::new(File::open(&zip_path)?)?;
 		app.emit("started", zip.len())?;
-		let mut version: Option<Version> = None;
+		let mut version: Option<String> = None;
 		let _ = Self::read(&zip_path, |name, mut file| {
 			app.emit("progress", 1)?;
 			if name == String::from("version") {
 				let mut content: String = String::new();
 				if file.read_to_string(&mut content).is_ok() {
-					version.get_or_insert_with(|| Version::new(content));
+					version.get_or_insert_with(|| content);
 				}
 			} else {
 				let path: PathBuf = path.join(&name);

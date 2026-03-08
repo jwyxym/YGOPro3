@@ -2,6 +2,7 @@
 	<div
 		class = 'expansions'
 		:style = "{ '--ct' : (page.versions.length + page.reload.length + 1).toString()}"
+		v-if = '!page.change_i18n'
 	>
 		<var-cell
 			v-for = "i in page.versions"
@@ -92,6 +93,8 @@
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, ref } from 'vue';
+	import * as Opener from '@tauri-apps/plugin-opener';
+
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import fs from '@/script/fs';
@@ -99,6 +102,7 @@
 	import { toast } from '@/pages/toast/toast';
 	import dialog from '@/pages/ui/dialog';
 	import Input from '@/pages/ui/input.vue';
+	
 	class Version {
 		title : number;
 		loading = ref<undefined | boolean | string>(undefined);
@@ -123,10 +127,16 @@
 		
 	}
 	const page = reactive({
+		change_i18n : false,
 		versions : [
 			new Version({
 				title : I18N_KEYS.SETTING_GAME_VERSION,
 				chk : mainGame.chk.version.game,
+				update : async () => await Opener.openUrl(URL.YGOPRO3)
+			}),
+			new Version({
+				title : I18N_KEYS.SETTING_ASSETS_VERSION,
+				chk : mainGame.chk.version.assets,
 				update : mainGame.update
 			}),
 			new Version({
@@ -145,7 +155,7 @@
 			if (await dialog({
 					title : mainGame.get.text(I18N_KEYS.SETTING_DELETE_YPK),
 				}, mainGame.get.system(KEYS.SETTING_CHK_DELETE_YPK))
-				&& await fs.delete.ypk(page.expansion[v])
+				&& await mainGame.unload.ypk(page.expansion[v], true)
 			) {
 				const expansions = (mainGame.get.system(KEYS.SETTING_LOADING_EXPANSION) as Array<string>);
 				const ct = expansions.indexOf(page.expansion[v]);
@@ -160,13 +170,19 @@
 			if (typeof value === 'string') {
 				if (!expansions.includes(value))
 					expansions.push(value);
-				await mainGame.load.ypk(value);
+				await Promise.all([
+					mainGame.load.ypk(value),
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+				]);
 			} else {
 				const ct = expansions.indexOf(page.expansion[v!]);
 				if (ct > -1)
 					expansions.splice(ct, 1);
+				await Promise.all([
+					mainGame.unload.ypk(page.expansion[v!]),
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+				]);
 			}
-			await mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions);
 			await mainGame.reload();
 		},
 		download : {

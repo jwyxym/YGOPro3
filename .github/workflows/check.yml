@@ -1,8 +1,7 @@
-name: check tauri-ygo
+name: check YGOPro3
 
 on:
   push:
-    branches-ignore: ['main']
 
 jobs:
   check:
