@@ -2,7 +2,7 @@
 	<div
 		class = 'expansions'
 		:style = "{ '--ct' : (page.versions.length + page.reload.length + 1).toString()}"
-		v-if = '!page.change_i18n'
+		v-if = '!i18n'
 	>
 		<var-cell
 			v-for = "i in page.versions"
@@ -127,7 +127,6 @@
 		
 	}
 	const page = reactive({
-		change_i18n : false,
 		versions : [
 			new Version({
 				title : I18N_KEYS.SETTING_GAME_VERSION,
@@ -226,7 +225,8 @@
 	});
 
 	const props = defineProps<{
-		loading : boolean
+		loading : boolean,
+		i18n : boolean
 	}>();
 </script>
 <style scoped lang = 'scss'>

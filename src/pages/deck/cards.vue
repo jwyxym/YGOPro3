@@ -76,7 +76,7 @@
 	import GLOBAL from '@/script/scale';
 	import Deck from '@/pages/deck/deck';
 	import { toast } from '@/pages/toast/toast';
-	import Pic, { CardPic, CardPics } from './pic.vue';
+	import Pic, { CardPic, CardPics } from '@/pages/ui/pic.vue';
 
 	const deck = ref<HTMLElement | null>(null);
 	const main_title = ref<HTMLElement | null>(null);
@@ -330,19 +330,14 @@
 					}
 					page.size.resize();
 				} else if (page.move.index.deck < 0 && page.move.index.from > -1) {
-					// if (page.move.target)
-						// page.move.target.style.transition = 'all 0.1s ease';
 					const ct = decks[page.move.index.from].indexOf(page.move.card!);
 					decks[page.move.index.from][ct].loc = 0;
 					await mainGame.sleep(100);
 					decks[page.move.index.from].splice(ct, 1);
 					page.move.resort(decks[page.move.index.from]);
 				}
-				if (page.move.target) {
-					const target = page.move.target;
+				if (page.move.target)
 					page.move.target = undefined;
-					// setTimeout(() => target.style.transition = 'all 0.1s ease', 150);
-				}
 				await mainGame.sleep(100);
 				page.move.now.deck = -1;
 				page.move.now.chk = true;

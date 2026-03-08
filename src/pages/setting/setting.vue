@@ -6,8 +6,8 @@
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
 		</var-tabs>
 		<TransitionGroup tag = 'div' name = 'opacity'>
-			<Expansions v-show = '!page.select' key = '0' :loading = 'loading'/>
-			<System v-show = 'page.select === 1' key = '1'/>
+			<Expansions v-show = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
+			<System v-show = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -28,6 +28,7 @@
 	import Button from '@/pages/ui/button.vue';
 	const page = reactive({
 		select : 0,
+		i18n : false
 	});
 	const emit = defineEmits<{ exit : []; }>();
 	const props = defineProps<{

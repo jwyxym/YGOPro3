@@ -44,13 +44,13 @@
 	import fs from '@/script/fs';
 
 	import dialog from '@/pages/ui/dialog';
-	import Deck_Box, { Hover } from '@/pages/ui/deck.vue';
-	import Card_Box from '@/pages/ui/card_info.vue';
 	import { CardPic, CardPics } from '@/pages/ui/pic.vue';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
 	import Search_Box from './searcher.vue';
+	import Deck_Box, { Hover } from './cards.vue';
+	import Card_Box from './card_info.vue';
 
 	const page = reactive({
 		lflist : '',

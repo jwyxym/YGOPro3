@@ -70,6 +70,7 @@ const KEYS = {
 	BACK_BGM : 'BACK_BGM',
 	BATTLE_BGM : 'BATTLE_BGM',
 	NA : 'N/A',
+	I18N : 'I18N',
 	SERVER_NAME : 'ServerName',
 	SERVER_HOST : 'ServerHost',
 	SERVER_PORT : 'ServerPort',

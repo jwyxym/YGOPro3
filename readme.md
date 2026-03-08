@@ -1,6 +1,6 @@
 <div align = 'center'>
 	<img width = '15%' src = './src-tauri/icons/icon.jpg' alt = 'logo'>
-	<h1>Tauri YGO</h1>
+	<h1>YGOPro3</h1>
 
 [![Rust](https://img.shields.io/badge/Rust-1.91-orange.svg)](https://www.rust-lang.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-brightgreen.svg)](https://vuejs.org/)

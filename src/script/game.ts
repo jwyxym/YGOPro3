@@ -34,7 +34,6 @@ class Game {
 	version = 0x1362;
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
-	i18n = CONSTANT.LANGUAGE.Zh_CN;
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 
@@ -155,7 +154,7 @@ class Game {
 			)
 			?? this.lflist.get(CONSTANT.KEYS.NA)!,
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
-			switch (this.i18n) {
+			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:
 					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
 			}

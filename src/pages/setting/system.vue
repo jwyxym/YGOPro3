@@ -1,24 +1,27 @@
 <template>
-	<div class = 'system no-scrollbar'>
+	<div class = 'system no-scrollbar' v-if = '!page.i18n.changing'>
 		<var-list>
+			<var-cell
+				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
+				:border = 'true'
+			>
+			<Select
+				name = 'i18n'
+				:clearable = 'false'
+				v-model = 'page.i18n.value'
+				@change = 'page.i18n.change'
+				/>
+			</var-cell>
 			<var-cell
 				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
 				:border = 'true'
 			>
 				<template #default>
 					{{ `${mainGame.get.text(I18N_KEYS.SETTING_VOICE)} : ${page.sound.ct.toFixed(2)}` }}
-					<slider
-						width = '500px'
-						class = 'slider'
-						label-visible = 'never'
-						v-model = 'page.sound.ct'
-						color = '#397bfe'
-						track-color = 'white'
-						:step = '0.01'
-						:max = '1'
-						:min = '0'
+					<Slider
+						:x = 'page.sound.ct'
 						@dragging = page.sound.dragging
-						@drag-end = page.sound.end
+						@drag_end = page.sound.end
 					/>
 				</template>
 			</var-cell>
@@ -52,20 +55,34 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, reactive } from 'vue';
-	import slider from 'vue3-slider';
+	import { onBeforeMount, reactive, watch } from 'vue';
 
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { voice } from '@/pages/voice/voice';
+	import Select from '@/pages/ui/select.vue';
+	import Slider from '@/pages/ui/slider.vue';
 
 	const page = reactive({
+		i18n : {
+			value : mainGame.get.system(KEYS.I18N) as string,
+			changing : false,
+			change : async (i : string) : Promise<void> => {
+				if (i === mainGame.get.system(KEYS.I18N))
+					return;
+				page.i18n.changing = true;
+				await mainGame.set.system(KEYS.I18N, i);
+				await mainGame.reload();
+				page.i18n.changing = false;
+			}
+		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,
 		bool : [] as Array<{ i18n : number, key : string; value : boolean; }>,
 		sound : {
 			ct : mainGame.get.system(KEYS.SETTING_VOICE) as number,
 			dragging : async (v : number) => {
+				page.sound.ct = v;
 				mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE, v);
 				voice.update();
 			},
@@ -109,6 +126,8 @@
 		});
 	});
 
+	const emit = defineEmits<{ i18n : [boolean]; }>();
+	watch(() => page.i18n.changing, (n : boolean) => emit('i18n', n));
 </script>
 <style scoped lang = 'scss'>
 	.system {
@@ -116,9 +135,6 @@
 		width: 100%;
 		overflow-y: auto;
 		.var-cell {
-			.slider {
-				transform: scale(calc(1 / var(--scale))) translateX(50px);
-			}
 			:deep(.var-cell__extra) {
 				display: flex;
 				height: 40px;

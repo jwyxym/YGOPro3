@@ -1,6 +1,6 @@
 <template>
 	<var-select
-		:clearable = 'true'
+		:clearable = "typeof clearable === 'boolean' ? clearable : true"
 		text-color = 'white'
 		:placeholder = 'select.placeholder'
 		:variant = "variant ? variant : 'standard'"
@@ -24,9 +24,11 @@
 	import { reactive, onBeforeMount } from 'vue'
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import { LANGUAGE } from '@/script/constant';
 	const props = defineProps<{
-		name : 'lflist' | 'deck' | 'model';
+		name : 'lflist' | 'deck' | 'model' | 'i18n';
 		variant ?: 'outlined' | 'standard';
+		clearable ?: boolean; 
 	}>();
 
 	interface items {
@@ -53,7 +55,11 @@
 				break;
 			case 'model':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_MODEL);
-				select.map = mainGame.duel_model ?? new Map;
+				select.map = mainGame.model ?? new Map;
+				break;
+			case 'i18n':
+				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_I18N);
+				select.array = Object.entries(LANGUAGE) ?? new Array;
 				break;
 		}
 	});
