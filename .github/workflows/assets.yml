@@ -116,7 +116,9 @@ jobs:
     - name: PrePare
       if: ${{ matrix.target == 'assets.zip' }}
       run: |
-          cd build/assets.zip
+          cd build
+          mv assets.zip assets
+          cd assets
           mv assets.zip ../assets.zip
 
     - name: Upload
