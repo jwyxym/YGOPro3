@@ -8,7 +8,7 @@
 	import { onBeforeMount, onUnmounted, reactive, watch } from 'vue';
 	import { UnlistenFn } from '@tauri-apps/api/event';
 
-	import listen from '@/script/tauri-api/listen';
+	import listen from '@/script/listen';
 	import mainGame from '@/script/game';
 
 	const page = reactive({

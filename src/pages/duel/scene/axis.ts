@@ -108,10 +108,13 @@ class Axis {
 
 	static computed = {
 		card : (card : Client_Card) : Axis => {
-			const axis : Axis = Axis.map.get(card.location)![card.owner];
+			const loc = card.location & LOCATION.ONFIELD;
+			const axis : Axis = Axis.map.get(loc ? (
+				loc | (card.seq << 16)
+			) : card.location)![card.owner];
 			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
 			let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
-			const z : number  = card.seq * SIZE.TOP;
+			const z : number  = (loc ? card.overlay : card.seq) * SIZE.TOP;
 			if (axis.x % 3 === 0 && axis.x !== 0) {
 				y += SIZE.OFFSET * 
 					(axis.y > 0 ? 1

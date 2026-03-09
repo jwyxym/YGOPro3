@@ -1,12 +1,11 @@
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 
-import Card from '@/script/card';
+import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
 import { LOCATION, POS } from '@/script/ygo-protocol/network';
 
-import { duel } from './scene';
 import * as SIZE from './scene-size';
 import Axis from './axis';
 
@@ -226,12 +225,14 @@ class Client_Card {
 		el : {
 			img : () : HTMLImageElement => this.three.element.children[0] as HTMLImageElement,
 			atk : () : HTMLDivElement => this.three.element.children[1] as HTMLDivElement,
-			info : () : HTMLDivElement => this.three.element.children[2] as HTMLDivElement,
+			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
+				: this.three.element.children[2] as HTMLDivElement,
 			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement,
 			btn : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
 		}
 	};
 
+	//移动顺序：pwner -> location -> pos -> atk/info/counter
 	set = {
 		owner : (owner : number) : gsap.core.Tween | void => {
 			if (this.owner === owner) return;
@@ -293,12 +294,19 @@ class Client_Card {
 						rotationZ : - 90,
 						duration : 0.1,
 					}, 0);
+				if ((pos & POS.FACEDOWN) || !(this.location & LOCATION.ONFIELD)) {
+					this.get.el.atk().style.opacity = '0';
+					this.get.el.info().style.opacity = '0';
+				} else if ((pos & POS.FACEUP) && (this.location & LOCATION.ONFIELD)) {
+					this.get.el.atk().style.opacity = '0';
+					this.get.el.info().style.opacity = '0';
+				}
 				this.pos = pos;
 				return tl;
 			}
 		},
 		location : (location : number, seq : number) : gsap.core.Timeline | void => {
-			if (this.location === location && this.seq !== seq) return;
+			if (this.location === location && this.seq === seq && location !== LOCATION.NONE) return;
 			if (this.location === LOCATION.NONE) {
 				this.seq = seq;
 				this.location = location;
@@ -342,23 +350,119 @@ class Client_Card {
 			const card = mainGame.get.card(id);
 			this.id = id;
 			this.set.pic(card.pic);
-			this.card = card;
-			this.alias = card.alias;
-			this.pic = card.pic;
-			this.type = card.type;
-			this.level = (card.is_xyz() || card.is_link()) ? 0 : card.level;
-			this.rank = card.is_xyz() ? card.level : 0;
-			this.link = card.is_link() ? card.level : 0;
-			this.attribute = card.attribute;
-			this.atk = card.atk;
-			this.def = card.def;
-			this.scale = card.scale;
 			return this;
 		},
 		pic : (pic : string) : Client_Card => {
-			this.pic = pic;
-			if (this.pos & POS.FACEUP)
-				this.get.el.img().src = this.pic;
+			if (this.pic !== pic) {
+				this.pic = pic;
+				if (this.pos & POS.FACEUP)
+					this.get.el.img().src = this.pic;
+			}
+			return this;
+		},
+		atk : async (atk : number, def : number) : Promise<Client_Card> => {
+			if (this.atk !== atk || this.def !== def) {
+				this.atk = atk;
+				this.def = def;
+				const el = this.get.el.atk();
+				const text = this.type & TYPE.LINK ? this.atk.toString() : `${this.atk ?? 0}/${this.def ?? 0}`;
+				if (el.style.opacity === '1') {
+					el.style.opacity = '0';
+					await mainGame.sleep(200);
+					el.innerText = text;
+					el.style.opacity = '1';
+				} else
+					el.innerText = text;
+			}
+			return this;
+		},
+		type : async (type : number) : Promise<Client_Card> => {
+			if (this.type !== type) {
+				this.type = type;
+				const elements : Array<HTMLDivElement> = [];
+				if (this.type & TYPE.LINK) {
+					this.get.el.info(KEYS.LINK).querySelector('span')!.innerText = this.link.toString();
+					elements.push(this.get.el.info(KEYS.LINK));
+				} else if (this.type & TYPE.XYZ) {
+					this.get.el.info(KEYS.RANK).querySelector('span')!.innerText = this.rank.toString();
+					this.get.el.info(KEYS.OVERLAY).querySelector('span')!.innerText = this.overlay.toString();
+					elements.push(this.get.el.info(KEYS.RANK));
+					elements.push(this.get.el.info(KEYS.OVERLAY));
+				} else if (this.type & TYPE.PENDULUM && this.location & LOCATION.SZONE && [0, 4].includes(this.seq)) {
+					this.get.el.info(KEYS.SCALE).querySelector('span')!.innerText = this.scale.toString();
+					elements.push(this.get.el.info(KEYS.SCALE));
+				} else if (this.type & TYPE.TUNER) {
+					this.get.el.info(KEYS.TUNER).querySelector('span')!.innerText = this.level.toString();
+					elements.push(this.get.el.info(KEYS.TUNER));
+				} else {
+					this.get.el.info(KEYS.LEVEL).querySelector('span')!.innerText = this.level.toString();
+					elements.push(this.get.el.info(KEYS.TUNER));
+				}
+				elements.forEach((i, v) => {
+					i.style.transform = `translateX(${v * 28}px)`;
+					if (this.pos & POS.FACEUP)
+						setTimeout(() => i.style.opacity = '1', 200);
+				});
+				await mainGame.sleep(200);
+			}
+			return this;
+		},
+		counter : async (counter : number, ct : number, add : boolean = true) : Promise<Client_Card> => {
+			const el : HTMLElement | null = this.get.el.counter().querySelector('.' + counter.toString());
+			const sort = () : void => {
+				let v = 0;
+				(Array.from(this.get.el.counter().children) as Array<HTMLElement>)
+					.filter(i => i.style.opacity === '1')
+					.forEach(i => {
+						i.style.transform = `translateX(${v * 28}px)`;
+						v ++;
+					});
+			}
+			if (el) {
+				const span : HTMLSpanElement = el.querySelector('span')!;
+				const count : number = add ? Math.max(0, ct + Number(span.innerText)) : ct;
+				if (!isNaN(count) && count > 0) {
+					if (el.style.opacity === '1') {
+						span.style.opacity = '0';
+						await mainGame.sleep(150);
+					}
+					span.innerText = count.toString();
+					span.style.opacity = '1';
+					if (el.style.opacity === '0')
+						el.style.opacity = '1';
+				} else if (el.style.opacity === '1')
+					el.style.opacity = '0';
+				sort();
+				await mainGame.sleep(200);
+			} else if (ct > 0) {
+				const div = document.createElement('div');
+				//为指示物div设置class，class为指示物编号
+				div.classList.add(counter.toString());
+				Object.assign(div.style, {
+					height : '100%',
+					width : '28px',
+					position : 'absolute',
+					display : 'flex',
+					opacity : '0',
+					transition : 'all 0.2s ease'
+				});
+				//指示物图标
+				const img = document.createElement('img');
+				img.src = mainGame.get.counter(counter);
+				img.style.height = '100%';
+
+				//指示物数量
+				const span = document.createElement('span');
+				span.style.transition = 'all 0.1s ease';
+				span.innerText = ct.toString();
+
+				div.appendChild(img);
+				div.appendChild(span);
+				this.get.el.counter().appendChild(div);
+				sort();
+				await mainGame.sleep(100);
+				div.style.opacity = '1';
+			}
 			return this;
 		}
 	};

@@ -1,9 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
-import fs from '@/script/fs';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
-import Card from '../card';
-import LFList from '../lflist';
+import fs from './fs';
+import Card from './card';
+import LFList from './lflist';
 
 interface Srv {
 	priority : number;

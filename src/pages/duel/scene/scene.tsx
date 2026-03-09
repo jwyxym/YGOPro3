@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
-import { LOCATION } from '@/script/ygo-protocol/network';
+import { LOCATION, POS } from '@/script/ygo-protocol/network';
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
@@ -58,6 +58,7 @@ class Duel {
 		this.renderer = new CSS.CSS3DRenderer();
 		this.scene = new THREE.Scene();
 		this.camera = new THREE.PerspectiveCamera();
+		this.cards.length = 0;
 		this.plaids.length = 0;
 		this.btn = null;
 		this.animation_id = 0;
@@ -144,16 +145,32 @@ class Duel {
 			this.scene.add(btn.three);
 			this.btn = btn;
 		},
-		card : (owner : number, location : number, seq : number) : void => {
+		card : (owner : number, location : number, seq : number, pos : number = POS.NONE, id ?: number) : void => {
 			const card = reactive(new Client_Card());
-			
 			card.set.owner(owner);
 			card.set.location(location, seq);
+			card.set.pos(pos);
+			if (id)
+				card.set.id(id);
 
-			card.three.position.set(...Axis.computed.card(new Axis(x, y, 0)).get.xyz());
+			card.three.position.set(...Axis.computed.card(card).get.xyz());
 			this.scene.add(card.three);
 		}
-	}
+	};
+
+	move = async (card : Client_Card, owner : number, location : number, seq : number, pos : number = POS.NONE, id ?: number) : Promise<void> => {
+		let resolve = undefined as (() => void) | undefined;
+		const promise = new Promise<void>((r) => resolve = r);
+		const tl = gsap.timeline();
+		tl.add(card.set.owner(owner) ?? gsap.timeline());
+		tl.add(card.set.location(location, seq) ?? gsap.timeline());
+		tl.add(card.set.pos(pos) ?? gsap.timeline());
+		if (id)
+			card.set.id(id);
+		tl.then(() => resolve?.());
+		
+		return promise;
+	};
 };
 
 const duel = new Duel();

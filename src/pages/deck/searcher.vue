@@ -189,9 +189,9 @@
 	import Pic, { CardPic } from '@/pages/ui/pic.vue';
 	import Input from '@/pages/ui/input.vue';
 	import Button, { Icon } from '@/pages/ui/button.vue';
-	import { Hover } from '@/pages/ui/cards.vue';
 	import Select from '@/pages/ui/select.vue';
 	import { toast } from '@/pages/toast/toast';
+	import { Hover } from './cards.vue';
 	import Deck from './deck';
 
 	const search_div = ref<HTMLDivElement | null>(null);

@@ -62,8 +62,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card from '@/script/card';
-	import Client_Card from '../server/scene/client_card';
-	import Button from './button.vue';
+	import Button from '@/pages/ui/button.vue';
 
 	const emit = defineEmits<{ card : [card : number]; }>();
 	const page = reactive({
@@ -90,7 +89,7 @@
 	})
 
 	const props = defineProps<{
-		code ?: string | number | Card | Client_Card;
+		code ?: string | number | Card;
 	}>();
 
 	watch(() => props.code, (n) => {
@@ -113,25 +112,21 @@
 			return ;
 		if (typeof n === 'string') n = Number(n);
 		let card : Card;
-		if (typeof n === 'number' || n instanceof Card) {
-			card = typeof n === 'number' ? mainGame.get.card(n) : n;
-			page.show = true;
-			page.card.id = card.id;
-			page.card.pic = card.pic;
-			page.card.name = card.name;
-			page.card.description = card.desc;
-			page.card.type = mainGame.get.strings.type(card.type);
-			if (card.is_monster()) {
-				page.card.attribute = mainGame.get.strings.attribute(card.attribute);
-				page.card.race = mainGame.get.strings.race(card.race);
-				page.card.lv = card.level.toString();
-				page.card.atk = card.atk >= 0 ? card.atk.toString() : '?';
-				if (!card.is_link())
-					page.card.def = card.def >= 0 ? card.def.toString() : '?';
-				page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
-			}
-		} else if (n instanceof Client_Card) {
-
+		card = typeof n === 'number' ? mainGame.get.card(n) : n;
+		page.show = true;
+		page.card.id = card.id;
+		page.card.pic = card.pic;
+		page.card.name = card.name;
+		page.card.description = card.desc;
+		page.card.type = mainGame.get.strings.type(card.type);
+		if (card.is_monster()) {
+			page.card.attribute = mainGame.get.strings.attribute(card.attribute);
+			page.card.race = mainGame.get.strings.race(card.race);
+			page.card.lv = card.level.toString();
+			page.card.atk = card.atk >= 0 ? card.atk.toString() : '?';
+			if (!card.is_link())
+				page.card.def = card.def >= 0 ? card.def.toString() : '?';
+			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
 		}
 	}, { immediate : true, deep : true });
 </script>

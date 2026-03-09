@@ -1,11 +1,5 @@
-import { convertFileSrc } from '@tauri-apps/api/core';
 import * as fs from '@tauri-apps/plugin-fs';
-import * as path from '@tauri-apps/api/path';
-
 import * as CONSTANT from './constant';
-import mainGame from './game';
-import invoke, { Pic } from './tauri-api/invoke';
-import { I18N_KEYS } from './language/i18n';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';

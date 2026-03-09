@@ -20,7 +20,7 @@ const dialog = async (option : DialogOptions, need_confirm : boolean | number | 
 		option.onCancel = chk ? confirm : cancel;
 		const promise = new Promise<boolean>((r) => resolve = r);
 		await Dialog(option);
-		return await promise;
+		return promise;
 	} else
 		return true;
 }

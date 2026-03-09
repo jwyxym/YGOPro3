@@ -16,7 +16,7 @@
 
 	import { URL } from '@/script/constant';
 	import fs from '@/script/fs';
-	import http from '@/script/tauri-api/http';
+	import http from '@/script/http';
 	import { toast } from '@/pages/toast/toast';
 
 	interface swipe {
