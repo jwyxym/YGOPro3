@@ -75,39 +75,54 @@ jobs:
       - name: Upload to GitCode
         run: |
           pip install requests
-          python .ci\update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
+          python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
-  upload-assets_zip:
+  upload:
     needs: [update-gitcode]
+    name: upload-${{ matrix.target }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: assets.zip
+          - target: version.txt
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: build
 
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
 
-      - name: PrePare
-        run: |
-          cp .ci\upload.py build\upload.py
-          pip install requests
+    - name: PrePare
+      run: |
+        cp .ci/upload.py build/upload.py
+        pip install requests
 
-      - name: Upload Zip
-        run: |
-          cd build
-          cd version
-          mv version version.txt
-          cd ..
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} assets.zip/assets.zip
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version/version.txt
+    - name: PrePare
+      if: ${{ matrix.target == 'version.txt' }}
+      run: |
+          cd build/version
+          mv version ../version.txt
+
+    - name: PrePare
+      if: ${{ matrix.target == 'assets.zip' }}
+      run: |
+          cd build/assets.zip
+          mv assets.zip ../assets.zip
+
+    - name: Upload
+      run: |
+        cd build
+        python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} ${{ matrix.target }}
 
   create-release:
     needs: [make-assets]
