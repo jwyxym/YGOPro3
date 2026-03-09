@@ -38,31 +38,21 @@ jobs:
           git push gitcode gitcode-main:main
 
   upload-version:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: 'recursive'
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
 
       - name: Install Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.13'
 
-      - name: PrePare
+      - name: Upload to GitCode
         run: |
           pip install requests
-
-      - name: Upload Zip
-        shell: cmd
-        run: |
-          cd .ci
-          echo "YGOPro3://${{ github.ref_name }}/" > game_version.txt
+          echo "YGOPro3://${{ github.ref_name }}" > version
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} game_version.txt
 
   build-android:
