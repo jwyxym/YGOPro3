@@ -51,6 +51,7 @@ jobs:
 
       - name: Upload to GitCode
         run: |
+          cd .ci
           pip install requests
           echo "YGOPro3://${{ github.ref_name }}" > version
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} game_version.txt
