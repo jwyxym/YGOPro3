@@ -7,65 +7,61 @@ on:
     
 jobs:
   make-assets:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: 'recursive'
-
+      
     - name: Install wget and unzip
-      shell: powershell
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-        choco install wget unzip -y
-
-    - name: Install 7zip
-      shell: powershell
-      run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force
-        [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-        choco install 7zip -y
+        sudo apt-get update
+        sudo apt-get install -y wget unzip p7zip-full p7zip-rar
 
     - name: Download Assets
-      shell: cmd
       run: |
         cd .ci
         wget -O ygopro-database.zip https://github.com/mycard/ygopro-database/archive/refs/heads/master.zip
         unzip ygopro-database.zip
-        mkdir cdb
-        mkdir strings
-        copy ygopro-database-master\locales\zh-CN\cards.cdb cdb\cards-zh-CN.cdb
-        copy ygopro-database-master\locales\ko-KR\cards.cdb cdb\cards-ko-KR.cdb
-        copy ygopro-database-master\locales\ja-JP\cards.cdb cdb\cards-ja-JP.cdb
-        copy ygopro-database-master\locales\en-US_mdpro3\cards.cdb cdb\cards-en-US.cdb
-        copy ygopro-database-master\locales\zh-CN\strings.conf strings\strings-zh-CN.conf
-        copy ygopro-database-master\locales\ko-KR\strings.conf strings\strings-ko-KR.conf
-        copy ygopro-database-master\locales\ja-JP\strings.conf strings\strings-ja-JP.conf
-        copy ygopro-database-master\locales\en-US_mdpro3\strings.conf strings\strings-en-US.conf
-        wget https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
+
+        mkdir -p cdb
+        mkdir -p strings
+
+        cp ygopro-database-master/locales/zh-CN/cards.cdb cdb/cards-zh-CN.cdb
+        cp ygopro-database-master/locales/ko-KR/cards.cdb cdb/cards-ko-KR.cdb
+        cp ygopro-database-master/locales/ja-JP/cards.cdb cdb/cards-ja-JP.cdb
+        cp ygopro-database-master/locales/en-US_mdpro3/cards.cdb cdb/cards-en-US.cdb
+
+        cp ygopro-database-master/locales/zh-CN/strings.conf strings/strings-zh-CN.conf
+        cp ygopro-database-master/locales/ko-KR/strings.conf strings/strings-ko-KR.conf
+        cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
+        cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
+
         wget --no-check-certificate ${{ secrets.PICS_URL }} -O pics.zip
         unzip pics.zip
-        echo %date% %time% > version
-        7z a -tzip -mx=9 assets.zip pics config strings cdb sound textures font lflist.conf version
 
+        date > version
+        wget -O lflist.conf https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
+
+        7z a -tzip -mx=9 assets.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ lflist.conf version
+    
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: assets.zip
         retention-days: 7
-        path: .\.ci\assets.zip
+        path: ./.ci/assets.zip
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: version
         retention-days: 7
-        path: .\.ci\version
+        path: ./.ci/version
 
   update-gitcode:
     needs: [make-assets]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -77,14 +73,13 @@ jobs:
           python-version: '3.13'
 
       - name: Upload to GitCode
-        shell: cmd
         run: |
           pip install requests
           python .ci\update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
   upload-assets_zip:
     needs: [update-gitcode]
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,17 +96,15 @@ jobs:
           python-version: '3.13'
 
       - name: PrePare
-        shell: cmd
         run: |
-          copy .ci\upload.py build\upload.py
+          cp .ci\upload.py build\upload.py
           pip install requests
 
       - name: Upload Zip
-        shell: cmd
         run: |
           cd build
           cd version
-          rename version version.txt
+          mv version version.txt
           cd ..
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} assets.zip/assets.zip
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version/version.txt

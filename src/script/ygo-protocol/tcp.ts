@@ -42,9 +42,10 @@ class Tcp {
 					const msg = this.cache.concat(x.payload.event.message.data);
 					let len = msg.read.uint16();
 					while (len && msg.length() > len + 2) {
-						this.queue.add(async () => await this.on_message?.(this.cid, msg.slice(len! + 2)!));
+						this.queue.add(async () => await this.on_message?.(this.cid, msg.slice(len!)!));
 						len = msg.read.uint16();
 					}
+					msg.index -= 2;
 					this.cache = msg.to_end();
 				}
 			}
