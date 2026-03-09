@@ -1,7 +1,7 @@
 import * as tcp from '@kuyoonjo/tauri-plugin-tcp';
 import PQueue from 'p-queue';
 
-import fs from '../fs';
+import fs from '../../../script/fs';
 import Msg from './msg';
 class Tcp {
 	cid = 'YGOPro3';
@@ -15,15 +15,15 @@ class Tcp {
 	cache : Msg = new Msg([]);
 
 	connect = async (address : string, call_back : {
-		on_connect ?: (cid : string) => Promise<void>
-		on_message ?: (cid : string, messgae : Msg) => Promise<void>
-		on_disconnect ?: (cid : string) => Promise<void>
+		on_connect ?: () => Promise<void>
+		on_message ?: (messgae : Msg) => Promise<void>
+		on_disconnect ?: () => Promise<void>
 	}) : Promise<boolean> => {
 		try {
 			this.on_disconnect = call_back.on_disconnect;
 			this.address = address;
 			await tcp.connect(this.cid, this.address);
-			await call_back.on_connect?.(this.cid);
+			await call_back.on_connect?.();
 		} catch (e) {
 			fs.write.log(e);
 			return false;

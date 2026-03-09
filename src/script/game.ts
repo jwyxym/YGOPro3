@@ -10,7 +10,7 @@ import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import YGOPRO_STR from './language/string';
 import invoke from './invoke';
-import { LOCATION } from './ygo-protocol/network';
+import { LOCATION } from '../pages/duel/ygo-protocol/network';
 
 import Deck from '@/pages/deck/deck';
 

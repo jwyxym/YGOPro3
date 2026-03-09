@@ -1,4 +1,4 @@
-import { LOCATION } from '@/script/ygo-protocol/network';
+import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 import Client_Card from './client_card';
 import * as SIZE from './scene-size';
 

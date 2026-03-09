@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
-import { LOCATION, POS } from '@/script/ygo-protocol/network';
+import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';

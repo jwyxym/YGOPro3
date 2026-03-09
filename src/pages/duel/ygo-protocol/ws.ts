@@ -1,7 +1,7 @@
 import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
 import PQueue from 'p-queue';
 
-import fs from '../fs';
+import fs from '../../../script/fs';
 import Msg from './msg';
 
 class Ws {

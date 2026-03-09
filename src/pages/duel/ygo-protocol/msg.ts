@@ -85,9 +85,8 @@ class Msg {
 	};
 	to_end = () : Msg => new Msg(this.index >= this.length() ? Buffer.from([])
 		: this.content.subarray(this.index));
-	to_index = () : Msg => new Msg(this.content.subarray(0, this.index));
 	concat = (data : WithImplicitCoercion<ArrayLike<number>> | Msg) : Msg => new Msg(Buffer.concat([this.content, data instanceof Msg ? data.content : Buffer.from(data)]));
-	buffer = () : Uint8Array => new Uint8Array(this.content.buffer);
-	array = () : Array<number> => Array.from(this.content);
+	buffer = () : Uint8Array => new Uint8Array(this.content.subarray(0, this.index).buffer);
+	array = () : Array<number> => Array.from(this.content.subarray(0, this.index));
 };
 export default Msg;

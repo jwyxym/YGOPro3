@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
-import { LOCATION, POS } from '@/script/ygo-protocol/network';
+import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';

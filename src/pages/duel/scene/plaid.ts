@@ -2,7 +2,7 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
-import { LOCATION } from '@/script/ygo-protocol/network';
+import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 import * as SIZE from './scene-size';
 
 class Plaid {
