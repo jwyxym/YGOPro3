@@ -1,15 +1,35 @@
+import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import Msg from './msg';
 import { ERROR, STOC } from './network';
+import connect from '../connect';
 
 class Protocol {
+	current_msg ?: number;
+	queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
+	read = async (msg : Msg) => {
+		const protocol = msg.read.uint8()!;
+		if (!protocol)
+			return;
+		await this.stoc.get(protocol)?.(msg);
+	};
 	stoc = new Map<number, (msg : Msg) => Promise<void>>([
 		[STOC.GAME_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8()!;
 			if (!protocol)
 				return;
-			await this.msg.get(protocol)?.(msg.to_end());
+			this.queue.add(
+				async () => {
+					msg.read.uint16();
+					this.current_msg = msg.read.uint8();
+					msg.index -= 3;
+					await this.msg.get(protocol)?.(msg);
+				}
+			);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();
