@@ -11,10 +11,10 @@ payload = {}
 headers = {
 	'Accept': 'application/json'
 }
+response = requests.request("GET", url, headers=headers, data=payload)
+data = json.loads(response.text)
 response = None
-while response is None or response.status_code == 401:
-	response = requests.request("GET", url, headers=headers, data=payload)
-	data = json.loads(response.text)
+while response is None or not str(response.status_code).startswith('2'):
 	files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
 	response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files, timeout=(100, 600))
-	print(response.text)
+	print(response.status_code)
