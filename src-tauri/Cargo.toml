@@ -21,6 +21,7 @@ tauri-plugin-process = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-tcp = "0.1.2"
 tauri-plugin-http = "2"
+tauri-plugin-websocket = "2"
 zip = "0.6"
 walkdir = "2.5.0"
 ureq = "3.1.2"
@@ -42,4 +43,3 @@ lazy_static = "1.5.0"
 bincode = "2.0.0-rc.3"
 indexmap = { version = "2.13.0", features = ["serde"] }
 uuid = { version = "1.21.0", features = ["v4"] }
-tauri-plugin-websocket = "2"

@@ -16,6 +16,7 @@ pub fn run() {
 	Builder::default()
 		.plugin(tauri_plugin_http::init())
 		.plugin(tauri_plugin_tcp::init())
+		.plugin(tauri_plugin_websocket::init())
 		.plugin(tauri_plugin_clipboard_manager::init())
 		.plugin(tauri_plugin_process::init())
 		.plugin(tauri_plugin_os::init())
