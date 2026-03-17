@@ -1,4 +1,4 @@
-use crate::game::COMMENTS_REGEX;
+use super::COMMENTS_REGEX;
 use serde::Serialize;
 use std::collections::BTreeMap;
 use lazy_static::lazy_static;

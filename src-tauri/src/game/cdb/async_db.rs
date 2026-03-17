@@ -1,12 +1,13 @@
+use super::STMT;
 use tokio_rusqlite::Connection;
 use anyhow::{Result, Error, anyhow};
 use std::path::Path;
 
-pub async fn init<P: AsRef<Path>> (path: P) -> Result< Vec<(u32, (Vec<u32>, Vec<String>))>, Error> {
+pub async fn init<P: AsRef<Path>> (path: P) -> Result<Vec<(u32, (Vec<u32>, Vec<String>))>, Error> {
 	let conn: Connection = Connection::open(path).await?;
 	conn
 		.call(|conn| {
-			let mut stmt = conn.prepare("SELECT * FROM datas, texts WHERE datas.id = texts.id")?;
+			let mut stmt = conn.prepare(STMT)?;
 			
 			let result = stmt.query_map([], |row| {
 				let int: Vec<u32> = (0..12)

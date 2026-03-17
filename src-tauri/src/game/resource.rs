@@ -1,4 +1,4 @@
-use crate::game::File;
+use super::File;
 use serde::{Serialize, Deserialize};
 use basic_toml::from_str;
 use std::path::{Path, PathBuf};

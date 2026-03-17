@@ -54,6 +54,7 @@
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_TIME_LIMIT)} : ${info.time_limit}` }}</span>
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_LP)} : ${info.start_lp}` }}</span>
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_HAND)} : ${info.start_hand}` }}</span>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_DRAW_COUNT)} : ${info.draw_count}` }}</span>
 				<span v-show = 'info.no_check_deck'>{{ mainGame.get.text(I18N_KEYS.SERVER_NO_CHECK_DECK) }}</span>
 				<span v-show = 'info.no_shuffle_deck'>{{ mainGame.get.text(I18N_KEYS.SERVER_NO_SHUFFLE_DECK) }}</span>
 			</div>

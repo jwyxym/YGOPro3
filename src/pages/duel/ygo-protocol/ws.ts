@@ -11,25 +11,25 @@ class Ws {
 		autoStart: true
 	});
 	connect = async (address : string, call_back : {
-		on_connect ?: () => Promise<void>
-		on_message ?: (messgae : Msg) => Promise<void>
-		on_disconnect ?: () => Promise<void>
+		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
+		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
+		on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 	}) : Promise<boolean> => {
 		try {
 			if (this.ws)
 				return false;
 			this.ws = await WebSocket.connect(address);
-			await call_back.on_connect?.();
+			await call_back.on_connect?.(this.send);
 			this.ws.addListener((msg : Message) => {
 				switch (msg.type) {
 					case 'Binary':
 						this.queue.add(
-							async () => await call_back.on_message?.(new Msg(msg.data))
+							async () => await call_back.on_message?.(new Msg(msg.data), this.send)
 						);
 						break;
 					case 'Close': 
 						this.queue.add(
-							async () => await call_back.on_disconnect?.()
+							async () => await call_back.on_disconnect?.(this.send)
 						);
 				};
 			});

@@ -12,7 +12,7 @@ mod lflist;
 mod model;
 mod request;
 mod file;
-pub use crate::game::{
+pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
 	file::{File, FileContent},

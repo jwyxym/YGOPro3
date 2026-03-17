@@ -26,7 +26,11 @@
 				<div>
 					<Button
 						:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
-						@click = "emit('connect', server)"
+						@click = "emit('connect', {
+							name : server.name,
+							pass : server.pass,
+							address : server.address
+						})"
 					/>
 				</div>
 			</div>
@@ -62,7 +66,7 @@
 			`;
 		}),
 		options : computed(() => {
-			return Array.from(mainGame.servers).map(([k, v]) => ({ label: k, value: v }));
+			return Array.from(mainGame.servers).map(([k, v]) => ({ label: v, value: k }));
 		}),
 	});
 

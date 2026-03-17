@@ -1,4 +1,4 @@
-use crate::game::{PIC_REGEX, cdb::Cdb};
+use super::{PIC_REGEX, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};

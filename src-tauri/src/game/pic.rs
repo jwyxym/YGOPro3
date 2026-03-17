@@ -1,4 +1,4 @@
-use crate::game::file::File;
+use super::File;
 use std::{collections::BTreeMap, path::Path};
 use serde::Serialize;
 use walkdir::WalkDir;

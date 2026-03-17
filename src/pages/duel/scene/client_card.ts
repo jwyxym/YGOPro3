@@ -4,7 +4,7 @@ import { gsap } from 'gsap';
 import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
-import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
+import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
@@ -29,6 +29,10 @@ class Client_Card {
 	def : number;
 	scale : number;
 	overlay : number;
+	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
+	need_change = {
+		type : false
+	};
 
 	constructor () {
 		this.owner = 0;
@@ -51,6 +55,15 @@ class Client_Card {
 		this.overlay = 0;
 		this.pos = 0;
 		this.three = this.init.on();
+		this.activatable = new Map([
+			[COMMAND.ACTIVATE, []],
+			[COMMAND.SUMMON, []],
+			[COMMAND.SPSUMMON, []],
+			[COMMAND.SSET, []],
+			[COMMAND.MSET, []],
+			[COMMAND.REPOS, []],
+			[COMMAND.ATTACK, []]
+		]);
 	};
 
 	init = {
@@ -58,7 +71,7 @@ class Client_Card {
 			const dom = document.createElement('div');
 			Object.assign(dom.style, {
 				opacity : '0',
-				fontFamily : 'AtkDef',
+				fontFamily : 'ATK',
 				color : 'white',
 				transition : 'all 0.2s ease'
 			});
@@ -67,8 +80,7 @@ class Client_Card {
 			dom.appendChild(this.init.info());
 			dom.appendChild(this.init.counter());
 			dom.appendChild(this.init.btn());
-			if (this.location !== LOCATION.NONE)
-				dom.style.opacity = '1';
+			setTimeout(() => dom.style.opacity = '1', 0);
 			return new CSS.CSS3DObject(dom);
 		},
 		img : (src : string) : HTMLImageElement => {
@@ -108,12 +120,11 @@ class Client_Card {
 				opacity : '1',
 				position : 'absolute',
 				bottom : '40px',
-				left : '-10px',
+				left : `-${(SIZE.HEIGHT - SIZE.WIDTH) / 2}px`,
 				height : '16px',
 				width : `${SIZE.HEIGHT}px`,
 				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-				fontSize : '20px',
-				fontFamily : 'AtkDef',
+				fontSize : '18px',
 				transition : 'all 0.2s ease',
 				userSelect : 'none',
 				pointerEvents : 'none'
@@ -133,6 +144,7 @@ class Client_Card {
 					width : '28px',
 					position : 'absolute',
 					display : 'flex',
+					gap : '2px',
 					opacity : '0',
 					transition : 'all 0.2s ease'
 				});
@@ -156,13 +168,12 @@ class Client_Card {
 				opacity : '1',
 				position : 'absolute',
 				bottom : '20px',
-				left : '-10px',
+				left : `-${(SIZE.HEIGHT - SIZE.WIDTH) / 2}px`,
 				height : '16px',
 				width : `${SIZE.HEIGHT}px`,
 				color : 'white',
 				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
 				fontSize : '20px',
-				fontFamily : 'AtkDef',
 				alignItems: 'center',
 				transition : 'all 0.2s ease',
 				userSelect: 'none'
@@ -198,13 +209,15 @@ class Client_Card {
 				KEYS.SCALE,
 			]) {
 				const img = document.createElement('img');
-				img.classList.add(i[0]);
+				img.classList.add(i);
 				img.classList.add('btn');
 				Object.assign(img.style, {
 					height : '100%',
+					opacity : '0',
+					transition : 'all 0.1s ease',
 					display : 'none'
 				});
-				const srcs = mainGame.get.textures(KEYS.BTN, i[1]) as [string, string];
+				const srcs = mainGame.get.textures(KEYS.BTN, i) as [string, string];
 				img.src = srcs[0];
 				img.addEventListener('mouseenter', () => {
 					img.src = srcs[1];
@@ -228,121 +241,38 @@ class Client_Card {
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[2] as HTMLDivElement,
 			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement,
-			btn : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
+			btn : (query ?: string) : HTMLDivElement => query ? this.get.el.btn().querySelector('.' + query) as HTMLDivElement
+				: this.three.element.children[4] as HTMLDivElement,
 		}
 	};
 
-	//移动顺序：pwner -> location -> pos -> atk/info/counter
 	set = {
-		owner : (owner : number) : gsap.core.Tween | void => {
-			if (this.owner === owner) return;
+		owner : (owner : number) : void => {
 			this.owner = owner;
-			return gsap.to(this.three.rotation, {
-				z : this.owner * Math.PI,
-				duration : 0.2
-			});
 		},
-		pos : (pos : number) : gsap.core.Timeline | void => {
+		pos : (pos : number) : void => {
 			if (this.pos === pos) return;
 			const img = this.get.el.img();
-			if (this.pos === POS.NONE) {
-				this.pos = pos;
-				switch (pos) {
-					case POS.FACEDOWN_ATTACK:
-						img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
-						break;
-					case POS.FACEDOWN_DEFENSE:
-						img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
-						break;
-					case POS.FACEUP_ATTACK:
-						img.src = this.pic ?? mainGame.unknown.pic;
-						break;
-					case POS.FACEUP_DEFENSE:
-						img.src = this.pic ?? mainGame.unknown.pic;
-						break;
-				}
-			} else {
-				const tl = gsap.timeline();
-				const turn = (el : HTMLImageElement, pic : string) => {
-					tl.set(el, {
-						rotationY : 0
-					});
-					tl.to(el, {
-						rotationY : 90,
-						duration : 0.1,
-						onComplete : () => (el.src = pic ?? '') as unknown as void
-					});
-					tl.set(el, {
-						rotationY : -90
-					}, 0.125);
-					tl.to(el, {
-						rotationY : 0,
-						duration : 0.1
-					}, 0.125);
-				}
-				if ((pos & POS.FACEDOWN) && !(this.pos & POS.FACEDOWN))
-					turn(img, mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string);
-				else if ((pos & POS.FACEUP) && !(this.pos & POS.FACEUP))
-					turn(img, this.pic ?? mainGame.unknown.pic);
-				if ((pos & POS.ATTACK) && !(this.pos & POS.ATTACK))
-					tl.to(img, {
-						rotationZ : 0,
-						duration : 0.1,
-					}, 0);
-				else if ((pos & POS.DEFENSE) && !(this.pos & POS.DEFENSE))
-					tl.to(img, {
-						rotationZ : - 90,
-						duration : 0.1,
-					}, 0);
-				if ((pos & POS.FACEDOWN) || !(this.location & LOCATION.ONFIELD)) {
-					this.get.el.atk().style.opacity = '0';
-					this.get.el.info().style.opacity = '0';
-				} else if ((pos & POS.FACEUP) && (this.location & LOCATION.ONFIELD)) {
-					this.get.el.atk().style.opacity = '0';
-					this.get.el.info().style.opacity = '0';
-				}
-				this.pos = pos;
-				return tl;
+			this.pos = pos;
+			switch (pos) {
+				case POS.NONE:
+				case POS.FACEDOWN_ATTACK:
+					img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
+					break;
+				case POS.FACEDOWN_DEFENSE:
+					img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
+					break;
+				case POS.FACEUP_ATTACK:
+					img.src = this.pic ?? mainGame.unknown.pic;
+					break;
+				case POS.FACEUP_DEFENSE:
+					img.src = this.pic ?? mainGame.unknown.pic;
+					break;
 			}
 		},
-		location : (location : number, seq : number) : gsap.core.Timeline | void => {
-			if (this.location === location && this.seq === seq && location !== LOCATION.NONE) return;
-			if (this.location === LOCATION.NONE) {
-				this.seq = seq;
-				this.location = location;
-				const axis = Axis.computed.card(this);
-				this.three.position.set(...axis.get.xyz());
-				this.three.element.style.opacity = '1';
-			} else {
-				this.seq = seq;
-				this.location = location;
-				if (location !== LOCATION.HAND) {
-					const axis = Axis.computed.card(this);
-					const tl = gsap.timeline();
-					if (this.three.position.z < axis.z!) {
-						tl.to(this.three.position, {
-							z : axis.z,
-							duration : 0.05
-						});
-						tl.to(this.three.position, {
-							x : axis.x,
-							y : axis.y,
-							duration : 0.15
-						}, 0.05);
-					} else {
-						tl.to(this.three.position, {
-							x : axis.x,
-							y : axis.y,
-							duration : 0.15
-						});
-						tl.to(this.three.position, {
-							z : axis.z,
-							duration : 0.05
-						}, 0.15);
-					}
-					return tl;
-				}
-			}
+		location : (location : number, seq : number) : void => {
+			this.seq = seq;
+			this.location = location;
 		},
 		id : (id : number) : Client_Card => {
 			if (id === 0)
@@ -353,62 +283,23 @@ class Client_Card {
 			return this;
 		},
 		pic : (pic : string) : Client_Card => {
-			if (this.pic !== pic) {
-				this.pic = pic;
-				if (this.pos & POS.FACEUP)
-					this.get.el.img().src = this.pic;
-			}
+			this.pic = pic;
+			if (this.pos & POS.FACEUP)
+				this.get.el.img().src = this.pic;
 			return this;
 		},
-		atk : async (atk : number, def : number) : Promise<Client_Card> => {
-			if (this.atk !== atk || this.def !== def) {
-				this.atk = atk;
-				this.def = def;
-				const el = this.get.el.atk();
-				const text = this.type & TYPE.LINK ? this.atk.toString() : `${this.atk ?? 0}/${this.def ?? 0}`;
-				if (el.style.opacity === '1') {
-					el.style.opacity = '0';
-					await mainGame.sleep(200);
-					el.innerText = text;
-					el.style.opacity = '1';
-				} else
-					el.innerText = text;
-			}
+		atk : (atk : number, def : number) : Client_Card => {
+			this.atk = atk;
+			this.def = def;
 			return this;
 		},
 		type : async (type : number) : Promise<Client_Card> => {
-			if (this.type !== type) {
-				this.type = type;
-				const elements : Array<HTMLDivElement> = [];
-				if (this.type & TYPE.LINK) {
-					this.get.el.info(KEYS.LINK).querySelector('span')!.innerText = this.link.toString();
-					elements.push(this.get.el.info(KEYS.LINK));
-				} else if (this.type & TYPE.XYZ) {
-					this.get.el.info(KEYS.RANK).querySelector('span')!.innerText = this.rank.toString();
-					this.get.el.info(KEYS.OVERLAY).querySelector('span')!.innerText = this.overlay.toString();
-					elements.push(this.get.el.info(KEYS.RANK));
-					elements.push(this.get.el.info(KEYS.OVERLAY));
-				} else if (this.type & TYPE.PENDULUM && this.location & LOCATION.SZONE && [0, 4].includes(this.seq)) {
-					this.get.el.info(KEYS.SCALE).querySelector('span')!.innerText = this.scale.toString();
-					elements.push(this.get.el.info(KEYS.SCALE));
-				} else if (this.type & TYPE.TUNER) {
-					this.get.el.info(KEYS.TUNER).querySelector('span')!.innerText = this.level.toString();
-					elements.push(this.get.el.info(KEYS.TUNER));
-				} else {
-					this.get.el.info(KEYS.LEVEL).querySelector('span')!.innerText = this.level.toString();
-					elements.push(this.get.el.info(KEYS.TUNER));
-				}
-				elements.forEach((i, v) => {
-					i.style.transform = `translateX(${v * 28}px)`;
-					if (this.pos & POS.FACEUP)
-						setTimeout(() => i.style.opacity = '1', 200);
-				});
-				await mainGame.sleep(200);
-			}
+			this.need_change.type = this.type !== type;
+			this.type = type;
 			return this;
 		},
 		counter : async (counter : number, ct : number, add : boolean = true) : Promise<Client_Card> => {
-			const el : HTMLElement | null = this.get.el.counter().querySelector('.' + counter.toString());
+			const el : HTMLElement | null = this.get.el.counter().querySelector('.COUNTER' + counter.toString());
 			const sort = () : void => {
 				let v = 0;
 				(Array.from(this.get.el.counter().children) as Array<HTMLElement>)
@@ -416,11 +307,13 @@ class Client_Card {
 					.forEach(i => {
 						i.style.transform = `translateX(${v * 28}px)`;
 						v ++;
-					});
+					});                                        
 			}
+			console.log(this.get.el.counter())
 			if (el) {
 				const span : HTMLSpanElement = el.querySelector('span')!;
 				const count : number = add ? Math.max(0, ct + Number(span.innerText)) : ct;
+				console.log(count)
 				if (!isNaN(count) && count > 0) {
 					if (el.style.opacity === '1') {
 						span.style.opacity = '0';
@@ -437,7 +330,7 @@ class Client_Card {
 			} else if (ct > 0) {
 				const div = document.createElement('div');
 				//为指示物div设置class，class为指示物编号
-				div.classList.add(counter.toString());
+				div.classList.add('COUNTER' + counter.toString());
 				Object.assign(div.style, {
 					height : '100%',
 					width : '28px',
@@ -464,10 +357,256 @@ class Client_Card {
 				div.style.opacity = '1';
 			}
 			return this;
-		}
+		},
+		activate : async (flag : number, index : number, desc ?: number) => this.activatable
+			.get(flag)?.push({ index : index, desc : desc})
 	};
 
-	clear = () : void => {};
+	update = async () : Promise<void> => {
+		const activate = async () : Promise<void> => {
+			const style = this.get.el.img().style;
+			style.boxShadow = (() => {
+				if ([COMMAND.ACTIVATE, COMMAND.SPSUMMON]
+				.some(i => this.activatable.get(i)?.length ?? false))
+					return '0 0 8px yellow';
+				else if (Array.from(this.activatable.values())
+					.some(i => i.length))
+					return '0 0 8px rgba(119, 166, 255, 1)';
+				else return 'initial';
+			})();
+			await mainGame.sleep(100);
+		};
+		const owner = () : gsap.core.Tween | void => {
+			if (this.three.rotation.z !== this.owner * Math.PI)
+				return gsap.to(this.three.rotation, {
+					z : this.owner * Math.PI,
+					duration : 0.2
+				});
+		};
+		const position = () : gsap.core.Timeline | void => {
+			const tl = gsap.timeline();
+			const turn = (el : HTMLImageElement, pic : string) => {
+				tl.set(el, {
+					rotationY : 0
+				});
+				tl.to(el, {
+					rotationY : 90,
+					duration : 0.1,
+					onComplete : () => (el.src = pic ?? '') as unknown as void
+				});
+				tl.set(el, {
+					rotationY : -90
+				}, 0.125);
+				tl.to(el, {
+					rotationY : 0,
+					duration : 0.1
+				}, 0.125);
+			};
+			const img = this.get.el.img();
+			const back = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
+			const is_back = img.src === back;
+			if ((this.pos & POS.FACEDOWN) && !is_back)
+				turn(img, back);
+			else if ((this.pos & POS.FACEUP) && is_back)
+				turn(img, this.pic ?? mainGame.unknown.pic);
+			if ((this.pos & POS.ATTACK) && gsap.getProperty(img, 'rotationZ'))
+				tl.to(img, {
+					rotationZ : 0,
+					duration : 0.1,
+				}, 0);
+			else if ((this.pos & POS.DEFENSE) && !gsap.getProperty(img, 'rotationZ'))
+				tl.to(img, {
+					rotationZ : - 90,
+					duration : 0.1,
+				}, 0);
+			return tl;
+		};
+		const location = () : gsap.core.Timeline | void => {
+			const axis = Axis.computed.card(this);
+			const tl = gsap.timeline();
+			if (this.three.position.x === axis.x
+				&& this.three.position.y === axis.y
+				&& this.three.position.z === axis.z
+			) return;
+			if (this.three.position.z < axis.z!) {
+				tl.to(this.three.position, {
+					z : axis.z,
+					duration : 0.05
+				});
+				tl.to(this.three.position, {
+					x : axis.x,
+					y : axis.y,
+					duration : 0.15
+				}, 0.05);
+			} else {
+				tl.to(this.three.position, {
+					x : axis.x,
+					y : axis.y,
+					duration : 0.15
+				});
+				tl.to(this.three.position, {
+					z : axis.z,
+					duration : 0.05
+				}, 0.15);
+			}
+			return tl;
+		};
+		const atk = () : gsap.core.Timeline | void => {
+			const atk = this.get.el.atk();
+			const text = this.type & TYPE.LINK ? this.atk.toString() : `${this.atk ?? 0}/${this.def ?? 0}`;
+			if (atk.innerText === text)
+				return;
+			if (gsap.getProperty(atk, 'opacity')) {
+				const tl = gsap.timeline();
+				tl.to(atk, {
+					opacity : 0,
+					duration : 0.1,
+					onComplete : () => atk.innerText = text as unknown as any
+				});
+				tl.to(atk, {
+					opacity : 1,
+					duration : 0.1
+				}, 0.1);
+				return tl;
+			} else
+				atk.innerText = text;
+			return;
+		};
+		const type = () : gsap.core.Timeline | void => {
+			if (!this.need_change.type) return;
+			this.need_change.type = false;
+			const elements : Array<HTMLDivElement> = [];
+			if (this.type & TYPE.LINK) {
+				this.get.el.info(KEYS.LINK).querySelector('span')!.innerText = this.link.toString();
+				elements.push(this.get.el.info(KEYS.LINK));
+			} else if (this.type & TYPE.XYZ) {
+				this.get.el.info(KEYS.RANK).querySelector('span')!.innerText = this.rank.toString();
+				this.get.el.info(KEYS.OVERLAY).querySelector('span')!.innerText = this.overlay.toString();
+				elements.push(this.get.el.info(KEYS.RANK));
+				elements.push(this.get.el.info(KEYS.OVERLAY));
+			} else if (this.type & TYPE.PENDULUM && this.location & LOCATION.SZONE && [0, 4].includes(this.seq)) {
+				this.get.el.info(KEYS.SCALE).querySelector('span')!.innerText = this.scale.toString();
+				elements.push(this.get.el.info(KEYS.SCALE));
+			} else if (this.type & TYPE.TUNER) {
+				this.get.el.info(KEYS.TUNER).querySelector('span')!.innerText = this.level.toString();
+				elements.push(this.get.el.info(KEYS.TUNER));
+			} else {
+				this.get.el.info(KEYS.LEVEL).querySelector('span')!.innerText = this.level.toString();
+				elements.push(this.get.el.info(KEYS.TUNER));
+			}
+			const tl = gsap.timeline();
+			Array.from(this.get.el.info().children).forEach((i) => {
+				if (elements.includes(i as HTMLDivElement)) {
+					if (gsap.getProperty(i, 'opacity'))
+						tl.to(i, {
+							opacity : 0,
+							duration : 0.1
+						});
+					tl.set(i, {
+						x : elements.indexOf(i as HTMLDivElement) * 30,
+					}, 0.1);
+					tl.to(i, {
+						opacity : 1,
+						duration : 0.1
+					}, 0.1);
+				} else {
+					tl.to(i, {
+						opacity : 0,
+						duration : 0.1
+					});
+					tl.set(i, {
+						x : 0,
+					}, 0.1);
+				}
+			});
+			return tl;
+		};
+		const activatable = async () : Promise<void> => {
+			const ACTIVATE = this.activatable.get(COMMAND.ACTIVATE)!;
+			const SUMMON = this.activatable.get(COMMAND.SUMMON)!;
+			const SPSUMMON = this.activatable.get(COMMAND.SPSUMMON)!;
+			const SSET = this.activatable.get(COMMAND.SSET)!;
+			const MSET = this.activatable.get(COMMAND.MSET)!;
+			const REPOS = this.activatable.get(COMMAND.REPOS)!;
+			const ATTACK = this.activatable.get(COMMAND.ATTACK)!;
+			const elements : Array<[HTMLDivElement, number]> = [];
+			const is_pendulum = (this.location & LOCATION.SZONE) && [0, 4].includes(this.seq) && this.type & TYPE.PENDULUM;
+
+			elements.push([this.get.el.btn(KEYS.SCALE), Number(!!ACTIVATE.find(i => i.desc === 1160))]);
+			elements.push([this.get.el.btn(KEYS.ACTIVATE), Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
+			elements.push([this.get.el.btn(KEYS.SUMMON), Number(!!SUMMON.length)]);
+			elements.push([this.get.el.btn(KEYS.PSUMMON), is_pendulum ? Number(!!SPSUMMON.length) : 0]);
+			elements.push([this.get.el.btn(KEYS.SPSUMMON), is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
+			elements.push([this.get.el.btn(KEYS.SSET), Number(!!SSET.length)]);
+			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
+			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
+			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
+			elements.forEach(i => i[0].style.opacity = '0');
+			await mainGame.sleep(100);
+			elements.forEach(i => {
+				i[0].style.opacity = i[1].toString();
+				setTimeout(() => i[0].style.display = !!i[1] ? 'initial' : 'none', 100);
+			});
+			await mainGame.sleep(100);
+		};
+		if ((this.pos & POS.FACEDOWN) && !(this.location & LOCATION.ONFIELD)) {
+			this.get.el.info().style.opacity = '0';
+			this.get.el.atk().style.opacity = '0';
+			this.get.el.counter().style.opacity = '0';
+		} else {
+			this.get.el.info().style.opacity = '1';
+			this.get.el.atk().style.opacity = '1';
+			this.get.el.counter().style.opacity = '1';
+		}
+		const run = async () => {
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			const tl = gsap.timeline();
+			tl.add(owner() ?? gsap.timeline());
+			tl.add(location() ?? gsap.timeline());
+			tl.add(position() ?? gsap.timeline());
+			tl.add(atk() ?? gsap.timeline());
+			tl.add(type() ?? gsap.timeline());
+			tl.then(() => resolve?.());
+			return promise;
+		}
+		await Promise.all([
+			run(),
+			activatable(),
+			activate()
+		]);
+	};
+
+	clear = () : void => {
+		this.owner = 0;
+		this.location = 0;
+		this.seq = 0;
+		this.id = 0;
+		this.alias = 0;
+		this.card = undefined;
+		this.pic = undefined;
+		this.alias = 0;
+		this.type = 0;
+		this.level = 0;
+		this.rank = 0;
+		this.link = 0;
+		this.attribute = 0;
+		this.race = 0;
+		this.atk = 0;
+		this.def = 0;
+		this.scale = 0;
+		this.overlay = 0;
+		this.pos = 0;
+		this.activatable = new Map([
+			[COMMAND.ACTIVATE, []],
+			[COMMAND.SUMMON, []],
+			[COMMAND.SPSUMMON, []],
+			[COMMAND.SSET, []],
+			[COMMAND.MSET, []],
+			[COMMAND.REPOS, []],
+			[COMMAND.ATTACK, []]
+		]);
+	};
 };
 
 export default Client_Card;

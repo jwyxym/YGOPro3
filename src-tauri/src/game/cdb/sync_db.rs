@@ -1,3 +1,4 @@
+use super::STMT;
 use rusqlite::{Connection, Statement, Row};
 use anyhow::{Result, Error, anyhow};
 use std::{mem, ffi::c_char};
@@ -21,7 +22,7 @@ pub fn init (mut data: Vec<u8>) -> Result<Vec<(u32, (Vec<u32>, Vec<String>))>, E
 		);
 		match rc {
 			0 => {
-				let mut stmt: Statement<'_> = conn.prepare("SELECT * FROM datas, texts WHERE datas.id = texts.id")?;
+				let mut stmt: Statement<'_> = conn.prepare(STMT)?;
 				let iter = stmt
 					.query_map([], |row: &Row<'_>| {
 						let int: Vec<u32> = (0..12)

@@ -67,18 +67,18 @@ class Msg {
 			this.index += 4;
 			return this;
 		},
-		str : (str : string) : Msg => {
+		str : (str : string, len ?: number) : Msg => {
 			if (this.readonly)
 				return this;
 			const data = Buffer.from(str, 'utf16le');
 			this.content = Buffer.concat([this.content.subarray(0, this.index), data, Buffer.alloc(256)]);
-			this.index += data.length;
+			this.index += len ?? data.length + 2;
 			return this;
 		}
 	};
 	slice = (len : number, start ?: number) : Msg | undefined => {
 		start = start ?? this.index;
-		if (this.index + len >= this.length())
+		if (this.index + len > this.length())
 			return undefined;
 		this.index += len;
 		return new Msg(this.content.subarray(start, len));
@@ -86,7 +86,14 @@ class Msg {
 	to_end = () : Msg => new Msg(this.index >= this.length() ? Buffer.from([])
 		: this.content.subarray(this.index));
 	concat = (data : WithImplicitCoercion<ArrayLike<number>> | Msg) : Msg => new Msg(Buffer.concat([this.content, data instanceof Msg ? data.content : Buffer.from(data)]));
-	buffer = () : Uint8Array => new Uint8Array(this.content.subarray(0, this.index).buffer);
-	array = () : Array<number> => Array.from(this.content.subarray(0, this.index));
+	buffer = () : Uint8Array => {
+		const data = this.content.subarray(0, this.index);
+		const msg = Buffer.alloc(data.length + 2);
+		msg.writeUInt16LE(data.length, 0);
+		Buffer.from(data).copy(msg, 2);
+		console.log(new Uint8Array(msg.buffer, msg.byteOffset, msg.length))
+  		return new Uint8Array(msg.buffer, msg.byteOffset, msg.length);
+	};
+	array = () : Array<number> => Array.from(this.buffer());
 };
 export default Msg;

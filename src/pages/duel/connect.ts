@@ -1,5 +1,11 @@
 import { reactive } from 'vue';
 import Deck from '@/pages/deck/deck';
+import ws from './ygo-protocol/ws';
+import tcp from './ygo-protocol/tcp';
+import Protocol from './ygo-protocol/protocol';
+import Msg from './ygo-protocol/msg';
+import { CTOS } from './ygo-protocol/network';
+import mainGame from '@/script/game';
 
 class Wait {
 	players = [
@@ -31,6 +37,7 @@ class Wait {
 
 	};
 	deck = async (deck ?: Deck) => {
+
 	};
 	duelist = async () => {
 
@@ -43,9 +50,40 @@ class Wait {
 const connect = reactive({
 	state : 0 as 0 | 1 | 2 | 3,
 	wait : new Wait(),
+	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; }) => {
 		switch (connect.state) {
 			case 0:
+				const protocol = new Protocol(
+					async () : Promise<void> => connect.state = 2 as any,
+					async () : Promise<void> => connect.state = 3 as any
+				);
+				const p = {
+					on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
+						connect.send = send;
+						connect.state = 1;
+						await send(new Msg()
+							.write.uint8(CTOS.EXTERNAL_ADDRESS)
+							.write.uint32(0)
+							.write.str(para!.address));
+						await send(new Msg()
+							.write.uint8(CTOS.PLAYER_INFO)
+							.write.str(para!.name, 40));
+						await send(new Msg()
+							.write.uint8(CTOS.JOIN_GAME)
+							.write.uint16(mainGame.version)
+							.write.uint16(0)
+							.write.uint32(0)
+							.write.str(para!.pass, 40));
+					},
+					on_message : protocol.read,
+					on_disconnect : async () : Promise<void> => {
+						protocol.clear();
+						connect.state = 0;
+					}
+				};
+				const c = para!.address.startsWith('ws') ? ws : tcp;
+				await c.connect(para!.address, p);
 				break;
 			case 1:
 				break;
@@ -58,7 +96,9 @@ const connect = reactive({
 	},
 	clear : () => {
 		connect.state = 0;
-	},
+		connect.wait = new Wait();
+		connect.send = undefined;
+	}
 });
 
 

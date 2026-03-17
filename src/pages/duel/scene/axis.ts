@@ -1,6 +1,7 @@
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 import Client_Card from './client_card';
 import * as SIZE from './scene-size';
+import { duel } from './scene';
 
 class Axis {
 	x : number;
@@ -108,21 +109,31 @@ class Axis {
 
 	static computed = {
 		card : (card : Client_Card) : Axis => {
-			const loc = card.location & LOCATION.ONFIELD;
-			const axis : Axis = Axis.map.get(loc ? (
-				loc | (card.seq << 16)
-			) : card.location)![card.owner];
-			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
-			let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
-			const z : number  = (loc ? card.overlay : card.seq) * SIZE.TOP;
-			if (axis.x % 3 === 0 && axis.x !== 0) {
-				y += SIZE.OFFSET * 
-					(axis.y > 0 ? 1
-						: axis.y < 0 ? - 1
-						: axis.x === - 3 ? 1 : - 1
-					)
+			if (card.location === LOCATION.HAND) {
+				const width = SIZE.WIDTH * SIZE.MAX_HAND;
+				const axis : Axis = Axis.map.get(card.location)![card.owner];
+				const ct = duel.get.cards(LOCATION.HAND).length;
+				const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.WIDTH) * card.seq * (!!card.owner ? -1 : 1);
+				const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
+				const z = card.seq * SIZE.GAP.HAND + (!!card.owner ? 0 : 60);
+				return new Axis(x, y, z);
+			} else {
+				const loc = card.location & LOCATION.ONFIELD;
+				const axis : Axis = Axis.map.get(loc ? (
+					loc | (card.seq << 16)
+				) : card.location)![card.owner];
+				const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
+				let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
+				const z : number  = (loc ? card.overlay : card.seq) * SIZE.TOP;
+				if (axis.x % 3 === 0 && axis.x !== 0) {
+					y += SIZE.OFFSET * 
+						(axis.y > 0 ? 1
+							: axis.y < 0 ? - 1
+							: axis.x === - 3 ? 1 : - 1
+						)
+				}
+				return new Axis(x, y, z);
 			}
-			return new Axis(x, y, z);
 		},
 		back : (axis : Axis) : Axis => {
 			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;

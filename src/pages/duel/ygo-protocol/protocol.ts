@@ -3,7 +3,6 @@ import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import Msg from './msg';
 import { ERROR, STOC } from './network';
-import connect from '../connect';
 
 class Protocol {
 	current_msg ?: number;
@@ -11,14 +10,23 @@ class Protocol {
 		concurrency: 1,
 		autoStart: true
 	});
-	read = async (msg : Msg) => {
+	on_join_room ?: () => Promise<void>;
+	on_change_side ?: () => Promise<void>;
+	constructor (
+		on_join_room : () => Promise<void>,
+		on_change_side : () => Promise<void>
+	) {
+		this.on_join_room = on_join_room;
+		this.on_change_side = on_change_side;
+	};
+	read = async (msg : Msg, send : (msg : Msg) => Promise<void>) : Promise<void> => {
 		const protocol = msg.read.uint8()!;
 		if (!protocol)
 			return;
-		await this.stoc.get(protocol)?.(msg);
+		await this.stoc.get(protocol)?.(msg, send);
 	};
-	stoc = new Map<number, (msg : Msg) => Promise<void>>([
-		[STOC.GAME_MSG, async (msg : Msg) => {
+	stoc = new Map<number, (msg : Msg, send ?: (msg : Msg) => Promise<void>) => Promise<void>>([
+		[STOC.GAME_MSG, async (msg : Msg, send ?: (msg : Msg) => Promise<void>) => {
 			const protocol = msg.read.uint8()!;
 			if (!protocol)
 				return;
@@ -27,7 +35,7 @@ class Protocol {
 					msg.read.uint16();
 					this.current_msg = msg.read.uint8();
 					msg.index -= 3;
-					await this.msg.get(protocol)?.(msg);
+					await this.msg.get(protocol)?.(msg, send!);
 				}
 			);
 		}],
@@ -75,9 +83,10 @@ class Protocol {
 			}
 		}],
 	]);
-	msg = new Map<number, (msg : Msg) => Promise<void>>([
+	msg = new Map<number, (msg : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>>([
 
 	]);
+	clear = () : void => this.current_msg = undefined;
 };
 
 export default Protocol;

@@ -99,7 +99,10 @@ class Duel {
 				const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.HEIGHT) * v * (!!owner ? -1 : 1);
 				const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
 				const z = v * SIZE.GAP.HAND + (!!owner ? 0 : 60);
-				if (card.three.position.x !== x || card.three.position.y !== y || card.three.position.z !== z)
+				if (card.three.position.x !== x ||
+					card.three.position.y !== y ||
+					card.three.position.z !== z
+				)
 					tl.to(card.three.position, {
 						x : x,
 						y : y,
@@ -145,7 +148,12 @@ class Duel {
 			this.scene.add(btn.three);
 			this.btn = btn;
 		},
-		card : (owner : number, location : number, seq : number, pos : number = POS.NONE, id ?: number) : void => {
+		card : (owner : number,
+			location : number,
+			seq : number,
+			pos : number = POS.NONE,
+			id ?: number
+		) : Client_Card => {
 			const card = reactive(new Client_Card());
 			card.set.owner(owner);
 			card.set.location(location, seq);
@@ -153,24 +161,18 @@ class Duel {
 			if (id)
 				card.set.id(id);
 
-			card.three.position.set(...Axis.computed.card(card).get.xyz());
+			card.three.position
+				.set(...Axis.computed.card(card).get.xyz());
 			this.scene.add(card.three);
+			return card;
 		}
 	};
 
-	move = async (card : Client_Card, owner : number, location : number, seq : number, pos : number = POS.NONE, id ?: number) : Promise<void> => {
-		let resolve = undefined as (() => void) | undefined;
-		const promise = new Promise<void>((r) => resolve = r);
-		const tl = gsap.timeline();
-		tl.add(card.set.owner(owner) ?? gsap.timeline());
-		tl.add(card.set.location(location, seq) ?? gsap.timeline());
-		tl.add(card.set.pos(pos) ?? gsap.timeline());
-		if (id)
-			card.set.id(id);
-		tl.then(() => resolve?.());
-		
-		return promise;
+	get = {
+		cards : (loc : number) => this.cards.filter(i => i.location & loc)
 	};
+
+	update = async () : Promise<void> => Promise.all(this.cards.map(i => i.update())).then(() => {});
 };
 
 const duel = new Duel();
