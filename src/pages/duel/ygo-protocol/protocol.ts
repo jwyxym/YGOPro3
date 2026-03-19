@@ -6,10 +6,6 @@ import { ERROR, STOC } from './network';
 
 class Protocol {
 	current_msg ?: number;
-	queue = new PQueue({ 
-		concurrency: 1,
-		autoStart: true
-	});
 	on_join_room ?: () => Promise<void>;
 	on_change_side ?: () => Promise<void>;
 	constructor (
@@ -27,17 +23,11 @@ class Protocol {
 	};
 	stoc = new Map<number, (msg : Msg, send ?: (msg : Msg) => Promise<void>) => Promise<void>>([
 		[STOC.GAME_MSG, async (msg : Msg, send ?: (msg : Msg) => Promise<void>) => {
-			const protocol = msg.read.uint8()!;
+			const protocol = msg.read.uint8();
 			if (!protocol)
 				return;
-			this.queue.add(
-				async () => {
-					msg.read.uint16();
-					this.current_msg = msg.read.uint8();
-					msg.index -= 3;
-					await this.msg.get(protocol)?.(msg, send!);
-				}
-			);
+			this.current_msg = protocol;
+			await this.msg.get(protocol)?.(msg, send!);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();

@@ -29,7 +29,7 @@ class Client_Card {
 	def : number;
 	scale : number;
 	overlay : number;
-	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
+	activatable : Map<number, Array<{ desc ?: number; index : number; code : number }>>;
 	need_change = {
 		type : false
 	};
@@ -183,16 +183,16 @@ class Client_Card {
 		btn : () : HTMLDivElement => {
 			const child = document.createElement('div');
 			Object.assign(child.style, {
-				opacity : '1',
+				opacity : '0',
 				height : '48px',
 				minWidth : '0px',
-				display : 'none',
+				display : 'flex',
 				gap : '2px',
 				justifyContent: 'center',
 				position : 'absolute',
 				top : '0px',
 				left : '50%',
-				transform: 'translateX(-50%)',
+				transform: 'translate(-50%, -50px)',
 				transition : 'all 0.2s ease'
 			});
 			for (const i of [
@@ -358,8 +358,8 @@ class Client_Card {
 			}
 			return this;
 		},
-		activate : async (flag : number, index : number, desc ?: number) => this.activatable
-			.get(flag)?.push({ index : index, desc : desc})
+		activate : async (flag : number, index : number, code : number, desc ?: number) => this.activatable
+			.get(flag)?.push({ index : index, desc : desc, code : code})
 	};
 
 	update = async () : Promise<void> => {
@@ -577,6 +577,17 @@ class Client_Card {
 		]);
 	};
 
+	click = async () : Promise<void> => {
+		const btn = this.get.el.btn();
+		Object.assign(btn.style, btn.style.opacity === '1' ? {
+			opacity : '0',
+			transform: 'translate(-50%, -50px)'
+		} : {
+			opacity : '1',
+			transform: 'translate(-50%, 0)'
+		});
+	};
+
 	clear = () : void => {
 		this.owner = 0;
 		this.location = 0;
@@ -597,6 +608,7 @@ class Client_Card {
 		this.scale = 0;
 		this.overlay = 0;
 		this.pos = 0;
+		this.need_change.type = true;
 		this.activatable = new Map([
 			[COMMAND.ACTIVATE, []],
 			[COMMAND.SUMMON, []],
