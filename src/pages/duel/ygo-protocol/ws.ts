@@ -1,8 +1,9 @@
 import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
 import PQueue from 'p-queue';
 
-import fs from '../../../script/fs';
+import fs from '@/script/fs';
 import Msg from './msg';
+import { STOC } from './network';
 
 class Ws {
 	ws ?: WebSocket;
@@ -20,12 +21,17 @@ class Ws {
 				return false;
 			this.ws = await WebSocket.connect(address);
 			await call_back.on_connect?.(this.send);
-			this.ws.addListener((msg : Message) => {
-				switch (msg.type) {
+			this.ws.addListener((i : Message) => {
+				switch (i.type) {
 					case 'Binary':
-						this.queue.add(
-							async () => await call_back.on_message?.(new Msg(msg.data), this.send)
-						);
+						const msg = new Msg(i.data);
+						msg.read.uint16();
+						const protocal = msg.read.uint8();
+						msg.index --;
+						protocal === STOC.CHAT ? call_back.on_message?.(msg, this.send)
+							: this.queue.add(
+								async () => await call_back.on_message?.(msg, this.send)
+							);
 						break;
 					case 'Close': 
 						this.queue.add(

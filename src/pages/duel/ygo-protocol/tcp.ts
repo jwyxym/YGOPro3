@@ -3,6 +3,7 @@ import PQueue from 'p-queue';
 
 import fs from '@/script/fs';
 import Msg from './msg';
+import { STOC } from './network';
 class Tcp {
 	cid = 'YGOPro3';
 	address = '';
@@ -33,7 +34,6 @@ class Tcp {
 	};
 	listen = async () : Promise<void> => {
 		await tcp.listen((x) => {
-			console.log(x)
 			if (x.payload.id === this.cid && this.address) {
 				if (x.payload.event.disconnect === this.address) {
 					this.clear();
@@ -41,7 +41,13 @@ class Tcp {
 					const msg = this.cache.concat(x.payload.event.message.data);
 					let len = msg.read.uint16();
 					while (len && msg.length() >= msg.index + len) {
-						this.queue.add(async () => await this.on_message?.(msg.slice(len!)!, this.send));
+						const protocal = msg.read.uint8();
+						msg.index --;
+						protocal === STOC.CHAT ?
+							this.on_message?.(msg.slice(len!)!, this.send)
+							: this.queue.add(
+								async () => await this.on_message?.(msg.slice(len!)!, this.send)
+							);
 						len = msg.read.uint16();
 					}
 					msg.index -= 2;
