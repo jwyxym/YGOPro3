@@ -56,10 +56,10 @@ const URL_ASSETS_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ta
 const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/game_version.txt/download";
 
 pub async fn init (app: &AppHandle) -> Result<(), Error> {
-	let game: RwLock<Game> = RwLock::new(Game::init(app, false).await?);
-	GAME.get_or_init(|| async {
-		game
-	}).await;
+	if !GAME.get().is_some() {
+		let game: RwLock<Game> = RwLock::new(Game::init(app, false).await?);
+		GAME.set(game)?;
+	}
 	Ok(())
 }
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {

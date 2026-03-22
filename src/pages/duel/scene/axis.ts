@@ -112,10 +112,10 @@ class Axis {
 			if (card.location === LOCATION.HAND) {
 				const width = SIZE.WIDTH * SIZE.MAX_HAND;
 				const axis : Axis = Axis.map.get(card.location)![card.owner];
-				const ct = duel.get.cards(LOCATION.HAND).length;
-				const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.WIDTH) * card.seq * (!!card.owner ? -1 : 1);
-				const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
-				const z = card.seq * SIZE.GAP.HAND + (!!card.owner ? 0 : 60);
+				const ct = duel.get.cards(card.owner, LOCATION.HAND).length;
+				const x = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x + (SIZE.HEIGHT - SIZE.WIDTH) / 2 * (card.owner ? 1 : - 1) + Math.min(width / ct, SIZE.WIDTH) * card.seq * (!!card.owner ? - 1 : 1);
+				const y = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y;
+				const z = card.seq * SIZE.GAP.HAND + 0;
 				return new Axis(x, y, z);
 			} else {
 				const loc = card.location & LOCATION.ONFIELD;

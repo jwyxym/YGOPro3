@@ -31,6 +31,16 @@
 				key = '0'
 			/>
 		</TransitionGroup>
+		<TransitionGroup tag = 'div' name = 'move_in'>
+			<Select_Cards
+				v-if = 'connect.select_cards.show'
+				:cards = 'connect.select_cards.cards'
+				:min = 'connect.select_cards.min'
+				:max = 'connect.select_cards.max'
+				:title = 'connect.select_cards.title'
+				key = '0'
+			/>
+		</TransitionGroup>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -44,9 +54,10 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import connect from './connect';
 	import Scene from './scene/scene';
+	
+	import Select_Cards from './selecter/cards.vue';
 
 	onMounted(() => {
-
 	});
 
 	onUnmounted(connect.clear);
@@ -74,7 +85,7 @@
 				transform: translate(-50%, -50%);
 			}
 		}
-		> div:last-child {
+		> div:nth-child(2) {
 			position: absolute;
 			right: 0;
 			bottom: 0;
@@ -100,6 +111,22 @@
 		&-enter-to,
 		&-leave-from {
 			opacity: 1;
+		}
+	}
+	.move_in {
+		&-enter-active,
+		&-leave-active {
+			transition: transform 0.1s ease;
+		}
+
+		&-enter-from,
+		&-leave-to {
+			transform: translateY(calc(100% / var(--scale)));
+		}
+
+		&-enter-to,
+		&-leave-from {
+			transform: translateY(0);
 		}
 	}
 </style>

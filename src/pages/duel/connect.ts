@@ -6,6 +6,7 @@ import Protocol from './ygo-protocol/protocol';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
 import mainGame from '@/script/game';
+import Client_Card from './scene/client_card';
 
 class Wait {
 	players = [
@@ -47,11 +48,22 @@ class Wait {
 	};
 };
 
+class SelectCards {
+	show = false;
+	cards : Array<Client_Card> = [];
+	min = 0;
+	max = 0;
+	title = '';
+};
+
 const connect = reactive({
 	state : 0 as 0 | 1 | 2 | 3,
 	wait : new Wait(),
+	select_cards : new SelectCards(),
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; }) => {
+		connect.select_cards.show = !connect.select_cards.show;
+		return;
 		switch (connect.state) {
 			case 0:
 				const protocol = new Protocol(
@@ -92,7 +104,6 @@ const connect = reactive({
 			case 3:
 				break;
 		}
-		connect.state > 2 ? connect.state = 0 : connect.state ++;
 	},
 	clear : () => {
 		connect.state = 0;

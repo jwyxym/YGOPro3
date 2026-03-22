@@ -1,4 +1,3 @@
-import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import Msg from './msg';

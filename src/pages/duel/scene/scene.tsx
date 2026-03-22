@@ -5,7 +5,7 @@ import { gsap } from 'gsap';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
-import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
+import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
@@ -52,7 +52,9 @@ class Duel {
 		this.element!.appendChild(this.renderer.domElement);
 		this.animate();
 		this.renderer.domElement.style.opacity = '1';
+		window.addEventListener('click', duel.click);
 	};
+
 	clear = () => {
 		cancelAnimationFrame(this.animation_id);
 		this.renderer = new CSS.CSS3DRenderer();
@@ -62,57 +64,75 @@ class Duel {
 		this.plaids.length = 0;
 		this.btn = null;
 		this.animation_id = 0;
+		window.removeEventListener('click', duel.click);
 	};
-	sort = (location : number, owner : 0 | 1) : gsap.core.Timeline => {
-		const tl = gsap.timeline();
-		if (location === LOCATION.DECK) {
-			const cards = this.cards.filter(i => i.owner === owner && i.location === location);
-			const len = cards.length;
-			if (len > 1) {
-				for (let v = 0; v < 4; v ++) {
-					const card = cards[len - 1];
-					tl.to(card.three.position, {
-						x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
-						duration : 0.05
-					}, 0 + v * 0.2);
-					const z = Math.floor(len / 2) * SIZE.TOP;
-					tl.to(card.three.position, {
-						z : z,
-						duration : 0.05
-					}, 0.05 + v * 0.2);
-					tl.to(card.three.position, {
-						x : `${!!owner ? '-' : '+'}=${SIZE.WIDTH}px`,
-						duration : 0.05
-					}, 0.1 + v * 0.2);
-					tl.to(card.three.position, {
-						z : len * SIZE.TOP,
-						duration : 0.05
-					}, 0.15 + v * 0.2);
+
+	sort = async (location : number, owner : 0 | 1) : Promise<void> => {
+		const sort = () : gsap.core.Timeline => {
+			const tl = gsap.timeline();
+			if (location === LOCATION.DECK) {
+				const cards = this.cards.filter(i => i.owner === owner && i.location === location);
+				const len = cards.length;
+				if (len > 1) {
+					for (let v = 0; v < 4; v ++) {
+						const card = cards[len - 1];
+						tl.to(card.three.position, {
+							x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+							duration : 0.05
+						}, 0 + v * 0.2);
+						const z = Math.floor(len / 2) * SIZE.TOP;
+						tl.to(card.three.position, {
+							z : z,
+							duration : 0.05
+						}, 0.05 + v * 0.2);
+						tl.to(card.three.position, {
+							x : `${!!owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+							duration : 0.05
+						}, 0.1 + v * 0.2);
+						tl.to(card.three.position, {
+							z : len * SIZE.TOP,
+							duration : 0.05
+						}, 0.15 + v * 0.2);
+					}
 				}
+			} else if (location === LOCATION.HAND) {
+				const width = SIZE.WIDTH * SIZE.MAX_HAND;
+				const axis = Axis.map.get(LOCATION.HAND)![owner];
+				const cards = this.cards.filter(i => i.owner === owner && i.location === location);
+				const ct = cards.length;
+				cards.forEach((card, v) => {
+					const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.HEIGHT) * v * (!!owner ? -1 : 1);
+					const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
+					const z = v * SIZE.GAP.HAND + (!!owner ? 0 : 60);
+					if (card.three.position.x !== x ||
+						card.three.position.y !== y ||
+						card.three.position.z !== z
+					)
+						tl.to(card.three.position, {
+							x : x,
+							y : y,
+							z : z,
+							duration : 0.15
+						}, 0);
+				});
 			}
-		} else if (location === LOCATION.HAND) {
-			const width = SIZE.WIDTH * SIZE.MAX_HAND;
-			const axis = Axis.map.get(LOCATION.HAND)![owner];
-			const cards = this.cards.filter(i => i.owner === owner && i.location === location);
-			const ct = cards.length;
-			cards.forEach((card, v) => {
-				const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.HEIGHT) * v * (!!owner ? -1 : 1);
-				const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
-				const z = v * SIZE.GAP.HAND + (!!owner ? 0 : 60);
-				if (card.three.position.x !== x ||
-					card.three.position.y !== y ||
-					card.three.position.z !== z
-				)
-					tl.to(card.three.position, {
-						x : x,
-						y : y,
-						z : z,
-						duration : 0.15
-					}, 0);
-			});
+			return tl;
 		}
-		return tl;
+		let resolve = undefined as (() => void) | undefined;
+		const promise = new Promise<void>((r) => resolve = r);
+		const tl = sort();
+		tl.then(() => resolve?.());
+		return promise;
 	};
+
+	
+	draw = async (player : number, ct : number) : Promise<void> => {
+		const deck = this.get.cards(player, LOCATION.DECK).reverse().slice(0, ct);
+		const hands = this.get.cards(player, LOCATION.HAND);
+		deck.forEach((i, v) => i.set.location(LOCATION.HAND, v + hands.length));
+		await Promise.all(deck.map(i => i.update()));
+	};
+
 	add = {
 		back : () : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
@@ -164,15 +184,27 @@ class Duel {
 			card.three.position
 				.set(...Axis.computed.card(card).get.xyz());
 			this.scene.add(card.three);
+			this.cards.push(card);
 			return card;
 		}
 	};
 
 	get = {
-		cards : (loc : number) => this.cards.filter(i => i.location & loc)
+		cards : (player : number, loc : number) => this.cards.filter(i => (i.location & loc) && (i.owner === player))
 	};
 
 	update = async () : Promise<void> => Promise.all(this.cards.map(i => i.update())).then(() => {});
+	
+	click = (event : Event) : void => {
+		const target = event.target as HTMLElement;
+		const card = this.cards.find(i => i.contains(target));
+		this.cards
+			.filter(i => i.clicked && i !== card)
+			.forEach(i => i.click.img());
+		if (target.classList.contains('btn'))
+			card?.click.btn(target);
+		card?.click.img();
+	};
 };
 
 const duel = new Duel();

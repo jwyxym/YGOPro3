@@ -33,6 +33,7 @@ class Client_Card {
 	need_change = {
 		type : false
 	};
+	clicked : boolean;
 
 	constructor () {
 		this.owner = 0;
@@ -64,6 +65,7 @@ class Client_Card {
 			[COMMAND.REPOS, []],
 			[COMMAND.ATTACK, []]
 		]);
+		this.clicked = false;
 	};
 
 	init = {
@@ -91,8 +93,6 @@ class Client_Card {
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease'
 			});
-			// child.addEventListener('mouseenter', hover.on.bind(null, this));
-			// child.addEventListener('mouseout', hover.end.bind(null, this));
 			return child;
 		},
 		atk : () : HTMLDivElement => {
@@ -192,7 +192,7 @@ class Client_Card {
 				position : 'absolute',
 				top : '0px',
 				left : '50%',
-				transform: 'translate(-50%, -50px)',
+				transform: 'translate(-50%, 0)',
 				transition : 'all 0.2s ease'
 			});
 			for (const i of [
@@ -215,19 +215,13 @@ class Client_Card {
 					height : '100%',
 					opacity : '0',
 					transition : 'all 0.1s ease',
-					display : 'none'
+					display : 'none',
+					userSelect: 'initial'
 				});
 				const srcs = mainGame.get.textures(KEYS.BTN, i) as [string, string];
 				img.src = srcs[0];
-				img.addEventListener('mouseenter', () => {
-					img.src = srcs[1];
-				});
-				img.addEventListener('mouseout', () => {
-					img.src = srcs[0];
-				});
-				// img.addEventListener('click', async () => {
-				// 	await hover.response(this, ['pos_attack', 'pos_defence', 'filp'].includes(key) ? 'repos' : key);
-				// });
+				img.addEventListener('mouseenter', () => img.src = srcs[1]);
+				img.addEventListener('mouseout', () => img.src = srcs[0]);
 				child.appendChild(img);
 			}
 			return child;
@@ -293,7 +287,7 @@ class Client_Card {
 			this.def = def;
 			return this;
 		},
-		type : async (type : number) : Promise<Client_Card> => {
+		type : (type : number) : Client_Card => {
 			this.need_change.type = this.type !== type;
 			this.type = type;
 			return this;
@@ -309,7 +303,6 @@ class Client_Card {
 						v ++;
 					});                                        
 			}
-			console.log(this.get.el.counter())
 			if (el) {
 				const span : HTMLSpanElement = el.querySelector('span')!;
 				const count : number = add ? Math.max(0, ct + Number(span.innerText)) : ct;
@@ -549,14 +542,15 @@ class Client_Card {
 			});
 			await mainGame.sleep(100);
 		};
-		if ((this.pos & POS.FACEDOWN) && !(this.location & LOCATION.ONFIELD)) {
+		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
+			this.get.el.info().style.opacity = '1';
+			if (this.location & LOCATION.MZONE)
+				this.get.el.atk().style.opacity = '1';
+			this.get.el.counter().style.opacity = '1';
+		} else {
 			this.get.el.info().style.opacity = '0';
 			this.get.el.atk().style.opacity = '0';
 			this.get.el.counter().style.opacity = '0';
-		} else {
-			this.get.el.info().style.opacity = '1';
-			this.get.el.atk().style.opacity = '1';
-			this.get.el.counter().style.opacity = '1';
 		}
 		const run = async () => {
 			let resolve = undefined as (() => void) | undefined;
@@ -570,6 +564,8 @@ class Client_Card {
 			tl.then(() => resolve?.());
 			return promise;
 		}
+		if (this.clicked && !(this.location & LOCATION.HAND))
+			this.click.img();
 		await Promise.all([
 			run(),
 			activatable(),
@@ -577,16 +573,28 @@ class Client_Card {
 		]);
 	};
 
-	click = async () : Promise<void> => {
-		const btn = this.get.el.btn();
-		Object.assign(btn.style, btn.style.opacity === '1' ? {
-			opacity : '0',
-			transform: 'translate(-50%, -50px)'
-		} : {
-			opacity : '1',
-			transform: 'translate(-50%, 0)'
-		});
+	click = {
+		img : () : void => {
+			if (this.location & LOCATION.HAND) {
+				const btn = this.get.el.btn();
+				const img = this.get.el.img();
+				
+				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
+				Object.assign(btn.style, this.clicked ? {
+					opacity : '0',
+					transform : 'translate(-50%, 0)'
+				} : {
+					opacity : '1',
+					transform : 'translate(-50%, -50px)'
+				});
+			}
+			this.clicked = !this.clicked;
+		},
+		btn : (target : HTMLElement) : void => {
+			if (!this.clicked) return;
+		}
 	};
+	contains = (target : HTMLElement) : boolean => this.three.element.contains(target);
 
 	clear = () : void => {
 		this.owner = 0;
