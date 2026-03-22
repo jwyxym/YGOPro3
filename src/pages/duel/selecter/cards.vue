@@ -1,55 +1,42 @@
 <template>
-	<div
-		:style = "{ '--h' : `${page.show ? 300 : 80}px`}"
-		class = 'selecter'
+	<Selecter
+		:cancelable = cancelable
+		@confirm = "emit('exit', page.cards)"
+		@cancel = "emit('exit')"
 	>
-		<div>
-			<var-switch v-model = 'page.show'/>
+		<template #title>
 			{{ title }} [{{ min }} - {{ max }}]
-		</div>
-		<var-checkbox-group
-			v-if = 'min > 1'
-			:max = 'max'
-			v-model = '(page.cards as Array<Client_Card>)'
-		>
-			<div v-for = 'i in cards'>
-				<div @click = 'page.select(i)'>
-					<img :src = 'mainGame.get.card(i.id).pic'/>
-					<span>{{ page.loc(i) }}</span>
+		</template>
+		<template #body>
+			<var-checkbox-group
+				v-if = 'min > 1'
+				:max = 'max'
+				v-model = '(page.cards as Array<Client_Card>)'
+				class = 'group'
+			>
+				<div v-for = 'i in cards'>
+					<div @click = 'page.select(i)'>
+						<img :src = 'mainGame.get.card(i.id).pic'/>
+						<span>{{ page.loc(i) }}</span>
+					</div>
+					<var-checkbox :checked-value = 'i'></var-checkbox>
 				</div>
-				<var-checkbox :checked-value = 'i'></var-checkbox>
-			</div>
-		</var-checkbox-group>
-		<var-radio-group
-			v-else
-			v-model = 'page.cards'
-		>
-			<div v-for = 'i in cards'>
-				<div @click = 'page.select(i)'>
-					<img :src = 'mainGame.get.card(i.id).pic'/>
-					<span>{{ page.loc(i) }}</span>
+			</var-checkbox-group>
+			<var-radio-group
+				v-else
+				v-model = 'page.cards'
+				class = 'group'
+			>
+				<div v-for = 'i in cards'>
+					<div @click = 'page.select(i)'>
+						<img :src = 'mainGame.get.card(i.id).pic'/>
+						<span>{{ page.loc(i) }}</span>
+					</div>
+					<var-radio :checked-value = 'i'/>
 				</div>
-				<var-radio :checked-value = 'i'/>
-			</div>
-		</var-radio-group>
-		<div
-			:style = "{
-				flexDirection : mainGame.get.system(KEYS.SETTING_CHK_SWAP_BUTTON) ? 'initial' : 'row-reverse'
-			}">
-			<div>
-				<Button
-					:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
-					@click = "emit('exit', page.cards)"
-				/>
-			</div>
-			<div>
-				<Button
-					:content = 'mainGame.get.text(I18N_KEYS.CANCEL)'
-					@click = "emit('exit', undefined)"
-				/>
-			</div>
-		</div>
-	</div>
+			</var-radio-group>
+		</template>
+	</Selecter>
 </template>
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
@@ -57,17 +44,16 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
-	import Button from '@/pages/ui/button.vue';
-
 	import { LOCATION } from '../ygo-protocol/network';
 	import Client_Card from '../scene/client_card';
-	import { KEYS } from '@/script/constant';
+	import Selecter from './selecter.vue';
 
 	const props = defineProps<{
 		cards : Array<Client_Card>;
 		title : string;
 		min : number;
 		max : number;
+		cancelable : boolean;
 	}>();
 
 	const players = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
@@ -110,10 +96,41 @@
 	});
 
 	const emit = defineEmits<{
-		exit : [card : Array<Client_Card> | Client_Card | undefined];
+		exit : [card ?: Array<Client_Card> | Client_Card];
 	}>();
 
 </script>
 <style scoped lang = 'scss'>
-	@use './selecter.scss';
+	.group {
+		height: 100%;
+		width: 100%;
+		> :deep(div) {
+			height: 100%;
+			width: 100%;
+			> div {
+				position: relative;
+				height: 100%;
+				width: 200px;
+				> div:first-child {
+					position: absolute;
+					top: 50%;
+					left: 50%;
+					transform: translate(-50%, -50%);
+					height: 100%;
+					width: 100%;
+					display: flex;
+					align-items: center;
+					flex-direction: column;
+					> img {
+						height: calc(100% - 30px);
+					}
+				}
+				.var-radio {
+					position: absolute;
+					top: 0;
+					right: 0;
+				}
+			}
+		}
+	}
 </style>

@@ -50,6 +50,7 @@ class Wait {
 
 class SelectCards {
 	show = false;
+	cancelable = false;
 	cards : Array<Client_Card> = [];
 	min = 0;
 	max = 0;
@@ -61,9 +62,7 @@ const connect = reactive({
 	wait : new Wait(),
 	select_cards : new SelectCards(),
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
-	on : async (para ?: { name : string; pass : string; address : string; }) => {
-		connect.select_cards.show = !connect.select_cards.show;
-		return;
+	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
 		switch (connect.state) {
 			case 0:
 				const protocol = new Protocol(
@@ -94,7 +93,20 @@ const connect = reactive({
 						connect.state = 0;
 					}
 				};
-				const c = para!.address.startsWith('ws') ? ws : tcp;
+				let c;
+				switch (para!.protocal) {
+					case 0:
+						c = tcp;
+						break;
+					case 1:
+						para!.address = `ws://${para!.address}`;
+						c = ws;
+						break;
+					case 2:
+						para!.address = `wss://${para!.address}`;
+						c = ws;
+						break;
+				}
 				await c.connect(para!.address, p);
 				break;
 			case 1:

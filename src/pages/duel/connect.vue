@@ -38,6 +38,7 @@
 				:min = 'connect.select_cards.min'
 				:max = 'connect.select_cards.max'
 				:title = 'connect.select_cards.title'
+				:cancelable = 'connect.select_cards.cancelable'
 				key = '0'
 			/>
 		</TransitionGroup>

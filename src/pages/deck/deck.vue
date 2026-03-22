@@ -44,7 +44,7 @@
 	import fs from '@/script/fs';
 
 	import dialog from '@/pages/ui/dialog';
-	import { CardPic, CardPics } from '@/pages/ui/pic.vue';
+	import { CardPic, CardPics } from '@/pages/deck/pic.vue';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';

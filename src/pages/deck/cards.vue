@@ -76,7 +76,7 @@
 	import GLOBAL from '@/script/scale';
 	import Deck from '@/pages/deck/deck';
 	import { toast } from '@/pages/toast/toast';
-	import Pic, { CardPic, CardPics } from '@/pages/ui/pic.vue';
+	import Pic, { CardPic, CardPics } from '@/pages/deck/pic.vue';
 
 	const deck = ref<HTMLElement | null>(null);
 	const main_title = ref<HTMLElement | null>(null);

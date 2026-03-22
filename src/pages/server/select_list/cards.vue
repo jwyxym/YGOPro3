@@ -95,5 +95,5 @@
 	defineExpose({ dom });
 </script>
 <style scoped lang = 'scss'>
-	@use './select_list.scss';
+	
 </style>

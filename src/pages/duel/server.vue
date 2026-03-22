@@ -7,11 +7,17 @@
 			/>
 		</div>
 		<div>
-			<AutoInput
-				:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_ADDRESS)'
-				:options = server.options
-				v-model = 'server.address'
-			/>
+			<div>
+				<Select
+					name = 'protoca'
+					v-model = 'server.protocal'
+				/>
+				<AutoInput
+					:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_ADDRESS)'
+					:options = server.options
+					v-model = 'server.address'
+				/>
+			</div>
 		</div>
 		<div>
 			<div>
@@ -29,7 +35,8 @@
 						@click = "emit('connect', {
 							name : server.name,
 							pass : server.pass,
-							address : server.address
+							address : server.address,
+							protocal : server.protocal
 						})"
 					/>
 				</div>
@@ -52,6 +59,7 @@
 	const server = reactive({
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		address : mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string,
+		protocal : 0 as 0 | 1 | 2,
 		model : [],
 		input_pass : mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string,
 		pass: computed(() : string => {
@@ -71,7 +79,12 @@
 	});
 
 	const emit = defineEmits<{
-		connect : [server : { name : string; pass : string; address : string; }]
+		connect : [server : {
+			name : string;
+			pass : string;
+			address : string;
+			protocal : 0 | 1 | 2
+		}];
 	}>();
 
 </script>
@@ -94,6 +107,18 @@
 			align-items: center;
 			> div {
 				width: 80%;
+			}
+		}
+		> div:nth-child(2) {
+			> div {
+				display: flex;
+				gap: 10%;
+				> div:first-child {
+					width: 30%;
+				}
+				> div:last-child {
+					width: 60%;
+				}
 			}
 		}
 		> div:last-child {

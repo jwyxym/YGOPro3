@@ -186,7 +186,7 @@
 	import GLOBAL from '@/script/scale';
 	import Search from '@/pages/deck/search';
 
-	import Pic, { CardPic } from '@/pages/ui/pic.vue';
+	import Pic, { CardPic } from '@/pages/deck/pic.vue';
 	import Input from '@/pages/ui/input.vue';
 	import Button, { Icon } from '@/pages/ui/button.vue';
 	import Select from '@/pages/ui/select.vue';

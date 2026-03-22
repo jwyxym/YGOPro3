@@ -36,7 +36,7 @@
 				</div>
 			</div>
 			<div>
-				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_LFLIST)} : ${mainGame.get.lflist(info.lflist)}` }}</span>
+				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_LFLIST)} : ${mainGame.get.lflist(info.lflist).name}` }}</span>
 				<span>
 					{{
 						`${mainGame.get.text(I18N_KEYS.SERVER_HOME_RULE)} : ${mainGame.get.text([
