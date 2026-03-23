@@ -4,7 +4,7 @@ use content_disposition::parse_content_disposition;
 use uuid::Uuid;
 use serde::Serialize;
 use std::{path::Path, io::Read, sync::OnceLock};
-use trust_dns_resolver::{config::{ResolverConfig, ResolverOpts}, Resolver};
+use trust_dns_resolver::{config::{ResolverConfig, ResolverOpts}, Resolver, lookup::SrvLookup, proto::rr::rdata::SRV};
 use tokio::{
 	fs::File,
 	io::AsyncWriteExt
@@ -72,14 +72,14 @@ impl Request {
 			Err(anyhow!("{}", response.status()))
 		}
     }
-	pub async fn srv(url: String) -> Result<Srv, Error> {
+	pub fn srv(url: String) -> Result<Srv, Error> {
 		let resolver: &Resolver = RESOLVER.get_or_init(|| {
 			Resolver::new(ResolverConfig::default(), ResolverOpts::default())
 				.expect("DNS resolver error")
 		});
-
-		Ok(if let Ok(response) = resolver.srv_lookup(&url) {
-			let mut result: Vec<Srv> = response.into_iter().map(|ip| {
+		Ok(|| -> Result<Srv, Error> {
+			let response: SrvLookup = resolver.srv_lookup(format!("_ygopro._tcp.{}", url))?;
+			let mut result: Vec<Srv> = response.into_iter().map(|ip: SRV| {
 				Srv {
 					priority: ip.priority(),
 					weight: ip.weight(),
@@ -88,15 +88,14 @@ impl Request {
 				}
 			}).collect();
 			result.sort_by_key(|srv| srv.priority);
-			result.get(0).ok_or(anyhow!("DNS error"))?.clone()
-		} else {
-			Srv {
+			Ok(result.get(0).ok_or(anyhow!("DNS error"))?.clone())
+		}()
+			.unwrap_or(Srv {
 				priority: 0,
 				weight: 0,
 				port: 7911,
 				target: url
-			}
-		})
+			}))
 	}
 
 	fn name (name: &str, headers: &HeaderMap) -> String {

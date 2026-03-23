@@ -54,3 +54,4 @@ class Ws {
 
 const ws = new Ws();
 export default ws;
+export { Ws };

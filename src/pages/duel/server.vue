@@ -9,12 +9,12 @@
 		<div>
 			<div>
 				<Select
-					name = 'protoca'
+					name = 'protocol'
 					v-model = 'server.protocal'
 				/>
 				<AutoInput
 					:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_ADDRESS)'
-					:options = server.options
+					:options = 'server.options'
 					v-model = 'server.address'
 				/>
 			</div>
@@ -45,7 +45,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { computed, reactive } from 'vue';
+	import { computed, onBeforeMount, reactive, watch } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -55,27 +55,41 @@
 	import Select from '@/pages//ui/select.vue';
 	import Button from '@/pages//ui/button.vue';
 
-
 	const server = reactive({
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		address : mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string,
 		protocal : 0 as 0 | 1 | 2,
-		model : [],
+		model : [] as Array<string>,
 		input_pass : mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string,
 		pass: computed(() : string => {
-			return `
-				${server.model.join(',')}${server.model.length > 0 ?
+			return `${server.model.join(',')}${server.model.length > 0 ?
 					server.input_pass.includes('#') ?
 						server.input_pass.startsWith('#') ?
 							'' : ','
 								: '#'
 									: ''
-				}${server.input_pass}
-			`;
+				}${server.input_pass}`;
 		}),
 		options : computed(() => {
-			return Array.from(mainGame.servers).map(([k, v]) => ({ label: v, value: k }));
-		}),
+			return Array.from(mainGame.servers).map(([k, v]) => ({ label : v, value : k }));
+		})
+	});
+
+	onBeforeMount(() => {
+		const pass = (mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string).split('#');
+		if (pass.length > 1) {
+			const model : Array<string> = [];
+			pass[0].split(',').forEach(i => (mainGame.model.has(i) ? server.model : model).push(i));
+			server.input_pass = `${model.join(',')}#${pass[pass.length - 1]}`;
+		} else server.input_pass = pass[0];
+		server.name = mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string;
+		const address = mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string;
+		if (address.startsWith('ws://'))
+			server.address = address.slice(5);
+		else if (address.startsWith('wss://'))
+			server.address = address.slice(6);
+		else server.address = address;
+		server.protocal = mainGame.get.system(KEYS.SETTING_SERVER_PROTOCAL) as 0 | 1 | 2;
 	});
 
 	const emit = defineEmits<{
@@ -86,6 +100,17 @@
 			protocal : 0 | 1 | 2
 		}];
 	}>();
+
+	watch(() => server.address, (n : string) => {
+		if (n.startsWith('ws://')) {
+			server.address = n.slice(5);
+			server.protocal = 1;
+		} else if (n.startsWith('wss://')) {
+			server.address = n.slice(6);
+			server.protocal = 2;
+		} else if (server.options.find(i => i.value === n))
+			server.protocal = 0;
+	}, { flush : 'post' });
 
 </script>
 <style scoped lang = 'scss'>

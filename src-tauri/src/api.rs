@@ -44,8 +44,8 @@ pub async fn unload_ypk (name: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn set_system (key: String, ct: i8, value: String) -> Result<(), String> {
-	Game::set_system(key, ct, value).await.map_err(|e| e.to_string())
+pub async fn set_system (key: String, ct: i8, value: String, write: bool) -> Result<(), String> {
+	Game::set_system(key, ct, value, write).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -54,8 +54,8 @@ pub async fn chk_version () -> Result<(bool, bool), String> {
 }
 
 #[tauri::command]
-pub async fn get_srv (url: String) -> Result<Srv, String> {
-	Game::get_srv(url).await.map_err(|e| e.to_string())
+pub fn get_srv (url: String) -> Result<Srv, String> {
+	game::Request::srv(url).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

@@ -26,7 +26,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { LANGUAGE } from '@/script/constant';
 	const props = defineProps<{
-		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'protoca';
+		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'protocol';
 		variant ?: 'outlined' | 'standard';
 		clearable ?: boolean; 
 	}>();
@@ -61,7 +61,7 @@
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_I18N);
 				select.array = Object.entries(LANGUAGE) ?? new Array;
 				break;
-			case 'protoca':
+			case 'protocol':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_PROTOCOL);
 				select.map = new Map([
 					[0, 'TCP'],

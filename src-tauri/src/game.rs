@@ -661,16 +661,18 @@ impl Game {
 		}
 		Ok(deck)
 	}
-	pub async fn set_system (key: String, ct: i8, value: String) -> Result<(), Error> {
+	pub async fn set_system (key: String, ct: i8, value: String, w: bool) -> Result<(), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
 		game.system.set(key, ct, value)?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		write(path
-			.join("config")
-			.join("system.toml"), 
-			game.system.to_string()
-		)?;
+		if w {
+			write(path
+				.join("config")
+				.join("system.toml"), 
+				game.system.to_string()
+			)?;
+		}
 		Ok(())
 	}
 	pub async fn chk_version () -> Result<(bool, bool), Error> {
@@ -689,9 +691,6 @@ impl Game {
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		Request::download(app, path.join("expansions"), &url, &name).await
-	}
-	pub async fn get_srv (url: String) -> Result<Srv, Error> {
-		Request::srv(url).await
 	}
 	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;

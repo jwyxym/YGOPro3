@@ -322,12 +322,12 @@ class Game {
 	};
 
 	set = {
-		system : async (k : string, v : string | number | boolean | Array<string>) => {
+		system : async (k : string, v : string | number | boolean | Array<string>, write : boolean = true) => {
 			this.system.forEach(i => {
 				if (i.has(k))
 					i.set(k, v);
 			});
-			await invoke.game.set_system(k, this.get.system_index(k), v);
+			await invoke.game.set_system(k, this.get.system_index(k), v, write);
 		}
 	};
 

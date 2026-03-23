@@ -1,12 +1,14 @@
 import { reactive } from 'vue';
 import Deck from '@/pages/deck/deck';
-import ws from './ygo-protocol/ws';
-import tcp from './ygo-protocol/tcp';
+import ws, { Ws } from './ygo-protocol/ws';
+import tcp, { Tcp } from './ygo-protocol/tcp';
 import Protocol from './ygo-protocol/protocol';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
 import mainGame from '@/script/game';
 import Client_Card from './scene/client_card';
+import { KEYS } from '@/script/constant';
+import invoke from '@/script/invoke';
 
 class Wait {
 	players = [
@@ -58,8 +60,10 @@ class SelectCards {
 };
 
 const connect = reactive({
+	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3,
 	wait : new Wait(),
+	protocol : undefined as undefined | Tcp | Ws,
 	select_cards : new SelectCards(),
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
@@ -93,21 +97,39 @@ const connect = reactive({
 						connect.state = 0;
 					}
 				};
-				let c;
+				const get_srv = async () => {
+					const address = para!.address;
+					if (!address.includes(':') && !para!.protocal)
+						para!.address = connect.srv_cache.get(address) ??
+							await (async () : Promise<string> => {
+								const url = await invoke.game.get_srv(address)
+								connect.srv_cache.set(address, url);
+								return url;
+							})();
+				};
 				switch (para!.protocal) {
 					case 0:
-						c = tcp;
+						connect.protocol = tcp;
 						break;
 					case 1:
 						para!.address = `ws://${para!.address}`;
-						c = ws;
+						connect.protocol = ws;
 						break;
 					case 2:
 						para!.address = `wss://${para!.address}`;
-						c = ws;
+						connect.protocol = ws;
 						break;
 				}
-				await c.connect(para!.address, p);
+				await Promise.all([
+					mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para!.name, false),
+					mainGame.set.system(KEYS.SETTING_SERVER_PASS, para!.pass, false),
+					mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para!.address, false),
+					get_srv()
+				]);
+				await Promise.all([
+					mainGame.set.system(KEYS.SETTING_SERVER_PROTOCAL, para!.protocal),
+					connect.protocol.connect(para!.address, p)
+				]);
 				break;
 			case 1:
 				break;
@@ -118,6 +140,9 @@ const connect = reactive({
 		}
 	},
 	clear : () => {
+		connect.protocol?.disconnect()
+			.then(() => {});
+		connect.protocol = undefined;
 		connect.state = 0;
 		connect.wait = new Wait();
 		connect.send = undefined;

@@ -85,13 +85,22 @@ class Invoke {
 				return false;
 			}
 		},
-		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>) : Promise<boolean> => {
+		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>, write : boolean) : Promise<boolean> => {
 			try {
-				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value) });
+				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
 				return true;
 			} catch (error) {
 				fs.write.log(error);
 				return false;
+			}
+		},
+		get_srv : async (url : string) : Promise<string> => {
+			try {
+				const result = await invoke<Srv>('get_srv', { url : url });
+				return result.target + ':' + result.port;
+			} catch (error) {
+				fs.write.log(error);
+				return url;
 			}
 		},
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
