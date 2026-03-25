@@ -13,9 +13,12 @@
 					v-model = 'server.protocal'
 				/>
 				<AutoInput
+					@input = 'server.input'
+					ref = 'input'
 					:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_ADDRESS)'
 					:options = 'server.options'
 					v-model = 'server.address'
+					@clear = '() => server.protocal = 0'
 				/>
 			</div>
 		</div>
@@ -35,7 +38,7 @@
 						@click = "emit('connect', {
 							name : server.name,
 							pass : server.pass,
-							address : server.address,
+							address : server.address.trim(),
 							protocal : server.protocal
 						})"
 					/>
@@ -45,7 +48,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { computed, onBeforeMount, reactive, watch } from 'vue';
+	import { ref, computed, onBeforeMount, reactive, watch } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -54,6 +57,10 @@
 	import AutoInput from '@/pages/ui/auto_input.vue';
 	import Select from '@/pages//ui/select.vue';
 	import Button from '@/pages//ui/button.vue';
+
+	const input = ref<any>(null);
+	let lock : boolean = false;
+	const options = Array.from(mainGame.servers).map(([k, v]) => ({ label : v, value : k }));
 
 	const server = reactive({
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
@@ -70,9 +77,11 @@
 									: ''
 				}${server.input_pass}`;
 		}),
-		options : computed(() => {
-			return Array.from(mainGame.servers).map(([k, v]) => ({ label : v, value : k }));
-		})
+		options : computed(() : Array<{
+			label: string;
+			value: string;
+		}> => options.map(i => i.value === server.address ? {label : i.label, value : i.value + '\n'} : i)),
+		input : () => lock = true
 	});
 
 	onBeforeMount(() => {
@@ -108,8 +117,10 @@
 		} else if (n.startsWith('wss://')) {
 			server.address = n.slice(6);
 			server.protocal = 2;
-		} else if (server.options.find(i => i.value === n))
+		} else if (options.find(i => i.value === n.trim()))
 			server.protocal = 0;
+		lock ? lock = false
+			: input.value?.exported?.blur?.();
 	}, { flush : 'post' });
 
 </script>
@@ -140,6 +151,8 @@
 				gap: 10%;
 				> div:first-child {
 					width: 30%;
+
+					
 				}
 				> div:last-child {
 					width: 60%;

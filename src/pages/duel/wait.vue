@@ -65,7 +65,7 @@
 				v-model = 'page.deck'
 				@change = "(deck : Deck | undefined) => emit('deck', deck)"
 				:rules = 'page.rules'
-			></Select>
+			/>
 			<div>
 				<Button
 					v-if = 'self.is_host'

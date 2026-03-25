@@ -1,6 +1,7 @@
 <template>
 	<var-auto-complete
-		:variant = "variant ? 'outlined' : 'standard'"
+		ref = 'input'
+		:variant = "variant ? variant : 'standard'"
 		:placeholder = 'placeholder'
 		:rules = 'rules'
 		:clearable = 'true'
@@ -11,5 +12,19 @@
 	/>
 </template>
 <script setup lang = 'ts'>
-	defineProps(['placeholder', 'rules', 'variant']);
+	import { ref, onMounted } from 'vue';
+	import { _AutoCompleteComponent, Rules } from '@varlet/ui';
+	const input = ref<_AutoCompleteComponent | null>(null);
+	const exported = {
+		blur : undefined as (() => void) | undefined
+	};
+	onMounted(() => exported.blur = input.value?.blur);
+	defineProps<{
+		placeholder ?: string;
+		rules ?: Rules;
+		variant ?: 'outlined' | 'standard';
+	}>();
+	defineExpose({
+		exported
+	});
 </script>
