@@ -13,7 +13,7 @@ import GLOBAL from '@/script/scale';
 import Btn from './btn';
 import Client_Card from './client_card';
 
-class Duel {
+class _Duel {
 	element : HTMLDivElement | null = null;
 	set_element = (el : HTMLDivElement | null) => this.element = el;
 	
@@ -37,8 +37,8 @@ class Duel {
 			opacity : '0',
 			transition : 'all 0.5s ease'
 		});
-		this.renderer.setSize(GLOBAL.WIDTH + (400 - GLOBAL.LEFT) * 2, GLOBAL.HEIGHT);
-		this.camera.position.set(0, -300, 630);
+		this.renderer.setSize(GLOBAL.WIDTH - 600, GLOBAL.HEIGHT);
+		this.camera.position.set(0, -300, 780);
 		this.camera.lookAt(0, -60, 0);
 
 		this.add.back();
@@ -127,8 +127,12 @@ class Duel {
 
 	
 	draw = async (player : number, ct : number) : Promise<void> => {
-		const deck = this.get.cards(player, LOCATION.DECK).reverse().slice(0, ct);
-		const hands = this.get.cards(player, LOCATION.HAND);
+		const deck = this.get.cards()
+			.filter(i => i.owner === player && i.location & LOCATION.DECK)
+			.reverse()
+			.slice(0, ct);
+		const hands = this.get.cards()
+			.filter(i => i.owner === player && i.location & LOCATION.HAND);
 		deck.forEach((i, v) => i.set.location(LOCATION.HAND, v + hands.length));
 		await Promise.all(deck.map(i => i.update()));
 	};
@@ -190,7 +194,7 @@ class Duel {
 	};
 
 	get = {
-		cards : (player : number, loc : number) => this.cards.filter(i => (i.location & loc) && (i.owner === player))
+		cards : () => this.cards
 	};
 
 	update = async () : Promise<void> => Promise.all(this.cards.map(i => i.update())).then(() => {});
@@ -207,16 +211,18 @@ class Duel {
 	};
 };
 
-const duel = new Duel();
+const duel = new _Duel();
 
-const _Duel = defineComponent({
+const Duel = defineComponent({
 	name : 'Duel',
 	setup () {
 		onMounted(duel.init);
 		onUnmounted(duel.clear);
-		return () => <div ref = {(el) => duel.set_element(el as HTMLDivElement | null)}/>;
+		return () => <div
+			ref = {(el) => duel.set_element(el as HTMLDivElement | null)}
+		/>;
 	},
 });
 
-export default _Duel;
+export default Duel;
 export { duel };

@@ -1,8 +1,9 @@
 <template>
 	<Selecter
-		:cancelable = cancelable
 		@confirm = "emit('exit', page.cards)"
 		@cancel = "emit('exit')"
+		:cancelable = 'cancelable'
+		:confirmable = 'page.confirmable'
 	>
 		<template #title>
 			{{ title }} [{{ min }} - {{ max }}]
@@ -39,7 +40,7 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { computed, reactive } from 'vue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -92,7 +93,14 @@
 				str += `${mainGame.get.text(loc)}[${index}]`;
 			}
 			return str;
-		}
+		},
+		confirmable : computed(() : boolean => {
+			if (props.min > 1) {
+				const cards = page.cards as Array<Client_Card>;
+				return cards.length >= props.min;
+			}
+			return !!page.cards;
+		})
 	});
 
 	const emit = defineEmits<{

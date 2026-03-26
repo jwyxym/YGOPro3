@@ -39,7 +39,7 @@
 		"@varlet/ui": "^3.11.3",
 		"bincode-ts": "^1.0.0",
 		"buffer": "^6.0.3",
-		"conversation-vue": "github:jwyxym/conversation-vue",
+		"fake-qq-ui": "^0.3.4",
 		"gsap": "^3.13.0",
 		"mathjs": "^15.1.0",
 		"p-queue": "^9.1.0",

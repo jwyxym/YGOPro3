@@ -1,6 +1,0 @@
-<template>
-	<svg viewBox = '0 0 24 24' fill = 'none' stroke = 'white'>
-		<polyline points = '22 12 19 15 16 12'/>
-		<path d = 'M11,20 C6.581722,20 3,16.418278 3,12 C3,7.581722 6.581722,4 11,4 C15.418278,4 19,7.581722 19,12 L19,14'/>
-	</svg>
-</template>

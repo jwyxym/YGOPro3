@@ -29,11 +29,6 @@ pub async fn download (app: AppHandle, url: String, name: String) -> Result<Stri
 }
 
 #[tauri::command]
-pub async fn update (app: AppHandle) -> Result<(), String> {
-	Game::update(&app).await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
 pub async fn load_ypk (app: AppHandle, name: String) -> Result<(), String> {
 	Game::load_zip(&app, name).await.map_err(|e| e.to_string())
 }

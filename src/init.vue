@@ -240,6 +240,7 @@
 		--cell-color: white !important;
 		--divider-color: white !important;
 		--checkbox-unchecked-color: white !important;
+		--tab-inactive-color: white !important;
 		--cell-border-color: white !important;
 		--card-title-color: white !important;
 		--card-outline-color: white !important;

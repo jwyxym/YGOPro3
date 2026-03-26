@@ -1,14 +1,18 @@
 import { reactive } from 'vue';
+
+import mainGame from '@/script/game';
+import { KEYS } from '@/script/constant';
+import invoke from '@/script/invoke';
+
 import Deck from '@/pages/deck/deck';
+
 import ws, { Ws } from './ygo-protocol/ws';
 import tcp, { Tcp } from './ygo-protocol/tcp';
 import Protocol from './ygo-protocol/protocol';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
-import mainGame from '@/script/game';
-import Client_Card from './scene/client_card';
-import { KEYS } from '@/script/constant';
-import invoke from '@/script/invoke';
+
+import * as Selecter from './selecter/selecter';
 
 class Wait {
 	players = [
@@ -50,21 +54,23 @@ class Wait {
 	};
 };
 
-class SelectCards {
-	show = false;
-	cancelable = false;
-	cards : Array<Client_Card> = [];
-	min = 0;
-	max = 0;
-	title = '';
-};
-
 const connect = reactive({
 	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3,
 	wait : new Wait(),
 	protocol : undefined as undefined | Tcp | Ws,
-	select_cards : new SelectCards(),
+	select : {
+		cards : new Selecter.Cards(),
+		group : new Selecter.Group(),
+		confirm : new Selecter.Confirm(),
+		code : new Selecter.Codes(),
+		plaid : new Selecter.Plaids(),
+	},
+	chat : {
+		show : false,
+		on : () : boolean => connect.chat.show ? connect.chat.off() : connect.state ? connect.chat.show = true : true,
+		off : () : boolean => connect.chat.show = false,
+	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
 		switch (connect.state) {

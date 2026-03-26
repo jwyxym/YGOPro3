@@ -536,6 +536,9 @@ class Client_Card {
 			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
 			elements.forEach(i => i[0].style.opacity = '0');
 			await mainGame.sleep(100);
+			this.get.el.img().style.boxShadow = ACTIVATE.length + SPSUMMON.length ? '0 0 8px yellow'
+				: SUMMON.length + SSET.length + MSET.length + REPOS.length + ATTACK.length ? '0 0 8px rgba(119, 166, 255, 1)'
+				: 'initial';
 			elements.forEach(i => {
 				i[0].style.opacity = i[1].toString();
 				setTimeout(() => i[0].style.display = !!i[1] ? 'initial' : 'none', 100);
@@ -573,6 +576,13 @@ class Client_Card {
 		]);
 	};
 
+	activate = async () : Promise<void> => {
+		const style = this.get.el.img().style;
+		style.filter = 'brightness(1.5)';
+		await mainGame.sleep(600);
+		style.filter = 'initial';
+	};
+
 	click = {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
@@ -594,6 +604,7 @@ class Client_Card {
 			if (!this.clicked) return;
 		}
 	};
+
 	contains = (target : HTMLElement) : boolean => this.three.element.contains(target);
 
 	clear = () : void => {

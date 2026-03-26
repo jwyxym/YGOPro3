@@ -32,15 +32,6 @@ class Invoke {
 				return false;
 			}
 		},
-		update : async () : Promise<boolean> => {
-			try {
-				await invoke<void>('update');
-				return true;
-			} catch (error) {
-				fs.write.log(error);
-				return false;
-			}
-		},
 		time : async (path : Array<string>) : Promise<Date | undefined> => {
 			try {
 				const time = await invoke<string>('get_time', { path : path });

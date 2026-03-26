@@ -1,31 +1,33 @@
 <template>
 	<div
-		:style = "{ '--h' : `${page.show ? 300 : 80}px`}"
+		:style = "{ height : `${page.show ? 300 : 30}px`}"
 		class = 'selecter'
 	>
 		<div>
 			<var-switch v-model = 'page.show'/>
 			<slot name = 'title'/>
 		</div>
-		<div>
+		<div :style = "{ height : `${page.show ? 220 : 0}px`}">
 			<slot name = 'body'/>
 		</div>
 		<div
 			:style = "{
-				flexDirection : mainGame.get.system(KEYS.SETTING_CHK_SWAP_BUTTON) ? 'initial' : 'row-reverse'
+				flexDirection : mainGame.get.system(KEYS.SETTING_CHK_SWAP_BUTTON) ? 'initial' : 'row-reverse',
+				height : page.show ? '50px' : '0'
 			}"
 		>
 			<div>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
-					@click = "emit('confirm')"
+					@click = "() => confirmable ? emit('confirm') : undefined"
+					:style = "{ color : confirmable ? 'white' : 'gray' }"
 				/>
 			</div>
 			<div>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CANCEL)'
-					@click = "emit('cancel')"
-					v-if = 'cancelable'
+					@click = "() => cancelable ? emit('cancel') : undefined"
+					:style = "{ color : cancelable ? 'white' : 'gray' }"
 				/>
 			</div>
 		</div>
@@ -42,6 +44,7 @@
 	});
 	const props = defineProps<{
 		cancelable : boolean;
+		confirmable : boolean;
 	}>();
 	const emit = defineEmits<{
 		confirm : [];
@@ -51,10 +54,10 @@
 <style scoped lang = 'scss'>
 	.selecter {
 		position: fixed;
-		bottom: 0;
+		bottom: 10px;
+		transform: translateY(calc(var(--top) / var(--scale)));
 		left: calc(var(--width) * 0.15);
 		width: calc(var(--width) * 0.7);
-		height: var(--h);
 		color: white;
 		transition: all 0.1s ease;
 		> div {
@@ -62,6 +65,8 @@
 		}
 		> div:first-child {
 			height: 30px;
+			display: flex;
+			gap: 5px;
 		}
 		> div:nth-child(2) {
 			background-color: rgba(0, 0, 0, 0.5);
@@ -73,8 +78,8 @@
 			}
 		}
 		> div:last-child {
-			height: 50px;
 			display: flex;
+			overflow: hidden;
 			> div {
 				flex-grow: 1;
 				display: flex;

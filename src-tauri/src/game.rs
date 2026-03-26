@@ -44,16 +44,16 @@ use tokio::{
 use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
-	collections::BTreeMap, fs::{exists, write}, path::{Path, PathBuf}, sync::OnceLock
+	collections::BTreeMap, fs::{exists, write, create_dir_all}, path::{Path, PathBuf}, sync::OnceLock
 };
 use tauri::{AppHandle, Emitter};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
-const URL_DOWNLOAD: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/assets.zip/download";
-const URL_ASSETS_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/version.txt/download";
-const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/tauri-ygo/releases/release-latest/attach_files/game_version.txt/download";
+const URL_DOWNLOAD: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/assets.zip/download";
+const URL_ASSETS_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
+const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/game_version.txt/download";
 
 pub async fn init (app: &AppHandle) -> Result<(), Error> {
 	if !GAME.get().is_some() {
@@ -637,7 +637,9 @@ impl Game {
 		let mut tasks: Vec<JoinHandle<Result<(String, String), Error>>> = Vec::new();
 		let mut deck: Vec<(String, String)> = Vec::new();
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		WalkDir::new(path.join("deck"))
+		let path: PathBuf = path.join("deck");
+		let _ = create_dir_all(&path);
+		WalkDir::new(path)
 			.max_depth(1)
 			.into_iter()
 			.for_each(|i| {
@@ -682,11 +684,6 @@ impl Game {
 			Request::version(URL_GAME_VERSION, &game.version.0),
 			Request::version(URL_ASSETS_VERSION, &game.version.1)
 		))
-	}
-	pub async fn update (app: &AppHandle) -> Result<(), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Request::download(app, path, URL_DOWNLOAD, "assets").await?;
-		Ok(())
 	}
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;

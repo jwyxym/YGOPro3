@@ -68,7 +68,7 @@
 		protocal : 0 as 0 | 1 | 2,
 		model : [] as Array<string>,
 		input_pass : mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string,
-		pass: computed(() : string => {
+		pass : computed(() : string => {
 			return `${server.model.join(',')}${server.model.length > 0 ?
 					server.input_pass.includes('#') ?
 						server.input_pass.startsWith('#') ?

@@ -130,7 +130,7 @@ class Game {
 
 	update = async () : Promise<boolean> => {
 		try {
-			await invoke.game.update();
+			await invoke.game.download();
 			await this.reload(true);
 			return true;
 		} catch (error) {
@@ -335,11 +335,13 @@ class Game {
 		return await exit(1);
 	};
 
-	sleep = async (time : number, func : Function = () => {}, para : Array<any> = []) : Promise<void> => {
-		const data = Date.now();
-		await func(...para);
-		return new Promise(resolve => setTimeout(resolve, Math.max(0, time - (Date.now() - data))));
-	};
+	sleep = async (time : number,
+		func : Function = () => {},
+		para : Array<any> = []
+	) : Promise<void> => Promise.all([
+		new Promise(resolve => setTimeout(resolve, time)),
+		func(...para)
+	]) as any;
 
 	download = invoke.game.download;
 };

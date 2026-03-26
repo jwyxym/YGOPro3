@@ -64,7 +64,7 @@
 			case 'protocol':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_PROTOCOL);
 				select.map = new Map([
-					[0, 'TCP'],
+					[0, 'SOCKET'],
 					[1, 'WS'],
 					[2, 'WSS']
 				]);

@@ -14,7 +14,7 @@ interface Hint {
 	id : string;
 };
 
-class Toast {
+class _Toast {
 	unshow : boolean = true;
 	list : Array<Hint> = reactive([]);
 	elements : Map<Hint, HTMLDivElement> = new Map()
@@ -87,9 +87,9 @@ class Toast {
 	}
 };
 
-const toast = new Toast();
+const toast = new _Toast();
 
-const _Toast = defineComponent({
+const Toast = defineComponent({
 	name : 'Toast',
 	setup () {
 		return () =>
@@ -114,6 +114,6 @@ const _Toast = defineComponent({
 	},
 });
 
-export default _Toast;
+export default Toast;
 export { toast };
 export type { Hint };

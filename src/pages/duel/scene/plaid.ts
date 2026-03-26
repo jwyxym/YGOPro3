@@ -8,9 +8,9 @@ import * as SIZE from './scene-size';
 class Plaid {
 	three : CSS.CSS3DObject;
 	name : string;
-	loc : number;
+	location : number;
 	seq : [number, number];
-	player : number;
+	owner : number;
 
 	constructor (x : number, y : number) {
 		const dom = document.createElement('div');
@@ -23,16 +23,16 @@ class Plaid {
 		});
 		dom.appendChild(child);
 		this.three = new CSS.CSS3DObject(dom);
-		this.loc = Math.abs(x) === 3 ?
+		this.location = Math.abs(x) === 3 ?
 			(() : number  => {
 				if (x * y <= 0 || Math.abs(y) !== 1)
 					return 0;
 				return 0x20 << (y < 0 ? 8 : 24);
 			})() : (() : number => {
-				let loc : string = '1';
+				let location : string = '1';
 				if (y > 0) {
-					loc += '0'.repeat(- x + 2);
-					return parseInt(loc, 2) << ((y + 1) * 8);
+					location += '0'.repeat(- x + 2);
+					return parseInt(location, 2) << ((y + 1) * 8);
 				} else if (y === 0) {
 					return x === -1 ? (() : number => {
 						return 0x20 | (0x40 << 16);
@@ -41,8 +41,8 @@ class Plaid {
 						return 0x40 | (0x20 << 16);
 					})()
 				} else {
-					loc += '0'.repeat(x + 2);
-					return parseInt(loc, 2) << ((- 1 - y) * 8);
+					location += '0'.repeat(x + 2);
+					return parseInt(location, 2) << ((- 1 - y) * 8);
 				}
 			})();
 		this.seq = Math.abs(x) === 3 ?
@@ -64,9 +64,9 @@ class Plaid {
 						return [LOCATION.MZONE | ((x > 0 ? 6 : 5) << 16), 2];
 				}
 			})();
-		this.player = (y > 0 || (y === 0 && x === -3)) ? 1 : 0;
-		const players = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
-		this.name = `[${mainGame.get.text(players[this.player])}]${(() : string => {
+		this.owner = (y > 0 || (y === 0 && x === -3)) ? 1 : 0;
+		const owners = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
+		this.name = `[${mainGame.get.text(owners[this.owner])}]${(() : string => {
 			if ((x === -3 && y === 2) || (x === 3 && y === -2))
 				return mainGame.get.text(I18N_KEYS.DUEL_LOCATION_DECK)
 			else if ((x === -3 && y === 1) || (x === 3 && y === -1))
