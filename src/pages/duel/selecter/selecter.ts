@@ -18,8 +18,6 @@ class Group extends Base {
 class Confirm extends Base {
 	message = '';
 	chk = true;
-	confirm = undefined as undefined | Function;
-	cancel = undefined as undefined | Function;
 };
 class Codes extends Base {
 	codes : Array<number> = [];

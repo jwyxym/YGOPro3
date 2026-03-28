@@ -24,6 +24,9 @@
 				/>
 			</div>
 		</TransitionGroup>
+		<transition name = 'right_in'>
+			<History v-show = 'page.select'/>
+		</transition>
 	</div>
 </template>
 <script setup lang = 'ts'>
@@ -36,6 +39,7 @@
 	import Button from '@/pages/ui/button.vue';
 
 	import Chat from './chat';
+	import History from './history';
 
 
 	const page = reactive({
@@ -47,6 +51,7 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
+	@use './history.scss';
     .log {
 		position: relative;
 		border: 1px white solid;
@@ -82,12 +87,14 @@
 				transform: translate(-50%, -50%);
 			}
 		}
-		> div:nth-child(2) {
+		> div:nth-child(2), > div:last-child {
 			position: absolute;
 			height: calc(100% - 80px);
 			width: 90%;
 			top: 80px;
 			left: 5%;
+		}
+		> div:nth-child(2) {
 			> div:first-child {
 				width: 100%;
 				height: calc(100% - 80px);
@@ -99,7 +106,7 @@
 				justify-content: center;
 				gap: 5%;
 				> * {
-					transform: translateY(20px);
+					transform: translateY(15px);
 				}
 				.var-input {
 					width: 70%;
@@ -119,6 +126,22 @@
 		&-enter-from,
 		&-leave-to {
 			transform: translateX(-100%);
+		}
+
+		&-enter-to,
+		&-leave-from {
+			transform: translateX(0);
+		}
+	}
+	.right_in {
+		&-enter-active,
+		&-leave-active {
+			transition: transform 0.1s ease;
+		}
+
+		&-enter-from,
+		&-leave-to {
+			transform: translateX(100%);
 		}
 
 		&-enter-to,

@@ -4,15 +4,19 @@ import Msg from './msg';
 import { ERROR, STOC } from './network';
 
 class Protocol {
-	current_msg ?: number;
-	on_join_room ?: () => Promise<void>;
-	on_change_side ?: () => Promise<void>;
+	current_msg : number;
+	on_join_room : () => Promise<void>;
+	on_change_side : () => Promise<void>;
+	set_response : (i ?: (...args: any[]) => Promise<void>) => void;
 	constructor (
 		on_join_room : () => Promise<void>,
-		on_change_side : () => Promise<void>
+		on_change_side : () => Promise<void>,
+		set_response : (i ?: (...args: any[]) => Promise<void>) => void
 	) {
+		this.current_msg = 0;
 		this.on_join_room = on_join_room;
 		this.on_change_side = on_change_side;
+		this.set_response = set_response;
 	};
 	read = async (msg : Msg, send : (msg : Msg) => Promise<void>) : Promise<void> => {
 		const protocol = msg.read.uint8()!;
@@ -75,7 +79,6 @@ class Protocol {
 	msg = new Map<number, (msg : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>>([
 
 	]);
-	clear = () : void => this.current_msg = undefined;
 };
 
 export default Protocol;

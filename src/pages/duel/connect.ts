@@ -72,12 +72,15 @@ const connect = reactive({
 		off : () : boolean => connect.chat.show = false,
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
+	response : undefined as undefined | ((...args : any[]) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
 		switch (connect.state) {
 			case 0:
+				if (!para?.name || !para?.address) return;
 				const protocol = new Protocol(
 					async () : Promise<void> => connect.state = 2 as any,
-					async () : Promise<void> => connect.state = 3 as any
+					async () : Promise<void> => connect.state = 3 as any,
+					(i ?: Function) : void => connect.response = i as any,
 				);
 				const p = {
 					on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
@@ -99,7 +102,7 @@ const connect = reactive({
 					},
 					on_message : protocol.read,
 					on_disconnect : async () : Promise<void> => {
-						protocol.clear();
+						connect.clear();
 						connect.state = 0;
 					}
 				};
@@ -145,12 +148,18 @@ const connect = reactive({
 				break;
 		}
 	},
+	close : async () => await connect.protocol?.disconnect(),
 	clear : () => {
-		connect.protocol?.disconnect()
-			.then(() => {});
 		connect.protocol = undefined;
 		connect.state = 0;
 		connect.wait = new Wait();
+		connect.select.cards = new Selecter.Cards();
+		connect.select.group = new Selecter.Group();
+		connect.select.confirm = new Selecter.Confirm();
+		connect.select.code = new Selecter.Codes();
+		connect.select.plaid = new Selecter.Plaids();
+		connect.chat.off();
+		connect.response = undefined;
 		connect.send = undefined;
 	}
 });

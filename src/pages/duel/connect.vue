@@ -16,7 +16,7 @@
 				@duelist = 'connect.wait.duelist'
 				@watcher = 'connect.wait.watcher'
 				@connect = 'connect.on'
-				@disconnect = 'connect.clear'
+				@disconnect = 'connect.close'
 				key = '1'
 			/>
 			<Scene
@@ -108,8 +108,7 @@
 				message : connect.select.confirm.message,
 				closeOnClickOverlay : false
 			}, connect.select.confirm.chk)
-				.then(async i => await (i ? connect.select.confirm.confirm
-					: connect.select.confirm.cancel)?.())
+				.then(async i => await connect.response?.(i))
 		else close();
 	});
 </script>
