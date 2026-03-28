@@ -90,7 +90,6 @@ class _Toast {
 const toast = new _Toast();
 
 const Toast = defineComponent({
-	name : 'Toast',
 	setup () {
 		return () =>
 			<div class = 'toast'>

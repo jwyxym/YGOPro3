@@ -214,7 +214,6 @@ class _Duel {
 const duel = new _Duel();
 
 const Duel = defineComponent({
-	name : 'Duel',
 	setup () {
 		onMounted(duel.init);
 		onUnmounted(duel.clear);

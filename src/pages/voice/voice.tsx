@@ -26,7 +26,6 @@ class Voice {
 const voice = new Voice();
 
 const _Voice = defineComponent({
-	name : 'Voice',
 	setup () {
 		onMounted(() => voice.play(KEYS.BACK_BGM));
 		return () => 

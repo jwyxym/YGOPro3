@@ -39,7 +39,7 @@
 	import Button from '@/pages/ui/button.vue';
 
 	import Chat from './chat';
-	import History from './history';
+	import History from './history/history';
 
 
 	const page = reactive({
@@ -51,7 +51,7 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
-	@use './history.scss';
+	@use './history/history.scss';
     .log {
 		position: relative;
 		border: 1px white solid;
