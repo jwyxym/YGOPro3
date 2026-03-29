@@ -27,6 +27,7 @@ pub fn run() {
 			api::reload,
 			api::download,
 			api::download_assets,
+			api::get_ypk,
 			api::load_ypk,
 			api::unload_ypk,
 			api::chk_version,

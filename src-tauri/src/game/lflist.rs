@@ -1,6 +1,6 @@
 use super::COMMENTS_REGEX;
 use serde::Serialize;
-use std::collections::BTreeMap;
+use indexmap::IndexMap;
 use lazy_static::lazy_static;
 
 lazy_static! {
@@ -16,30 +16,30 @@ lazy_static! {
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFList {
-	content: BTreeMap<String, LFListContent>,
+	content: IndexMap<String, LFListContent>,
 }
 
 #[derive(Serialize, Clone, Debug)]
 pub struct LFListContent {
 	genesys: u32,
 	hash: u32,
-	glist: BTreeMap<u32, u32>,
-	lflist: BTreeMap<u32, u32>,
+	glist: IndexMap<u32, u32>,
+	lflist: IndexMap<u32, u32>,
 }
 
 impl LFList {
 	pub fn new () -> Self {
 		Self {
-			content: BTreeMap::new()
+			content: IndexMap::new()
 		}
 	}
 	pub fn init (&mut self, text: String) -> () {
-		COMMENTS_REGEX.replace_all(&text, "").split("!")
+		COMMENTS_REGEX.replace_all(&text, "").split("\n!")
 			.filter(|i|i.lines().count() > 1)
 			.for_each(|text| {
 				if let Some(key) = text.lines().nth(0) {
-					let mut lflist: BTreeMap<u32, u32> = BTreeMap::new();
-					let mut glist: BTreeMap<u32, u32> = BTreeMap::new();
+					let mut lflist: IndexMap<u32, u32> = IndexMap::new();
+					let mut glist: IndexMap<u32, u32> = IndexMap::new();
 					let mut genesys: u32 = 0;
 					let mut hash: u32 = 0x7dfcee6a;
 					if let Some(genesy) = text.lines().find(|i| i.starts_with("$genesys")) {
@@ -79,7 +79,7 @@ impl LFList {
 				}
 			});
 	}
-	pub fn content (&self) -> &BTreeMap<String, LFListContent> {
+	pub fn content (&self) -> &IndexMap<String, LFListContent> {
 		&self.content
 	}
 }

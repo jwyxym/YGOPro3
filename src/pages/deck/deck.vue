@@ -25,7 +25,7 @@
 			:move = 'page.move'
 			:deck = 'this_deck'
 			@card = 'page.oncard'
-			@lflist = '(lflist : string) => page.lflist = lflist'
+			@lflist = '(lflist ?: LFList) => page.lflist = lflist'
 			@save = 'page.save'
 			@sort = 'page.sort'
 			@share = 'page.copy'
@@ -42,6 +42,7 @@
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import fs from '@/script/fs';
+	import LFList from '@/script/lflist';
 
 	import dialog from '@/pages/ui/dialog';
 	import { CardPic, CardPics } from '@/pages/deck/pic.vue';
@@ -53,7 +54,7 @@
 	import Card_Box from './card_info.vue';
 
 	const page = reactive({
-		lflist : '',
+		lflist : undefined as LFList | undefined,
 		height : 0,
 		width : new Array(2).fill(0),
 		resize : () : void => {

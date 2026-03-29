@@ -30,7 +30,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, onBeforeMount, onMounted } from 'vue';
+	import { reactive, onBeforeMount, onMounted, onUnmounted } from 'vue';
 
 	import YGOMenu from './pages/menu/menu.vue';
 	import Deck from './pages/deck/deck_list.vue';
@@ -117,6 +117,8 @@
 
 	onMounted(async () => {
 	});
+
+	onUnmounted(mainGame.clear);
 
 </script>
 <style scoped lang = 'scss'>

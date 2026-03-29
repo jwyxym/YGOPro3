@@ -44,7 +44,7 @@ use tokio::{
 use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
-	collections::BTreeMap, fs::{exists, write, create_dir_all}, path::{Path, PathBuf}, sync::OnceLock
+	collections::BTreeMap, fs::{exists, write}, path::{Path, PathBuf}, sync::OnceLock
 };
 use tauri::{AppHandle, Emitter};
 
@@ -137,7 +137,6 @@ impl Game {
 			lflist: lflist,
 			pics: Pic::new().read_dir(path.join("pics"))
 		});
-		pack.reverse();
 		Ok(Self {
 			version: (format!("YGOPro3://{}/", app.package_info().version.to_string()), version),
 			model: model,
@@ -420,6 +419,26 @@ impl Game {
 		Ok(())
 	}
 
+	pub async fn get_zip () -> Result<Vec<String>, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path.join("expansions");
+		Ok(WalkDir::new(path)
+			.max_depth(1)
+			.into_iter()
+			.filter_map(|i| {
+				if let Ok(i) = i {
+					if let Some(file) = File::new(i.path()) {
+						if ["ypk", "zip"].contains(&file.ext()) {
+							return Some(String::from(file.name()));
+						}
+					}
+				}
+				None
+			})
+			.collect()
+		)
+	}
+
 	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
@@ -518,10 +537,10 @@ impl Game {
 		Ok(game.resource.to_array())
 	}
 
-	pub async fn get_cards () -> Result<Vec<(Vec<u32>, Vec<String>)>, Error> {
+	pub async fn get_cards () -> Result<Vec<(Vec<i64>, Vec<String>)>, Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		let mut cards: BTreeMap<u32, (Vec<u32>, Vec<String>)> = BTreeMap::new();
+		let mut cards: BTreeMap<u32, (Vec<i64>, Vec<String>)> = BTreeMap::new();
 		game.pack
 			.clone()
 			.into_values()
@@ -565,7 +584,6 @@ impl Game {
 			.clone()
 			.into_values()
 			.filter(|pack: &GamePack| pack.on)
-			.rev()
 			.for_each(|pack: GamePack| {
 				pack.lflist.content().into_iter().for_each(|(k, v)| {
 					lflist.insert(String::from(k), v.to_array());
@@ -637,9 +655,7 @@ impl Game {
 		let mut tasks: Vec<JoinHandle<Result<(String, String), Error>>> = Vec::new();
 		let mut deck: Vec<(String, String)> = Vec::new();
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let path: PathBuf = path.join("deck");
-		let _ = create_dir_all(&path);
-		WalkDir::new(path)
+		WalkDir::new(path.join("deck"))
 			.max_depth(1)
 			.into_iter()
 			.for_each(|i| {

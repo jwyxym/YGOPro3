@@ -74,6 +74,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card from '@/script/card';
 	import GLOBAL from '@/script/scale';
+	import LFList from '@/script/lflist';
 	import Deck from '@/pages/deck/deck';
 	import { toast } from '@/pages/toast/toast';
 	import Pic, { CardPic, CardPics } from '@/pages/deck/pic.vue';
@@ -111,7 +112,7 @@
 				if (card.is_token())
 					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE);
 				const cards = page.deck.main.concat(page.deck.extra, page.deck.side);
-				const ct = props.lflist ? mainGame.get.lflist(props.lflist).get.lflist(card.id) : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
+				const ct = props.lflist?.get.lflist(card.id) ?? mainGame.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
 				if (cards.filter(i => (() : number => {
 					const card : Card = mainGame.get.card(i.code);
 					return Math.abs(card.alias - card.id) <= 20 ? card.alias : card.id;
@@ -408,7 +409,7 @@
 	const props = defineProps<{
 		count : number;
 		deck : Deck;
-		lflist ?: string;
+		lflist ?: LFList;
 	}>();
 
 	watch(() => page.move.card, (n) => {

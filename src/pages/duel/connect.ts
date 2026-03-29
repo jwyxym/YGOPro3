@@ -11,6 +11,8 @@ import tcp, { Tcp } from './ygo-protocol/tcp';
 import Protocol from './ygo-protocol/protocol';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
+import { history } from './log/history/history';
+import { chat } from './log/chat';
 
 import * as Selecter from './selecter/selecter';
 
@@ -150,6 +152,8 @@ const connect = reactive({
 	},
 	close : async () => await connect.protocol?.disconnect(),
 	clear : () => {
+		history.clear();
+		chat.clear();
 		connect.protocol = undefined;
 		connect.state = 0;
 		connect.wait = new Wait();

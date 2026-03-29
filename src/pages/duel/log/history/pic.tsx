@@ -3,11 +3,9 @@ import { defineComponent } from 'vue';
 const Pic  = defineComponent({
 	props: {
 		src : {
-			type : String
-		},
-		desc : {
-			type : String
-		},
+			type : String,
+			required : true
+		}
 	},
 	setup (props) {
 		return () => <div style = {{
@@ -17,17 +15,8 @@ const Pic  = defineComponent({
 			'justify-content' : 'center'
 		}}>
 			<img src = {props.src} style = {{
-				'height' : 'calc(100% - 30px)'
+				'height' : '80%'
 			}}/>
-			<div style = {{
-				'width' : '100%',
-				'height' : '20px',
-				'white-space' : 'nowrap',
-				'overflow' : 'hidden',
-				'text-overflow' : 'ellipsis'
-			}}>
-				<span>{props.desc}</span>
-			</div>
 		</div>;
 	},
 });

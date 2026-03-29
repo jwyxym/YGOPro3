@@ -29,7 +29,7 @@
 						:i = 'i.pic'
 						:hover = 'page.card === i.pic'
 						:size = 'page.size'
-						:lflist = 'search.info.lflist'
+						:lflist = 'search.info.lflist ? mainGame.get.lflist(search.info.lflist) : undefined'
 						ref = 'cards'
 					/>
 					<div>
@@ -184,6 +184,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG } from '@/script/constant';
 	import GLOBAL from '@/script/scale';
+	import LFList from '@/script/lflist';
 	import Search from '@/pages/deck/search';
 
 	import Pic, { CardPic } from '@/pages/deck/pic.vue';
@@ -425,7 +426,7 @@
 
 	const emit = defineEmits<{
 		card : [card : number];
-		lflist : [lflist : string];
+		lflist : [lflist ?: LFList];
 		save : [name : string];
 		share : [name : string];
 		sort : [];
@@ -455,7 +456,7 @@
 	});
 
 	watch(() => props.deck.name, (n) => setting.name = n ?? '', { immediate : true });
-	watch(() => search.info.lflist, (n) => emit('lflist', n));
+	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
 </script>
 <style lang = 'scss' scoped>
 	$head-height: 60px;

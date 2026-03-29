@@ -58,13 +58,26 @@ class Invoke {
 				return undefined;
 			}
 		},
-		load_ypk : async (name : string) : Promise<boolean> => {
+		get_ypk : async () : Promise<Array<string>> => {
 			try {
-				await invoke<void>('load_ypk', { name : name });
-				return true;
+				const result = await invoke<ArrayBuffer>('get_ypk');
+				return bincode.decode(
+					bincode.Collection(bincode.String), result
+				).value as Array<string>;
 			} catch (error) {
 				fs.write.log(error);
-				return false;
+				return [];
+			}
+		},
+		load_ypk : async (name ?: string) : Promise<boolean | Array<string>> => {
+			try {
+				if (name) {
+					await invoke<void>('load_ypk', { name : name });
+					return true;
+				} else return await this.game.get_ypk();
+			} catch (error) {
+				fs.write.log(error);
+				return name ? false : [];
 			}
 		},
 		unload_ypk : async (name : string) : Promise<boolean> => {
@@ -97,7 +110,7 @@ class Invoke {
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_pic', { deck : deck });
-				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] =  bincode.decode(bincode.Tuple(
+				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] = bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))
 				), result).value as [Array<[number, string]>, Array<[number, Array<number>]>];
@@ -105,6 +118,7 @@ class Invoke {
 				const buffer_url : Array<[number, string]> = pics[1].map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
 					type : i[1].slice(0, 8).every((v, i) => jpeg_header[i] === v) ? 'image/jpeg' : 'image/png'
 				}))]);
+				console.log(pics)
 				return [pics[0], buffer_url].flat();
 			} catch (error) {
 				fs.write.log(error);
@@ -188,9 +202,9 @@ class Invoke {
 				const result = await invoke<ArrayBuffer>('get_cards');
 				return (bincode.decode(bincode.Collection(
 					bincode.Tuple(
-						bincode.Collection(bincode.u32),
+						bincode.Collection(bincode.i64),
 						bincode.Collection(bincode.String),
-					)), result).value as Array<[Array<number>, Array<string>]>)
+					)), result).value as any as Array<[Array<number>, Array<string>]>)
 						.map(i => [i[0][0], new Card(i.flat())]);
 			} catch (error) {
 				fs.write.log(error);

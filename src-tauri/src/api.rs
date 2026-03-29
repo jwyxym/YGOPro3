@@ -29,6 +29,15 @@ pub async fn download (app: AppHandle, url: String, name: String) -> Result<Stri
 }
 
 #[tauri::command]
+pub async fn get_ypk () -> Response {
+	Game::get_zip().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
 pub async fn load_ypk (app: AppHandle, name: String) -> Result<(), String> {
 	Game::load_zip(&app, name).await.map_err(|e| e.to_string())
 }

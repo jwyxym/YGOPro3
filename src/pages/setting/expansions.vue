@@ -97,7 +97,6 @@
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import fs from '@/script/fs';
 	import { KEYS, REG, URL } from '@/script/constant';
 	import { toast } from '@/pages/toast/toast';
 	import dialog from '@/pages/ui/dialog';
@@ -220,7 +219,7 @@
 	});
 
 	onBeforeMount(async () => {
-		page.expansion = await fs.read.dir('expansions', ['ypk', 'zip']);
+		page.expansion = await mainGame.load.ypk() as Array<string>;
 		page.loaded_expansion = mainGame.get.system(KEYS.SETTING_LOADING_EXPANSION) as Array<string>;
 	});
 

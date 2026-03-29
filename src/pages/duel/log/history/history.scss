@@ -8,20 +8,42 @@
 			height: 100%;
 		}
 	}
-	:deep(.history__card__move) {
+	:deep(.history__card__move),
+	:deep(.history__card__draw) {
 		> div:first-child {
-			width: 40%;
+			width: 20%;
+		}
+		> div:last-child {
+			width: 80%;
+		}
+	}
+	:deep(.history__card__battel) {
+		> div:first-child, > div:last-child {
+			width: 20%;
+		}
+		> div:nth-child(2) {
+			width: 20%;
+		}
+	}
+	:deep(.history__card__lp) {
+		> div:first-child {
+			width: 20%;
 		}
 		> div:last-child {
 			width: 60%;
 		}
 	}
-	:deep(.history__card__battel) {
-		> div:first-child, > div:last-child {
-			width: 40%;
-		}
-		> div:nth-child(2) {
+	:deep(.history__card__announce) {
+		> div:first-child {
 			width: 20%;
+		}
+		> div:last-child {
+			width: 80%;
+			display: flex;
+			> div {
+				width: 50%;
+				height: 100%;
+			}
 		}
 	}
 	:deep(.history__oppo) {

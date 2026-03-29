@@ -12,24 +12,41 @@
 	>
 		<var-badge
 			type = 'info'
-			v-if = 'lflist && mainGame.get.lflist(lflist, i.code) !== mainGame.get.system(KEYS.SETTING_CT_CARD)'
-			:value = 'mainGame.get.lflist(lflist, i.code)'
+			v-if = 'get_g(i.code)'
+			:value = 'get_g(i.code)'
+		/>
+		<var-badge
+			type = 'danger'
+			v-else-if = 'get_lf(i.code)'
+			:value = 'get_lf(i.code)'
 		/>
 	</div>
 </template>
 <script setup lang = 'ts'>
 	import mainGame from '@/script/game';
 	import { KEYS } from '@/script/constant';
+	import LFList from '@/script/lflist';
 
 	interface CardPic { code : number; index : number; y : number; loc : number; key : string; };
 	type CardPics = Array<CardPic>;	
 
-	defineProps<{
+	const props = defineProps<{
 		i : CardPic;
 		hover : boolean;
 		size : { width : number; height : number; }
-		lflist ?: string;
+		lflist ?: LFList;
 	}>();
+
+	const get_lf = (code : number) : string => {
+		const lf = props.lflist?.get?.lflist?.(code);
+		if (lf !== mainGame.get.system(KEYS.SETTING_CT_CARD))
+			return lf?.toString() ?? '';
+		return '';
+	};
+	const get_g = (code : number) : string => {
+		const g = props.lflist?.genesys ? props.lflist.get.glist(code) : undefined;
+		return g === 0 ? '' : g?.toString() ?? '';
+	};
 
 	export type { CardPic, CardPics };
 </script>

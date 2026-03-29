@@ -38,7 +38,7 @@ class Search {
 		category : (category : Array<number>) => { this.category = category; return this; },
 		race : (race : Array<number>) => { this.race = race; return this; },
 		link : (link : Array<number>) => { this.link = link; return this; },
-		lflist : (lflist : string) => { this.lflist = lflist; return this; },
+		lflist : (lflist : string) => { console.log(lflist), this.lflist = lflist; return this; },
 		forbidden : (forbidden : string) => { this.forbidden = forbidden.split('%%').filter(i => i); return this; },
 		lv : (lv : string) => { this.lv = lv.split('%%').filter(i => i); return this; },
 		atk : (atk : string) => { this.atk = atk.split('%%').filter(i => i); return this; },
@@ -51,7 +51,7 @@ class Search {
 	search = () : Array<Card> => {
 		if (!this.cards) return [];
 		const and_or = (and_or : boolean, ct : number, length : number) => and_or ? ct !== length : ct === 0;
-		const compare = (i : string, num : number) => i.includes('..') ? calculator.interval(i, num) : calculator.compare(i, num);
+		const compare = (i : string, num : number, except ?: number) => i.includes('..') ? calculator.interval(i, num, except) : calculator.compare(i, num);
 		return this.cards.filter(card =>
 			!((this.desc && this.desc.length && this.desc.filter(i => card.name.includes(i) || card.desc.includes(i) || card.id.toString() === i || compare(i, card.id)).length !== this.desc.length)
 				|| (this.ot && this.ot.length && this.ot.findIndex(i => i.toString(2).split('1').length > 2 ? card.ot.toString(2).split('1').length > 2 : i === card.ot) === -1)
@@ -70,9 +70,16 @@ class Search {
 					|| (this.type[3] && this.type[3].length && this.type[3].findIndex(i => card.type & i) > -1))
 				)
 			)
-			|| (this.lflist && this.lflist.length && this.forbidden && this.forbidden.length && (() => {
-				const ct = mainGame.get.lflist(this.lflist)?.get.lflist(card.id);
-				return this.forbidden.findIndex(i => compare(i, ct)) === -1;
+			&& (!(this.lflist && this.lflist.length && this.forbidden && this.forbidden.length)
+				|| this.lflist && this.lflist.length && this.forbidden && this.forbidden.length && (() => {
+				const lflist = mainGame.get.lflist(this.lflist);
+				if (lflist.genesys) {
+					const ct = lflist.get.glist(card.id);
+					if (ct !== 0 && this.forbidden.findIndex(i => compare(i, ct)) > -1)
+						return true;
+				}
+				const ct = lflist?.get.lflist(card.id);
+				return this.forbidden.findIndex(i => compare(i, ct, lflist.genesys ? 3 : undefined)) > -1;
 			})())
 		);
 	}

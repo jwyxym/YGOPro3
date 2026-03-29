@@ -5,16 +5,33 @@ import { I18N_KEYS } from '@/script/language/i18n';
 
 import Pic from './pic';
 import Desc from './desc';
+import Avatar from './avatar';
+import Num from './number';
+import Cards from './cards'
 
 const HISTORY = {
 	MOVE : 0,
 	BATTEL : 1,
+	ANNOUNCE : 2,
+	LP : 3,
+	DRAW : 4
 }
+
+interface HistoryContent {
+	self : boolean;
+	from ?: string;
+	to ?: string;
+	avatar ?: string;
+	number ?: number;
+	attribute ?: number;
+	race ?: number;
+	cards : Array<string>;
+};
 
 class HistoryMsg {
 	type : number;
-	content : any;
-	constructor(type : number, content : any) {
+	content :  HistoryContent;
+	constructor(type : number, content :  HistoryContent) {
 		this.type = type;
 		this.content = content;
 	}
@@ -60,12 +77,11 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.card.src}
-								desc = {i.content.card.desc}
+								src = {i.content.cards[0]}
 							/>
 							<Desc
 								position = {true}
-								desc = {i.content.desc}
+								desc = {i.content.from! + ' → ' + i.content.to}
 							/>
 						</div>
 					case HISTORY.BATTEL:
@@ -73,15 +89,64 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.attacker.src}
-								desc = {i.content.attacker.desc}
+								src = {i.content.cards[0]}
 							/>
 							<Desc
-								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE)}
+								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
 							/>
 							<Pic
-								src = {i.content.defender.src}
-								desc = {i.content.defender.desc}
+								src = {i.content.cards[1]}
+							/>
+						</div>
+					case HISTORY.ANNOUNCE:
+						let content
+						{
+							if (i.content.cards.length)
+								content = <Pic
+									src = {i.content.cards[0]}
+								/>
+							else if (i.content.number !== undefined)
+								content = <Num
+									number = {i.content.number}
+								/>
+						}
+						return <div class = {['history__card__announce',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<div>
+								<Desc
+									desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_ANNOUNCE) + ' →'}
+								/>
+								{content}
+							</div>
+						</div>
+					case HISTORY.LP:
+						return <div class = {['history__card__lp',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<Num
+								number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_LP) + ' : ' + i.content.number!}
+							/>
+						</div>
+					case HISTORY.DRAW:
+						return <div class = {['history__card__draw',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<Cards
+								cards = {i.content.cards}
+								width = {300}
 							/>
 						</div>
 				}
@@ -91,4 +156,4 @@ const History  = defineComponent({
 });
 
 export default History;
-export { history, HISTORY };
+export { history, HISTORY, HistoryMsg };

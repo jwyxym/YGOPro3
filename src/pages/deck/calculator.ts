@@ -2,14 +2,14 @@ import { all, create } from 'mathjs'
 
 class Calculator {
 	math = create(all);
-	interval = (str : string, num : number) : boolean => {
+	interval = (str : string, num : number, except ?: number) : boolean => {
 		try {
 			if (str.trimStart().startsWith('..')) str = `0${str}`;
 			if (str.trimEnd().endsWith('..')) str += Number.MAX_SAFE_INTEGER;
 			const nums = str.split('..');
 			if (nums.length !== 2) return false;
 			const [min, max] = nums;
-			return this.math.evaluate(`${min}<=${num}<=${max}`);
+			return this.math.evaluate(`${min}<=${num}<=${max}`) && num !== except;
 		} catch {
 			return false;
 		}

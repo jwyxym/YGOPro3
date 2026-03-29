@@ -3,12 +3,13 @@ import { defineComponent } from 'vue';
 const Desc  = defineComponent({
 	props: {
 		desc : {
-			type : String
+			type : String,
+			required : true
 		},
 		position : {
 			type : Boolean,
 			default : false
-		},
+		}
 	},
 	setup (props) {
 		return () => <div style = {{

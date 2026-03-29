@@ -22,14 +22,24 @@ class LFList {
 
 	get = {
 		lflist : (code : number | string) : number => {
-			if (typeof code === 'string')
-				code = parseInt(code);
-			return this.lflist.get(code) ?? mainGame.get.system(KEYS.SETTING_CT_CARD) as number;
+			let card = mainGame.get.card(code);
+			while (card.alias !== 0 && Math.abs(card.id - card.alias) <= 20) {
+				const c = mainGame.get.card(card.alias);
+				if (c === mainGame.unknown)
+					break;
+				card = c;
+			}
+			return this.lflist.get(card.id) ?? mainGame.get.system(KEYS.SETTING_CT_CARD) as number;
 		},
 		glist : (code : number | string) : number => {
-			if (typeof code === 'string')
-				code = parseInt(code);
-			return this.glist.get(code) ??0;
+			let card = mainGame.get.card(code);
+			while (card.alias !== 0 && Math.abs(card.id - card.alias) <= 20) {
+				const c = mainGame.get.card(card.alias);
+				if (c === mainGame.unknown)
+					break;
+				card = c;
+			}
+			return this.glist.get(card.id) ?? 0;
 		}
 	}
 }

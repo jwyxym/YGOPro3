@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted, reactive } from 'vue';
+import { defineComponent, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
@@ -178,7 +178,7 @@ class _Duel {
 			pos : number = POS.NONE,
 			id ?: number
 		) : Client_Card => {
-			const card = reactive(new Client_Card());
+			const card = new Client_Card();
 			card.set.owner(owner);
 			card.set.location(location, seq);
 			card.set.pos(pos);

@@ -91,6 +91,9 @@ class Game {
 			this.model = new Map(model);
 			this.bgm.push(...sounds);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
+			console.log(cards)
+			console.log(this.cards.get(4280258))
+			// console.log(this.lflist.get('2026.1')?.lflist.get(4280258))
 
 			this.font.url = fonts.map(([_, url]) => url);
 			this.font.dom.textContent = fonts.map(([name, url]) =>
@@ -255,9 +258,7 @@ class Game {
 	};
 
 	clear = () : void => {
-		this.cards.forEach(i => {
-			i.clear();
-		});
+		this.cards.forEach(i => i.clear());
 		this.font.url.forEach(i => URL.revokeObjectURL(i));
 		this.font.url.length = 0;
 		this.font.dom.textContent = '';
@@ -275,6 +276,10 @@ class Game {
 				.map(i => typeof i === 'string' ? parseInt(i) : i);
 			(await invoke.game.get_pic(deck as Array<number>))
 				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
+			deck
+				.map(i => this.get.card(i))
+				.filter(i => !i.has_pic())
+				.forEach(i => i.update_pic(this.unknown.pic));
 		}
 	};
 
