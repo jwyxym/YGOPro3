@@ -167,7 +167,6 @@ class Gsap {
 		hand : (cards : Array<Client_Card>, codes : Array<string>, cover : string, tl : gsap.core.Timeline = this.timeline() ) : [gsap.core.Timeline, number] => {
 			let time = 0;
 			for (const [i, card] of cards.entries()) {
-				console.log(codes[i])
 				let [_, v] = this.turn(card.div.img, codes[i], tl, time);
 				time = v;
 				tl.to(card.three.rotation, {

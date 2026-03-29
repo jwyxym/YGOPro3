@@ -91,7 +91,6 @@ class Msg {
 		const msg = Buffer.alloc(data.length + 2);
 		msg.writeUInt16LE(data.length, 0);
 		Buffer.from(data).copy(msg, 2);
-		console.log(new Uint8Array(msg.buffer, msg.byteOffset, msg.length))
   		return new Uint8Array(msg.buffer, msg.byteOffset, msg.length);
 	};
 	array = () : Array<number> => Array.from(this.buffer());
