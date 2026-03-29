@@ -118,7 +118,6 @@ class Invoke {
 				const buffer_url : Array<[number, string]> = pics[1].map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
 					type : i[1].slice(0, 8).every((v, i) => jpeg_header[i] === v) ? 'image/jpeg' : 'image/png'
 				}))]);
-				console.log(pics)
 				return [pics[0], buffer_url].flat();
 			} catch (error) {
 				fs.write.log(error);

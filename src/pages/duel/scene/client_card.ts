@@ -306,7 +306,6 @@ class Client_Card {
 			if (el) {
 				const span : HTMLSpanElement = el.querySelector('span')!;
 				const count : number = add ? Math.max(0, ct + Number(span.innerText)) : ct;
-				console.log(count)
 				if (!isNaN(count) && count > 0) {
 					if (el.style.opacity === '1') {
 						span.style.opacity = '0';

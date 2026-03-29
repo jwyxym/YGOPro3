@@ -38,7 +38,7 @@ class Search {
 		category : (category : Array<number>) => { this.category = category; return this; },
 		race : (race : Array<number>) => { this.race = race; return this; },
 		link : (link : Array<number>) => { this.link = link; return this; },
-		lflist : (lflist : string) => { console.log(lflist), this.lflist = lflist; return this; },
+		lflist : (lflist : string) => { this.lflist = lflist; return this; },
 		forbidden : (forbidden : string) => { this.forbidden = forbidden.split('%%').filter(i => i); return this; },
 		lv : (lv : string) => { this.lv = lv.split('%%').filter(i => i); return this; },
 		atk : (atk : string) => { this.atk = atk.split('%%').filter(i => i); return this; },

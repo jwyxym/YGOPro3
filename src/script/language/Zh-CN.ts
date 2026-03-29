@@ -57,6 +57,7 @@ Zh_CN[I18N_KEYS.DECK_RULE_SEARCH_ATK] = '允许输入的字符：' + ['数字', 
 Zh_CN[I18N_KEYS.DECK_RULE_SEARCH_LV] = '允许输入的字符：' + ['数字', '>', '=', '<', '..'].toString();
 Zh_CN[I18N_KEYS.DECK_RULE_DECK_MAX] = '卡组已达最大数量 {:?}';
 Zh_CN[I18N_KEYS.DECK_RULE_CARD_MAX] = '卡片已达最大数量 {:?}';
+Zh_CN[I18N_KEYS.DECK_RULE_GENESYS_MAX] = '积分已达最大数量 {:?}';
 Zh_CN[I18N_KEYS.DECK_RULE_CARD_TYPE] = '卡片类型错误';
 Zh_CN[I18N_KEYS.DECK_SAVE_COMPELETE] = '保存成功';
 Zh_CN[I18N_KEYS.DECK_COPY_COMPELETE] = '已复制到粘贴板';

@@ -91,9 +91,6 @@ class Game {
 			this.model = new Map(model);
 			this.bgm.push(...sounds);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
-			console.log(cards)
-			console.log(this.cards.get(4280258))
-			// console.log(this.lflist.get('2026.1')?.lflist.get(4280258))
 
 			this.font.url = fonts.map(([_, url]) => url);
 			this.font.dom.textContent = fonts.map(([name, url]) =>

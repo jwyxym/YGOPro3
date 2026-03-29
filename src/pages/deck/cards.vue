@@ -22,7 +22,9 @@
 				:lflist = 'lflist'
 				ref = 'cards'
 			/>
-			<span ref = 'main_title'>{{ page.title.main }}&nbsp;:&nbsp;{{ page.deck.main.length }}</span>
+			<span ref = 'main_title'>{{ page.title.main }}&nbsp;:&nbsp;{{ page.deck.main.length }}
+				<span v-if = 'props.lflist?.genesys'>&nbsp;&nbsp;&nbsp;&nbsp;{{ page.deck.genesys }}/{{ props.lflist?.genesys }}</span>
+			</span>
 			<div class = 'box'
 				:style = "{
 					'--box_height' : `${page.size.main * page.size.height}px`,
@@ -87,6 +89,15 @@
 	
 	const page = reactive({
 		deck : {
+			genesys : computed(() => {
+				const decks : CardPics = page.deck.main
+					.concat(page.deck.extra)
+					.concat(page.deck.side);
+				return decks.reduce((c, card) => {
+					const genesys = props.lflist?.genesys ? props.lflist.get.glist(card.code) : 0;
+					return genesys + c;
+				}, 0);
+			}),
 			main : [] as CardPics,
 			extra : [] as CardPics,
 			side : [] as CardPics,
@@ -119,6 +130,9 @@
 				})() === code).length >= ct + (page.move.index.from > -1 ? 1 : 0))
 					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_MAX, ct.toString());
 				const chk = page.move.index.from === deck ? 0 : 1;
+				const genesys = Number(page.move.index.from < 0) * (props.lflist?.genesys ? props.lflist.get.glist(card.id) : 0);
+				if (props.lflist && page.deck.genesys + genesys > props.lflist.genesys)
+					return mainGame.get.text(I18N_KEYS.DECK_RULE_GENESYS_MAX, props.lflist.genesys);
 				switch (deck) {
 					case 0:
 						if (page.deck.main.length + chk > (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN) as number))

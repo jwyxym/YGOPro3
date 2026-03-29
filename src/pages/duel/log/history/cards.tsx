@@ -18,7 +18,6 @@ const Cards  = defineComponent({
 			{props.cards.map((i, v) => {
 				const width = 100 / 1.45;
 				const gap = props.width / props.cards.length;
-				console.log(width, gap)
 				return <img src = {i} style = {{
 					'position' : 'absolute',
 					'height' : 'calc(100% - 30px)',
