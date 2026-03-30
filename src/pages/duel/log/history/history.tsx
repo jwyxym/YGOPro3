@@ -14,7 +14,8 @@ const HISTORY = {
 	BATTEL : 1,
 	ANNOUNCE : 2,
 	LP : 3,
-	DRAW : 4
+	DRAW : 4,
+	POS_CHANGE : 5
 }
 
 interface HistoryContent {
@@ -25,12 +26,15 @@ interface HistoryContent {
 	number ?: number;
 	attribute ?: number;
 	race ?: number;
-	cards : Array<string>;
+	cards : Array<{
+		src : string;
+		pos : number;
+	}>;
 };
 
 class HistoryMsg {
 	type : number;
-	content :  HistoryContent;
+	content : HistoryContent;
 	constructor(type : number, content :  HistoryContent) {
 		this.type = type;
 		this.content = content;
@@ -44,8 +48,9 @@ class _History {
 		concurrency: 1,
 		autoStart: true
 	});
-	push = (msg : HistoryMsg) => this.queue.add(
+	push = (type : HistoryMsg | number, content ?: HistoryContent) => this.queue.add(
 		async () => {
+			const msg = type instanceof HistoryMsg ? type as HistoryMsg : new HistoryMsg(type, content!);
 			this.msg.push(msg);
 			if (!this.element) return;
 			const { scrollTop, scrollHeight, clientHeight } = this.element;
@@ -77,7 +82,8 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.cards[0]}
+								src = {i.content.cards[0].src}
+								pos = {i.content.cards[0].pos}
 							/>
 							<Desc
 								position = {true}
@@ -89,13 +95,15 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.cards[0]}
+								src = {i.content.cards[0].src}
+								pos = {i.content.cards[0].pos}
 							/>
 							<Desc
 								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
 							/>
 							<Pic
-								src = {i.content.cards[1]}
+								src = {i.content.cards[1].src}
+								pos = {i.content.cards[1].pos}
 							/>
 						</div>
 					case HISTORY.ANNOUNCE:
@@ -103,7 +111,7 @@ const History  = defineComponent({
 						{
 							if (i.content.cards.length)
 								content = <Pic
-									src = {i.content.cards[0]}
+									src = {i.content.cards[0].src}
 								/>
 							else if (i.content.number !== undefined)
 								content = <Num
@@ -145,8 +153,24 @@ const History  = defineComponent({
 								self = {i.content.self}
 							/>
 							<Cards
-								cards = {i.content.cards}
+								cards = {i.content.cards.map(i => i.src)}
 								width = {300}
+							/>
+						</div>
+					case HISTORY.POS_CHANGE:
+						return <div class = {['history__card__pos',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Pic
+								src = {i.content.cards[0].src}
+								pos = {i.content.cards[0].pos}
+							/>
+							<Desc
+								desc = ' →'
+							/>
+							<Pic
+								src = {i.content.cards[1].src}
+								pos = {i.content.cards[1].pos}
 							/>
 						</div>
 				}

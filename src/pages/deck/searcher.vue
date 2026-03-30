@@ -1,5 +1,7 @@
 <template>
-	<main>
+	<main
+		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
+	>
 		<div>
 			<Input
 				variant = 'outlined'
@@ -436,6 +438,8 @@
 	}>();
 
 	const props = defineProps<{
+		width : number;
+		height : number;
 		count : number;
 		hover : Hover;
 		deck : Deck;
@@ -462,8 +466,8 @@
 	$head-height: 60px;
 	$foot-height: 30px;
 	main {
-		width: calc((var(--width) * 0.9) / 3 - 20px);
-		height: calc(var(--height) * 0.9);
+		width: var(--width);
+		height: var(--height);
 		border-radius: 4px;
 		background: rgba(255, 255, 255, 0.1);
 		color: white;

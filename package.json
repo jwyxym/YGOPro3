@@ -41,6 +41,7 @@
 		"buffer": "^6.0.3",
 		"fake-qq-ui": "^0.3.4",
 		"gsap": "^3.13.0",
+		"lodash": "^4.17.23",
 		"mathjs": "^15.1.0",
 		"p-queue": "^9.1.0",
 		"vue": "^3.5.13",
@@ -50,6 +51,7 @@
 	"devDependencies": {
 		"@tauri-apps/cli": "^2",
 		"@types/howler": "^2.2.12",
+		"@types/lodash": "^4.17.24",
 		"@types/three": "^0.180.0",
 		"@vitejs/plugin-vue": "^5.2.1",
 		"@vitejs/plugin-vue-jsx": "^5.1.4",

@@ -1,5 +1,8 @@
 <template>
-	<main class = 'no-scrollbar'>
+	<div
+		class = 'no-scrollbar info'
+		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
+	>
 		<div>
 			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
 			<Button v-show = 'page.card.id' icon_name = 'collapse' @click = 'page.clear'/>
@@ -55,7 +58,7 @@
 				{{ page.card.description }}
 			</p>
 		</transition>
-	</main>
+	</div>
 </template>
 <script setup lang = 'ts'>
 	import { reactive, watch } from 'vue';
@@ -90,6 +93,8 @@
 
 	const props = defineProps<{
 		code ?: string | number | Card;
+		height : number;
+		width : number;
 	}>();
 
 	watch(() => props.code, (n) => {
@@ -128,13 +133,14 @@
 				page.card.def = card.def >= 0 ? card.def.toString() : '?';
 			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
 		}
+		console.log(mainGame.get.strings.type(card.type), card.type)
 	}, { immediate : true, deep : true });
 </script>
 <style lang = 'scss' scoped>
 	$color-sub : rgb(203, 203, 203);
-	main {
-		width: calc((var(--width) * 0.9) / 3 - 20px);
-		height: calc(var(--height) * 0.9);
+	.info {
+		width: var(--width);
+		height: var(--height);
 		overflow-y: auto;
 		overflow-x: hidden;
 		border-radius: 4px;

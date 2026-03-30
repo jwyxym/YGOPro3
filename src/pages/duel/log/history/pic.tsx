@@ -1,10 +1,15 @@
 import { defineComponent } from 'vue';
+import { POS } from '@/pages/duel/ygo-protocol/network';
 
 const Pic  = defineComponent({
 	props: {
 		src : {
 			type : String,
 			required : true
+		},
+		pos : {
+			type : Number,
+			default : POS.ATTACK
 		}
 	},
 	setup (props) {
@@ -15,7 +20,8 @@ const Pic  = defineComponent({
 			'justify-content' : 'center'
 		}}>
 			<img src = {props.src} style = {{
-				'height' : '80%'
+				'height' : '80%',
+				'transform' : props.pos & POS.DEFENSE ? 'rotate(-90deg)' : 'initial'
 			}}/>
 		</div>;
 	},

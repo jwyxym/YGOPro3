@@ -636,7 +636,7 @@ impl Game {
 	), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		let (_, pack) = game.pack.first().ok_or(anyhow!(""))?;
+		let pack: &GamePack = game.pack.get("./").ok_or(anyhow!(""))?;
 		Ok(pack
 			.clone()
 			.card_info

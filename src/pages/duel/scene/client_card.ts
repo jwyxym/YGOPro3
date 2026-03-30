@@ -54,7 +54,7 @@ class Client_Card {
 		this.def = 0;
 		this.scale = 0;
 		this.overlay = 0;
-		this.pos = 0;
+		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
 		this.activatable = new Map([
 			[COMMAND.ACTIVATE, []],
@@ -241,11 +241,12 @@ class Client_Card {
 	};
 
 	set = {
-		owner : (owner : number) : void => {
+		owner : (owner : number) : Client_Card => {
 			this.owner = owner;
+			return this;
 		},
-		pos : (pos : number) : void => {
-			if (this.pos === pos) return;
+		pos : (pos : number) : Client_Card => {
+			if (this.pos === pos) return this;
 			const img = this.get.el.img();
 			this.pos = pos;
 			switch (pos) {
@@ -263,10 +264,16 @@ class Client_Card {
 					img.src = this.pic ?? mainGame.unknown.pic;
 					break;
 			}
+			return this;
 		},
-		location : (location : number, seq : number) : void => {
+		location : (location : number, seq : number) : Client_Card => {
 			this.seq = seq;
 			this.location = location;
+			return this;
+		},
+		seq : (seq : number) : Client_Card => {
+			this.seq = seq;
+			return this;
 		},
 		id : (id : number) : Client_Card => {
 			if (id === 0)

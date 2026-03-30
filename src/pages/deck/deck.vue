@@ -36,7 +36,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, onBeforeMount, onUnmounted } from 'vue';
+	import { reactive } from 'vue';
 
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
@@ -52,17 +52,12 @@
 	import Search_Box from './searcher.vue';
 	import Deck_Box, { Hover } from './cards.vue';
 	import Card_Box from './card_info.vue';
+	import GLOBAL from '@/script/scale';
 
 	const page = reactive({
 		lflist : undefined as LFList | undefined,
-		height : 0,
-		width : new Array(2).fill(0),
-		resize : () : void => {
-			page.height = window.innerHeight * 0.9;
-			const width = Math.max(window.innerWidth * 0.4, 300) + 30;
-			page.width[0] = (window.innerWidth - width) / 2;
-			page.width[1] = width;
-		},
+		height : GLOBAL.HEIGHT * 0.9,
+		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
 		card : 0,
 		deck : [[], [], []] as [CardPics, CardPics, CardPics],
 		move : {
@@ -142,15 +137,6 @@
 		this_deck : Deck;
 	}>();
 
-	onBeforeMount(async () : Promise<void> => {
-		page.resize();
-		window.addEventListener("resize", page.resize);
-	});
-
-	onUnmounted(() => {
-		window.removeEventListener("resize", page.resize);
-	});
-
 	const emit = defineEmits<{
 		update : [name : string];
 		copy : [deck : Deck];
@@ -163,5 +149,6 @@
 		display: flex;
 		align-self: center;
 		justify-items: flex-start;
+		gap: 5px;
 	}
 </style>

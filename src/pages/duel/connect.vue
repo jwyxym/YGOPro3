@@ -23,6 +23,13 @@
 				v-if = 'connect.state === 2'
 				key = '2'
 			/>
+			<Card_info
+				:code = 'mainGame.get.card(483)'
+				:width = 'card_info.width'
+				:height = 'card_info.height'
+				v-if = 'connect.state === 2'
+				key = '2'
+			/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -79,17 +86,23 @@
 	import Wait from './wait.vue';
 	import Button from '@/pages/ui/button.vue';
 	import Dialog, { close } from '@/pages/ui/dialog';
+	import Card_info from '@/pages/deck/card_info.vue';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import GLOBAL from '@/script/scale';
+
+	import Log from './log/log.vue';
 	import connect from './connect';
 	import Scene from './scene/scene';
-	
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
-	import Log from './log/log.vue';
 
+	const card_info = {
+		width : 340,
+		height : GLOBAL.HEIGHT * 0.6
+	}
 	onMounted(() => {
 	});
 
@@ -118,6 +131,8 @@
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
 		> div:first-child {
+			height: 100%;
+			width: 100%;
 			position: absolute;
 			left: 50%;
 			top: 50%;
@@ -127,6 +142,11 @@
 				left: 50%;
 				top: 50%;
 				transform: translate(-50%, -50%);
+			}
+			.info {
+				position: fixed;
+				left: 0;
+				transform: translate(calc(-70px - var(--left) / var(--scale)), calc(-50% - 170px));
 			}
 		}
 		> div:nth-child(2) {

@@ -2,6 +2,7 @@ import { defineComponent, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
+import lodash from 'lodash';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
@@ -67,22 +68,25 @@ class _Duel {
 		window.removeEventListener('click', duel.click);
 	};
 
-	sort = async (location : number, owner : 0 | 1) : Promise<void> => {
-		const sort = () : gsap.core.Timeline => {
-			const tl = gsap.timeline();
-			if (location === LOCATION.DECK) {
-				const cards = this.cards.filter(i => i.owner === owner && i.location === location);
+	sort = {
+		deck : async (owner : 0 | 1) : Promise<void> => {
+			const sort = () : gsap.core.Timeline => {
+				const tl = gsap.timeline();
+				const cards = lodash.orderBy(
+					this.cards
+						.filter(i => i.owner === owner && i.location === LOCATION.DECK),
+					['seq']
+				);
 				const len = cards.length;
 				if (len > 1) {
+					const card = cards[1];
 					for (let v = 0; v < 4; v ++) {
-						const card = cards[len - 1];
 						tl.to(card.three.position, {
 							x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
 							duration : 0.05
-						}, 0 + v * 0.2);
-						const z = Math.floor(len / 2) * SIZE.TOP;
+						}, v * 0.2);
 						tl.to(card.three.position, {
-							z : z,
+							z : card.seq * SIZE.TOP / 2,
 							duration : 0.05
 						}, 0.05 + v * 0.2);
 						tl.to(card.three.position, {
@@ -90,51 +94,183 @@ class _Duel {
 							duration : 0.05
 						}, 0.1 + v * 0.2);
 						tl.to(card.three.position, {
-							z : len * SIZE.TOP,
+							z : card.seq * SIZE.TOP,
 							duration : 0.05
 						}, 0.15 + v * 0.2);
 					}
 				}
-			} else if (location === LOCATION.HAND) {
-				const width = SIZE.WIDTH * SIZE.MAX_HAND;
-				const axis = Axis.map.get(LOCATION.HAND)![owner];
-				const cards = this.cards.filter(i => i.owner === owner && i.location === location);
-				const ct = cards.length;
-				cards.forEach((card, v) => {
-					const x = (SIZE.HEIGHT + SIZE.GAP.HAND) * axis.x + Math.min(width / ct, SIZE.HEIGHT) * v * (!!owner ? -1 : 1);
-					const y = (SIZE.HEIGHT + SIZE.GAP.HAND * 2) * axis.y;
-					const z = v * SIZE.GAP.HAND + (!!owner ? 0 : 60);
-					if (card.three.position.x !== x ||
-						card.three.position.y !== y ||
-						card.three.position.z !== z
-					)
-						tl.to(card.three.position, {
-							x : x,
-							y : y,
-							z : z,
-							duration : 0.15
-						}, 0);
+				return tl;
+			}
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			const tl = sort();
+			tl.then(() => resolve?.());
+			return promise;
+		},
+		hand : async (owner : 0 | 1, hands : Array<number>) : Promise<Array<Client_Card>> => {
+			const sort = (a : Array<Client_Card>, b : Array<number>) : void => {
+				const groups = new Map<number, Array<Client_Card>>();
+				a.forEach(i => {
+					if (!groups.has(i.id))
+						groups.set(i.id, []);
+					groups.get(i.id)!.push(i);
+				});
+				
+				const pointers = new Map();
+				groups.forEach((_, code) => pointers.set(code, 0));
+				
+				b.forEach((i, v) => {
+					const group = groups.get(i);
+					const pointer = pointers.get(i) ?? 0;
+					if (group && pointer < group.length) {
+						const card = group[pointer];
+						card.set.seq(v);
+						pointers.set(i, pointer + 1);
+					}
 				});
 			}
-			return tl;
+			const cards = this.cards
+				.filter(i => i.owner === owner && i.location === LOCATION.HAND);
+			cards
+				.filter(i => i.clicked)
+				.forEach(i => i.click.img());
+			sort(cards, hands);
+			await Promise.all(cards.map(i => i.update()));
+			return cards;
 		}
-		let resolve = undefined as (() => void) | undefined;
-		const promise = new Promise<void>((r) => resolve = r);
-		const tl = sort();
-		tl.then(() => resolve?.());
-		return promise;
 	};
 
 	
-	draw = async (player : number, ct : number) : Promise<void> => {
+	draw = async (player : number, ct : number) : Promise<Array<Client_Card>> => {
 		const deck = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.DECK)
 			.reverse()
 			.slice(0, ct);
 		const hands = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
-		deck.forEach((i, v) => i.set.location(LOCATION.HAND, v + hands.length));
+		deck.forEach((i, v) => i
+			.set.location(LOCATION.HAND, v + hands.length)
+			.set.pos(POS.FACEUP_ATTACK)
+		);
 		await Promise.all(deck.map(i => i.update()));
+		return deck;
+	};
+
+	attack = async (a : Client_Card, d ?: Client_Card) : Promise<[Client_Card, Client_Card | undefined]> => {
+		const tl = gsap.timeline();
+		const loc = [
+			Axis.computed.card(a),
+			d ? Axis.computed.card(d)
+				: new Axis(0, 3.5 * (SIZE.HEIGHT + SIZE.GAP.SCENE) * (!!a.owner ? - 1 : 1), 10)
+		];
+		const direct = {
+			x : loc[1].x > loc[0].x ? -1 : 1,
+			y : loc[1].y > loc[0].y ? -1 : 1
+		};
+		const y = loc[0].y - loc[1].y;
+		const x = loc[0].x - loc[1].x + SIZE.WIDTH * ((4 - Math.abs(SIZE.GAP.SCENE)) / 5) * direct.x;
+		let time = 0;
+		//同y轴的怪兽发生战斗(额外怪兽区)
+		if (y === 0) {
+			tl.to(a.three.rotation, {
+				z : Math.PI / (2 * direct.x),
+				duration : 0.1,
+			}, time);
+			if (d)
+				tl.to(d.three.rotation, {
+					z : Math.PI / (2 * - direct.x),
+					duration : 0.1,
+				}, time);
+			time += 0.1;
+		//非同y轴的怪兽发生战斗
+		} else {
+			tl.to(a.three.rotation, {
+				z : Math.atan(- x / y) + (!!a.owner ? Math.PI : 0),
+				duration : 0.1,
+			}, time);
+			if (d)
+				tl.to(d.three.rotation, {
+					z : Math.atan(- x / y) + (!a.owner ? Math.PI: 0),
+					duration : 0.1,
+				}, time);
+			time += 0.1;
+		}
+		//抬起动作
+		let move : {
+			x ?: string | number,
+			y ?: string | number,
+			z ?: string | number,
+			duration : number
+		} = {
+			x : `+= ${20 * direct.x}`,
+			z : '+= 100',
+			duration : 0.2,
+		};
+		if (loc[1].y !== loc[0].y)
+			Object.assign(move, {
+				y : `+= ${20 * direct.y}`
+			});
+		tl.to(a.three.position, move, time);
+		time += 0.1;
+		//攻击
+		move = {
+			x : loc[1].x + SIZE.WIDTH * direct.x
+				* (d ? (4 - Math.abs((a.seq > 4 ? a.seq - 4 : a.seq) - (d.seq > 4 ? d.seq - 4 : d.seq))) / 20
+					: 0),
+			z : loc[1].z! + 1,
+			duration : 0.2,
+		};
+		if (loc[1].y !== loc[0].y)
+			Object.assign(move, {
+				y : loc[1].y + (SIZE.HEIGHT / 2 * direct.y)
+			});
+		tl.to(a.three.position, move, time);
+		time += 0.2;
+		//受击
+		if (d) {
+			const move = {
+				x : `+= ${40 * - direct.x}`,
+				duration : 0.1,
+			};
+			if (loc[1].y !== loc[0].y)
+				Object.assign(move, {
+					y : `+= ${40 * - direct.y}`
+				});
+			tl.to(d.three.position, move, time);
+			time += 0.1;
+		}
+		//攻击的卡回到原位
+		tl.to(a.three.rotation, {
+			z : !!a.owner ? Math.PI : 0,
+			y : Math.PI * 2,
+			duration : 0.1,
+		}, time);
+		tl.to(a.three.position, {
+			x : loc[0].x,
+			y : loc[0].y,
+			z : loc[0].z,
+			duration : 0.2,
+		}, time);
+		time += 0.1;
+		//受击的卡回到原位
+		if (d) {
+			tl.to(d.three.rotation, {
+				z : !a.owner ? Math.PI : 0,
+				duration : 0.1,
+			}, time);
+			time += 0.1;
+			tl.to(d.three.position, {
+				x : loc[1].x,
+				y : loc[1].y,
+				z : loc[1].z,
+				duration : 0.1,
+			}, time);
+		}
+		let resolve = undefined as (() => void) | undefined;
+		const promise = new Promise<void>((r) => resolve = r);
+		tl.then(() => resolve?.());
+		await promise;
+		return [a, d];
 	};
 
 	add = {
@@ -175,7 +311,7 @@ class _Duel {
 		card : (owner : number,
 			location : number,
 			seq : number,
-			pos : number = POS.NONE,
+			pos : number = POS.FACEDOWN_ATTACK,
 			id ?: number
 		) : Client_Card => {
 			const card = new Client_Card();
@@ -197,7 +333,20 @@ class _Duel {
 		cards : () => this.cards
 	};
 
-	update = async () : Promise<void> => Promise.all(this.cards.map(i => i.update())).then(() => {});
+	update = async () : Promise<void> => {
+		for (let tp = 0; tp < 2; tp ++) {
+			const cards = this.get.cards()
+				.filter(i => i.owner === tp);
+			[LOCATION.HAND, LOCATION.DECK, LOCATION.EXTRA, LOCATION.GRAVE, LOCATION.REMOVED]
+				.forEach(loc => cards
+					.filter(i => i.location & loc)
+					.forEach((i, v) => i.set.seq(v))
+				);
+		}
+			
+		return Promise
+			.all(this.cards.map(i => i.update())) as any;
+	};
 	
 	click = (event : Event) : void => {
 		const target = event.target as HTMLElement;

@@ -53,7 +53,6 @@
 <style scoped lang = 'scss'>
 	@use './history/history.scss';
     .log {
-		position: relative;
 		border: 1px white solid;
 		background-color: rgba(0, 0, 0, 0.5);
 		color: white;

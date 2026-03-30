@@ -17,7 +17,8 @@
 			width: 80%;
 		}
 	}
-	:deep(.history__card__battel) {
+	:deep(.history__card__battel),
+	:deep(.history__card__pos) {
 		> div:first-child, > div:last-child {
 			width: 20%;
 		}

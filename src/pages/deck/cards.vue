@@ -1,5 +1,7 @@
 <template>
-	<main ref = 'deck'>
+	<main ref = 'deck'
+		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
+	>
 		<div
 			:style = "{
 				'--height' : `${
@@ -218,7 +220,6 @@
 					}
 					return;
 				}
-				// cards.value![v].$el.style.transition = 'none';
 				page.move.x = (x / GLOBAL.SCALE) - GLOBAL.LEFT * 2;
 				page.move.y = (y / GLOBAL.SCALE) - GLOBAL.TOP * 2;
 				page.move.main = page.deck.main.slice().sort(page.move.sort);
@@ -421,6 +422,8 @@
 	}>();
 
 	const props = defineProps<{
+		width : number;
+		height : number;
 		count : number;
 		deck : Deck;
 		lflist ?: LFList;
@@ -439,16 +442,16 @@
 </script>
 <style scoped lang = 'scss'>
 	main {
-		width: calc(var(--width) * 0.9 / 3 + 40px);
-		height: calc(var(--height) * 0.9);
+		width: var(--width);
+		height: var(--height);
 		overflow-y: auto;
 		overflow-x: hidden;
 		scroll-behavior: smooth;
 		color: white;
 		> div {
 			position: relative;
-			width: calc(var(--width) * 0.9 / 3 + 20px);
-			height: calc(var(--height) * 0.9);
+			width: calc(100% - 20px);
+			height: 100%;
 			.box {
 				height: var(--box_height);
 				width: 100%;
