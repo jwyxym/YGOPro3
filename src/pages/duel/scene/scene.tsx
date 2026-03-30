@@ -279,9 +279,10 @@ class _Duel {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
 				dom.style.width = `${SIZE.WIDTH * 12}px`;
-				for (const [v, src] of srcs.entries()) {
+				for (const [v, src] of srcs.reverse().entries()) {
 					const child = document.createElement('img');
 					child.src = src;
+					child.onerror = () => child.style.opacity = '0';
 					Object.assign(child.style, {
 						display : 'block',
 						width : `${SIZE.WIDTH * 12}px`,
