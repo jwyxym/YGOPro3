@@ -2,7 +2,7 @@ import { defineComponent, onMounted, onUnmounted } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
-import lodash from 'lodash';
+import lodash, { transform } from 'lodash';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
@@ -36,7 +36,8 @@ class _Duel {
 			return;
 		Object.assign(this.renderer.domElement.style, {
 			opacity : '0',
-			transition : 'all 0.5s ease'
+			transition : 'all 0.5s ease',
+			transform : 'translateX(80px)'
 		});
 		this.renderer.setSize(GLOBAL.WIDTH - 600, GLOBAL.HEIGHT);
 		this.camera.position.set(0, -300, 780);

@@ -100,8 +100,8 @@
 	import Select_Codes from './selecter/code.vue';
 
 	const card_info = {
-		width : 340,
-		height : GLOBAL.HEIGHT * 0.6
+		width : 360,
+		height : GLOBAL.HEIGHT * 0.8
 	}
 	onMounted(() => {
 	});
@@ -146,7 +146,8 @@
 			.info {
 				position: fixed;
 				left: 0;
-				transform: translate(calc(-70px - var(--left) / var(--scale)), calc(-50% - 170px));
+				top: 0;
+				transform: translateX(calc(-70px - var(--left) / var(--scale)));
 			}
 		}
 		> div:nth-child(2) {
