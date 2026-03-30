@@ -16,11 +16,13 @@
 				key = '1'
 			>
 				<Input
+					v-model = 'page.input'
 					variant = 'outlined'
 					:maxlength = '256'
 				/>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.DUEL_SEND)'
+					@click = 'page.send'
 				/>
 			</div>
 		</TransitionGroup>
@@ -40,10 +42,22 @@
 
 	import Chat from './chat';
 	import History from './history/history';
+	import connect from '../connect';
+	import Msg from '../ygo-protocol/msg';
+	import { CTOS } from '../ygo-protocol/network';
 
 
 	const page = reactive({
-		select : 0
+		select : 0,
+		input : '',
+		send : async () => {
+			if (!page.input) return;
+			const send = connect.send?.(new Msg()
+				.write.uint8(CTOS.CHAT)
+				.write.str(page.input));
+			page.input = '';
+			await send;
+		}
 	});
 
 	const emit = defineEmits<{

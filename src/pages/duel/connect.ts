@@ -15,6 +15,7 @@ import { history } from './log/history/history';
 import { chat } from './log/chat';
 
 import * as Selecter from './selecter/selecter';
+import Client_Card from './scene/client_card';
 
 class Wait {
 	players = [
@@ -75,6 +76,7 @@ const connect = reactive({
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
+	card : undefined as undefined | Client_Card,
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
 		switch (connect.state) {
 			case 0:
@@ -165,6 +167,7 @@ const connect = reactive({
 		connect.chat.off();
 		connect.response = undefined;
 		connect.send = undefined;
+		connect.card = undefined;
 	}
 });
 

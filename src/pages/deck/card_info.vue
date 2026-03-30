@@ -1,7 +1,7 @@
 <template>
 	<div
 		class = 'no-scrollbar info'
-		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
+		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? '#FFA500' : 'white' }"
 	>
 		<div>
 			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
@@ -64,13 +64,15 @@
 	import { reactive, watch } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import Card from '@/script/card';
+	import Card, { TYPE } from '@/script/card';
 	import Button from '@/pages/ui/button.vue';
+	import Client_Card from '@/pages/duel/scene/client_card';
 
 	const emit = defineEmits<{ card : [card : number]; }>();
 	const page = reactive({
 		show : false,
 		card : {
+			orgin : '1',
 			pic : mainGame.unknown.pic,
 			name : '',
 			id : 0,
@@ -92,13 +94,14 @@
 	})
 
 	const props = defineProps<{
-		code ?: string | number | Card;
+		code ?: string | number | Card | Client_Card;
 		height : number;
 		width : number;
 	}>();
 
 	watch(() => props.code, (n) => {
 		page.card = {
+			orgin : '',
 			pic : mainGame.back.pic,
 			name : '',
 			id : 0,
@@ -114,10 +117,30 @@
 			def : ''
 		}
 		if (!n)
-			return ;
-		if (typeof n === 'string') n = Number(n);
-		let card : Card;
-		card = typeof n === 'number' ? mainGame.get.card(n) : n;
+			return;
+		if (n instanceof Client_Card) {
+			if (n.id) {
+				const [card, orgin] = !!n.alias ? [mainGame.get.card(n.alias), mainGame.get.card(n.id)] : [mainGame.get.card(n.id), undefined];
+				page.card.orgin = orgin?.name ?? '';
+				page.show = true;
+				page.card.id = card.id;
+				page.card.pic = card.pic;
+				page.card.name = card.name;
+				page.card.description = card.desc;
+				page.card.type = mainGame.get.strings.type(card.type);
+				if (n.type & TYPE.MONSTER) {
+					page.card.attribute = mainGame.get.strings.attribute(n.attribute);
+					page.card.race = mainGame.get.strings.race(n.race);
+					page.card.lv = n.level.toString();
+					page.card.atk = n.atk >= 0 ? n.atk.toString() : '?';
+					if (!(n.type & TYPE.LINK))
+						page.card.def = n.def >= 0 ? n.def.toString() : '?';
+					page.card.scale =  n.type & TYPE.PENDULUM ? n.scale.toString() : '';
+				}
+			}
+			return;
+		}
+		const card : Card = n instanceof Card ? n : mainGame.get.card(n);
 		page.show = true;
 		page.card.id = card.id;
 		page.card.pic = card.pic;
@@ -133,7 +156,6 @@
 				page.card.def = card.def >= 0 ? card.def.toString() : '?';
 			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
 		}
-		console.log(mainGame.get.strings.type(card.type), card.type)
 	}, { immediate : true, deep : true });
 </script>
 <style lang = 'scss' scoped>
@@ -172,12 +194,12 @@
 			> div:last-child {
 				display: flex;
 				flex-direction: column;
+				color: var(--color);
 				> span:first-child {
 					font-weight: bold;
 					font-size: 20px;
 				}
 				> span:last-child {
-					color: $color-sub;
 					font-size: 16px;
 				}
 			}
@@ -196,6 +218,7 @@
 			}
 		}
 		> p {
+			color: var(--color);
 			white-space: pre-line;
 			font-size: 16px;
 			> span:first-child {

@@ -52,7 +52,10 @@ class Tcp {
 		});
 	};
 	send = async (msg : Msg) => await tcp.send(this.cid, msg.buffer());
-	disconnect = async () : Promise<void> => tcp.disconnect(this.cid).catch(() => {});
+	disconnect = async () : Promise<void> => {
+		await tcp.disconnect(this.cid);
+		this.clear();
+	};
 	clear = () : void => {
 		this.queue.add(async () => await this.on_disconnect?.(this.send));
 		this.address = '';

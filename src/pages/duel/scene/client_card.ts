@@ -18,7 +18,7 @@ class Client_Card {
 	id : number;
 	alias : number;
 	card ?: Card;
-	pic ?: string;
+	pic : string;
 	type : number;
 	level : number;
 	rank : number;
@@ -42,7 +42,6 @@ class Client_Card {
 		this.id = 0;
 		this.alias = 0;
 		this.card = undefined;
-		this.pic = undefined;
 		this.alias = 0;
 		this.type = 0;
 		this.level = 0;
@@ -56,6 +55,8 @@ class Client_Card {
 		this.overlay = 0;
 		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
+		this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
+			: mainGame.unknown.pic;
 		this.activatable = new Map([
 			[COMMAND.ACTIVATE, []],
 			[COMMAND.SUMMON, []],
@@ -281,6 +282,10 @@ class Client_Card {
 			const card = mainGame.get.card(id);
 			this.id = id;
 			this.set.pic(card.pic);
+			return this;
+		},
+		alias : (alias : number) : Client_Card => {
+			this.alias = alias;
 			return this;
 		},
 		pic : (pic : string) : Client_Card => {
@@ -620,7 +625,6 @@ class Client_Card {
 		this.id = 0;
 		this.alias = 0;
 		this.card = undefined;
-		this.pic = undefined;
 		this.alias = 0;
 		this.type = 0;
 		this.level = 0;
@@ -632,8 +636,10 @@ class Client_Card {
 		this.def = 0;
 		this.scale = 0;
 		this.overlay = 0;
-		this.pos = 0;
+		this.pos = POS.FACEDOWN_ATTACK;
 		this.need_change.type = true;
+		this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
+			: mainGame.unknown.pic;
 		this.activatable = new Map([
 			[COMMAND.ACTIVATE, []],
 			[COMMAND.SUMMON, []],

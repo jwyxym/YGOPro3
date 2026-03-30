@@ -24,7 +24,7 @@
 				key = '2'
 			/>
 			<Card_info
-				:code = 'mainGame.get.card(483)'
+				:code = 'connect.card'
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state === 2'
@@ -38,10 +38,18 @@
 				key = '0'
 			/>
 			<Button
+				:content = 'mainGame.get.text(I18N_KEYS.DUEL_AI)'
+				@click = "async () => await connect.send?.(new Msg()
+					.write.uint8(CTOS.CHAT)
+					.write.str('/ai'))"
+				v-show = 'connect.state == 1'
+				key = '1'
+			/>
+			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.DUEL_HISTORY)'
 				@click = 'connect.chat.on'
 				v-show = 'connect.state'
-				key = '1'
+				key = '2'
 			/>
 		</div>
 		<TransitionGroup tag = 'div' name = 'bottom_in'>
@@ -98,6 +106,8 @@
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
+	import Msg from './ygo-protocol/msg';
+	import { CTOS } from './ygo-protocol/network';
 
 	const card_info = {
 		width : 360,
@@ -108,7 +118,7 @@
 
 	onUnmounted(connect.clear);
 
-	const exit = () => connect.state ? connect.clear() : emit('exit');
+	const exit = () => connect.state ? connect.close() : emit('exit');
 
 	const emit = defineEmits<{
 		exit : []
