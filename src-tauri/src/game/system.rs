@@ -53,6 +53,9 @@ impl System {
 		system.number
 			.entry(String::from("CT_AVATAR_OPPO"))
 			.or_insert(0.0);
+		system.number
+			.entry(String::from("CT_AVATAR_SERVER"))
+			.or_insert(0.0);
 		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
 			.into_iter().for_each(|i| {
 				system.string

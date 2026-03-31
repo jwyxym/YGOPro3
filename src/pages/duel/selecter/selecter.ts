@@ -26,4 +26,10 @@ class Plaids extends Base {
 	plaids : Array<Plaid> = [];
 	cards : Array<Client_Card | undefined> = [];
 };
-export { Cards, Group, Confirm, Codes, Plaids };
+class Number extends Base {
+	array : Array<number> = [];
+};
+class Option extends Base {
+	array : Array<string> = [];
+};
+export { Cards, Group, Confirm, Codes, Plaids, Number, Option };

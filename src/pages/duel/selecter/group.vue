@@ -19,14 +19,14 @@
 							<img :src = 'mainGame.get.card(i.id).pic' class = 'select'/>
 							<span>{{ page.loc(i) }}</span>
 						</div>
-						<var-radio :checked-value = 'i'/>
+						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 					</div>
 					<div v-for = 'i in unselect' :key = '`${i.location}${i.seq}${i.owner}`'>
 						<div @click = 'page.select(i)'>
 							<img :src = 'mainGame.get.card(i.id).pic'/>
 							<span>{{ page.loc(i) }}</span>
 						</div>
-						<var-radio :checked-value = 'i'/>
+						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 					</div>
 				</TransitionGroup>
 			</var-radio-group>

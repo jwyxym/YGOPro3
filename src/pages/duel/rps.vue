@@ -23,7 +23,7 @@
 
 <style scoped lang = 'scss'>
 	.rps {
-		width: calc(var(--width) * 0.4);
+		width: calc(var(--width) * 0.2);
 		height: 100px;
 		display: flex;
 		justify-content: center;

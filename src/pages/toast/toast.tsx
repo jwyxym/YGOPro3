@@ -15,7 +15,6 @@ interface Hint {
 };
 
 class _Toast {
-	unshow : boolean = true;
 	list : Array<Hint> = reactive([]);
 	elements : Map<Hint, HTMLDivElement> = new Map()
 	time : number = 10;
@@ -26,10 +25,6 @@ class _Toast {
 	});
 
 	set_elements = (el : HTMLDivElement | null, key : Hint) => el ? this.elements.set(key, el) : this.elements.delete(key);
-
-	on = () => this.unshow = true;
-
-	off = () => this.unshow = false;
 
 	splice = (v : number) => {
 		this.list[v].status = 'leave';
@@ -42,12 +37,11 @@ class _Toast {
 	push = (str : string | number, type : HintType) => {
 		const obj = this.to_toast(str, type);
 		this.queue.add(async () => {
-			if (this.list.length > 0 && this.elements.has(this.list[0])) {
-				const height = this.elements.get(this.list[0])!.getBoundingClientRect().height / GLOBAL.SCALE + 20;
-				for (let i = 0; i < this.list.length; i ++)
-					this.list[i].top += height;
-			}
 			this.list.splice(0, 0, obj);
+			await mainGame.sleep(100);
+			const height = this.elements.get(this.list[0])!.getBoundingClientRect().height / GLOBAL.SCALE + 20;
+			for (let i = 1; i < this.list.length; i ++)
+				this.list[i].top += height;
 			const div = this.list[0];
 			setTimeout(() => { if (div.status === 'unshow') div.status = 'show'; }, 100);
 			const time = this.time * 1000;
@@ -57,22 +51,19 @@ class _Toast {
 				if (ct > -1)
 					this.list.splice(ct, 1);
 			}, 200 + time);
-			await mainGame.sleep(100);
+			await mainGame.sleep(200);
 		});
 	};
 
-	error = (str : string | number, chk : boolean = false) : void => {
-		if (this.unshow || !chk)
+	error = (str : string | number) : void => {
 			this.push(str, 'err');
 	};
 
-	info = (str : string | number, chk : boolean = false) : void => {
-		if (this.unshow || !chk)
+	info = (str : string | number) : void => {
 			this.push(str, 'info');
 	};
 
-	warn = (str : string | number, chk : boolean = false) : void => {
-		if (this.unshow || !chk)
+	warn = (str : string | number) : void => {
 			this.push(str, 'warn');
 	};
 

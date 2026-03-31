@@ -26,9 +26,11 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { LANGUAGE } from '@/script/constant';
 	const props = defineProps<{
-		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'protocol';
+		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'protocol' | 'custom';
+		array ?: Array<[any, any]>;
 		variant ?: 'outlined' | 'standard';
 		clearable ?: boolean; 
+		placeholder ?: string;
 	}>();
 
 	interface items {
@@ -68,6 +70,10 @@
 					[1, 'WS'],
 					[2, 'WSS']
 				]);
+				break;
+			case 'custom':
+				select.placeholder = props.placeholder ?? '';
+				select.array = props.array ?? [];
 				break;
 		}
 	});

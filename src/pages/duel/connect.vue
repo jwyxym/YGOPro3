@@ -80,6 +80,7 @@
 				:max = 'connect.duel.select.cards.max'
 				:title = 'connect.duel.select.cards.title'
 				:cancelable = 'connect.duel.select.cards.cancelable'
+				@exit = 'connect.response'
 				key = '0'
 			/>
 			<Select_Group
@@ -90,6 +91,7 @@
 				:max = 'connect.duel.select.group.max'
 				:title = 'connect.duel.select.group.title'
 				:cancelable = 'connect.duel.select.group.cancelable'
+				@exit = 'connect.response'
 				key = '1'
 			/>
 			<Select_Codes
@@ -99,7 +101,25 @@
 				:max = 'connect.duel.select.code.max'
 				:title = 'connect.duel.select.code.title'
 				:cancelable = 'connect.duel.select.code.cancelable'
+				@exit = 'connect.response'
 				key = '2'
+			/>
+		</TransitionGroup>
+		<TransitionGroup tag = 'div' name = 'opacity'>
+			<Select_Number
+				v-if = 'connect.duel.select.number.show'
+				:number = 'connect.duel.select.number.array'
+				:title = 'connect.duel.select.number.title'
+				@exit = 'connect.response'
+				key = '0'
+			/>
+			<Select_Option
+				v-if = 'connect.duel.select.option.show'
+				:options = 'connect.duel.select.option.array'
+				:title = 'connect.duel.select.option.title'
+				:cancelable = 'connect.duel.select.option.cancelable'
+				@exit = 'connect.response'
+				key = '0'
 			/>
 		</TransitionGroup>
 		<transition name = 'right_in'>
@@ -128,6 +148,9 @@
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
+	import Select_Number from './selecter/number.vue';
+	import Select_Option from './selecter/option.vue';
+
 	import Msg from './ygo-protocol/msg';
 	import { CTOS } from './ygo-protocol/network';
 
@@ -216,7 +239,7 @@
 			opacity: 1;
 		}
 	}
-	.move_in {
+	.bottom_in {
 		&-enter-active,
 		&-leave-active {
 			transition: transform 0.1s ease;

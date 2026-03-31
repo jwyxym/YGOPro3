@@ -247,7 +247,7 @@ class Game {
 			const card = mainGame.get.card(id);
 			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW) : card.name;
 		},
-		avatar : (tp : number) : string => this.avatars[this.get.system(!!tp ? CONSTANT.KEYS.SETTING_AVATAR_OPPO : CONSTANT.KEYS.SETTING_AVATAR_SELF) as number],
+		avatar : (tp : number) : string => this.avatars[this.get.system(tp > 1 ? CONSTANT.KEYS.SETTING_AVATAR_SERVER : !!tp ? CONSTANT.KEYS.SETTING_AVATAR_OPPO : CONSTANT.KEYS.SETTING_AVATAR_SELF) as number],
 		counter : (counter : number) : string => {
 			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
 				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;

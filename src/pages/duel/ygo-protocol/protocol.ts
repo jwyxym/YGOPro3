@@ -35,15 +35,15 @@ class Protocol {
 		status : boolean;
 		avatar : string;
 	}> = connect.wait.players) => {
-		console.log('this.hint')
 		msg = msg instanceof ChatMsg ? msg : player ? new ChatMsg(players[player].name, msg, players[player].avatar) : this.server_msg(msg);
-		console.log(msg)
-		toast.info(msg.name + (msg.name.length > 0 ? ': ' : '') + msg.msg, true);
+		if (!connect.chat.show)
+			toast.info(connect.wait.players.find(i => i.name === msg.name) ? msg.name + (msg.name.length > 0 ? ': ' : '') : '' + msg.msg);
 		chat.push(msg);
 	};
 	error = (msg : ChatMsg | string) => {
 		msg = msg instanceof ChatMsg ? msg : this.server_msg(msg);
-		toast.info(SERVER + ': ' + msg.msg, true);
+		if (!connect.chat.show)
+			toast.info(SERVER + ': ' + msg.msg);
 		chat.push(msg);
 	};
 	to = {
@@ -59,12 +59,13 @@ class Protocol {
 		await this.stoc.get(protocol)?.(msg, send);
 	};
 	stoc = new Map<number, Protocol_Func>([
-		[STOC.GAME_MSG, async (msg : Msg, send ?: (msg : Msg) => Promise<void>) => {
+		[STOC.GAME_MSG, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			const protocol = msg.read.uint8();
 			if (protocol === undefined)
 				return;
 			this.current_msg = protocol;
-			await this.msg.get(protocol)?.(msg, send!);
+			console.log(this.current_msg.toString(16))
+			await this.msg.get(protocol)?.(msg, send);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();
@@ -114,9 +115,22 @@ class Protocol {
 		[STOC.SELECT_HAND,async () => {
 			connect.duel.rps.show = true;
 		}],
-		[STOC.SELECT_TP, async () => {
+		[STOC.SELECT_TP, async (_, send : (msg : Msg) => Promise<void>) => {
 			connect.duel.rps.show = false;
-			// connect.is_first.selecting = true;
+			connect.duel.select.option.array = [
+				I18N_KEYS.SERVER_PLAYER_FIRST,
+				I18N_KEYS.SERVER_PLAYER_NEXT
+			].map(i => mainGame.get.text(i));
+			connect.duel.select.option.title = mainGame.get.text(I18N_KEYS.SERVER_PLAYER_SELECT);
+			connect.response = async (v : number) => {
+				await send(new Msg()
+					.write.uint8(CTOS.TP_RESULT)
+					.write.uint8(1 - v)
+				);
+				connect.duel.select.option.show = false;
+			}
+			connect.duel.select.option.show = true;
+		return;
 		}],
 		[STOC.HAND_RESULT,async (msg : Msg) => {
 			const res = [msg.read.uint8(), msg.read.uint8()];
@@ -196,6 +210,7 @@ class Protocol {
 		[STOC.CHAT,async (msg : Msg) => {
 			const player = msg.read.uint16();
 			const str = msg.read.str(msg.length() - msg.index);
+			console.log(player, str);
 			if (player === undefined || str === undefined)
 				return;
 			const players = connect.state < 2 || connect.duel.is_first ? connect.wait.players
@@ -210,12 +225,12 @@ class Protocol {
 				if (connect.wait.players[connect.wait.self.position] !== players[player])
 					this.hint(str, player, players);
 				else chat.push(new ChatMsg(players[player].name, str, players[player].avatar, true));
-			} else if (player === 8)
-				this.hint(str);
+			}
 			else if (player === 9)
 				this.error(`[Script Error]: ${str}`);
-			else if ((player < 11 || player > 19))
+			else if ((player < 11 || player > 19) && player !== 8)
 				this.hint(new ChatMsg(mainGame.get.text(I18N_KEYS.SERVER_WATCHER), str, ''));
+			else this.hint(str);
 		}],
 		[STOC.HS_PLAYER_ENTER,async (msg : Msg) => {
 			const name = msg.read.str(40);

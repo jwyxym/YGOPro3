@@ -1,7 +1,9 @@
 <template>
 	<div
-		:style = "{ height : `${page.show ? 300 : 30}px` }"
-		class = 'selecter'
+		:style = "{
+			height : `${page.show ? 300 : 30}px`,
+		}"
+		class = 'popup'
 	>
 		<div>
 			<var-switch v-model = 'page.show'/>
@@ -20,14 +22,14 @@
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
 					@click = "() => confirmable ? emit('confirm') : undefined"
-					:style = "{ color : confirmable ? 'white' : 'gray' }"
+					:style = "{ color : confirmable ? 'white' : 'rgba(255, 255, 255, 0.7)' }"
 				/>
 			</div>
 			<div>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CANCEL)'
 					@click = "() => cancelable ? emit('cancel') : undefined"
-					:style = "{ color : cancelable ? 'white' : 'gray' }"
+					:style = "{ color : cancelable ? 'white' : 'rgba(255, 255, 255, 0.7)' }"
 				/>
 			</div>
 		</div>
@@ -52,13 +54,13 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
-	.selecter {
+	.popup {
 		position: fixed;
-		bottom: 10px;
-		transform: translateY(calc(var(--top) / var(--scale)));
-		left: calc(var(--width) * 0.15);
-		width: calc(var(--width) * 0.7);
+		left: 50%;
+		bottom: 50%;
+		transform: translate(-50%, 50%);
 		color: white;
+		width: calc(var(--width) * 0.3);
 		transition: all 0.1s ease;
 		> div {
 			width: 100%;
@@ -80,6 +82,7 @@
 		> div:last-child {
 			display: flex;
 			overflow: hidden;
+			background-color: rgba(0, 0, 0, 0.5);
 			> div {
 				flex-grow: 1;
 				display: flex;

@@ -100,6 +100,8 @@ class Duel {
 		confirm : new Selecter.Confirm(),
 		code : new Selecter.Codes(),
 		plaid : new Selecter.Plaids(),
+		number : new Selecter.Number(),
+		option : new Selecter.Option(),
 	};
 	rps = {
 		show : false,
@@ -118,18 +120,9 @@ const connect = reactive({
 	protocol : undefined as undefined | Tcp | Ws,
 	chat : {
 		show : false,
-		on : () : void => {
-			if (connect.chat.show)
-				connect.chat.off();
-			else if (connect.state) {
-				connect.chat.show = true;
-				toast.on();
-			}
-		},
-		off : () : void => {
-			connect.chat.show = false;
-			toast.off();
-		},
+		on : () : void => connect.chat.show ? connect.chat.off()
+			: connect.chat.show = true as any,
+		off : () : void => connect.chat.show = false as any,
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),

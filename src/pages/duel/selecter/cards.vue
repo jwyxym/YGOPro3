@@ -33,7 +33,7 @@
 						<img :src = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
-					<var-radio :checked-value = 'i'/>
+					<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 				</div>
 			</var-radio-group>
 		</template>
