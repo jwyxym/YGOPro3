@@ -13,7 +13,8 @@ const REG = {
 	ATK : /^[0-9?\s<>=.]*$/,
 	LV : /^[0-9<>=.]*$/,
 	LINE_FEED : /\r?\n/,
-	NUMBER : /^\d+$/
+	NUMBER : /^\d+$/,
+	STR : /[\x00-\x1F]/g
 };
 
 const LANGUAGE = {
@@ -70,6 +71,9 @@ const KEYS = {
 	BACK_BGM : 'BACK_BGM',
 	BATTLE_BGM : 'BATTLE_BGM',
 	NA : 'N/A',
+	S : 'S',
+	R : 'R',
+	P : 'P',
 	I18N : 'I18N',
 	SERVER_NAME : 'ServerName',
 	SERVER_HOST : 'ServerHost',

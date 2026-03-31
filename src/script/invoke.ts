@@ -178,6 +178,7 @@ class Invoke {
 					info : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
 					other : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
 					btn : bincode.Collection(bincode.Tuple(bincode.String, bincode.Tuple(bincode.String, bincode.String))),
+					avatar : bincode.Collection(bincode.String)
 				}), result).value as any;
 			} catch (error) {
 				fs.write.log(error);

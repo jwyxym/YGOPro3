@@ -60,16 +60,6 @@ class _Duel {
 		this.animate();
 		this.renderer.domElement.style.opacity = '1';
 		window.addEventListener('click', duel.click);
-
-		setTimeout(async () => {
-			await mainGame.load.pic([483, 2511])
-			for (let i = 0; i < 40; i ++)
-				this.add.card(0, LOCATION.DECK, i);
-			(await duel.draw(0, 5)).forEach(i => {
-				i.set.id(483)
-			});
-			await this.update();
-		}, 100);
 	};
 
 	clear = () => {
@@ -381,13 +371,13 @@ class _Duel {
 			if (target.classList.contains('btn'))
 				card?.click.btn(target);
 			card?.click.img();
-			console.log(connect.card)
 		}
 	};
 
 	win = (title : string, message : string) : void => Dialog({
 			title : title,
-			message : message
+			message : message,
+			cancelButton : false
 		}, true) as any;
 };
 

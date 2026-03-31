@@ -97,7 +97,7 @@
 	import DeckPage from './deck.vue';
 	import Button from '@/pages/ui/button.vue';
 	import Input from '@/pages/ui/input.vue';
-	import dialog from '@/pages/ui/dialog';
+	import Dialog from '@/pages/ui/dialog';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
@@ -128,6 +128,9 @@
 			list.selected = -1;
 		},
 		offdeck : async () : Promise<void> => {
+			await Dialog({
+				title : mainGame.get.text(I18N_KEYS.DECK_EXIT),
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_EXIT_DECK))
 			const deck = page.deck;
 			page.deck = undefined;
 			await mainGame.sleep(200);
@@ -171,10 +174,10 @@
 			await page.indeck(deck);
 		},
 		delete : async () : Promise<void> => {
-			if (list.selected > -1 && await dialog({
+			if (list.selected > -1 && await Dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE),
 				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '')
-			}) && await fs.delete.ydk(list.decks[list.selected].name!)) {
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DELETE_DECK)) && await fs.delete.ydk(list.decks[list.selected].name!)) {
 				toast.info(mainGame.get.text(I18N_KEYS.DELETE_COMPELETE));
 				list.decks.splice(list.selected, 1);
 				list.selected = -1;

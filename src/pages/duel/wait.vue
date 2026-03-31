@@ -24,12 +24,12 @@
 								class = 'readonly'
 								:readonly = 'true'
 								v-model = 'i.status'
-							></var-checkbox>
+							/>
 							<var-icon
 								v-if = 'self.is_host'
-								:color = "self.position === v ? '#555' : 'white'"
+								:color = "self.position === v || i.name === '' ? '#555' : 'white'"
 								name = 'close-circle-outline'
-								@click = "emit('kick', v as 0 | 1 | 2 | 3)"
+								@click = "self.position === v ? true : emit('kick', v as 0 | 1 | 2 | 3)"
 							/>
 						</div>
 					</div>
@@ -69,7 +69,7 @@
 			</var-loading>
 			<div>
 				<Button
-					v-if = 'self.is_host || true'
+					v-if = 'self.is_host'
 					:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
 					@click = "emit('connect')"
 				/>
@@ -226,6 +226,5 @@
 				}
 			}
 		}
-
 	}
 </style>

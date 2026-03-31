@@ -9,7 +9,7 @@
 		}
 	}
 	:deep(.history__card__move),
-	:deep(.history__card__draw) {
+	:deep(.history__draw) {
 		> div:first-child {
 			width: 20%;
 		}
@@ -18,7 +18,7 @@
 		}
 	}
 	:deep(.history__card__battel),
-	:deep(.history__card__pos) {
+	:deep(.history__pos) {
 		> div:first-child, > div:last-child {
 			width: 20%;
 		}
@@ -26,7 +26,8 @@
 			width: 20%;
 		}
 	}
-	:deep(.history__card__lp) {
+	:deep(.history__cover),
+	:deep(.history__lp) {
 		> div:first-child {
 			width: 20%;
 		}
@@ -34,7 +35,7 @@
 			width: 60%;
 		}
 	}
-	:deep(.history__card__announce) {
+	:deep(.history__announce) {
 		> div:first-child {
 			width: 20%;
 		}

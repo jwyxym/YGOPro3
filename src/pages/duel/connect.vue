@@ -29,7 +29,15 @@
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state === 2'
-				key = '2'
+				key = '3'
+			/>
+			<RPS
+				v-if = 'connect.state === 2 && connect.duel.rps.show'
+				@click = 'async (v : number) => {
+					connect.duel.rps.show = false;
+					await connect.duel.rps.send(v);
+				}'
+				key = '4'
 			/>
 		</TransitionGroup>
 		<div>
@@ -51,7 +59,7 @@
 				@click = "async () => Dialog({
 							title : mainGame.get.text(I18N_KEYS.DUEL_SURRENDER_TITLE)
 						}, mainGame.get.system(KEYS.SETTING_CHK_SURRENDER)
-					).then(async i => i ? await connect.send?.(new Msg().write.uint8(CTOS.CHAT))
+					).then(async i => i ? await connect.send?.(new Msg().write.uint8(CTOS.SURRENDER))
 						: undefined)
 				"
 				v-show = 'connect.state == 2'
@@ -113,8 +121,9 @@
 	import GLOBAL from '@/script/scale';
 	import { KEYS } from '@/script/constant';
 
-	import Log from './log/log.vue';
 	import connect from './connect';
+	import RPS from './rps.vue';
+	import Log from './log/log.vue';
 	import Scene from './scene/scene';
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
@@ -172,6 +181,11 @@
 				left: 0;
 				top: 0;
 				transform: translateX(calc(-70px - var(--left) / var(--scale)));
+			}
+			.rps {
+				position: fixed;
+				top: 100%;
+				transform: translate(-50%, calc(var(--top) / var(--scale) - 100px));
 			}
 		}
 		> div:nth-child(2) {

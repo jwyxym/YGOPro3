@@ -1,4 +1,5 @@
 import { Buffer, WithImplicitCoercion } from 'buffer';
+import { REG } from '@/script/constant';
 class Msg {
 	index : number;
 	content : Buffer;
@@ -11,39 +12,46 @@ class Msg {
 	length = () : number => this.content.length;
 	read = {
 		uint8 : () : number | undefined => {
-			if (this.index + 1 >= this.length())
+			if (this.index >= this.length())
 				return undefined;
 			const data = this.content.readUint8(this.index);
 			this.index ++;
 			return data;
 		},
 		uint16 : () : number | undefined => {
-			if (this.index + 2 >= this.length())
+			if (this.index + 1 >= this.length())
 				return undefined;
 			const data = this.content.readUint16LE(this.index);
 			this.index += 2;
 			return data;
 		},
 		uint32 : () : number | undefined => {
-			if (this.index + 4 >= this.length())
+			if (this.index + 2 >= this.length())
 				return undefined;
 			const data = this.content.readUint32LE(this.index);
 			this.index += 4;
 			return data;
 		},
-		str : (len : number) : string | undefined => {
-			if (this.index + len >= this.length())
-				return undefined;
-			const data = this.content.toString('utf16le', this.index, this.index + len);
-			this.index += len;
-			return data;
+		str : (len ?: number) : string | undefined => {
+			if (len) {
+				if (this.index + len - 1 >= this.length())
+					return undefined;
+				const data = this.content.toString('utf16le', this.index, this.index + len).replace(REG.STR, '');;
+				this.index += len;
+				return data;
+			} else {
+				const length = this.length();
+				const data = this.content.toString('utf16le', this.index, length).replace(REG.STR, '');;
+				this.index = length;
+				return data;
+			}
 		}
 	};
 	write = {
 		uint8 : (data : number) : Msg => {
 			if (this.readonly)
 				return this;
-			if (this.index + 1 >= this.length())
+			if (this.index >= this.length())
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt8(data, this.index);
 			this.index ++;
@@ -61,7 +69,7 @@ class Msg {
 		uint32 : (data : number) : Msg => {
 			if (this.readonly)
 				return this;
-			if (this.index + 1 >= this.length())
+			if (this.index + 3 >= this.length())
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt32LE(data, this.index);
 			this.index += 4;
@@ -81,7 +89,7 @@ class Msg {
 		if (this.index + len > this.length())
 			return undefined;
 		this.index += len;
-		return new Msg(this.content.subarray(start, len));
+		return new Msg(this.content.subarray(start, this.index));
 	};
 	to_end = () : Msg => new Msg(this.index >= this.length() ? Buffer.from([])
 		: this.content.subarray(this.index));

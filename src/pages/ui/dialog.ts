@@ -7,19 +7,25 @@ let resolve = undefined as ((value: boolean | PromiseLike<boolean>) => void) | u
 
 const dialog = async (option : DialogOptions, need_confirm : boolean | number | Array<string> | string = true) : Promise<boolean> => {
 	close();
+	console.log(need_confirm)
 	if (need_confirm) {
 		const chk = mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_SWAP_BUTTON);
 		option.dialogClass = 'dialog';
 		option.cancelButtonTextColor = 'white';
 		option.confirmButtonTextColor = 'white';
-		const cancel_text = option.cancelButtonText ?? mainGame.get.text(I18N_KEYS.CONFIRM);
-		const confirm_text = option.confirmButtonText ?? mainGame.get.text(I18N_KEYS.CANCEL);
-		option.cancelButtonText = chk ? cancel_text : confirm_text;
-		option.confirmButtonText = chk ? confirm_text : cancel_text;
-		const confirm = () => resolve?.(true);
-		const cancel = () => resolve?.(false);
-		option.onConfirm = chk ? cancel : confirm;
-		option.onCancel = chk ? confirm : cancel;
+		const cancel_text = option.cancelButtonText ?? mainGame.get.text(I18N_KEYS.CANCEL);
+		const confirm_text = option.confirmButtonText ?? mainGame.get.text(I18N_KEYS.CONFIRM);
+		if (option.cancelButton === false) {
+			option.confirmButtonText = confirm_text;
+			option.onConfirm = () => resolve?.(true);
+		} else {
+			option.cancelButtonText = chk ? confirm_text : cancel_text;
+			option.confirmButtonText = chk ? cancel_text : confirm_text;
+			const confirm = () => resolve?.(true);
+			const cancel = () => resolve?.(false);
+			option.onConfirm = chk ? cancel : confirm;
+			option.onCancel = chk ? confirm : cancel;
+		}
 		const promise = new Promise<boolean>((r) => resolve = r);
 		await Dialog(option);
 		return promise;

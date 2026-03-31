@@ -38,14 +38,15 @@ class Tcp {
 					this.clear();
 				} else if (x.payload.event.message) {
 					const msg = this.cache.concat(x.payload.event.message.data);
-					let len = msg.read.uint16();
-					while (len && msg.length() >= msg.index + len) {
+					while (true) {
+						const len = msg.read.uint16();
+						if (!len) break;
+						const m = msg.slice(len);
+						if (!m) break;
 						this.queue.add(
-							async () => await this.on_message?.(msg.slice(len!)!, this.send)
+							async () => await this.on_message?.(m, this.send)
 						);
-						len = msg.read.uint16();
 					}
-					msg.index -= 2;
 					this.cache = msg.to_end();
 				}
 			}

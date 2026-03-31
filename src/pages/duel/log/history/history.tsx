@@ -8,6 +8,7 @@ import Desc from './desc';
 import Avatar from './avatar';
 import Num from './number';
 import Cards from './cards'
+import Cover from './cover'
 
 const HISTORY = {
 	MOVE : 0,
@@ -15,7 +16,8 @@ const HISTORY = {
 	ANNOUNCE : 2,
 	LP : 3,
 	DRAW : 4,
-	POS_CHANGE : 5
+	POS_CHANGE : 5,
+	DECK_COUNT : 6
 }
 
 interface HistoryContent {
@@ -23,7 +25,7 @@ interface HistoryContent {
 	from ?: string;
 	to ?: string;
 	avatar ?: string;
-	number ?: number;
+	number ?: number | string;
 	attribute ?: number;
 	race ?: number;
 	cards : Array<{
@@ -118,7 +120,7 @@ const History  = defineComponent({
 									number = {i.content.number}
 								/>
 						}
-						return <div class = {['history__card__announce',
+						return <div class = {['history__announce',
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Avatar
@@ -133,7 +135,7 @@ const History  = defineComponent({
 							</div>
 						</div>
 					case HISTORY.LP:
-						return <div class = {['history__card__lp',
+						return <div class = {['history__lp',
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Avatar
@@ -145,7 +147,7 @@ const History  = defineComponent({
 							/>
 						</div>
 					case HISTORY.DRAW:
-						return <div class = {['history__card__draw',
+						return <div class = {['history__draw',
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Avatar
@@ -158,7 +160,7 @@ const History  = defineComponent({
 							/>
 						</div>
 					case HISTORY.POS_CHANGE:
-						return <div class = {['history__card__pos',
+						return <div class = {['history__pos',
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
@@ -172,6 +174,13 @@ const History  = defineComponent({
 								id = {i.content.cards[1].id}
 								pos = {i.content.cards[1].pos}
 							/>
+						</div>
+					case HISTORY.DECK_COUNT:
+						return <div class = {['history__deck__count',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Cover/>
+							<Num number = {i.content.number!} />
 						</div>
 				}
 			})}

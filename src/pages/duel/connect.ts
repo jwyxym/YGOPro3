@@ -46,7 +46,7 @@ class Wait {
 	};
 	kick = async (v : number) : Promise<void> => await connect.send?.(
 		new Msg()
-			.write.uint8(CTOS.HS_READY)
+			.write.uint8(CTOS.HS_KICK)
 			.write.uint8(v)
 	);
 	deck = {
@@ -100,6 +100,14 @@ class Duel {
 		confirm : new Selecter.Confirm(),
 		code : new Selecter.Codes(),
 		plaid : new Selecter.Plaids(),
+	};
+	rps = {
+		show : false,
+		send : async (v : number) : Promise<void> => await connect.send?.(
+			new Msg()
+				.write.uint8(CTOS.HAND_RESULT)
+				.write.uint8(v)
+		)
 	};
 };
 const connect = reactive({
