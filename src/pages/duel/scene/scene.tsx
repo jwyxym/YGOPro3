@@ -6,13 +6,17 @@ import lodash from 'lodash';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
+import GLOBAL from '@/script/scale'
+;
 import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
+import Dialog from '@/pages/ui/dialog';
+
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
-import GLOBAL from '@/script/scale';
 import Btn from './btn';
 import Client_Card from './client_card';
+
 import connect from '../connect';
 
 class _Duel {
@@ -380,6 +384,11 @@ class _Duel {
 			console.log(connect.card)
 		}
 	};
+
+	win = (title : string, message : string) : void => Dialog({
+			title : title,
+			message : message
+		}, true) as any;
 };
 
 const duel = new _Duel();

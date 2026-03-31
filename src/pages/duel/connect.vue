@@ -66,31 +66,31 @@
 		</div>
 		<TransitionGroup tag = 'div' name = 'bottom_in'>
 			<Select_Cards
-				v-if = 'connect.select.cards.show'
-				:cards = 'connect.select.cards.cards'
-				:min = 'connect.select.cards.min'
-				:max = 'connect.select.cards.max'
-				:title = 'connect.select.cards.title'
-				:cancelable = 'connect.select.cards.cancelable'
+				v-if = 'connect.duel.select.cards.show'
+				:cards = 'connect.duel.select.cards.cards'
+				:min = 'connect.duel.select.cards.min'
+				:max = 'connect.duel.select.cards.max'
+				:title = 'connect.duel.select.cards.title'
+				:cancelable = 'connect.duel.select.cards.cancelable'
 				key = '0'
 			/>
 			<Select_Group
-				v-if = 'connect.select.group.show'
-				:select = 'connect.select.group.select'
-				:unselect = 'connect.select.group.unselect'
-				:min = 'connect.select.group.min'
-				:max = 'connect.select.group.max'
-				:title = 'connect.select.group.title'
-				:cancelable = 'connect.select.group.cancelable'
+				v-if = 'connect.duel.select.group.show'
+				:select = 'connect.duel.select.group.select'
+				:unselect = 'connect.duel.select.group.unselect'
+				:min = 'connect.duel.select.group.min'
+				:max = 'connect.duel.select.group.max'
+				:title = 'connect.duel.select.group.title'
+				:cancelable = 'connect.duel.select.group.cancelable'
 				key = '1'
 			/>
 			<Select_Codes
-				v-if = 'connect.select.code.show'
-				:cards = 'connect.select.code.codes'
-				:min = 'connect.select.code.min'
-				:max = 'connect.select.code.max'
-				:title = 'connect.select.code.title'
-				:cancelable = 'connect.select.code.cancelable'
+				v-if = 'connect.duel.select.code.show'
+				:cards = 'connect.duel.select.code.codes'
+				:min = 'connect.duel.select.code.min'
+				:max = 'connect.duel.select.code.max'
+				:title = 'connect.duel.select.code.title'
+				:cancelable = 'connect.duel.select.code.cancelable'
 				key = '2'
 			/>
 		</TransitionGroup>
@@ -138,13 +138,13 @@
 		exit : []
 	}>();
 
-	watch(() => connect.select.confirm.show, (n : boolean) => {
+	watch(() => connect.duel.select.confirm.show, (n : boolean) => {
 		if (n)
 			Dialog({
-				title : connect.select.confirm.title,
-				message : connect.select.confirm.message,
+				title : connect.duel.select.confirm.title,
+				message : connect.duel.select.confirm.message,
 				closeOnClickOverlay : false
-			}, connect.select.confirm.chk)
+			}, connect.duel.select.confirm.chk)
 				.then(async i => await connect.response?.(i))
 		else close();
 	});

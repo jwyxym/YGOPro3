@@ -6,6 +6,7 @@ import invoke from '@/script/invoke';
 import Card from '@/script/card';
 
 import Deck from '@/pages/deck/deck';
+import { toast } from '@/pages/toast/toast';
 
 import ws, { Ws } from './ygo-protocol/ws';
 import tcp, { Tcp } from './ygo-protocol/tcp';
@@ -20,10 +21,10 @@ import Client_Card from './scene/client_card';
 
 class Wait {
 	players = [
-		{ name : '', status : false },
-		{ name : '', status : false },
-		{ name : '', status : false },
-		{ name : '', status : false }
+		{ name : '', status : false, avatar : mainGame.get.avatar(0) },
+		{ name : '', status : false, avatar : mainGame.get.avatar(0) },
+		{ name : '', status : false, avatar : mainGame.get.avatar(1) },
+		{ name : '', status : false, avatar : mainGame.get.avatar(1) }
 	];
 	self = {
 		is_host : false,
@@ -90,22 +91,37 @@ class Wait {
 	);
 };
 
-const connect = reactive({
-	srv_cache : new Map<string, string>(),
-	state : 0 as 0 | 1 | 2 | 3,
-	wait : new Wait(),
-	protocol : undefined as undefined | Tcp | Ws,
-	select : {
+class Duel {
+	is_first = false;
+	lp = [0, 0];
+	select = {
 		cards : new Selecter.Cards(),
 		group : new Selecter.Group(),
 		confirm : new Selecter.Confirm(),
 		code : new Selecter.Codes(),
 		plaid : new Selecter.Plaids(),
-	},
+	};
+};
+const connect = reactive({
+	srv_cache : new Map<string, string>(),
+	state : 0 as 0 | 1 | 2 | 3,
+	wait : new Wait(),
+	duel : new Duel(),
+	protocol : undefined as undefined | Tcp | Ws,
 	chat : {
 		show : false,
-		on : () : boolean => connect.chat.show ? connect.chat.off() : connect.state ? connect.chat.show = true : true,
-		off : () : boolean => connect.chat.show = false,
+		on : () : void => {
+			if (connect.chat.show)
+				connect.chat.off();
+			else if (connect.state) {
+				connect.chat.show = true;
+				toast.on();
+			}
+		},
+		off : () : void => {
+			connect.chat.show = false;
+			toast.off();
+		},
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
@@ -189,11 +205,7 @@ const connect = reactive({
 		connect.protocol = undefined;
 		connect.state = 0;
 		connect.wait = new Wait();
-		connect.select.cards = new Selecter.Cards();
-		connect.select.group = new Selecter.Group();
-		connect.select.confirm = new Selecter.Confirm();
-		connect.select.code = new Selecter.Codes();
-		connect.select.plaid = new Selecter.Plaids();
+		connect.duel = new Duel();
 		connect.chat.off();
 		connect.response = undefined;
 		connect.send = undefined;
