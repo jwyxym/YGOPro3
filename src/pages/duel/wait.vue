@@ -60,15 +60,16 @@
 			</div>
 		</div>
 		<div>
-			<Select
-				name = 'deck'
-				v-model = 'page.deck'
-				@change = "(deck : Deck | undefined) => emit('deck', deck)"
-				:rules = 'page.rules'
-			/>
+			<var-loading :loading = 'page.loading'>
+				<Select
+					name = 'deck'
+					v-model = 'page.deck'
+					:rules = 'page.rule'
+				/>
+			</var-loading>
 			<div>
 				<Button
-					v-if = 'self.is_host'
+					v-if = 'self.is_host || true'
 					:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
 					@click = "emit('connect')"
 				/>
@@ -93,7 +94,6 @@
 		self : {
 			is_host : boolean;
 			position : 0 | 1 | 2 | 3;
-			deck : true | string
 		};
 		info : {
 			room_name : string;
@@ -114,6 +114,7 @@
 	const emit = defineEmits<{
 		kick : [v : 0 | 1 | 2 | 3];
 		deck : [deck ?: Deck];
+		chk : [chk ?: (value : string | true | PromiseLike<string | true>) => void];
 		duelist : [];
 		watcher : [];
 		connect : [];
@@ -122,7 +123,27 @@
 
 	const page = reactive({
 		deck : undefined as undefined | Deck,
-		rules : () => props.self.deck
+		loading : false,
+		rule : async (deck ?: Deck) : Promise<string | boolean> => {
+			if (deck) {
+				page.loading = true;
+				const promise = new Promise<string | true>(
+					(resolve) => emit('chk', resolve)
+				);
+				emit('deck', deck);
+				const res = await Promise.all([
+					promise,
+					mainGame.load.pic(deck)
+				]);
+				await mainGame.sleep(100);
+				page.loading = false;
+				emit('chk');
+				return res[0];
+			} else {
+				emit('deck', deck);
+				return true;
+			}
+		},
 	});
 </script>
 
@@ -197,7 +218,12 @@
 			align-items: center;
 			justify-content: space-between;
 			> div {
+				height: 100%;
 				width: 40%;
+				.var-select {
+					height: 100%;
+					width: 100%;
+				}
 			}
 		}
 

@@ -19,6 +19,7 @@ SORT_DECK = true
 DISRUPT_DECK = true
 CLEAR_DECK = true
 SELECT_SORT = true
+SURRENDER = true
 HIDDEN_NAME = false
 HIDDEN_CHAT = false
 [array]

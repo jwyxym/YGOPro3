@@ -13,6 +13,7 @@ import Plaid from './plaid';
 import GLOBAL from '@/script/scale';
 import Btn from './btn';
 import Client_Card from './client_card';
+import connect from '../connect';
 
 class _Duel {
 	element : HTMLDivElement | null = null;
@@ -55,6 +56,16 @@ class _Duel {
 		this.animate();
 		this.renderer.domElement.style.opacity = '1';
 		window.addEventListener('click', duel.click);
+
+		setTimeout(async () => {
+			await mainGame.load.pic([483, 2511])
+			for (let i = 0; i < 40; i ++)
+				this.add.card(0, LOCATION.DECK, i);
+			(await duel.draw(0, 5)).forEach(i => {
+				i.set.id(483)
+			});
+			await this.update();
+		}, 100);
 	};
 
 	clear = () => {
@@ -352,13 +363,22 @@ class _Duel {
 	
 	click = (event : Event) : void => {
 		const target = event.target as HTMLElement;
-		const card = this.cards.find(i => i.contains(target));
-		this.cards
-			.filter(i => i.clicked && i !== card)
-			.forEach(i => i.click.img());
-		if (target.classList.contains('btn'))
-			card?.click.btn(target);
-		card?.click.img();
+		if (target.classList.contains('history__card__pic')) {
+			connect.card = mainGame.get.card(target.id)
+			this.cards
+				.filter(i => i.clicked)
+				.forEach(i => i.click.img());
+		} else {
+			const card = this.cards.find(i => i.contains(target));
+			connect.card = card;
+			this.cards
+				.filter(i => i.clicked && i !== card)
+				.forEach(i => i.click.img());
+			if (target.classList.contains('btn'))
+				card?.click.btn(target);
+			card?.click.img();
+			console.log(connect.card)
+		}
 	};
 };
 

@@ -27,7 +27,7 @@ interface HistoryContent {
 	attribute ?: number;
 	race ?: number;
 	cards : Array<{
-		src : string;
+		id : string | number;
 		pos : number;
 	}>;
 };
@@ -82,7 +82,7 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.cards[0].src}
+								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
 							/>
 							<Desc
@@ -95,14 +95,14 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.cards[0].src}
+								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
 							/>
 							<Desc
 								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
 							/>
 							<Pic
-								src = {i.content.cards[1].src}
+								id = {i.content.cards[1].id}
 								pos = {i.content.cards[1].pos}
 							/>
 						</div>
@@ -111,7 +111,7 @@ const History  = defineComponent({
 						{
 							if (i.content.cards.length)
 								content = <Pic
-									src = {i.content.cards[0].src}
+									id = {i.content.cards[0].id}
 								/>
 							else if (i.content.number !== undefined)
 								content = <Num
@@ -153,7 +153,7 @@ const History  = defineComponent({
 								self = {i.content.self}
 							/>
 							<Cards
-								cards = {i.content.cards.map(i => i.src)}
+								cards = {i.content.cards.map(i => i.id)}
 								width = {300}
 							/>
 						</div>
@@ -162,14 +162,14 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Pic
-								src = {i.content.cards[0].src}
+								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
 							/>
 							<Desc
 								desc = ' →'
 							/>
 							<Pic
-								src = {i.content.cards[1].src}
+								id = {i.content.cards[1].id}
 								pos = {i.content.cards[1].pos}
 							/>
 						</div>

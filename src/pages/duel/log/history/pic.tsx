@@ -1,10 +1,11 @@
-import { defineComponent } from 'vue';
+import { defineComponent, PropType } from 'vue';
 import { POS } from '@/pages/duel/ygo-protocol/network';
+import mainGame from '@/script/game';
 
 const Pic  = defineComponent({
 	props: {
-		src : {
-			type : String,
+		id : {
+			type : [String, Number] as PropType<string | number>,
 			required : true
 		},
 		pos : {
@@ -19,10 +20,15 @@ const Pic  = defineComponent({
 			'align-items' : 'center',
 			'justify-content' : 'center'
 		}}>
-			<img src = {props.src} style = {{
-				'height' : '80%',
-				'transform' : props.pos & POS.DEFENSE ? 'rotate(-90deg)' : 'initial'
-			}}/>
+			<img
+				class = 'history__card__pic'
+				id = {`${props.id}`}
+				src = {mainGame.get.card(props.id).pic}
+				style = {{
+					'height' : '80%',
+					'transform' : props.pos & POS.DEFENSE ? 'rotate(-90deg)' : 'initial'
+				}}
+			/>
 		</div>;
 	},
 });

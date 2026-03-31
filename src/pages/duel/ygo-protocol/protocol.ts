@@ -2,21 +2,12 @@ import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import Msg from './msg';
 import { ERROR, STOC } from './network';
+import connect from '../connect';
 
 class Protocol {
 	current_msg : number;
-	on_join_room : () => Promise<void>;
-	on_change_side : () => Promise<void>;
-	set_response : (i ?: (...args: any[]) => Promise<void>) => void;
-	constructor (
-		on_join_room : () => Promise<void>,
-		on_change_side : () => Promise<void>,
-		set_response : (i ?: (...args: any[]) => Promise<void>) => void
-	) {
+	constructor () {
 		this.current_msg = 0;
-		this.on_join_room = on_join_room;
-		this.on_change_side = on_change_side;
-		this.set_response = set_response;
 	};
 	read = async (msg : Msg, send : (msg : Msg) => Promise<void>) : Promise<void> => {
 		const protocol = msg.read.uint8()!;
@@ -72,6 +63,7 @@ class Protocol {
 							str = mainGame.get.text(I18N_KEYS.UNKNOW);
 							break;
 					}
+					connect.wait.deck.result?.(str)
 					break;
 			}
 		}],

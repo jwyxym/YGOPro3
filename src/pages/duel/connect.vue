@@ -12,7 +12,8 @@
 				:self = 'connect.wait.self'
 				:info = 'connect.wait.info'
 				@kick = 'connect.wait.kick'
-				@deck = 'connect.wait.deck'
+				@deck = 'connect.wait.deck.send'
+				@chk = 'connect.wait.deck.chk'
 				@duelist = 'connect.wait.duelist'
 				@watcher = 'connect.wait.watcher'
 				@connect = 'connect.on'
@@ -46,10 +47,21 @@
 				key = '1'
 			/>
 			<Button
+				:content = 'mainGame.get.text(I18N_KEYS.DUEL_SURRENDER)'
+				@click = "async () => Dialog({
+							title : mainGame.get.text(I18N_KEYS.DUEL_SURRENDER_TITLE)
+						}, mainGame.get.system(KEYS.SETTING_CHK_SURRENDER)
+					).then(async i => i ? await connect.send?.(new Msg().write.uint8(CTOS.CHAT))
+						: undefined)
+				"
+				v-show = 'connect.state == 2'
+				key = '2'
+			/>
+			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.DUEL_HISTORY)'
 				@click = 'connect.chat.on'
 				v-show = 'connect.state'
-				key = '2'
+				key = '3'
 			/>
 		</div>
 		<TransitionGroup tag = 'div' name = 'bottom_in'>
@@ -99,6 +111,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import GLOBAL from '@/script/scale';
+	import { KEYS } from '@/script/constant';
 
 	import Log from './log/log.vue';
 	import connect from './connect';
@@ -114,6 +127,7 @@
 		height : GLOBAL.HEIGHT * 0.8
 	}
 	onMounted(() => {
+
 	});
 
 	onUnmounted(connect.clear);

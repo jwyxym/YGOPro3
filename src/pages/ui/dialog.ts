@@ -6,6 +6,7 @@ import { I18N_KEYS } from '@/script/language/i18n';
 let resolve = undefined as ((value: boolean | PromiseLike<boolean>) => void) | undefined;
 
 const dialog = async (option : DialogOptions, need_confirm : boolean | number | Array<string> | string = true) : Promise<boolean> => {
+	close();
 	if (need_confirm) {
 		const chk = mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_SWAP_BUTTON);
 		option.dialogClass = 'dialog';

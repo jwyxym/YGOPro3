@@ -3,6 +3,7 @@ import { reactive } from 'vue';
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import invoke from '@/script/invoke';
+import Card from '@/script/card';
 
 import Deck from '@/pages/deck/deck';
 
@@ -27,7 +28,6 @@ class Wait {
 	self = {
 		is_host : false,
 		position : 0 as 0 | 1 | 2 | 3,
-		deck : true as string | true
 	};
 	info = {
 		room_name : '',
@@ -43,18 +43,51 @@ class Wait {
 		time_limit : 0,
 		watch : 0
 	};
-	kick = async () => {
-
-	};
-	deck = async (deck ?: Deck) => {
-
-	};
-	duelist = async () => {
-
-	};
-	watcher = async () => {
-
-	};
+	kick = async (v : number) : Promise<void> => await connect.send?.(
+		new Msg()
+			.write.uint8(CTOS.HS_READY)
+			.write.uint8(v)
+	);
+	deck = {
+		send : async (deck ?: Deck) : Promise<void> => {
+			if (deck) {
+				if (this.players[this.self.position].status)
+					await connect.send?.(new Msg()
+						.write.uint8(CTOS.HS_NOTREADY));
+				const msg = new Msg()
+					.write.uint8(CTOS.UPDATE_DECK)
+					.write.uint32(deck.main.length + deck.extra.length)
+					.write.uint32(deck.side.length);
+				for (const i of deck.main
+					.concat(deck.extra)
+					.concat(deck.side)
+				)
+					msg.write.uint32(i);
+				await connect.send?.(msg);
+				await connect.send?.(new Msg()
+					.write.uint8(CTOS.HS_READY));
+			} else
+				await connect.send?.(new Msg()
+					.write.uint8(CTOS.HS_NOTREADY));
+		},
+		chk : async (
+			result ?: (value : string | true | PromiseLike<string | true>) => void
+		) : Promise<string | true> => this.deck.result = result as any,
+		promise : undefined as Promise<string | true> | undefined,
+		result : undefined as ((value : string | true | PromiseLike<string | true>) => void) | undefined
+	}
+	duelist = async () => await connect.send?.(
+		new Msg()
+			.write.uint8(CTOS.HS_TODUELIST)
+	);
+	watcher = async () => await connect.send?.(
+		new Msg()
+			.write.uint8(CTOS.HS_TOOBSERVER)
+	);
+	start = async () => await connect.send?.(
+		new Msg()
+			.write.uint8(CTOS.HS_START)
+	);
 };
 
 const connect = reactive({
@@ -76,16 +109,12 @@ const connect = reactive({
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
-	card : undefined as undefined | Client_Card,
+	card : undefined as undefined | Client_Card | Card,
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
 		switch (connect.state) {
 			case 0:
 				if (!para?.name || !para?.address) return;
-				const protocol = new Protocol(
-					async () : Promise<void> => connect.state = 2 as any,
-					async () : Promise<void> => connect.state = 3 as any,
-					(i ?: Function) : void => connect.response = i as any,
-				);
+				const protocol = new Protocol();
 				const p = {
 					on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 						connect.send = send;
@@ -145,6 +174,7 @@ const connect = reactive({
 				]);
 				break;
 			case 1:
+				await connect.wait.start();
 				break;
 			case 2:
 				break;
