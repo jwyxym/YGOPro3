@@ -1,5 +1,4 @@
 import { Buffer, WithImplicitCoercion } from 'buffer';
-import { REG } from '@/script/constant';
 class Msg {
 	index : number;
 	content : Buffer;

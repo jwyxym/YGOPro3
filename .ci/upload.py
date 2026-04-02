@@ -16,5 +16,8 @@ data = json.loads(response.text)
 response = None
 while response is None or not str(response.status_code).startswith('2'):
 	files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
-	response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files, timeout=(100, 600))
+	try:
+		response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files, timeout=(100, 600))
+	except:
+		pass
 	print(response.status_code)
