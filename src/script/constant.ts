@@ -13,8 +13,7 @@ const REG = {
 	ATK : /^[0-9?\s<>=.]*$/,
 	LV : /^[0-9<>=.]*$/,
 	LINE_FEED : /\r?\n/,
-	NUMBER : /^\d+$/,
-	STR : /[\x00-\x1F]/g
+	NUMBER : /^\d+$/
 };
 
 const LANGUAGE = {

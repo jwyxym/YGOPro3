@@ -267,8 +267,9 @@ class Client_Card {
 			}
 			return this;
 		},
-		location : (location : number, seq : number) : Client_Card => {
-			this.seq = seq;
+		location : (location : number, seq ?: number) : Client_Card => {
+			if (seq !== undefined)
+				this.seq = seq;
 			this.location = location;
 			return this;
 		},
@@ -278,7 +279,7 @@ class Client_Card {
 		},
 		id : (id : number) : Client_Card => {
 			if (id === 0)
-				this.clear();
+				this.clear.self();
 			const card = mainGame.get.card(id);
 			this.id = id;
 			this.set.pic(card.pic);
@@ -294,14 +295,40 @@ class Client_Card {
 				this.get.el.img().src = this.pic;
 			return this;
 		},
-		atk : (atk : number, def : number) : Client_Card => {
+		atk : (atk : number) : Client_Card => {
 			this.atk = atk;
+			return this;
+		},
+		def : (def : number) : Client_Card => {
 			this.def = def;
 			return this;
 		},
 		type : (type : number) : Client_Card => {
 			this.need_change.type = this.type !== type;
 			this.type = type;
+			return this;
+		},
+		level : (level : number) : Client_Card => {
+			this.need_change.type = this.level !== level;
+			this.level = level;
+			return this;
+		},
+		rank : (rank : number) : Client_Card => {
+			this.need_change.type = this.rank !== rank;
+			this.rank = rank;
+			return this;
+		},
+		overlay : (overlay : number) : Client_Card => {
+			this.need_change.type = this.overlay !== overlay;
+			this.rank = overlay;
+			return this;
+		},
+		attribute : (attribute : number) : Client_Card => {
+			this.attribute = attribute;
+			return this;
+		},
+		race : (race : number) : Client_Card => {
+			this.race = race;
 			return this;
 		},
 		counter : async (counter : number, ct : number, add : boolean = true) : Promise<Client_Card> => {
@@ -587,6 +614,51 @@ class Client_Card {
 		]);
 	};
 
+	clear = {
+		self : () : void => {
+			this.owner = 0;
+			this.location = 0;
+			this.seq = 0;
+			this.id = 0;
+			this.alias = 0;
+			this.card = undefined;
+			this.alias = 0;
+			this.type = 0;
+			this.level = 0;
+			this.rank = 0;
+			this.link = 0;
+			this.attribute = 0;
+			this.race = 0;
+			this.atk = 0;
+			this.def = 0;
+			this.scale = 0;
+			this.overlay = 0;
+			this.pos = POS.FACEDOWN_ATTACK;
+			this.need_change.type = true;
+			this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
+				: mainGame.unknown.pic;
+			this.activatable = new Map([
+				[COMMAND.ACTIVATE, []],
+				[COMMAND.SUMMON, []],
+				[COMMAND.SPSUMMON, []],
+				[COMMAND.SSET, []],
+				[COMMAND.MSET, []],
+				[COMMAND.REPOS, []],
+				[COMMAND.ATTACK, []]
+			]);
+		},
+		activate : () : Client_Card => {
+			this.activatable.get(COMMAND.ACTIVATE)!.length = 0;
+			this.activatable.get(COMMAND.SUMMON)!.length = 0;
+			this.activatable.get(COMMAND.SPSUMMON)!.length = 0;
+			this.activatable.get(COMMAND.SSET)!.length = 0;
+			this.activatable.get(COMMAND.MSET)!.length = 0;
+			this.activatable.get(COMMAND.REPOS)!.length = 0;
+			this.activatable.get(COMMAND.ATTACK)!.length = 0;
+			return this;
+		}
+	}
+
 	activate = async () : Promise<void> => {
 		const style = this.get.el.img().style;
 		style.filter = 'brightness(1.5)';
@@ -617,39 +689,6 @@ class Client_Card {
 	};
 
 	contains = (target : HTMLElement) : boolean => this.three.element.contains(target);
-
-	clear = () : void => {
-		this.owner = 0;
-		this.location = 0;
-		this.seq = 0;
-		this.id = 0;
-		this.alias = 0;
-		this.card = undefined;
-		this.alias = 0;
-		this.type = 0;
-		this.level = 0;
-		this.rank = 0;
-		this.link = 0;
-		this.attribute = 0;
-		this.race = 0;
-		this.atk = 0;
-		this.def = 0;
-		this.scale = 0;
-		this.overlay = 0;
-		this.pos = POS.FACEDOWN_ATTACK;
-		this.need_change.type = true;
-		this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
-			: mainGame.unknown.pic;
-		this.activatable = new Map([
-			[COMMAND.ACTIVATE, []],
-			[COMMAND.SUMMON, []],
-			[COMMAND.SPSUMMON, []],
-			[COMMAND.SSET, []],
-			[COMMAND.MSET, []],
-			[COMMAND.REPOS, []],
-			[COMMAND.ATTACK, []]
-		]);
-	};
 };
 
 export default Client_Card;

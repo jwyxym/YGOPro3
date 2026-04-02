@@ -62,18 +62,6 @@ class _Duel {
 		window.addEventListener('click', duel.click);
 	};
 
-	clear = () => {
-		cancelAnimationFrame(this.animation_id);
-		this.renderer = new CSS.CSS3DRenderer();
-		this.scene = new THREE.Scene();
-		this.camera = new THREE.PerspectiveCamera();
-		this.cards.length = 0;
-		this.plaids.length = 0;
-		this.btn = null;
-		this.animation_id = 0;
-		window.removeEventListener('click', duel.click);
-	};
-
 	sort = {
 		deck : async (owner : 0 | 1) : Promise<void> => {
 			const sort = () : gsap.core.Timeline => {
@@ -340,6 +328,21 @@ class _Duel {
 		cards : () => this.cards
 	};
 
+	clear = {
+		self : () : void => {
+			cancelAnimationFrame(this.animation_id);
+			this.renderer = new CSS.CSS3DRenderer();
+			this.scene = new THREE.Scene();
+			this.camera = new THREE.PerspectiveCamera();
+			this.cards.length = 0;
+			this.plaids.length = 0;
+			this.btn = null;
+			this.animation_id = 0;
+			window.removeEventListener('click', duel.click);
+		},
+		activate : () : void => this.cards.forEach(i => i.clear.activate())
+	}
+
 	update = async () : Promise<void> => {
 		for (let tp = 0; tp < 2; tp ++) {
 			const cards = this.get.cards()
@@ -386,7 +389,7 @@ const duel = new _Duel();
 const Duel = defineComponent({
 	setup () {
 		onMounted(duel.init);
-		onUnmounted(duel.clear);
+		onUnmounted(duel.clear.self);
 		return () => <div
 			ref = {(el) => duel.set_element(el as HTMLDivElement | null)}
 		/>;

@@ -33,18 +33,22 @@ class Msg {
 			return data;
 		},
 		str : (len ?: number) : string | undefined => {
-			if (len) {
-				if (this.index + len - 1 >= this.length())
-					return undefined;
-				const data = this.content.toString('utf16le', this.index, this.index + len).replace(REG.STR, '');;
-				this.index += len;
-				return data;
-			} else {
-				const length = this.length();
-				const data = this.content.toString('utf16le', this.index, length).replace(REG.STR, '');;
-				this.index = length;
-				return data;
+			const length = this.length();
+
+			if (len !== undefined && (len < 0 || this.index + len > length || len & 1))
+				return undefined;
+
+			const end = len ? this.index + len : length;
+			const chars : Array<string> = [];
+
+			for (let i = this.index; i < end; i += 2) {
+				const code = this.content.readUInt16LE(i);
+				if (code > 0x1F)
+					chars.push(String.fromCharCode(code));
 			}
+
+			this.index = end;
+			return chars.join('');
 		}
 	};
 	write = {

@@ -1,3 +1,4 @@
+import lodash from 'lodash';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { KEYS } from '@/script/constant';
@@ -5,12 +6,13 @@ import { KEYS } from '@/script/constant';
 import { toast } from '@/pages/toast/toast';
 
 import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE } from './network';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND } from './network';
 
 import connect from '../connect';
 import { duel } from '../scene/scene';
 import { chat, ChatMsg } from '../log/chat';
 import { HISTORY, history } from '../log/history/history';
+import Client_Card from '../scene/client_card';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
@@ -52,6 +54,89 @@ class Protocol {
 			return connect.duel.is_first ? player : 1 - player;
 		}
 	};
+	get = {
+		card : (tp : number, loc : number, seq : number) : Client_Card | undefined => {
+			const cards = duel.get.cards()
+				.filter(i => i.owner === tp && (i.location & loc) && i.seq === seq);
+			return cards.length > 1 ? lodash.maxBy(cards, i => i.overlay) : cards[0];
+		}
+	};
+	update = {
+		card : (msg : Msg, card : Client_Card) : Array<[Client_Card, number]> | void => {
+			const flag = msg.read.uint32();
+			const result : Array<[Client_Card, number]> = [];
+			if (!flag)
+				return card.clear.self();
+			if (flag & QUERY.CODE) {
+				const code = msg.read.uint32();
+				if (!code)
+					return card.clear.self();
+				result.push([card, code]);
+			}
+			if (flag & QUERY.POSITION) {
+				const pdata = msg.read.uint32();
+				if (pdata !== undefined) {
+					const loc = (pdata >> 24) & 0xff;
+					card.set.location(loc);
+				}
+			}
+			if (flag & QUERY.ALIAS)
+				card.set.alias(msg.read.uint32() ?? 0);
+			if (flag & QUERY.TYPE)
+				card.set.type(msg.read.uint32() ?? 0);
+			if (flag & QUERY.LEVEL) {
+				const lv = msg.read.uint32();
+				if (lv !== undefined)
+					card.set.level(lv);
+			}
+			if (flag & QUERY.RANK) {
+				const rank = msg.read.uint32();
+				if (rank !== undefined)
+					card.set.rank(rank);
+			}
+			if (flag & QUERY.ATTRIBUTE)
+				card.set.attribute(msg.read.uint32() ?? 0);
+			if (flag & QUERY.RACE)
+				card.set.race(msg.read.uint32() ?? 0);
+			if (flag & QUERY.ATTACK)
+				card.set.atk(msg.read.uint32() ?? 0);
+			if (flag & QUERY.DEFENSE)
+				card.set.def(msg.read.uint32() ?? 0);
+			if (flag & QUERY.BASE_ATTACK)
+				msg.index ++;
+			if (flag & QUERY.BASE_DEFENSE)
+				msg.index ++;
+			if (flag & QUERY.REASON)
+				msg.index ++;
+			if (flag & QUERY.REASON_CARD)
+				msg.index += 4;
+			if (flag & QUERY.EQUIP_CARD)
+				msg.index += 4;
+			if (flag & QUERY.TARGET_CARD) {
+				const len = msg.read.uint32();
+				msg.index += 4 * (len ?? 0);
+			}
+			if (flag & QUERY.OVERLAY_CARD) {
+				const ct = msg.read.uint32();
+				if (ct !== undefined) {
+					card.set.overlay(ct);
+					const cards = duel.get.cards()
+						.filter(i => (i.location & (card.location & LOCATION.OVERLAY))
+							&& i.owner === card.owner
+							&& i.seq === card.seq
+						);
+					for (let i = 0; i < ct; i ++) {
+						const c = cards[i];
+						const code = msg.read.uint32();
+						if (!c || code === undefined) break;
+						result.push([c, code]);
+					}
+				}
+			}
+
+			return result;
+		}
+	}
 	read = async (msg : Msg, send : (msg : Msg) => Promise<void>) : Promise<void> => {
 		const protocol = msg.read.uint8()!;
 		if (protocol === undefined)
@@ -354,6 +439,63 @@ class Protocol {
 			const key = player === 2 ? I18N_KEYS.DUEL_GAME : this.to.player(player) === 0 ? I18N_KEYS.DUEL_WIN : I18N_KEYS.DUEL_LOSE;
 			const message = mainGame.get.strings.victory(type);
 			duel.win(mainGame.get.text(key), message);
+		}],
+		[MSG.UPDATE_DATA, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const location = msg.read.uint8();
+			if (location === undefined)
+				return;
+			let codes : Array<[Client_Card, number]> = [];
+			if ((location & LOCATION.SZONE + LOCATION.MZONE) > 0) {
+				const ct = location === LOCATION.MZONE ? 7 : 8;
+				for (let seq = 0; seq < ct; seq ++) {
+					const card = this.get.card(tp, location, seq);
+					const len = msg.read.uint32();
+					if (len === undefined) break;
+					const m = msg.slice(len - 4);
+					if (m && len > 8 && card) {
+						const code = this.update.card(m, card);
+						if (code)
+							codes = codes.concat(code);
+					}
+				}
+			} else {
+				const cards = duel.get.cards()
+					.filter(i => i.owner === tp && i.location & location);
+				for (const card of cards) {
+					const len = msg.read.uint32();
+					if (len === undefined) break;
+					const m = msg.slice(len - 4);
+					if (m && len > 8 && card) {
+						const code = this.update.card(m, card);
+						if (code)
+							codes = codes.concat(code);
+					}
+				}
+			}
+			await mainGame.load.pic(codes.map(i => i[1]));
+			codes.forEach(i => i[0].set.id(i[1]));
+		}],
+		[MSG.UPDATE_CARD, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const loc = msg.read.uint8();
+			const seq = msg.read.uint8();
+			const len = msg.read.uint32();
+			if (loc === undefined || seq === undefined || len === undefined)
+				return;
+			const card = this.get.card(tp, loc, seq);
+			if (card && len > 8) {
+				const codes = this.update.card(msg, card);
+				if (codes) {
+					await mainGame.load.pic(codes.map(i => i[1]));
+					codes.forEach(i => i[0].set.id(i[1]));
+				}
+			}
+		}],
+		[MSG.SELECT_BATTLECMD, async (msg : Msg) => {
+			const arr = [COMMAND.ACTIVATE, COMMAND.ATTACK];
+			duel.clear.activate();
+			
 		}],
 	]);
 };
