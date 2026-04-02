@@ -40,7 +40,7 @@
 	import Input from '@/pages/ui/input.vue';
 	import Button from '@/pages/ui/button.vue';
 
-	import Chat from './chat';
+	import Chat, { chat } from './chat';
 	import History from './history/history';
 	import connect from '../connect';
 	import Msg from '../ygo-protocol/msg';
@@ -57,6 +57,8 @@
 				.write.str(page.input));
 			page.input = '';
 			await send;
+			if (chat.element)
+				chat.element.scrollTop = chat.element.scrollHeight;
 		}
 	});
 
