@@ -105,7 +105,7 @@ jobs:
 
     - name: NPM Init
       run: |
-        npm install
+        npm ci
     
     - name: Android Init
       run: |
@@ -184,7 +184,7 @@ jobs:
 
     - name: NPM Init
       run: |
-        npm install
+        npm ci
 
     - name: Windows build
       run: |
@@ -269,7 +269,7 @@ jobs:
 
     - name: NPM Init
       run: |
-        npm install
+        npm ci
 
     - name: Macos build
       run: |
@@ -356,7 +356,7 @@ jobs:
 
     - name: NPM Init
       run: |
-        npm install
+        npm ci
 
     - name: Build AppImage
       run: |
