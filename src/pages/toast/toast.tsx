@@ -1,7 +1,7 @@
 import { defineComponent, reactive } from 'vue';
 import PQueue from 'p-queue';
+import { prepare, layout } from '@chenglou/pretext';
 
-import GLOBAL from '@/script/scale';
 import mainGame from '@/script/game';
 
 type HintType = 'info' | 'warn' | 'err';
@@ -12,6 +12,7 @@ interface Hint {
 	top : number;
 	status : HintStatus;
 	id : string;
+	height : number;
 };
 
 class _Toast {
@@ -26,31 +27,41 @@ class _Toast {
 
 	set_elements = (el : HTMLDivElement | null, key : Hint) => el ? this.elements.set(key, el) : this.elements.delete(key);
 
-	splice = (v : number) => {
+	splice = (v: number) => {
 		this.list[v].status = 'leave';
-		const height = this.elements.get(this.list[v])!.getBoundingClientRect().height / GLOBAL.SCALE + 20;
-		for (let i = v + 1; i < this.list.length; i ++)
-			this.list[i].top -= height;
+		const offset = this.list[v].height + 20;
+
+		for (let i = v + 1; i < this.list.length; i++)
+			this.list[i].top -= offset;
+
 		setTimeout(() => this.list.splice(v, 1), 100);
 	};
 
-	push = (str : string | number, type : HintType) => {
+	push = (str: string | number, type: HintType) => {
 		const obj = this.to_toast(str, type);
+
 		this.queue.add(async () => {
 			this.list.splice(0, 0, obj);
-			await mainGame.sleep(100);
-			const height = this.elements.get(this.list[0])!.getBoundingClientRect().height / GLOBAL.SCALE + 20;
-			for (let i = 1; i < this.list.length; i ++)
-				this.list[i].top += height;
+
+			for (let i = 1; i < this.list.length; i++)
+				this.list[i].top += obj.height + 20;
+
 			const div = this.list[0];
-			setTimeout(() => { if (div.status === 'unshow') div.status = 'show'; }, 100);
+			setTimeout(() => {
+				if (div.status === 'unshow') div.status = 'show';
+			}, 100);
+
 			const time = this.time * 1000;
-			setTimeout(() => { if (div.status === 'show') div.status = 'leave'; }, 100 + time);
+			setTimeout(() => {
+				if (div.status === 'show') div.status = 'leave';
+			}, 100 + time);
+
 			setTimeout(() => {
 				const ct = this.list.indexOf(obj);
 				if (ct > -1)
 					this.list.splice(ct, 1);
 			}, 200 + time);
+
 			await mainGame.sleep(200);
 		});
 	};
@@ -68,12 +79,15 @@ class _Toast {
 	};
 
 	to_toast = (str : string | number, type : HintType) : Hint => {
+		const prepared = prepare(`${str}`, '16px Inter');
+		const height = Math.max(70, layout(prepared, 270, 22).height);
 		return {
 			text : str,
 			type : type,
 			top : 0,
 			status : 'unshow',
-			id : 'toast' + Math.random()
+			id : 'toast' + Math.random(),
+			height : height
 		};
 	}
 };
