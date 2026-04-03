@@ -17,7 +17,9 @@ const HISTORY = {
 	LP : 3,
 	DRAW : 4,
 	POS_CHANGE : 5,
-	DECK_COUNT : 6
+	DECK_COUNT : 6,
+	CHAINING : 7,
+	CHAIN_SOLVED : 8,
 }
 
 interface HistoryContent {
@@ -180,7 +182,27 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Cover/>
-							<Num number = {i.content.number!} />
+							<Desc desc = {String(i.content.number!)} />
+						</div>
+					case HISTORY.CHAINING:
+						return <div class = {['history__chaining',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Pic
+								id = {i.content.cards[0].id}
+								pos = {i.content.cards[0].pos}
+							/>
+							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAINING, i.content.number!)} />
+						</div>
+					case HISTORY.CHAIN_SOLVED:
+						return <div class = {['history__chain_sloved',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Pic
+								id = {i.content.cards[0].id}
+								pos = {i.content.cards[0].pos}
+							/>
+							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED, i.content.number!)} />
 						</div>
 				}
 			})}

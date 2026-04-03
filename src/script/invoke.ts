@@ -109,6 +109,7 @@ class Invoke {
 		},
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
+				if (!deck.length) return [];
 				const result = await invoke<ArrayBuffer>('get_pic', { deck : deck });
 				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] = bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),

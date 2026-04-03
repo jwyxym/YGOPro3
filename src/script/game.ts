@@ -270,7 +270,7 @@ class Game {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
 			deck = deck
 				.filter(i => !this.get.card(i).has_pic())
-				.map(i => typeof i === 'string' ? parseInt(i) : i);
+				.map(i => Number(i));
 			(await invoke.game.get_pic(deck as Array<number>))
 				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
 			deck

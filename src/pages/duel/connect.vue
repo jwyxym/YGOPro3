@@ -39,6 +39,10 @@
 				}'
 				key = '4'
 			/>
+			<Phase
+				v-if = 'connect.state === 2'
+				key = '5'
+			/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -80,7 +84,7 @@
 				:max = 'connect.duel.select.cards.max'
 				:title = 'connect.duel.select.cards.title'
 				:cancelable = 'connect.duel.select.cards.cancelable'
-				@exit = 'connect.response'
+				@exit = 'connect.duel.select.cards.confirm ?? connect.response'
 				key = '0'
 			/>
 			<Select_Group
@@ -91,7 +95,7 @@
 				:max = 'connect.duel.select.group.max'
 				:title = 'connect.duel.select.group.title'
 				:cancelable = 'connect.duel.select.group.cancelable'
-				@exit = 'connect.response'
+				@exit = 'connect.duel.select.group.confirm ?? connect.response'
 				key = '1'
 			/>
 			<Select_Codes
@@ -101,25 +105,23 @@
 				:max = 'connect.duel.select.code.max'
 				:title = 'connect.duel.select.code.title'
 				:cancelable = 'connect.duel.select.code.cancelable'
-				@exit = 'connect.response'
+				@exit = 'connect.duel.select.code.confirm ?? connect.response'
 				key = '2'
 			/>
-		</TransitionGroup>
-		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Select_Number
 				v-if = 'connect.duel.select.number.show'
 				:number = 'connect.duel.select.number.array'
 				:title = 'connect.duel.select.number.title'
-				@exit = 'connect.response'
-				key = '0'
+				@exit = 'connect.duel.select.number.confirm ?? connect.response'
+				key = '3'
 			/>
 			<Select_Option
 				v-if = 'connect.duel.select.option.show'
 				:options = 'connect.duel.select.option.array'
 				:title = 'connect.duel.select.option.title'
 				:cancelable = 'connect.duel.select.option.cancelable'
-				@exit = 'connect.response'
-				key = '0'
+				@exit = 'connect.duel.select.option.confirm ?? connect.response'
+				key = '4'
 			/>
 		</TransitionGroup>
 		<transition name = 'right_in'>
@@ -145,6 +147,7 @@
 	import RPS from './rps.vue';
 	import Log from './log/log.vue';
 	import Scene from './scene/scene';
+	import Phase from './scene/phase';
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
@@ -204,6 +207,8 @@
 				left: 0;
 				top: 0;
 				transform: translateX(calc(-70px - var(--left) / var(--scale)));
+				background-color: transparent !important;
+				border: 1px solid white;
 			}
 			.rps {
 				position: fixed;

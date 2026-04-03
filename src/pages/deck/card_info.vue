@@ -120,7 +120,8 @@
 			return;
 		if (n instanceof Client_Card) {
 			if (n.id) {
-				const [card, orgin] = !!n.alias ? [mainGame.get.card(n.alias), mainGame.get.card(n.id)] : [mainGame.get.card(n.id), undefined];
+				const [card, orgin] = Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
+					: [mainGame.get.card(n.alias), mainGame.get.card(n.id)];
 				page.card.orgin = orgin?.name ?? '';
 				page.show = true;
 				page.card.id = card.id;

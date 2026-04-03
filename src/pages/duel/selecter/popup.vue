@@ -56,11 +56,11 @@
 <style scoped lang = 'scss'>
 	.popup {
 		position: fixed;
-		left: 50%;
-		bottom: 50%;
-		transform: translate(-50%, 50%);
-		color: white;
+		bottom: 10px;
+		transform: translateY(calc(var(--top) / var(--scale)));
+		left: calc(var(--width) * 0.35);
 		width: calc(var(--width) * 0.3);
+		color: white;
 		transition: all 0.1s ease;
 		> div {
 			width: 100%;
@@ -82,7 +82,6 @@
 		> div:last-child {
 			display: flex;
 			overflow: hidden;
-			background-color: rgba(0, 0, 0, 0.5);
 			> div {
 				flex-grow: 1;
 				display: flex;

@@ -1,5 +1,6 @@
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
+import lodash from 'lodash';
 
 import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
@@ -8,6 +9,9 @@ import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
+import { duel } from './scene';
+
+import connect from '../connect';
 
 class Client_Card {
 	three : CSS.CSS3DObject;
@@ -29,10 +33,13 @@ class Client_Card {
 	def : number;
 	scale : number;
 	overlay : number;
-	activatable : Map<number, Array<{ desc ?: number; index : number; code : number }>>;
+	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
 	need_change = {
-		type : false
+		type : false,
+		activate : false,
+		counter : false
 	};
+	counter : Map<number, number>;
 	clicked : boolean;
 
 	constructor () {
@@ -66,6 +73,7 @@ class Client_Card {
 			[COMMAND.REPOS, []],
 			[COMMAND.ATTACK, []]
 		]);
+		this.counter = new Map();
 		this.clicked = false;
 	};
 
@@ -211,7 +219,7 @@ class Client_Card {
 			]) {
 				const img = document.createElement('img');
 				img.classList.add(i);
-				img.classList.add('btn');
+				img.classList.add('duel__card__btn');
 				Object.assign(img.style, {
 					height : '100%',
 					opacity : '0',
@@ -238,6 +246,40 @@ class Client_Card {
 			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement,
 			btn : (query ?: string) : HTMLDivElement => query ? this.get.el.btn().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[4] as HTMLDivElement,
+		},
+		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
+			switch (key) {
+				case KEYS.ACTIVATE:
+					return this.activatable
+						.get(COMMAND.ACTIVATE)
+						?.filter(i => i.desc !== 1160) ?? [];
+				case KEYS.SCALE:
+					return this.activatable
+						.get(COMMAND.ACTIVATE)
+						?.filter(i => i.desc === 1160) ?? [];
+				case KEYS.ATTACK:
+					return this.activatable
+						.get(COMMAND.ATTACK) ?? [];
+				case KEYS.MSET:
+					return this.activatable
+						.get(COMMAND.MSET) ?? [];
+				case KEYS.SSET:
+					return this.activatable
+						.get(COMMAND.SSET) ?? [];
+				case KEYS.POS_ATTACK:
+				case KEYS.POS_DEFENCE:
+				case KEYS.FLIP:
+					return this.activatable
+						.get(COMMAND.REPOS) ?? [];
+				case KEYS.SPSUMMON:
+				case KEYS.PSUMMON:
+					return this.activatable
+						.get(COMMAND.SPSUMMON) ?? [];
+				case KEYS.SUMMON:
+					return this.activatable
+						.get(COMMAND.SUMMON) ?? [];
+				default: return [];
+			}
 		}
 	};
 
@@ -267,9 +309,7 @@ class Client_Card {
 			}
 			return this;
 		},
-		location : (location : number, seq ?: number) : Client_Card => {
-			if (seq !== undefined)
-				this.seq = seq;
+		location : (location : number) : Client_Card => {
 			this.location = location;
 			return this;
 		},
@@ -278,7 +318,7 @@ class Client_Card {
 			return this;
 		},
 		id : (id : number) : Client_Card => {
-			if (id === 0)
+			if (!id)
 				this.clear.self();
 			const card = mainGame.get.card(id);
 			this.id = id;
@@ -304,22 +344,38 @@ class Client_Card {
 			return this;
 		},
 		type : (type : number) : Client_Card => {
-			this.need_change.type = this.type !== type;
+			if (!this.need_change.type)
+				this.need_change.type = this.type !== type;
 			this.type = type;
 			return this;
 		},
 		level : (level : number) : Client_Card => {
-			this.need_change.type = this.level !== level;
+			if (!this.need_change.type)
+				this.need_change.type = this.level !== level;
 			this.level = level;
 			return this;
 		},
 		rank : (rank : number) : Client_Card => {
-			this.need_change.type = this.rank !== rank;
+			if (!this.need_change.type)
+				this.need_change.type = this.rank !== rank;
 			this.rank = rank;
 			return this;
 		},
+		scale : (scale : number) : Client_Card => {
+			if (!this.need_change.type)
+				this.need_change.type = this.scale !== scale;
+			this.scale = scale;
+			return this;
+		},
+		link : (link : number) : Client_Card => {
+			if (!this.need_change.type)
+				this.need_change.type = this.link !== link;
+			this.link = link;
+			return this;
+		},
 		overlay : (overlay : number) : Client_Card => {
-			this.need_change.type = this.overlay !== overlay;
+			if (!this.need_change.type)
+				this.need_change.type = this.overlay !== overlay;
 			this.rank = overlay;
 			return this;
 		},
@@ -331,81 +387,132 @@ class Client_Card {
 			this.race = race;
 			return this;
 		},
-		counter : async (counter : number, ct : number, add : boolean = true) : Promise<Client_Card> => {
-			const el : HTMLElement | null = this.get.el.counter().querySelector('.COUNTER' + counter.toString());
-			const sort = () : void => {
-				let v = 0;
-				(Array.from(this.get.el.counter().children) as Array<HTMLElement>)
-					.filter(i => i.style.opacity === '1')
-					.forEach(i => {
-						i.style.transform = `translateX(${v * 28}px)`;
-						v ++;
-					});                                        
-			}
-			if (el) {
-				const span : HTMLSpanElement = el.querySelector('span')!;
-				const count : number = add ? Math.max(0, ct + Number(span.innerText)) : ct;
-				if (!isNaN(count) && count > 0) {
-					if (el.style.opacity === '1') {
-						span.style.opacity = '0';
-						await mainGame.sleep(150);
-					}
-					span.innerText = count.toString();
-					span.style.opacity = '1';
-					if (el.style.opacity === '0')
-						el.style.opacity = '1';
-				} else if (el.style.opacity === '1')
-					el.style.opacity = '0';
-				sort();
-				await mainGame.sleep(200);
-			} else if (ct > 0) {
-				const div = document.createElement('div');
-				//为指示物div设置class，class为指示物编号
-				div.classList.add('COUNTER' + counter.toString());
-				Object.assign(div.style, {
-					height : '100%',
-					width : '28px',
-					position : 'absolute',
-					display : 'flex',
-					opacity : '0',
-					transition : 'all 0.2s ease'
-				});
-				//指示物图标
-				const img = document.createElement('img');
-				img.src = mainGame.get.counter(counter);
-				img.style.height = '100%';
-
-				//指示物数量
-				const span = document.createElement('span');
-				span.style.transition = 'all 0.1s ease';
-				span.innerText = ct.toString();
-
-				div.appendChild(img);
-				div.appendChild(span);
-				this.get.el.counter().appendChild(div);
-				sort();
-				await mainGame.sleep(100);
-				div.style.opacity = '1';
-			}
+		counter : async (ctype : number, ccount : number, add : boolean = true) : Promise<Client_Card> => {
+			this.need_change.counter = true;
+			const ct = this.counter.get(ctype);
+			ct ? this.counter.set(ctype, add ? ct + ccount : ct)
+				: this.counter.set(ctype, Math.max(0, ccount));
 			return this;
 		},
-		activate : async (flag : number, index : number, code : number, desc ?: number) => this.activatable
-			.get(flag)?.push({ index : index, desc : desc, code : code})
+		activate : async (flag : number, index : number, desc ?: number) => {
+			this.need_change.activate = true;
+			this.activatable
+				.get(flag)?.push({ index : index, desc : desc});
+		},
 	};
 
 	update = async () : Promise<void> => {
 		const activate = async () : Promise<void> => {
+			if (!this.need_change.activate)
+				return;
+			this.need_change.activate = false;
 			const style = this.get.el.img().style;
 			style.boxShadow = (() => {
+				const cards = duel.get.cards()
+					.filter(i => i.location & this.location && i.owner === this.owner);
+				const seq = cards.length - 1;
+				if ((this.location & (LOCATION.EXTRA | LOCATION.DECK | LOCATION.GRAVE | LOCATION.REMOVED))
+					&& this.seq !== seq)
+					return 'initial';
+				const some = this.location & (LOCATION.HAND | LOCATION.ONFIELD) ?
+					(i : number) : boolean => !!this.activatable.get(i)?.length
+					: (i : number) : boolean => !!lodash.sumBy(cards.map(c => c.activatable.get(i)!), i => i.length)
+
 				if ([COMMAND.ACTIVATE, COMMAND.SPSUMMON]
-				.some(i => this.activatable.get(i)?.length ?? false))
+					.some(some))
 					return '0 0 8px yellow';
-				else if (Array.from(this.activatable.values())
-					.some(i => i.length))
+				else if ([COMMAND.SSET, COMMAND.MSET, COMMAND.REPOS, COMMAND.ATTACK, COMMAND.SUMMON]
+					.some(some))
 					return '0 0 8px rgba(119, 166, 255, 1)';
 				else return 'initial';
 			})();
 			await mainGame.sleep(100);
+		};
+		const activate_btn = async () : Promise<void> => {
+			if (!this.need_change.activate)
+				return;
+			this.need_change.activate = false;
+			const ACTIVATE = this.activatable.get(COMMAND.ACTIVATE)!;
+			const SUMMON = this.activatable.get(COMMAND.SUMMON)!;
+			const SPSUMMON = this.activatable.get(COMMAND.SPSUMMON)!;
+			const SSET = this.activatable.get(COMMAND.SSET)!;
+			const MSET = this.activatable.get(COMMAND.MSET)!;
+			const REPOS = this.activatable.get(COMMAND.REPOS)!;
+			const ATTACK = this.activatable.get(COMMAND.ATTACK)!;
+			const elements : Array<[HTMLDivElement, number]> = [];
+			const is_pendulum = (this.location & LOCATION.SZONE) && [0, 4].includes(this.seq) && this.type & TYPE.PENDULUM;
+
+			elements.push([this.get.el.btn(KEYS.SCALE), Number(!!ACTIVATE.find(i => i.desc === 1160))]);
+			elements.push([this.get.el.btn(KEYS.ACTIVATE), Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
+			elements.push([this.get.el.btn(KEYS.SUMMON), Number(!!SUMMON.length)]);
+			elements.push([this.get.el.btn(KEYS.PSUMMON), is_pendulum ? Number(!!SPSUMMON.length) : 0]);
+			elements.push([this.get.el.btn(KEYS.SPSUMMON), is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
+			elements.push([this.get.el.btn(KEYS.SSET), Number(!!SSET.length)]);
+			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
+			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
+			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
+			elements.forEach(i => i[0].style.opacity = '0');
+			await mainGame.sleep(100);
+		};
+		const counter = async () : Promise<void> => {
+			if (!this.need_change.counter) return;
+			this.need_change.counter = false;
+			for (const [counter, ct] of this.counter) {
+				const el : HTMLElement | null = this.get.el.counter().querySelector(`.COUNTER${counter}`);
+				const sort = () : void => {
+					let v = 0;
+					(Array.from(this.get.el.counter().children) as Array<HTMLElement>)
+						.filter(i => i.style.opacity === '1')
+						.forEach(i => {
+							i.style.transform = `translateX(${v * 28}px)`;
+							v ++;
+						});                                        
+				}
+				if (el) {
+					const span : HTMLSpanElement = el.querySelector('span')!;
+					if (ct) {
+						if (el.style.opacity === '1') {
+							span.style.opacity = '0';
+							await mainGame.sleep(150);
+						}
+						span.innerText = ct.toString();
+						span.style.opacity = '1';
+						if (el.style.opacity === '0')
+							el.style.opacity = '1';
+					} else if (el.style.opacity === '1')
+						el.style.opacity = '0';
+					sort();
+					await mainGame.sleep(100);
+				} else if (ct > 0) {
+					const div = document.createElement('div');
+					//为指示物div设置class，class为指示物编号
+					div.classList.add(`.COUNTER${counter}`);
+					Object.assign(div.style, {
+						height : '100%',
+						width : '28px',
+						position : 'absolute',
+						display : 'flex',
+						opacity : '0',
+						transition : 'all 0.1s ease'
+					});
+					//指示物图标
+					const img = document.createElement('img');
+					img.src = mainGame.get.counter(counter);
+					img.style.height = '100%';
+
+					//指示物数量
+					const span = document.createElement('span');
+					span.style.transition = 'all 0.1s ease';
+					span.innerText = ct.toString();
+
+					div.appendChild(img);
+					div.appendChild(span);
+					this.get.el.counter().appendChild(div);
+					sort();
+					await mainGame.sleep(100);
+					div.style.opacity = '1';
+				}
+			}
 		};
 		const owner = () : gsap.core.Tween | void => {
 			if (this.three.rotation.z !== this.owner * Math.PI)
@@ -552,37 +659,6 @@ class Client_Card {
 			});
 			return tl;
 		};
-		const activatable = async () : Promise<void> => {
-			const ACTIVATE = this.activatable.get(COMMAND.ACTIVATE)!;
-			const SUMMON = this.activatable.get(COMMAND.SUMMON)!;
-			const SPSUMMON = this.activatable.get(COMMAND.SPSUMMON)!;
-			const SSET = this.activatable.get(COMMAND.SSET)!;
-			const MSET = this.activatable.get(COMMAND.MSET)!;
-			const REPOS = this.activatable.get(COMMAND.REPOS)!;
-			const ATTACK = this.activatable.get(COMMAND.ATTACK)!;
-			const elements : Array<[HTMLDivElement, number]> = [];
-			const is_pendulum = (this.location & LOCATION.SZONE) && [0, 4].includes(this.seq) && this.type & TYPE.PENDULUM;
-
-			elements.push([this.get.el.btn(KEYS.SCALE), Number(!!ACTIVATE.find(i => i.desc === 1160))]);
-			elements.push([this.get.el.btn(KEYS.ACTIVATE), Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
-			elements.push([this.get.el.btn(KEYS.SUMMON), Number(!!SUMMON.length)]);
-			elements.push([this.get.el.btn(KEYS.PSUMMON), is_pendulum ? Number(!!SPSUMMON.length) : 0]);
-			elements.push([this.get.el.btn(KEYS.SPSUMMON), is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
-			elements.push([this.get.el.btn(KEYS.SSET), Number(!!SSET.length)]);
-			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
-			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
-			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
-			elements.forEach(i => i[0].style.opacity = '0');
-			await mainGame.sleep(100);
-			this.get.el.img().style.boxShadow = ACTIVATE.length + SPSUMMON.length ? '0 0 8px yellow'
-				: SUMMON.length + SSET.length + MSET.length + REPOS.length + ATTACK.length ? '0 0 8px rgba(119, 166, 255, 1)'
-				: 'initial';
-			elements.forEach(i => {
-				i[0].style.opacity = i[1].toString();
-				setTimeout(() => i[0].style.display = !!i[1] ? 'initial' : 'none', 100);
-			});
-			await mainGame.sleep(100);
-		};
 		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
 			this.get.el.info().style.opacity = '1';
 			if (this.location & LOCATION.MZONE)
@@ -609,18 +685,15 @@ class Client_Card {
 			this.click.img();
 		await Promise.all([
 			run(),
-			activatable(),
-			activate()
+			activate_btn(),
+			activate(),
+			counter()
 		]);
 	};
 
 	clear = {
 		self : () : void => {
-			this.owner = 0;
-			this.location = 0;
-			this.seq = 0;
 			this.id = 0;
-			this.alias = 0;
 			this.card = undefined;
 			this.alias = 0;
 			this.type = 0;
@@ -632,8 +705,6 @@ class Client_Card {
 			this.atk = 0;
 			this.def = 0;
 			this.scale = 0;
-			this.overlay = 0;
-			this.pos = POS.FACEDOWN_ATTACK;
 			this.need_change.type = true;
 			this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
 				: mainGame.unknown.pic;
@@ -648,6 +719,7 @@ class Client_Card {
 			]);
 		},
 		activate : () : Client_Card => {
+			this.need_change.activate = true;
 			this.activatable.get(COMMAND.ACTIVATE)!.length = 0;
 			this.activatable.get(COMMAND.SUMMON)!.length = 0;
 			this.activatable.get(COMMAND.SPSUMMON)!.length = 0;
@@ -683,8 +755,52 @@ class Client_Card {
 			}
 			this.clicked = !this.clicked;
 		},
-		btn : (target : HTMLElement) : void => {
+		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {
 			if (!this.clicked) return;
+			const option = (effect : Array<{ desc ?: number; index : number; }>, command : number) => {
+				const array = effect
+					.map(i => mainGame.get.desc(i.desc ?? - 1));
+				connect.duel.select.option.cancelable = true;
+				connect.duel.select.option.title = mainGame.get.strings.system(555);
+				connect.duel.select.option.array = array;
+				connect.duel.select.option.show = true;
+				connect.duel.select.option.confirm = async (i : number) => {
+					connect.duel.select.clear();
+					connect.response?.(array[i], command);
+				}
+			};
+			for (const j of [
+				{ key : KEYS.ACTIVATE, command : COMMAND.ACTIVATE },
+				{ key : KEYS.ATTACK, command : COMMAND.ATTACK },
+				{ key : KEYS.MSET, command : COMMAND.MSET },
+				{ key : KEYS.SSET, command : COMMAND.SSET },
+				{ key : KEYS.POS_ATTACK, command : COMMAND.REPOS },
+				{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS },
+				{ key : KEYS.FLIP, command : COMMAND.REPOS },
+				{ key : KEYS.SUMMON, command : COMMAND.SUMMON },
+				{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
+				{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
+				{ key : KEYS.SCALE, command : COMMAND.ACTIVATE }
+			])
+				if (target.classList.contains(j.key)) {
+					const c = cards
+						.filter(i => i.get.activate(j.key).length > 0);
+					if (c.length) {
+						connect.duel.select.cards.cancelable = true;
+						connect.duel.select.cards.min = 1;
+						connect.duel.select.cards.max = 1;
+						connect.duel.select.cards.cards = c;
+						connect.duel.select.cards.confirm = async (i : Client_Card) => {
+							connect.duel.select.clear();
+							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.command)
+								: await connect.response?.(i.get.activate(j.key)[0], j.command);
+						};
+						connect.duel.select.cards.show = true;
+					} else if (this.get.activate(j.key).length > 0)
+						option(this.get.activate(j.key), j.command);
+					else
+						connect.response?.(this.get.activate(j.key)[0], j.command);
+				}
 		}
 	};
 

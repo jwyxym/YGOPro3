@@ -58,7 +58,8 @@ class Tcp {
 		this.clear();
 	};
 	clear = () : void => {
-		this.queue.add(async () => await this.on_disconnect?.(this.send));
+		const on_disconnect = this.on_disconnect;
+		this.queue.add(async () => await on_disconnect?.(this.send));
 		this.address = '';
 		this.cache = new Msg([]);
 		this.on_message = undefined;

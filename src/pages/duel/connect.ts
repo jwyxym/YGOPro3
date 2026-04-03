@@ -18,6 +18,7 @@ import { chat } from './log/chat';
 
 import * as Selecter from './selecter/selecter';
 import Client_Card from './scene/client_card';
+import { I18N_KEYS } from '@/script/language/i18n';
 
 class Wait {
 	players = [
@@ -102,6 +103,15 @@ class Duel {
 		plaid : new Selecter.Plaids(),
 		number : new Selecter.Number(),
 		option : new Selecter.Option(),
+		clear : () => {
+			this.select.cards = new Selecter.Cards();
+			this.select.group = new Selecter.Group();
+			this.select.confirm = new Selecter.Confirm();
+			this.select.code = new Selecter.Codes();
+			this.select.plaid = new Selecter.Plaids();
+			this.select.number = new Selecter.Number();
+			this.select.option = new Selecter.Option();
+		}
 	};
 	rps = {
 		show : false,
@@ -191,7 +201,9 @@ const connect = reactive({
 				]);
 				break;
 			case 1:
-				await connect.wait.start();
+				connect.wait.players.filter(i => i.status).length < (connect.wait.info.mode & 0x2 ? 4 : 2)
+					? toast.info(mainGame.get.text(I18N_KEYS.SERVER_PLAYER_ERROR))
+					: await connect.wait.start();
 				break;
 			case 2:
 				break;

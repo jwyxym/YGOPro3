@@ -7,6 +7,7 @@ class Base {
 	min = 0;
 	max = 0;
 	title = '';
+	confirm ?: ((...args : any[]) => Promise<void>);
 }
 class Cards extends Base {
 	cards : Array<Client_Card> = [];

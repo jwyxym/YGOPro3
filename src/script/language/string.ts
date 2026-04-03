@@ -7,7 +7,7 @@ class YGOPRO_STR {
 		replace = (typeof replace === 'object' ? replace : [replace]) as Array<string | number>;
 		let result = this.content;
 		replace.forEach(i => {
-			i = `${i}`;
+			i = String(i);
 			if (i.length > 0)
 				result = result.replace('{:?}', i);
 		});

@@ -135,7 +135,7 @@ class _Duel {
 	};
 
 	
-	draw = async (player : number, ct : number) : Promise<Array<Client_Card>> => {
+	draw = (player : number, ct : number) : Array<Client_Card> => {
 		const deck = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.DECK)
 			.reverse()
@@ -143,10 +143,10 @@ class _Duel {
 		const hands = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
 		deck.forEach((i, v) => i
-			.set.location(LOCATION.HAND, v + hands.length)
+			.set.location(LOCATION.HAND)
+			.set.seq(v + hands.length)
 			.set.pos(POS.FACEUP_ATTACK)
 		);
-		await Promise.all(deck.map(i => i.update()));
 		return deck;
 	};
 
@@ -310,11 +310,12 @@ class _Duel {
 			id ?: number
 		) : Client_Card => {
 			const card = new Client_Card();
-			card.set.owner(owner);
-			card.set.location(location, seq);
-			card.set.pos(pos);
-			if (id)
-				card.set.id(id);
+			card
+				.set.owner(owner)
+				.set.location(location)
+				.set.seq(seq)
+				.set.pos(pos)
+				.set.id(id ?? 0);
 
 			card.three.position
 				.set(...Axis.computed.card(card).get.xyz());
@@ -340,7 +341,11 @@ class _Duel {
 			this.animation_id = 0;
 			window.removeEventListener('click', duel.click);
 		},
-		activate : () : void => this.cards.forEach(i => i.clear.activate())
+		activate : () : Array<Client_Card> => {
+			const cards = this.cards.filter(i => Array.from(i.activatable.values()).length);
+			cards.forEach(i => i.clear.activate());
+			return cards;
+		}
 	}
 
 	update = async () : Promise<void> => {
@@ -361,18 +366,31 @@ class _Duel {
 	click = (event : Event) : void => {
 		const target = event.target as HTMLElement;
 		if (target.classList.contains('history__card__pic')) {
-			connect.card = mainGame.get.card(target.id)
+			connect.card = mainGame.get.card(target.id);
 			this.cards
 				.filter(i => i.clicked)
 				.forEach(i => i.click.img());
 		} else {
 			const card = this.cards.find(i => i.contains(target));
-			connect.card = card;
+			if (!card)
+				return connect.card = undefined;
+			if (card.location & LOCATION.HAND) 
+				connect.card = card;
+				if (target.classList.contains('duel__card__btn'))
+					card?.click.btn(target);
+			else {
+				const cards = this.cards.filter(i => i.owner === card.owner
+					&& (i.location & card.location)
+					&& i.seq === card.seq
+				)
+				connect.card = lodash.maxBy(cards, i => i.seq);
+				if (target.classList.contains('duel__card__btn'))
+					card?.click.btn(target, cards);
+			}
+			
 			this.cards
-				.filter(i => i.clicked && i !== card)
+				.filter(i => i.clicked && i !== connect.card)
 				.forEach(i => i.click.img());
-			if (target.classList.contains('btn'))
-				card?.click.btn(target);
 			card?.click.img();
 		}
 	};

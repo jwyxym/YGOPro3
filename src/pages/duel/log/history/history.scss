@@ -9,7 +9,9 @@
 		}
 	}
 	:deep(.history__card__move),
-	:deep(.history__draw) {
+	:deep(.history__draw),
+	:deep(.history__chaining),
+	:deep(.history__chain_sloved) {
 		> div:first-child {
 			width: 20%;
 		}
