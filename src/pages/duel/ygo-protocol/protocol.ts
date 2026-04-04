@@ -24,12 +24,14 @@ class Protocol {
 	select_hint : number;
 	last_select_hint : number;
 	turn_player : number;
+	need_update : boolean;
 	constructor () {
 		this.event = '';
 		this.current_msg = 0;
 		this.select_hint = 0;
 		this.last_select_hint = 0;
 		this.turn_player = 0;
+		this.need_update = false;
 	};
 	server_msg = (str : string) => new ChatMsg(SERVER, str, '');
 	hint = (msg : ChatMsg | string, player ?: number, players : Array<{
@@ -63,7 +65,6 @@ class Protocol {
 	};
 	update = {
 		card : (msg : Msg, card : Client_Card) : Array<[Client_Card | undefined, number]> | void => {
-			console.log(msg, card)
 			const flag = msg.read.uint32();
 			const result : Array<[Client_Card | undefined, number]> = [];
 			if (!flag)
@@ -181,9 +182,13 @@ class Protocol {
 			if (protocol === undefined)
 				return;
 			this.current_msg = protocol;
-			if (![MSG.UPDATE_DATA, MSG.UPDATE_CARD]
+			if ([MSG.UPDATE_DATA, MSG.UPDATE_CARD]
 				.includes(protocol))
+				this.need_update = true;
+			else if (this.need_update) {
 				await duel.update();
+				this.need_update = false;
+			}
 			console.log(this.current_msg)
 			await this.msg.get(protocol)?.(msg, send);
 		}],

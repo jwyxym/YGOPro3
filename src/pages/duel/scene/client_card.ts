@@ -290,23 +290,7 @@ class Client_Card {
 		},
 		pos : (pos : number) : Client_Card => {
 			if (this.pos === pos) return this;
-			const img = this.get.el.img();
 			this.pos = pos;
-			switch (pos) {
-				case POS.NONE:
-				case POS.FACEDOWN_ATTACK:
-					img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
-					break;
-				case POS.FACEDOWN_DEFENSE:
-					img.src = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
-					break;
-				case POS.FACEUP_ATTACK:
-					img.src = this.pic ?? mainGame.unknown.pic;
-					break;
-				case POS.FACEUP_DEFENSE:
-					img.src = this.pic ?? mainGame.unknown.pic;
-					break;
-			}
 			return this;
 		},
 		location : (location : number) : Client_Card => {
@@ -454,65 +438,86 @@ class Client_Card {
 			elements.forEach(i => i[0].style.opacity = '0');
 			await mainGame.sleep(100);
 		};
-		const counter = async () : Promise<void> => {
+		const counter = () : gsap.core.Timeline | void => {
 			if (!this.need_change.counter) return;
 			this.need_change.counter = false;
+			const tl = gsap.timeline();
+			const create_counter = (counter : number) => {
+				const div = document.createElement('div');
+				//为指示物div设置class，class为指示物编号
+				div.classList.add(`COUNTER${counter}`);
+				Object.assign(div.style, {
+					height : '100%',
+					width : '28px',
+					position : 'absolute',
+					display : 'flex',
+					opacity : '0'
+				});
+				//指示物图标
+				const img = document.createElement('img');
+				img.src = mainGame.get.counter(counter);
+				img.style.height = '100%';
+
+				//指示物数量
+				const span = document.createElement('span');
+
+				div.appendChild(img);
+				div.appendChild(span);
+				this.get.el.counter().appendChild(div);
+				return div;
+			}
+			let v = - 1;
 			for (const [counter, ct] of this.counter) {
-				const el : HTMLElement | null = this.get.el.counter().querySelector(`.COUNTER${counter}`);
-				const sort = () : void => {
-					let v = 0;
-					(Array.from(this.get.el.counter().children) as Array<HTMLElement>)
-						.filter(i => i.style.opacity === '1')
-						.forEach(i => {
-							i.style.transform = `translateX(${v * 28}px)`;
-							v ++;
-						});                                        
-				}
-				if (el) {
-					const span : HTMLSpanElement = el.querySelector('span')!;
-					if (ct) {
-						if (el.style.opacity === '1') {
-							span.style.opacity = '0';
-							await mainGame.sleep(150);
+				const el : HTMLElement = this.get.el.counter().querySelector(`.COUNTER${counter}`)
+					?? create_counter(counter);
+				const text = ct.toString();
+				const span = el.querySelector('span')!;
+				if (ct) {
+					v ++;
+					if (gsap.getProperty(el, 'x') !== v * 28)
+						tl.to(el, {
+							x : v * 28,
+							duration : 0.1
+						});
+					if (span.innerText !== text)
+						if (gsap.getProperty(el, 'opacity'))
+							if (gsap.getProperty(span, 'opacity')) {
+								tl.to(span, {
+									opacity : 0,
+									duration : 0.1,
+									onComplete : () => (span.innerText = text) as unknown as void
+								}, 0.1);
+								tl.to(span, {
+									opacity : 1,
+									duration : 0.1
+								}, 0.2);
+							} else {
+								span.innerText = text;
+								tl.to(span, {
+									opacity : 1,
+									duration : 0.1
+								}, 0.1);
+							}
+						else {
+							span.innerText = text;
+							tl.to(el, {
+								opacity : 1,
+								duration : 0.1
+							}, 0.1);
 						}
-						span.innerText = ct.toString();
-						span.style.opacity = '1';
-						if (el.style.opacity === '0')
-							el.style.opacity = '1';
-					} else if (el.style.opacity === '1')
-						el.style.opacity = '0';
-					sort();
-					await mainGame.sleep(100);
-				} else if (ct > 0) {
-					const div = document.createElement('div');
-					//为指示物div设置class，class为指示物编号
-					div.classList.add(`.COUNTER${counter}`);
-					Object.assign(div.style, {
-						height : '100%',
-						width : '28px',
-						position : 'absolute',
-						display : 'flex',
-						opacity : '0',
-						transition : 'all 0.1s ease'
+				} else if (gsap.getProperty(el, 'opacity')) {
+					tl.to(el, {
+						x : 0,
+						duration : 0.1
 					});
-					//指示物图标
-					const img = document.createElement('img');
-					img.src = mainGame.get.counter(counter);
-					img.style.height = '100%';
-
-					//指示物数量
-					const span = document.createElement('span');
-					span.style.transition = 'all 0.1s ease';
-					span.innerText = ct.toString();
-
-					div.appendChild(img);
-					div.appendChild(span);
-					this.get.el.counter().appendChild(div);
-					sort();
-					await mainGame.sleep(100);
-					div.style.opacity = '1';
+					tl.to(el, {
+						opacity : 0,
+						duration : 0.1,
+						onComplete : () => (span.innerText = text) as any as void
+					});
 				}
 			}
+			return tl;
 		};
 		const owner = () : gsap.core.Tween | void => {
 			if (this.three.rotation.z !== this.owner * Math.PI)
@@ -538,7 +543,7 @@ class Client_Card {
 				tl.to(el, {
 					rotationY : 0,
 					duration : 0.1
-				}, 0.125);
+				}, 0.15);
 			};
 			const img = this.get.el.img();
 			const back = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
@@ -678,6 +683,7 @@ class Client_Card {
 			tl.add(position() ?? gsap.timeline());
 			tl.add(atk() ?? gsap.timeline());
 			tl.add(type() ?? gsap.timeline());
+			tl.add(counter() ?? gsap.timeline());
 			tl.then(() => resolve?.());
 			return promise;
 		}
@@ -686,8 +692,7 @@ class Client_Card {
 		await Promise.all([
 			run(),
 			activate_btn(),
-			activate(),
-			counter()
+			activate()
 		]);
 	};
 

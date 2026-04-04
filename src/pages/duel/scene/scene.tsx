@@ -359,8 +359,8 @@ class _Duel {
 				);
 		}
 			
-		return Promise
-			.all(this.cards.map(i => i.update())) as any;
+		await Promise
+			.all(this.cards.map(i => i.update()));
 	};
 	
 	click = (event : Event) : void => {
