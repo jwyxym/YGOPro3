@@ -84,7 +84,7 @@
 				:max = 'connect.duel.select.cards.max'
 				:title = 'connect.duel.select.cards.title'
 				:cancelable = 'connect.duel.select.cards.cancelable'
-				@exit = 'connect.duel.select.cards.confirm ?? connect.response'
+				@exit = 'response(connect.duel.select.cards.confirm)'
 				key = '0'
 			/>
 			<Select_Group
@@ -95,7 +95,7 @@
 				:max = 'connect.duel.select.group.max'
 				:title = 'connect.duel.select.group.title'
 				:cancelable = 'connect.duel.select.group.cancelable'
-				@exit = 'connect.duel.select.group.confirm ?? connect.response'
+				@exit = 'response(connect.duel.select.group.confirm)'
 				key = '1'
 			/>
 			<Select_Codes
@@ -105,14 +105,14 @@
 				:max = 'connect.duel.select.code.max'
 				:title = 'connect.duel.select.code.title'
 				:cancelable = 'connect.duel.select.code.cancelable'
-				@exit = 'connect.duel.select.code.confirm ?? connect.response'
+				@exit = 'response(connect.duel.select.code.confirm)'
 				key = '2'
 			/>
 			<Select_Number
 				v-if = 'connect.duel.select.number.show'
 				:number = 'connect.duel.select.number.array'
 				:title = 'connect.duel.select.number.title'
-				@exit = 'connect.duel.select.number.confirm ?? connect.response'
+				@exit = 'response(connect.duel.select.number.confirm)'
 				key = '3'
 			/>
 			<Select_Option
@@ -120,7 +120,7 @@
 				:options = 'connect.duel.select.option.array'
 				:title = 'connect.duel.select.option.title'
 				:cancelable = 'connect.duel.select.option.cancelable'
-				@exit = 'connect.duel.select.option.confirm ?? connect.response'
+				@exit = 'response(connect.duel.select.option.confirm)'
 				key = '4'
 			/>
 		</TransitionGroup>
@@ -130,7 +130,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted,watch } from 'vue';
+	import { onMounted, onUnmounted, watch, computed } from 'vue';
 
 	import Server from './server.vue';
 	import Wait from './wait.vue';
@@ -160,7 +160,15 @@
 	const card_info = {
 		width : 360,
 		height : GLOBAL.HEIGHT * 0.8
-	}
+	};
+
+	const response = computed((i ?: (...args : Array<any>) => Promise<void>) => {
+		return async (...args : Array<any>) => {
+			const func = i || connect?.response || (async () => {});
+			return func(...args);
+		};
+	});
+
 	onMounted(() => {
 
 	});

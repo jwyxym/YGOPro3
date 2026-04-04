@@ -770,7 +770,7 @@ class Client_Card {
 				connect.duel.select.option.array = array;
 				connect.duel.select.option.show = true;
 				connect.duel.select.option.confirm = async (i : number) => {
-					connect.duel.select.clear();
+					connect.duel.select.option.show = false;
 					connect.response?.(array[i], command);
 				}
 			};
@@ -796,7 +796,7 @@ class Client_Card {
 						connect.duel.select.cards.max = 1;
 						connect.duel.select.cards.cards = c;
 						connect.duel.select.cards.confirm = async (i : Client_Card) => {
-							connect.duel.select.clear();
+							connect.duel.select.cards.show = false;
 							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.command)
 								: await connect.response?.(i.get.activate(j.key)[0], j.command);
 						};

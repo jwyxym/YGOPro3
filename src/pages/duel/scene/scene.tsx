@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted } from 'vue';
+import { defineComponent, onMounted, onUnmounted, reactive } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
@@ -309,7 +309,7 @@ class _Duel {
 			pos : number = POS.FACEDOWN_ATTACK,
 			id ?: number
 		) : Client_Card => {
-			const card = new Client_Card();
+			const card = reactive(new Client_Card());
 			card
 				.set.owner(owner)
 				.set.location(location)
@@ -372,26 +372,32 @@ class _Duel {
 				.forEach(i => i.click.img());
 		} else {
 			const card = this.cards.find(i => i.contains(target));
-			if (!card)
-				return connect.card = undefined;
-			if (card.location & LOCATION.HAND) 
-				connect.card = card;
+			if (!card) {
+				connect.card = undefined;
+				this.cards
+					.filter(i => i.clicked)
+					.forEach(i => i.click.img());
+				return;
+			}
+			if (card.location & LOCATION.HAND) {
+				connect.card = connect.card === card ? undefined : card;
 				if (target.classList.contains('duel__card__btn'))
 					card?.click.btn(target);
-			else {
+			} else {
 				const cards = this.cards.filter(i => i.owner === card.owner
 					&& (i.location & card.location)
 					&& i.seq === card.seq
 				)
-				connect.card = lodash.maxBy(cards, i => i.seq);
+				const c = lodash.maxBy(cards, i => i.seq);
+				connect.card = connect.card === c ? undefined : c;
 				if (target.classList.contains('duel__card__btn'))
 					card?.click.btn(target, cards);
 			}
-			
+
 			this.cards
 				.filter(i => i.clicked && i !== connect.card)
 				.forEach(i => i.click.img());
-			card?.click.img();
+			connect.card?.click.img();
 		}
 	};
 

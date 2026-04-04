@@ -102,16 +102,7 @@ class Duel {
 		code : new Selecter.Codes(),
 		plaid : new Selecter.Plaids(),
 		number : new Selecter.Number(),
-		option : new Selecter.Option(),
-		clear : () => {
-			this.select.cards = new Selecter.Cards();
-			this.select.group = new Selecter.Group();
-			this.select.confirm = new Selecter.Confirm();
-			this.select.code = new Selecter.Codes();
-			this.select.plaid = new Selecter.Plaids();
-			this.select.number = new Selecter.Number();
-			this.select.option = new Selecter.Option();
-		}
+		option : new Selecter.Option()
 	};
 	rps = {
 		show : false,
