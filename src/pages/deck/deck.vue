@@ -3,8 +3,7 @@
 		<Card_Box
 			:height = 'page.height'
 			:width = 'page.width[0]'
-			:code = 'page.card'
-			@card = 'page.oncard'
+			v-model = 'page.card'
 		/>
 		<Deck_Box
 			:height = 'page.height'

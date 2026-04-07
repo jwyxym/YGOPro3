@@ -365,39 +365,43 @@ class _Duel {
 	
 	click = (event : Event) : void => {
 		const target = event.target as HTMLElement;
-		if (target.classList.contains('history__card__pic')) {
-			connect.card = mainGame.get.card(target.id);
+		connect.duel.cards.length = 0;
+		if (target.classList.contains('history__card__pic')
+			|| target.classList.contains('list__card__pic')
+			|| target.classList.contains('chain__card__pic')) {
+			connect.duel.card = mainGame.get.card(target.id);
 			this.cards
 				.filter(i => i.clicked)
 				.forEach(i => i.click.img());
 		} else {
 			const card = this.cards.find(i => i.contains(target));
 			if (!card) {
-				connect.card = undefined;
+				connect.duel.card = undefined;
 				this.cards
 					.filter(i => i.clicked)
 					.forEach(i => i.click.img());
 				return;
 			}
 			if (card.location & LOCATION.HAND) {
-				connect.card = connect.card === card ? undefined : card;
+				connect.duel.card = connect.duel.card === card ? undefined : card;
 				if (target.classList.contains('duel__card__btn'))
 					card?.click.btn(target);
 			} else {
 				const cards = this.cards.filter(i => i.owner === card.owner
 					&& (i.location & card.location)
-					&& i.seq === card.seq
+					&& i.seq === card.seq || !(i.location & LOCATION.ONFIELD)
 				)
 				const c = lodash.maxBy(cards, i => i.seq);
-				connect.card = connect.card === c ? undefined : c;
+				connect.duel.card = connect.duel.card === c ? undefined : c;
 				if (target.classList.contains('duel__card__btn'))
 					card?.click.btn(target, cards);
+				connect.duel.cards = cards;
 			}
 
 			this.cards
-				.filter(i => i.clicked && i !== connect.card)
+				.filter(i => i.clicked && i !== connect.duel.card)
 				.forEach(i => i.click.img());
-			connect.card?.click.img();
+			connect.duel.card?.click.img();
 		}
 	};
 

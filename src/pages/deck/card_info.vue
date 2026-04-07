@@ -68,7 +68,7 @@
 	import Button from '@/pages/ui/button.vue';
 	import Client_Card from '@/pages/duel/scene/client_card';
 
-	const emit = defineEmits<{ card : [card : number]; }>();
+	const emit = defineEmits<{ 'update:modelValue' : []; }>();
 	const page = reactive({
 		show : false,
 		card : {
@@ -88,18 +88,18 @@
 			def : ''
 		},
 		clear : () : void => {
-			emit('card', 0);
+			emit('update:modelValue');
 			page.show = false;
 		}
 	})
 
 	const props = defineProps<{
-		code ?: string | number | Card | Client_Card;
+		modelValue ?: string | number | Card | Client_Card;
 		height : number;
 		width : number;
 	}>();
 
-	watch(() => props.code, (n) => {
+	watch(() => props.modelValue, (n) => {
 		page.card = {
 			orgin : '',
 			pic : mainGame.back.pic,

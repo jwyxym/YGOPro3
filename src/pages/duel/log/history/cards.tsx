@@ -17,7 +17,7 @@ const Cards  = defineComponent({
 			'position' : 'relative',
 		}}>
 			{props.cards.map((i, v) => {
-				const width = 100 / 1.45;
+				const width = 50 / 1.45;
 				const gap = props.width / props.cards.length;
 				return <img
 					class = 'history__card__pic'

@@ -65,6 +65,8 @@
 		[LOCATION.GRAVE, I18N_KEYS.DUEL_LOCATION_GRAVE],
 		[LOCATION.REMOVED, I18N_KEYS.DUEL_LOCATION_REMOVED],
 		[LOCATION.OVERLAY, I18N_KEYS.DUEL_LOCATION_OVERLAY],
+		[LOCATION.MZONE, I18N_KEYS.DUEL_LOCATION_MZONE],
+		[LOCATION.SZONE, I18N_KEYS.DUEL_LOCATION_SZONE]
 	]);
 
 	const page = reactive({
@@ -83,7 +85,7 @@
 		},
 		loc : (i : Client_Card) : string => {
 			let str = `[${mainGame.get.text(players[i.owner])}]`;
-			const loc = locs.get(i.location);
+			const loc = locs.get(i.location & LOCATION.OVERLAY ? LOCATION.OVERLAY : i.location);
 			if (loc) {
 				const index = i.location & LOCATION.DECK ? props.cards
 					.filter(c => (c.location & LOCATION.DECK)

@@ -25,7 +25,7 @@
 				key = '2'
 			/>
 			<Card_info
-				:code = 'connect.card'
+				v-model = 'connect.duel.card'
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state === 2'
@@ -84,7 +84,8 @@
 				:max = 'connect.duel.select.cards.max'
 				:title = 'connect.duel.select.cards.title'
 				:cancelable = 'connect.duel.select.cards.cancelable'
-				@exit = 'response(connect.duel.select.cards.confirm)'
+				@exit = '(i ?: Client_Card | Array<Client_Card>) => connect.duel.select.cards.confirm?.(i)
+					?? connect.response?.(i)'
 				key = '0'
 			/>
 			<Select_Group
@@ -95,7 +96,8 @@
 				:max = 'connect.duel.select.group.max'
 				:title = 'connect.duel.select.group.title'
 				:cancelable = 'connect.duel.select.group.cancelable'
-				@exit = 'response(connect.duel.select.group.confirm)'
+				@exit = '(i ?: Client_Card) => connect.duel.select.group.confirm?.(i)
+					?? connect.response?.(i)'
 				key = '1'
 			/>
 			<Select_Codes
@@ -105,14 +107,16 @@
 				:max = 'connect.duel.select.code.max'
 				:title = 'connect.duel.select.code.title'
 				:cancelable = 'connect.duel.select.code.cancelable'
-				@exit = 'response(connect.duel.select.code.confirm)'
+				@exit = '(i ?: number) => connect.duel.select.code.confirm?.(i)
+					?? connect.response?.(i)'
 				key = '2'
 			/>
 			<Select_Number
 				v-if = 'connect.duel.select.number.show'
 				:number = 'connect.duel.select.number.array'
 				:title = 'connect.duel.select.number.title'
-				@exit = 'response(connect.duel.select.number.confirm)'
+				@exit = '(i ?: number) => connect.duel.select.number.confirm?.(i)
+					?? connect.response?.(i)'
 				key = '3'
 			/>
 			<Select_Option
@@ -120,20 +124,33 @@
 				:options = 'connect.duel.select.option.array'
 				:title = 'connect.duel.select.option.title'
 				:cancelable = 'connect.duel.select.option.cancelable'
-				@exit = 'response(connect.duel.select.option.confirm)'
+				@exit = '(i ?: number) => connect.duel.select.option.confirm?.(i)
+					?? connect.response?.(i)'
 				key = '4'
 			/>
 		</TransitionGroup>
-		<transition name = 'right_in'>
-			<Log v-if = 'connect.chat.show' @exit = 'connect.chat.off'/>
-		</transition>
+		<TransitionGroup tag = 'div' name = 'right_in'>
+			<Chain
+				v-if = 'connect.duel.chain.length && !connect.duel.cards.length'
+				:cards = 'connect.duel.chain'
+				key = '0'
+			/>
+			<Cards
+				v-if = 'connect.duel.cards.length'
+				:cards = 'connect.duel.cards'
+				key = '1'
+			/>
+			<Log
+				v-if = 'connect.chat.show'
+				@exit = 'connect.chat.off'
+				key = '2'
+			/>
+		</TransitionGroup>
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted, watch, computed } from 'vue';
+	import { onUnmounted, watch } from 'vue';
 
-	import Server from './server.vue';
-	import Wait from './wait.vue';
 	import Button from '@/pages/ui/button.vue';
 	import Dialog, { close } from '@/pages/ui/dialog';
 	import Card_info from '@/pages/deck/card_info.vue';
@@ -143,35 +160,28 @@
 	import GLOBAL from '@/script/scale';
 	import { KEYS } from '@/script/constant';
 
+	import Server from './server.vue';
+	import Wait from './wait.vue';
 	import connect from './connect';
 	import RPS from './rps.vue';
 	import Log from './log/log.vue';
 	import Scene from './scene/scene';
 	import Phase from './scene/phase';
+	import Chain from './scene/chain.vue';
+	import Cards from './scene/cards.vue';
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
 	import Select_Number from './selecter/number.vue';
 	import Select_Option from './selecter/option.vue';
-
-	import Msg from './ygo-protocol/msg';
 	import { CTOS } from './ygo-protocol/network';
+	import Msg from './ygo-protocol/msg';
+import Client_Card from './scene/client_card';
 
 	const card_info = {
 		width : 360,
 		height : GLOBAL.HEIGHT * 0.8
 	};
-
-	const response = computed((i ?: (...args : Array<any>) => Promise<void>) => {
-		return async (...args : Array<any>) => {
-			const func = i || connect?.response || (async () => {});
-			return func(...args);
-		};
-	});
-
-	onMounted(() => {
-
-	});
 
 	onUnmounted(connect.clear);
 
@@ -188,7 +198,10 @@
 				message : connect.duel.select.confirm.message,
 				closeOnClickOverlay : false
 			}, connect.duel.select.confirm.chk)
-				.then(async i => await connect.response?.(i))
+				.then(async (i : boolean) => await (
+					connect.duel.select.confirm.confirm?.(i)
+						?? connect.response?.(i)
+				))
 		else close();
 	});
 </script>

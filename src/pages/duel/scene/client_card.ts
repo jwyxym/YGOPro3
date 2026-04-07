@@ -771,7 +771,7 @@ class Client_Card {
 				connect.duel.select.option.show = true;
 				connect.duel.select.option.confirm = async (i : number) => {
 					connect.duel.select.option.show = false;
-					connect.response?.(array[i], command);
+					connect.response?.(effect[i].index, command);
 				}
 			};
 			for (const j of [
@@ -798,7 +798,7 @@ class Client_Card {
 						connect.duel.select.cards.confirm = async (i : Client_Card) => {
 							connect.duel.select.cards.show = false;
 							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.command)
-								: await connect.response?.(i.get.activate(j.key)[0], j.command);
+								: await connect.response?.(i.get.activate(j.key)[0].index, j.command);
 						};
 						connect.duel.select.cards.show = true;
 					} else if (this.get.activate(j.key).length > 0)

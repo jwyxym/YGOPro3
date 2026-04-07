@@ -8,6 +8,7 @@ import * as SIZE from './scene-size';
 class Btn {
 	three : CSS.CSS3DObject;
 	span : HTMLSpanElement;
+	enable : Array<number> = [];
 
 	constructor () {
 		const dom = document.createElement('div');
@@ -15,13 +16,13 @@ class Btn {
 		Object.assign(child.style, {
 			width : `${SIZE.HEIGHT}px`,
 			height : `${SIZE.HEIGHT / 3}px`,
-            color : '#9ed3ff',
-            textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-            fontSize : '17px',
-            fontFamily : 'AtkDef',
-            display : 'flex',
-            alignItems : 'center',
-            justifyContent : 'center',
+			color : '#9ed3ff',
+			textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
+			fontSize : '17px',
+			fontFamily : 'AtkDef',
+			display : 'flex',
+			alignItems : 'center',
+			justifyContent : 'center',
 			border : '2px solid #9ed3ff'
 		});
 		const span = document.createElement('span');

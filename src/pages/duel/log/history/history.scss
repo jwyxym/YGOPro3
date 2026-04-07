@@ -1,9 +1,13 @@
 .history {
 	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
 	> * {
 		display: flex;
-		height: 130px;
+		height: 80px;
 		width: 100%;
+		border-bottom: 1px solid white;
 		> div {
 			height: 100%;
 		}
@@ -51,9 +55,9 @@
 		}
 	}
 	:deep(.history__oppo) {
-		background: linear-gradient(to right, red, transparent);
+		background: linear-gradient(to right, red 0%, rgba($color: red, $alpha: 0) 40%);
 	}
 	:deep(.history__self) {
-		background: linear-gradient(to right, blue, transparent);
+		background: linear-gradient(to right, blue 0%, rgba($color: blue, $alpha: 0) 40%);
 	}
 }

@@ -58,7 +58,7 @@ class _History {
 			this.msg.push(msg);
 			if (!this.element) return;
 			const { scrollTop, scrollHeight, clientHeight } = this.element;
-			if (scrollTop + clientHeight > scrollHeight - 10) {
+			if (scrollTop + clientHeight > scrollHeight - 80) {
 				await mainGame.sleep(100);
 				this.element.scrollTop = scrollHeight;
 			}
@@ -91,7 +91,7 @@ const History  = defineComponent({
 							/>
 							<Desc
 								position = {true}
-								desc = {i.content.from! + ' → ' + i.content.to}
+								desc = {i.content.from + ' → ' + i.content.to}
 							/>
 						</div>
 					case HISTORY.BATTEL:
