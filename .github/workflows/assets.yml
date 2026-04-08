@@ -18,6 +18,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y wget unzip p7zip-full p7zip-rar
 
+    - name: Install Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
     - name: Download Assets
       run: |
         cd .ci
@@ -37,7 +42,11 @@ jobs:
         cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
-        wget --no-check-certificate ${{ secrets.PICS_URL }} -O pics.zip
+        wget https://github.com/ifvlaboratory/ygom-site/raw/refs/heads/main/site/index.html
+        pip install BeautifulSoup4
+        python pics.py
+        7z x YGOMobile.apk -ir!assets/data/pics.zip
+        copy assets\data\pics.zip pics.zip
         unzip pics.zip
 
         date > version
