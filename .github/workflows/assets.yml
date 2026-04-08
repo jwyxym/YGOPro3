@@ -46,7 +46,7 @@ jobs:
         pip install BeautifulSoup4
         python pics.py
         7z x YGOMobile.apk -ir!assets/data/pics.zip
-        copy assets\data\pics.zip pics.zip
+        cp assets/data/pics.zip pics.zip
         unzip pics.zip
 
         date > version
