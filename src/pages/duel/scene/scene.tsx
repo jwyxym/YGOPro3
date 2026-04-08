@@ -28,7 +28,8 @@ class _Duel {
 	camera : THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
 	plaids : Array<Plaid> = [];
 	cards : Array<Client_Card> = [];
-	btn : Btn | null = null;
+	back ?: CSS.CSS3DObject;
+	btn ?: Btn;
 	animation_id : number = 0;
 
 	animate = () => {
@@ -278,7 +279,7 @@ class _Duel {
 					child.onerror = () => child.style.opacity = '0';
 					Object.assign(child.style, {
 						display : 'block',
-						width : `${SIZE.WIDTH * 12}px`,
+						width : '100%',
 						height : `${SIZE.HEIGHT * 4}px`,
 						transform : !!v ? 'initial' : 'scaleY(-1)'
 					});
@@ -289,6 +290,7 @@ class _Duel {
 			const pic : Array<string> = [mainGame.get.textures(KEYS.OTHER, KEYS.BACKI), mainGame.get.textures(KEYS.OTHER, KEYS.BACKII)] as [string, string];
 			const back = create_back(pic);
 			back.position.set(...Axis.computed.back(new Axis(0, 0, 0)).get.xyz());
+			this.back = back;
 			this.scene.add(back);
 		},
 		plaid : (x : number, y : number) : void => {
@@ -337,8 +339,9 @@ class _Duel {
 			this.camera = new THREE.PerspectiveCamera();
 			this.cards.length = 0;
 			this.plaids.length = 0;
-			this.btn = null;
 			this.animation_id = 0;
+			this.back = undefined;
+			this.btn = undefined;
 			window.removeEventListener('click', duel.click);
 		},
 		activate : () : Array<Client_Card> => {

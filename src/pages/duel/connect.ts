@@ -92,12 +92,30 @@ class Wait {
 	);
 };
 
+class Player {
+	index : - 1 | 0 | 1;
+	name : string;
+	time : number;
+	lp : number;
+	constructor () {
+		this.index = - 1;
+		this.name = '';
+		this.time = 0;
+		this.lp = 0;
+	};
+	change_lp = async (lp : number) : Promise<void> => {
+		this.lp = lp;
+		await mainGame.sleep(600);
+	};
+};
+
 class Duel {
 	is_first = false;
 	card : undefined | Client_Card | Card = undefined;
 	cards : Array<Client_Card> = [];
-	lp : [number, number] = [0, 0];
+	player : [Player, Player] = [reactive(new Player()), reactive(new Player())];
 	chain : Array<Client_Card> = [];
+	turn : 0 | 1 = 0;
 	shuffle = false;
 	select = {
 		cards : new Selecter.Cards(),
@@ -132,6 +150,7 @@ const connect = reactive({
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
+		return connect.state = 2;
 		switch (connect.state) {
 			case 0:
 				if (!para?.name || !para?.address) return;
@@ -221,3 +240,4 @@ const connect = reactive({
 
 
 export default connect;
+export { Player };

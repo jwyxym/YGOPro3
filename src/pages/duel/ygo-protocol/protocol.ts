@@ -169,15 +169,21 @@ class Protocol {
 				if (tp === undefined) return;
 				card.set.owner(tp);
 			}
-			if (flag & QUERY.STATUS)
-				msg.index += 4;
+			if (flag & QUERY.STATUS) {
+				const status = msg.read.uint32();
+				if (status === undefined) return;
+				card.set.status(status);
+			}
 			if (flag & QUERY.LSCALE) {
 				const scale = msg.read.uint32();
-				if (scale === undefined) return;
+				if (scale === undefined || !(card.location & LOCATION.SZONE) || card.seq) return;
 				card.set.scale(scale);
 			}
-			if (flag & QUERY.RSCALE)
-				msg.index += 4;
+			if (flag & QUERY.RSCALE) {
+				const scale = msg.read.uint32();
+				if (scale === undefined || !(card.location & LOCATION.SZONE) || card.seq !== 4) return;
+				card.set.scale(scale);
+			}
 			if (flag & QUERY.LINK) {
 				const link = msg.read.uint32();
 				if (link === undefined) return;
@@ -343,7 +349,8 @@ class Protocol {
 			const time = msg.read.uint16();
 			if (player === undefined || time === undefined)
 				return;
-			// connect.time.to(player, time);
+			if (connect.duel.player[player])
+				connect.duel.player[player]!.time = time;
 			if(this.to.player(player) === 0)
 				await send(new Msg()
 					.write.uint8(CTOS.TIME_CONFIRM));
@@ -474,8 +481,19 @@ class Protocol {
 				return;
 			msg.index += 1;
 			connect.duel.is_first =  (playertype & 0xf) === 0;
-			connect.duel.lp[0] = msg.read.uint32() ?? 0;
-			connect.duel.lp[1] = msg.read.uint32() ?? 0;
+			const players = connect.duel.is_first ? connect.wait.players
+				: connect.wait.info.mode & 2 ? [
+					connect.wait.players[2],
+					connect.wait.players[3],
+					connect.wait.players[0],
+					connect.wait.players[1]
+				] : [connect.wait.players[1], connect.wait.players[0]];
+			connect.duel.player[0].lp = msg.read.uint32() ?? 0;
+			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
+			connect.duel.player[0].name = players[0].name;
+			connect.duel.player[1].name = players[players.length - 1].name;
+			connect.duel.player[0].index = 0;
+			connect.duel.player[1].index = 1;
 			const decks = [[msg.read.uint16() ?? 0, msg.read.uint16() ?? 0], [msg.read.uint16() ?? 0, msg.read.uint16() ?? 0]];
 			this.select_hint = 0;
 			this.last_select_hint = 0;

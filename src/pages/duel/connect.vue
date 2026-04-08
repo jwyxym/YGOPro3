@@ -43,6 +43,21 @@
 				v-if = 'connect.state === 2'
 				key = '5'
 			/>
+			<Avatar
+				class = 'avatar__first'
+				v-if = 'connect.duel.player[0].index > - 1'
+				:player = 'connect.duel.player[0]'
+				:turn = 'connect.duel.turn'
+				:style = "{ '--top' : `${card_info.height}px` }"
+				key = '6'
+			/>
+			<Avatar
+				class = 'avatar__last'
+				v-if = 'connect.duel.player[1].index > - 1'
+				:player = 'connect.duel.player[1]'
+				:turn = 'connect.duel.turn'
+				key = '7'
+			/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -176,7 +191,8 @@
 	import Select_Option from './selecter/option.vue';
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
-import Client_Card from './scene/client_card';
+	import Client_Card from './scene/client_card';
+	import Avatar from './avatar.vue';
 
 	const card_info = {
 		width : 360,
@@ -235,6 +251,18 @@ import Client_Card from './scene/client_card';
 				position: fixed;
 				top: 100%;
 				transform: translate(-50%, calc(var(--top) / var(--scale) - 100px));
+			}
+			.avatar {
+				position: fixed;
+				top: 0;
+			}
+			.avatar__first {
+				left: 0;
+				transform: translate(calc(-50px - var(--left) / var(--scale)), calc(var(--top) + 20px));
+			}
+			.avatar__last {
+				right: 0;
+				transform: translate(calc(var(--left) / var(--scale) + 500px), 0);
 			}
 		}
 		> div:nth-child(2) {

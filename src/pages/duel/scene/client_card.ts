@@ -5,13 +5,13 @@ import lodash from 'lodash';
 import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
-import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import { duel } from './scene';
 
 import connect from '../connect';
+import { COMMAND, LOCATION, POS, STATUS } from '../ygo-protocol/network';
 
 class Client_Card {
 	three : CSS.CSS3DObject;
@@ -33,11 +33,13 @@ class Client_Card {
 	def : number;
 	scale : number;
 	overlay : number;
+	status : number;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
 	need_change = {
 		type : false,
 		activate : false,
-		counter : false
+		counter : false,
+		status : false,
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
@@ -60,6 +62,7 @@ class Client_Card {
 		this.def = 0;
 		this.scale = 0;
 		this.overlay = 0;
+		this.status = 0;
 		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
 		this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
@@ -371,21 +374,38 @@ class Client_Card {
 			this.race = race;
 			return this;
 		},
-		counter : async (ctype : number, ccount : number, add : boolean = true) : Promise<Client_Card> => {
+		counter : (ctype : number, ccount : number, add : boolean = true) : Client_Card => {
 			this.need_change.counter = true;
 			const ct = this.counter.get(ctype);
 			ct ? this.counter.set(ctype, add ? ct + ccount : ct)
 				: this.counter.set(ctype, Math.max(0, ccount));
 			return this;
 		},
-		activate : async (flag : number, index : number, desc ?: number) => {
+		activate : (flag : number, index : number, desc ?: number) => {
 			this.need_change.activate = true;
 			this.activatable
 				.get(flag)?.push({ index : index, desc : desc});
 		},
+		status : (status : number) : Client_Card => {
+			if (!this.need_change.status)
+				this.need_change.status = this.status !== status;
+			this.status = status;
+			return this;
+		}
 	};
 
 	update = async () : Promise<void> => {
+		const status = async () : Promise<void> => {
+			if (!this.need_change.status)
+				return;
+			this.need_change.status = false;
+			const style = this.get.el.img().style;
+			if (!this.status)
+				style.filter = 'initial';
+			else if (this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
+				style.filter = 'grayscale(100%)';
+			await mainGame.sleep(200);
+		}
 		const activate = async () : Promise<void> => {
 			if (!this.need_change.activate)
 				return;
@@ -692,7 +712,8 @@ class Client_Card {
 		await Promise.all([
 			run(),
 			activate_btn(),
-			activate()
+			activate(),
+			status()
 		]);
 	};
 
@@ -710,6 +731,7 @@ class Client_Card {
 			this.atk = 0;
 			this.def = 0;
 			this.scale = 0;
+			this.status = 0;
 			this.need_change.type = true;
 			this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
 				: mainGame.unknown.pic;
@@ -736,11 +758,23 @@ class Client_Card {
 		}
 	}
 
-	activate = async () : Promise<void> => {
-		const style = this.get.el.img().style;
-		style.filter = 'brightness(1.5)';
-		await mainGame.sleep(600);
-		style.filter = 'initial';
+	hint = {
+		activate : async () : Promise<void> => {
+			const style = this.get.el.img().style;
+			if (style.filter === 'brightness(1.5)')
+				return;
+			style.filter = 'brightness(1.5)';
+			await mainGame.sleep(600);
+			style.filter = 'initial';
+		},
+		negative : async () : Promise<void> => {
+			const style = this.get.el.img().style;
+			if (style.filter === 'grayscale(100%)')
+				return;
+			style.filter = 'grayscale(100%)';
+			await mainGame.sleep(600);
+			style.filter = 'initial';
+		}
 	};
 
 	click = {

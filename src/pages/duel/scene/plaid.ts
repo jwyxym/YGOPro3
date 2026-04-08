@@ -10,7 +10,10 @@ class Plaid {
 	name : string;
 	location : number;
 	seq : [number, number];
+	child : HTMLDivElement;
+	disable : boolean;
 	owner : number;
+
 
 	constructor (x : number, y : number) {
 		const dom = document.createElement('div');
@@ -22,6 +25,8 @@ class Plaid {
 			transition : 'all 0.2s ease'
 		});
 		dom.appendChild(child);
+		this.child = child;
+		this.disable = false;
 		this.three = new CSS.CSS3DObject(dom);
 		this.location = Math.abs(x) === 3 ?
 			(() : number  => {
@@ -91,14 +96,14 @@ class Plaid {
 		})()}`;
 	};
 
-	select = {
-		on : () : void => {
-			this.three.element.style.border = '2px solid yellow';
-		},
-		off : () : void => {
-			this.three.element.style.border = 'initial';
+	set = {
+		disable : async () : Promise<void> => {
+			this.disable = !this.disable;
+			this.child.style.boxShadow = this.disable ? 'inset 0 0 20px rgba(0, 255, 255, 0.6)'
+				: 'initial';
+			await mainGame.sleep(200);
 		}
-	}
+	};
 }
 
 export default Plaid;

@@ -14,7 +14,7 @@
 				class = 'group'
 			>
 				<div v-for = '(i, v) in plaids'>
-					<div @click = 'page.select(i)'>
+					<div @click = 'page.select(i)' :class = "{ 'disable' : i.disable }">
 						<div>
 							<img
 								v-if = 'cards[v]'
@@ -53,7 +53,7 @@
 	});
 
 	const emit = defineEmits<{
-		exit : [card ?: Plaid];
+		exit : [plaid ?: Plaid];
 	}>();
 
 </script>
@@ -94,6 +94,9 @@
 							transform-origin: center center;
 							transform: rotateZ(-90deg);
 						}
+					}
+					> .disable {
+						box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.6)
 					}
 				}
 				.var-radio {
