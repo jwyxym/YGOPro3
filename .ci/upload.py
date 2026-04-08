@@ -13,13 +13,6 @@ headers = {
 }
 response = requests.request("GET", url, headers=headers, data=payload)
 data = json.loads(response.text)
-response = None
-while True:
-	files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
-	try:
-		response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files, timeout=(3600, 600))
-	except:
-		pass
-	if response is not None and str(response.status_code).startswith('2'):
-		break
-	print(response.status_code)
+files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
+response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files)
+print(response.status_code)

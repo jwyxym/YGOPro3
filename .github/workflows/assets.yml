@@ -102,6 +102,11 @@ jobs:
       with:
         python-version: '3.13'
 
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.18.0'
+
     - name: PrePare
       run: |
         cp .ci/upload.py build/upload.py
@@ -121,10 +126,32 @@ jobs:
           cd assets
           mv assets.zip ../assets.zip
 
+    - name: Install wget and unzip
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget
+
+    - name: Install privoxy
+      run: |
+        npm i -g pm2
+        mkdir ss
+        cd ss
+        wget https://github.com/shadowsocks/shadowsocks-rust/releases/download/v1.24.0/shadowsocks-v1.24.0.x86_64-unknown-linux-gnu.tar.xz
+        tar -xvf shadowsocks-v1.24.0.x86_64-unknown-linux-gnu.tar.xz
+        chmod +777 sslocal
+        pm2 start sslocal --name ss -- -b "127.0.0.1:1080" ${{ secrets.PROXY }}
+
     - name: Upload
+      env:
+        http_proxy: http://127.0.0.1:1080
+        https_proxy: http://127.0.0.1:1080
       run: |
         cd build
         python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} ${{ matrix.target }}
+
+    - name: Stop Proxy
+      if: always()
+      run: pm2 stop all
 
   create-release:
     needs: [make-assets]
