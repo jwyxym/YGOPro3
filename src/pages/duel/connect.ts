@@ -150,7 +150,6 @@ const connect = reactive({
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
-		return connect.state = 2;
 		switch (connect.state) {
 			case 0:
 				if (!para?.name || !para?.address) return;

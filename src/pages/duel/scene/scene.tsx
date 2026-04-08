@@ -328,7 +328,8 @@ class _Duel {
 	};
 
 	get = {
-		cards : () => this.cards
+		cards : () => this.cards,
+		plaids : () => this.plaids
 	};
 
 	clear = {

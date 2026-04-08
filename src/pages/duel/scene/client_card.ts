@@ -43,6 +43,7 @@ class Client_Card {
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
+	btnable : boolean;
 
 	constructor () {
 		this.owner = 0;
@@ -78,6 +79,7 @@ class Client_Card {
 		]);
 		this.counter = new Map();
 		this.clicked = false;
+		this.btnable = false;
 	};
 
 	init = {
@@ -309,8 +311,7 @@ class Client_Card {
 				this.clear.self();
 			const card = mainGame.get.card(id);
 			this.id = id;
-			this.set.pic(card.pic);
-			return this;
+			return this.set.pic(card.pic);
 		},
 		alias : (alias : number) : Client_Card => {
 			this.alias = alias;
@@ -455,7 +456,7 @@ class Client_Card {
 			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
 			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
 			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
-			elements.forEach(i => i[0].style.opacity = '0');
+			elements.forEach(i => i[0].style.opacity = this.btnable && i[1] ? '1' : '0');
 			await mainGame.sleep(100);
 		};
 		const counter = () : gsap.core.Timeline | void => {
@@ -746,6 +747,7 @@ class Client_Card {
 			]);
 		},
 		activate : () : Client_Card => {
+			this.btnable = false;
 			this.need_change.activate = true;
 			this.activatable.get(COMMAND.ACTIVATE)!.length = 0;
 			this.activatable.get(COMMAND.SUMMON)!.length = 0;
@@ -784,7 +786,7 @@ class Client_Card {
 				const img = this.get.el.img();
 				
 				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
-				Object.assign(btn.style, this.clicked ? {
+				Object.assign(btn.style, this.clicked || !this.btnable ? {
 					opacity : '0',
 					transform : 'translate(-50%, 0)'
 				} : {
@@ -796,16 +798,19 @@ class Client_Card {
 		},
 		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {
 			if (!this.clicked) return;
-			const option = (effect : Array<{ desc ?: number; index : number; }>, command : number) => {
+			const option = (effect : Array<{ desc ?: number; index : number; }>, key : string, command : number) => {
 				const array = effect
 					.map(i => mainGame.get.desc(i.desc ?? - 1));
 				connect.duel.select.option.cancelable = true;
 				connect.duel.select.option.title = mainGame.get.strings.system(555);
 				connect.duel.select.option.array = array;
 				connect.duel.select.option.show = true;
-				connect.duel.select.option.confirm = async (i : number) => {
+				connect.duel.select.option.confirm = async (i ?: number) => {
 					connect.duel.select.option.show = false;
-					connect.response?.(effect[i].index, command);
+					i ? connect.response?.(effect[i].index, command)
+						: connect.duel.select.cards.show = !!cards
+							.filter(i => i.get.activate(key).length > 0)
+							.length;
 				}
 			};
 			for (const j of [
@@ -831,12 +836,12 @@ class Client_Card {
 						connect.duel.select.cards.cards = c;
 						connect.duel.select.cards.confirm = async (i : Client_Card) => {
 							connect.duel.select.cards.show = false;
-							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.command)
+							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.key, j.command)
 								: await connect.response?.(i.get.activate(j.key)[0].index, j.command);
 						};
 						connect.duel.select.cards.show = true;
 					} else if (this.get.activate(j.key).length > 0)
-						option(this.get.activate(j.key), j.command);
+						option(this.get.activate(j.key), j.key, j.command);
 					else
 						connect.response?.(this.get.activate(j.key)[0], j.command);
 				}

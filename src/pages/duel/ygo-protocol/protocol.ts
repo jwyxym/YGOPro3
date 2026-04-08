@@ -13,6 +13,7 @@ import { duel } from '../scene/scene';
 import { chat, ChatMsg } from '../log/chat';
 import { HISTORY, history } from '../log/history/history';
 import Client_Card from '../scene/client_card';
+import Plaid from '../scene/plaid';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
@@ -32,6 +33,8 @@ class Protocol {
 		this.last_select_hint = 0;
 		this.turn_player = 0;
 		this.need_update = false;
+
+		this.msg.set(MSG.SELECT_DISFIELD, this.msg.get(MSG.SELECT_PLACE)!);
 	};
 	server_msg = (str : string) => new ChatMsg(SERVER, str, '');
 	hint = (msg : ChatMsg | string, player ?: number, players : Array<{
@@ -59,8 +62,24 @@ class Protocol {
 	get = {
 		card : (tp : number, loc : number, seq : number) : Client_Card | undefined => {
 			const cards = duel.get.cards()
-				.filter(i => i.owner === tp && (i.location & loc) && i.seq === seq);
+				.filter(i =>
+					(i.owner === tp || tp === 2)
+					&& (i.location & loc)
+					&& i.seq === seq
+				);
 			return cards.length > 1 ? lodash.maxBy(cards, i => i.overlay) : cards[0];
+		},
+		overlay : (tp : number, loc : number, seq : number, ct : number) : Client_Card | undefined => {
+			if (!(loc & LOCATION.OVERLAY))
+				return;
+			const cards = duel.get.cards()
+				.filter(i =>
+					(i.owner === tp || tp === 2)
+					&& (i.location & loc)
+					&& i.seq === seq
+					&& !i.overlay
+				);
+			return cards.length > ct ? cards[ct] : cards[0];
 		},
 		response : (i : number, command : number) : number => {
 			switch (command) {
@@ -601,11 +620,16 @@ class Protocol {
 				duel.btn?.enable.push(PHASE.MAIN2);
 			if (msg.read.uint8())
 				duel.btn?.enable.push(PHASE.END);
+			duel.get.cards().forEach(i => i.btnable = true);
 			await duel.update();
-			connect.response = async (i : number, command : number) => await send(
-				new Msg(CTOS.RESPONSE)
-					.write.uint32(this.get.response(i, command))
-			);
+			connect.response = async (i : number, command : number)=> {
+				await send(
+					new Msg()
+						.write.uint32(CTOS.RESPONSE)
+						.write.uint32(this.get.response(i, command))
+				);
+				duel.clear.activate();
+			};
 		}],
 		[MSG.SELECT_IDLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
@@ -646,11 +670,16 @@ class Protocol {
 			if (msg.read.uint8())
 				duel.btn?.enable.push(PHASE.END);
 			connect.duel.shuffle = !!msg.read.uint8();
+			duel.get.cards().forEach(i => i.btnable = true);
 			await duel.update();
-			connect.response = async (i : number, command : number) => await send(
-				new Msg(CTOS.RESPONSE)
-					.write.uint32(this.get.response(i, command))
-			);
+			connect.response = async (i : number, command : number) => {
+				await send(
+					new Msg()
+						.write.uint32(CTOS.RESPONSE)
+						.write.uint32(this.get.response(i, command))
+				);
+				duel.clear.activate();
+			};
 		}],
 		[MSG.SELECT_EFFECTYN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
@@ -672,7 +701,8 @@ class Protocol {
 				card.set.id(code);
 			connect.response = async (i : boolean) => {
 				connect.duel.select.confirm.show = false;
-				await send(new Msg(CTOS.RESPONSE)
+				await send(new Msg()
+						.write.uint32(CTOS.RESPONSE)
 					.write.uint32(Number(i))
 				);
 			};
@@ -689,7 +719,8 @@ class Protocol {
 			if (desc === undefined) return;
 			connect.response = async (i : boolean) => {
 				connect.duel.select.confirm.show = false;
-				await send(new Msg(CTOS.RESPONSE)
+				await send(new Msg()
+						.write.uint32(CTOS.RESPONSE)
 					.write.uint32(Number(i))
 				);
 			};
@@ -702,7 +733,8 @@ class Protocol {
 			if (ct === undefined) return;
 			connect.response = async (i : number) => {
 				connect.duel.select.option.show = false;
-				await send(new Msg(CTOS.RESPONSE)
+				await send(new Msg()
+					.write.uint32(CTOS.RESPONSE)
 					.write.uint32(i)
 				);
 			};
@@ -712,6 +744,260 @@ class Protocol {
 			connect.duel.select.option.title = mainGame.get.strings.system(this.select_hint ?? 555);
 			connect.duel.select.option.show = true;
 			this.select_hint = 0;
+		}],
+		[MSG.SELECT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const cancelable = msg.read.uint8();
+			const min = msg.read.uint8();
+			const max = msg.read.uint8();
+			if (cancelable === undefined || min === undefined || max === undefined)
+				return;
+			const codes : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
+					return;
+				const card = loc
+					? this.get.overlay(tp, loc, seq, ct)
+						?? this.get.card(tp, loc, seq)
+					: new Client_Card()
+						.set.pos(POS.FACEUP_ATTACK);
+				if (card)
+					codes.push([card, code]);
+			}
+			await mainGame.load.pic(codes.map(i => i[1]));
+			codes.forEach(i => i[0].set.id(i[1]));
+			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(560);
+			connect.duel.select.cards.cancelable = !!cancelable;
+			connect.duel.select.cards.cards = codes.map(i => i[0]);
+			connect.duel.select.cards.min = min;
+			connect.duel.select.cards.max = max;
+			connect.duel.select.cards.title = title;
+			this.select_hint = 0;
+			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
+				connect.duel.select.cards.show = false;
+				const msg = new Msg()
+						.write.uint32(CTOS.RESPONSE)
+				if (i) {
+					msg.write.uint32(codes.length);
+					Array.isArray(i)
+						? i.forEach(i => msg.write.uint32(
+							connect.duel.select.cards.cards
+								.indexOf(i)
+						))
+						: msg.write.uint32(connect.duel.select.cards.cards.indexOf(i));
+				} else msg.write.uint32(- 1);
+				await send(msg);
+			};
+			connect.duel.select.cards.show = true;
+		}],
+		[MSG.SELECT_UNSELECT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const cancelable = !!msg.read.uint8() || !!msg.read.uint8();
+			const min = msg.read.uint8();
+			const max = msg.read.uint8();
+			if (min === undefined || max === undefined)
+				return;
+			const codesI : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
+					return;
+				const card = loc
+					? this.get.overlay(tp, loc, seq, ct)
+						?? this.get.card(tp, loc, seq)
+					: new Client_Card()
+						.set.pos(POS.FACEUP_ATTACK);
+				if (card)
+					codesI.push([card, code]);
+			}
+			const codesII : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
+					return;
+				const card = loc
+					? this.get.overlay(tp, loc, seq, ct)
+						?? this.get.card(tp, loc, seq)
+					: new Client_Card()
+						.set.pos(POS.FACEUP_ATTACK);
+				if (card)
+					codesII.push([card, code]);
+			}
+			await mainGame.load.pic(codesI.map(i => i[1]).concat(codesII.map(i => i[1])));
+			codesI.forEach(i => i[0].set.id(i[1]));
+			codesII.forEach(i => i[0].set.id(i[1]));
+			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(560);
+			connect.duel.select.group.cancelable = cancelable;
+			connect.duel.select.group.unselect = codesI.map(i => i[0]);
+			connect.duel.select.group.select = codesII.map(i => i[0]);
+			connect.duel.select.group.min = min;
+			connect.duel.select.group.max = max;
+			connect.duel.select.group.title = title;
+			this.select_hint = 0;
+			connect.response = async (i ?: Client_Card) => {
+				connect.duel.select.group.show = false;
+				const msg = new Msg()
+					.write.uint32(CTOS.RESPONSE)
+				if (i) {
+					const ct = connect.duel.select.group.unselect.indexOf(i);
+					msg.write.uint32(ct > - 1
+						? ct
+						: connect.duel.select.group.unselect.length
+							+ connect.duel.select.group.select.indexOf(i)
+					);
+				} else msg.write.uint32(- 1);
+				await send(msg);
+			};
+			connect.duel.select.group.show = true;
+		}],
+		[MSG.SELECT_CHAIN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const ct = msg.read.uint8() ?? 0;
+			msg.index ++;
+			const codes : Array<[Client_Card, number]> = [];
+			let cancelable = true;
+			for (let i = 0; i < ct; i ++) {
+				let flag = msg.read.uint8();
+				const forced = msg.read.uint8();
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				const desc = msg.read.uint32();
+				if (flag === undefined
+					|| forced === undefined
+					|| code === undefined
+					|| loc === undefined
+					|| seq === undefined
+					|| ct === undefined
+					|| desc === undefined)
+					return;
+				flag |= forced << 8;
+				const card = loc
+					? this.get.overlay(tp, loc, seq, ct)
+						?? this.get.card(tp, loc, seq)
+					: new Client_Card()
+						.set.pos(POS.FACEUP_ATTACK);
+				if (card) {
+					codes.push([card, code]);
+					card.set.activate(COMMAND.ACTIVATE, i, desc);
+					if (cancelable)
+						cancelable = !forced;
+				}
+			}
+			if (codes.length) {
+				await mainGame.load.pic(codes.map(i => i[1]));
+				codes.forEach(i => i[0].set.id(i[1]));
+				await duel.update();
+				connect.duel.select.cards.cancelable = cancelable;
+				connect.duel.select.cards.cards = codes.map(i => i[0]);
+				connect.duel.select.cards.min = 1;
+				connect.duel.select.cards.max = 1;
+				connect.duel.select.cards.title = this.event + mainGame.get.strings.system(203);
+				this.select_hint = 0;
+				const option = (effect : Array<{ desc ?: number; index : number; }>) => {
+					const array = effect
+						.map(i => mainGame.get.desc(i.desc ?? - 1));
+					connect.duel.select.option.cancelable = true;
+					connect.duel.select.option.title = this.event + mainGame.get.strings.system(203);
+					connect.duel.select.option.array = array;
+					connect.duel.select.option.show = true;
+					connect.duel.select.option.confirm = async (i ?: number) => {
+						connect.duel.select.option.show = false;
+						i ? connect.response?.(effect[i].index)
+							: connect.duel.select.cards.show = true;
+					}
+				};
+				connect.response = async (i : number) => await send(
+					new Msg()
+						.write.uint32(CTOS.RESPONSE)
+						.write.uint32(i)
+				);
+				connect.duel.select.cards.confirm = async (i ?: Client_Card) => {
+					connect.duel.select.cards.show = false;
+					if (i)
+						i.get.activate(KEYS.ACTIVATE).length
+							? option(i.get.activate(KEYS.ACTIVATE))
+							: await connect.response?.(i.get.activate(KEYS.ACTIVATE)[0].index);
+					else
+						await connect.response?.(- 1);
+				};
+				connect.duel.select.cards.show = true;
+			} else
+				await send(new Msg()
+					.write.uint32(CTOS.RESPONSE)
+					.write.uint32(- 1)
+				);
+		}],
+		[MSG.SELECT_PLACE, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const ct = Math.max(msg.read.uint8() ?? 1, 1);
+			const data = msg.read.uint32();
+			if (data === undefined)
+				return;
+			const place = tp === this.to.player(0) ? ~data : ((~data >> 16) | (~data << 16));
+			const plaids = duel.get.plaids().filter(i => i.location & place);
+			const title = !!this.select_hint ? mainGame.get.strings.system(569, mainGame.get.name(this.select_hint))
+				: mainGame.get.strings.system(560);
+			this.select_hint = 0;
+			connect.duel.select.plaid.title = title;
+			connect.duel.select.plaid.plaids = plaids
+			connect.duel.select.plaid.cards = plaids.map(i => this.get.card(i.seq[1], i.seq[0] & 0xff, (i.seq[0] >> 16) & 0xff));
+			connect.duel.select.plaid.min = ct;
+			connect.duel.select.plaid.cancelable = false;
+			connect.response = async (i ?: Plaid) => {
+				connect.duel.select.plaid.show = false;
+				const msg = new Msg()
+					.write.uint32(CTOS.RESPONSE);
+				if (i)
+					msg.write.uint32(this.to.player(i.seq[1]))
+						.write.uint32(i.seq[0] & 0xff)
+						.write.uint32((i.seq[0] >> 16) & 0xff);
+				else
+					msg.write.uint32(this.to.player(0))
+						.write.uint32(0)
+						.write.uint32(0);
+				await send(msg);
+			};
+			connect.duel.select.plaid.show = true;
+		}],
+		[MSG.SELECT_POSITION, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const code = msg.read.uint32();
+			const pos = msg.read.uint8();
+			if (code === undefined || pos === undefined)
+				return;
+
+			await mainGame.load.pic([code]);
+			if ([POS.FACEUP_ATTACK,
+					POS.FACEUP_DEFENSE,
+					POS.FACEDOWN_ATTACK,
+					POS.FACEDOWN_DEFENSE
+				].includes(pos))
+				await send(new Msg()
+					.write.uint32(CTOS.RESPONSE)
+					.write.uint32(pos)
+				)
+			else {
+				const title = mainGame.get.strings.system(561);
+				//to do...
+			}
 		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

@@ -7,10 +7,10 @@ import * as SIZE from './scene-size';
 
 class Plaid {
 	three : CSS.CSS3DObject;
+	child : HTMLDivElement;
 	name : string;
 	location : number;
 	seq : [number, number];
-	child : HTMLDivElement;
 	disable : boolean;
 	owner : number;
 

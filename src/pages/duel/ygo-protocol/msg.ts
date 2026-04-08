@@ -1,33 +1,33 @@
-import { Buffer, WithImplicitCoercion } from 'buffer';
+import { Buffer } from 'buffer';
 class Msg {
 	index : number;
 	content : Buffer;
 	readonly : boolean;
-	constructor (data ?: WithImplicitCoercion<ArrayLike<number>> | string) {
+	constructor (data ?: Buffer | ArrayBuffer | Uint8Array | Array<number> | string) {
 		this.index = 0;
 		[this.content, this.readonly] = data === undefined ? [Buffer.alloc(256), false]
-			: [Buffer.from(data), true];
+			: [Buffer.from(data as any), true];
 	};
 	length = () : number => this.content.length;
 	read = {
 		uint8 : () : number | undefined => {
 			if (this.index >= this.length())
 				return undefined;
-			const data = this.content.readUint8(this.index);
+			const data = this.content.readUInt8(this.index);
 			this.index ++;
 			return data;
 		},
 		uint16 : () : number | undefined => {
 			if (this.index + 1 >= this.length())
 				return undefined;
-			const data = this.content.readUint16LE(this.index);
+			const data = this.content.readUInt16LE(this.index);
 			this.index += 2;
 			return data;
 		},
 		uint32 : () : number | undefined => {
 			if (this.index + 2 >= this.length())
 				return undefined;
-			const data = this.content.readUint32LE(this.index);
+			const data = this.content.readUInt32LE(this.index);
 			this.index += 4;
 			return data;
 		},
@@ -65,7 +65,7 @@ class Msg {
 				return this;
 			if (this.index + 1 >= this.length())
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
-			this.content.writeUint16LE(data, this.index);
+			this.content.writeUInt16LE(data, this.index);
 			this.index += 2;
 			return this;
 		},
@@ -96,7 +96,7 @@ class Msg {
 	};
 	to_end = () : Msg => new Msg(this.index >= this.length() ? Buffer.from([])
 		: this.content.subarray(this.index));
-	concat = (data : WithImplicitCoercion<ArrayLike<number>> | Msg) : Msg => new Msg(Buffer.concat([this.content, data instanceof Msg ? data.content : Buffer.from(data)]));
+	concat = (data : Buffer | ArrayBuffer | Uint8Array | Array<number> | string | Msg) : Msg => new Msg(Buffer.concat([this.content, data instanceof Msg ? data.content : Buffer.from(data as any)]));
 	buffer = () : Uint8Array => {
 		const data = this.content.subarray(0, this.index);
 		const msg = Buffer.alloc(data.length + 2);
