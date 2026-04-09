@@ -1,9 +1,11 @@
 <template>
-	<Popup
+	<Selecter
 		@confirm = "emit('exit', page.index)"
 		@cancel = "emit('exit')"
 		:cancelable = 'cancelable'
 		:confirmable = 'page.index !== undefined'
+		:width = 'GLOBAL.WIDTH * 0.3'
+		:left = 'GLOBAL.WIDTH * 0.35'
 	>
 		<template #title>
 			{{ title }}
@@ -24,11 +26,12 @@
 				</var-radio-group>
 			</div>
 		</template>
-	</Popup>
+	</Selecter>
 </template>
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
-	import Popup from './popup.vue';
+	import GLOBAL from '@/script/scale';
+	import Selecter from './selecter.vue';
 
 	const props = defineProps<{
 		options : Array<string>;

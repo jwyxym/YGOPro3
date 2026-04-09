@@ -143,6 +143,33 @@
 					?? connect.response?.(i)'
 				key = '4'
 			/>
+			<Select_Race
+				v-if = 'connect.duel.select.race.show'
+				:available = 'connect.duel.select.race.available'
+				:title = 'connect.duel.select.race.title'
+				:ct = 'connect.duel.select.race.count'
+				@exit = '(i ?: number | Array<number>) => connect.duel.select.race.confirm?.(i)
+					?? connect.response?.(i)'
+				key = '5'
+			/>
+			<Select_Attribute
+				v-if = 'connect.duel.select.attribute.show'
+				:available = 'connect.duel.select.attribute.available'
+				:title = 'connect.duel.select.attribute.title'
+				:ct = 'connect.duel.select.attribute.count'
+				@exit = '(i ?: number | Array<number>) => connect.duel.select.attribute.confirm?.(i)
+					?? connect.response?.(i)'
+				key = '6'
+			/>
+			<Select_Pos
+				v-if = 'connect.duel.select.pos.show'
+				:pos = 'connect.duel.select.pos.pos'
+				:title = 'connect.duel.select.pos.title'
+				:id = 'connect.duel.select.pos.id'
+				@exit = '(i ?: number | Array<number>) => connect.duel.select.pos.confirm?.(i)
+					?? connect.response?.(i)'
+				key = '7'
+			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'right_in'>
 			<Chain
@@ -189,6 +216,9 @@
 	import Select_Codes from './selecter/code.vue';
 	import Select_Number from './selecter/number.vue';
 	import Select_Option from './selecter/option.vue';
+	import Select_Race from './selecter/race.vue';
+	import Select_Attribute from './selecter/attribute.vue';
+	import Select_Pos from './selecter/pos.vue';
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
 	import Client_Card from './scene/client_card';

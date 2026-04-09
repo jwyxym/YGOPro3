@@ -48,4 +48,19 @@ class Option extends Base {
 	cancelable = false;
 	title = '';
 };
-export { Cards, Group, Confirm, Codes, Plaids, Number, Option };
+class Race extends Base {
+	available = 0;
+	count = 0;
+	title = '';
+};
+class Attribute extends Base {
+	available = 0;
+	count = 0;
+	title = '';
+};
+class Pos extends Base {
+	pos = 0;
+	id  = 0;
+	title = '';
+};
+export { Cards, Group, Confirm, Codes, Plaids, Number, Option, Race, Attribute, Pos };

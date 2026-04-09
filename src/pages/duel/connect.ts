@@ -124,7 +124,10 @@ class Duel {
 		code : new Selecter.Codes(),
 		plaid : new Selecter.Plaids(),
 		number : new Selecter.Number(),
-		option : new Selecter.Option()
+		option : new Selecter.Option(),
+		race : new Selecter.Race(),
+		attribute : new Selecter.Attribute(),
+		pos : new Selecter.Pos()
 	};
 	rps = {
 		show : false,

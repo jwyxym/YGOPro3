@@ -1,6 +1,10 @@
 <template>
 	<div
-		:style = "{ height : `${page.show ? 300 : 30}px` }"
+		:style = "{
+			height : `${page.show ? 300 : 30}px`,
+			width : `${width ?? GLOBAL.WIDTH * 0.7}px`,
+			left : `${left ?? GLOBAL.WIDTH * 0.15}px`
+		}"
 		class = 'selecter'
 	>
 		<div>
@@ -20,14 +24,14 @@
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
 					@click = "() => confirmable ? emit('confirm') : undefined"
-					:style = "{ color : confirmable ? 'white' : 'gray' }"
+					:style = "{ color : confirmable ? 'white' : 'rgba(255, 255, 255, 0.7)' }"
 				/>
 			</div>
 			<div>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.CANCEL)'
 					@click = "() => cancelable ? emit('cancel') : undefined"
-					:style = "{ color : cancelable ? 'white' : 'gray' }"
+					:style = "{ color : cancelable ? 'white' : 'rgba(255, 255, 255, 0.7)' }"
 				/>
 			</div>
 		</div>
@@ -37,6 +41,7 @@
 	import { reactive } from 'vue';
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
+	import GLOBAL from '@/script/scale';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Button from '@/pages/ui/button.vue';
 	const page = reactive({
@@ -45,6 +50,8 @@
 	const props = defineProps<{
 		cancelable : boolean;
 		confirmable : boolean;
+		width ?: number;
+		left ?: number;
 	}>();
 	const emit = defineEmits<{
 		confirm : [];
@@ -56,8 +63,6 @@
 		position: fixed;
 		bottom: 10px;
 		transform: translateY(calc(var(--top) / var(--scale)));
-		left: calc(var(--width) * 0.15);
-		width: calc(var(--width) * 0.7);
 		color: white;
 		transition: all 0.1s ease;
 		> div {
@@ -71,7 +76,6 @@
 		> div:nth-child(2) {
 			background-color: rgba(0, 0, 0, 0.5);
 			border: 1px solid white;
-			height: calc(100% - 80px);
 			> * {
 				width: 100%;
 				height: 100%;

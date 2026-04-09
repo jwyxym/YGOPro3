@@ -130,9 +130,10 @@
 					width: 100%;
 					display: flex;
 					align-items: center;
+					justify-content: center;
 					flex-direction: column;
 					> img {
-						height: calc(100% - 30px);
+						height: calc(100% - 40px);
 					}
 				}
 				.var-radio {
