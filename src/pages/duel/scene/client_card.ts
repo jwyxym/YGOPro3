@@ -86,11 +86,13 @@ class Client_Card {
 		on : () : CSS.CSS3DObject => {
 			const dom = document.createElement('div');
 			Object.assign(dom.style, {
+				position : 'relative',
 				opacity : '0',
 				fontFamily : 'ATK',
 				color : 'white',
 				transition : 'all 0.2s ease'
 			});
+			dom.appendChild(this.init.border());
 			dom.appendChild(this.init.img(mainGame.back.pic));
 			dom.appendChild(this.init.atk());
 			dom.appendChild(this.init.info());
@@ -99,13 +101,31 @@ class Client_Card {
 			setTimeout(() => dom.style.opacity = '1', 0);
 			return new CSS.CSS3DObject(dom);
 		},
+		border : () : HTMLDivElement => {
+			const child = document.createElement('div');
+			Object.assign(child.style, {
+				position : 'absolute',
+				opacity : '0',
+				left : `${- SIZE.WIDTH / 2}px`,
+				top : `${- SIZE.HEIGHT / 2}px`,
+				width : `${SIZE.WIDTH}px`,
+				height : `${SIZE.HEIGHT}px`,
+				transition : 'all 0.2s ease',
+				boxShadow: '0 0 10px 5px yellow',
+				userSelect: 'none'
+			});
+			return child;
+		},
 		img : (src : string) : HTMLImageElement => {
 			const child = document.createElement('img');
 			child.src = src;
 			Object.assign(child.style, {
+				position : 'absolute',
+				left : `${- SIZE.WIDTH / 2}px`,
+				top : `${- SIZE.HEIGHT / 2}px`,
 				width : `${SIZE.WIDTH}px`,
 				height : `${SIZE.HEIGHT}px`,
-				transition : 'all 0.2s ease'
+				transition : 'all 0.2s ease',
 			});
 			return child;
 		},
@@ -244,13 +264,14 @@ class Client_Card {
 
 	get = {
 		el : {
-			img : () : HTMLImageElement => this.three.element.children[0] as HTMLImageElement,
-			atk : () : HTMLDivElement => this.three.element.children[1] as HTMLDivElement,
+			border : () : HTMLDivElement => this.three.element.children[0] as HTMLDivElement,
+			img : () : HTMLImageElement => this.three.element.children[1] as HTMLImageElement,
+			atk : () : HTMLDivElement => this.three.element.children[2] as HTMLDivElement,
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
-				: this.three.element.children[2] as HTMLDivElement,
-			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement,
+				: this.three.element.children[3] as HTMLDivElement,
+			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
 			btn : (query ?: string) : HTMLDivElement => query ? this.get.el.btn().querySelector('.' + query) as HTMLDivElement
-				: this.three.element.children[4] as HTMLDivElement,
+				: this.three.element.children[5] as HTMLDivElement,
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -776,7 +797,19 @@ class Client_Card {
 			style.filter = 'grayscale(100%)';
 			await mainGame.sleep(600);
 			style.filter = 'initial';
-		}
+		},
+		selected : async () : Promise<void> => {
+			const style = this.get.el.border().style;
+			if (style.transform === 'scale(1.2)' || style.opacity === '1')
+				return;
+			style.opacity = '1';
+			await mainGame.sleep(100);
+			style.transform = 'scale(1.2)';
+			await mainGame.sleep(200);
+			style.opacity = '0';
+			await mainGame.sleep(200);
+			style.transform = 'initial';
+		},
 	};
 
 	click = {

@@ -163,15 +163,17 @@ class Protocol {
 				if (ct === undefined) return;
 				card.set.overlay(ct);
 				const cards = duel.get.cards()
-					.filter(i => (i.location & (card.location & LOCATION.OVERLAY))
+					.filter(i => (i.location & card.location)
 						&& i.owner === card.owner
 						&& i.seq === card.seq
+						&& i !== card
 					);
 				for (let i = 0; i < ct; i ++) {
 					const c = cards[i];
 					const code = msg.read.uint32();
 					if (!c || code === undefined) return;
 					result.push([c, code]);
+					c.set.overlay(ct - (i + 1));
 				}
 			}
 			if (flag & QUERY.COUNTERS) {

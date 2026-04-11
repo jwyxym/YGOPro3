@@ -399,7 +399,8 @@ class _Duel {
 				connect.duel.card = connect.duel.card === c ? undefined : c;
 				if (target.classList.contains('duel__card__btn'))
 					card?.click.btn(target, cards);
-				connect.duel.cards = cards;
+				if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
+					connect.duel.cards = cards;
 			}
 
 			this.cards
