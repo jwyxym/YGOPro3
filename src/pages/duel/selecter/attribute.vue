@@ -28,7 +28,6 @@
 	import { onBeforeMount, reactive } from 'vue';
 	import GLOBAL from '@/script/scale';
 	import mainGame from '@/script/game';
-	import { KEYS } from '@/script/constant';
 	import Select from '@/pages/ui/select.vue';
 	import Selecter from './selecter.vue';
 

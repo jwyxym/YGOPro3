@@ -80,6 +80,17 @@
 			> * {
 				width: 100%;
 				height: 100%;
+				:deep(div) {
+					&::-webkit-scrollbar {
+						opacity: 0;
+						height: 10px;
+					}
+					&::-webkit-scrollbar-thumb {
+						background: transparent;
+						border: 2px solid gray;
+						border-radius: 8px;
+		}
+				}
 			}
 		}
 		> div:last-child {

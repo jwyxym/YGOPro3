@@ -17,7 +17,7 @@
 					<div v-for = 'i in select' :key = '`${i.location}${i.seq}${i.owner}`'>
 						<div @click.stop = "page.select(i); emit('click', i);">
 							<img :src = 'mainGame.get.card(i.id).pic' class = 'select'/>
-							<span>{{ page.loc(i) }}</span>
+							<span class = 'select'>{{ page.loc(i) }}</span>
 						</div>
 						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 					</div>
@@ -60,6 +60,8 @@
 		[LOCATION.GRAVE, I18N_KEYS.DUEL_LOCATION_GRAVE],
 		[LOCATION.REMOVED, I18N_KEYS.DUEL_LOCATION_REMOVED],
 		[LOCATION.OVERLAY, I18N_KEYS.DUEL_LOCATION_OVERLAY],
+		[LOCATION.MZONE, I18N_KEYS.DUEL_LOCATION_MZONE],
+		[LOCATION.SZONE, I18N_KEYS.DUEL_LOCATION_SZONE]
 	]);
 
 	const page = reactive({
@@ -97,10 +99,13 @@
 			width: 100%;
 			> div {
 				height: 100%;
-				width: 100%;
+				display: flex;
+				flex-wrap: nowrap;
+				overflow-x: auto;
 				> div {
+					flex-shrink: 0;
 					position: relative;
-					height: 100%;
+					height: calc(100% - 10px);
 					width: 200px;
 					> div:first-child {
 						position: absolute;
@@ -111,12 +116,16 @@
 						width: 100%;
 						display: flex;
 						align-items: center;
+						justify-content: center;
 						flex-direction: column;
 						> img {
-							height: calc(100% - 30px);
+							height: calc(100% - 40px);
 						}
-						.select {
-							box-shadow: 0 0 8px yellow;
+						img.select {
+							border: 2px solid yellow;
+						}
+						span.select {
+							color: yellow;
 						}
 					}
 					.var-radio {

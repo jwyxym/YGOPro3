@@ -77,14 +77,15 @@
 		}
 	}
 	.group {
-		height: 100%;
-		width: 100%;
 		> :deep(div) {
 			height: 100%;
-			width: 100%;
+			display: flex;
+			flex-wrap: nowrap;
+			overflow-x: auto;
 			> div {
+				flex-shrink: 0;
 				position: relative;
-				height: 100%;
+				height: calc(100% - 10px);
 				width: 200px;
 				> div:first-child {
 					position: absolute;
