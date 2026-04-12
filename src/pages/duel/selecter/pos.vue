@@ -68,7 +68,6 @@
 		title : string;
 	}>();
 
-
 	const page = reactive({
 		show : false,
 		pos : 0,

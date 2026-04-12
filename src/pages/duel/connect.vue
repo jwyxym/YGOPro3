@@ -101,6 +101,7 @@
 				:cancelable = 'connect.duel.select.cards.cancelable'
 				@exit = '(i ?: Client_Card | Array<Client_Card>) => connect.duel.select.cards.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '0'
 			/>
 			<Select_Group
@@ -113,6 +114,7 @@
 				:cancelable = 'connect.duel.select.group.cancelable'
 				@exit = '(i ?: Client_Card) => connect.duel.select.group.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '1'
 			/>
 			<Select_Codes
@@ -124,6 +126,7 @@
 				:cancelable = 'connect.duel.select.code.cancelable'
 				@exit = '(i ?: number) => connect.duel.select.code.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '2'
 			/>
 			<Select_Number
@@ -132,6 +135,7 @@
 				:title = 'connect.duel.select.number.title'
 				@exit = '(i ?: number) => connect.duel.select.number.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '3'
 			/>
 			<Select_Option
@@ -141,6 +145,7 @@
 				:cancelable = 'connect.duel.select.option.cancelable'
 				@exit = '(i ?: number) => connect.duel.select.option.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '4'
 			/>
 			<Select_Race
@@ -150,6 +155,7 @@
 				:ct = 'connect.duel.select.race.count'
 				@exit = '(i ?: number | Array<number>) => connect.duel.select.race.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '5'
 			/>
 			<Select_Attribute
@@ -159,6 +165,7 @@
 				:ct = 'connect.duel.select.attribute.count'
 				@exit = '(i ?: number | Array<number>) => connect.duel.select.attribute.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '6'
 			/>
 			<Select_Pos
@@ -168,6 +175,7 @@
 				:id = 'connect.duel.select.pos.id'
 				@exit = '(i ?: number | Array<number>) => connect.duel.select.pos.confirm?.(i)
 					?? connect.response?.(i)'
+				@click = 'duel.click'
 				key = '7'
 			/>
 		</TransitionGroup>
@@ -207,7 +215,7 @@
 	import connect from './connect';
 	import RPS from './rps.vue';
 	import Log from './log/log.vue';
-	import Scene from './scene/scene';
+	import Scene, { duel } from './scene/scene';
 	import Phase from './scene/phase';
 	import Chain from './scene/chain.vue';
 	import Cards from './scene/cards.vue';

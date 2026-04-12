@@ -14,11 +14,11 @@
 				class = 'group'
 			>
 				<div v-for = '(i, v) in plaids'>
-					<div @click = 'page.select(i)' :class = "{ 'disable' : i.disable }">
+					<div @click.stop = 'page.select(i); page.info(v);' :class = "{ 'disable' : i.disable }">
 						<div>
 							<img
 								v-if = 'cards[v]'
-								:src = 'cards[v].pic'
+								:src = 'cards[v].get.el.img().src'
 								:class = "{ 'defence' : cards[v].pos & POS.DEFENSE }"
 							/>
 						</div>
@@ -50,10 +50,14 @@
 		show : false,
 		plaid : undefined as Plaid | undefined,
 		select : (plaid : Plaid) => page.plaid = page.plaid === plaid ? undefined : plaid,
+		info : (v : number) => {
+			if (props.cards[v]) emit('click', props.cards[v]);
+		}
 	});
 
 	const emit = defineEmits<{
 		exit : [plaid ?: Plaid];
+		click : [card : Client_Card];
 	}>();
 
 </script>

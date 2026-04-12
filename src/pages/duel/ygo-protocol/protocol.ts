@@ -500,15 +500,26 @@ class Protocol {
 			const playertype = msg.read.uint8();
 			if (playertype === undefined)
 				return;
-			msg.index += 1;
-			connect.duel.is_first =  (playertype & 0xf) === 0;
-			const players = connect.duel.is_first ? connect.wait.players
-				: connect.wait.info.mode & 2 ? [
-					connect.wait.players[2],
-					connect.wait.players[3],
-					connect.wait.players[0],
-					connect.wait.players[1]
-				] : [connect.wait.players[1], connect.wait.players[0]];
+			msg.index ++;
+			connect.duel.is_first = (playertype & 0xf) === 0;
+			const players = (() => {
+				const p = connect.wait.self.position;
+				if (connect.wait.info.mode & 2) {
+					const i = [
+						[[2, 1], [0, 3]],
+						[[3, 0], [2, 1]]
+					];
+					const [self, oppo] = i[Number(p > 1)][Number(connect.duel.is_first)];
+					return [
+						connect.wait.players[self],
+						connect.wait.players[oppo]
+					];
+				} else
+					return [
+						connect.wait.players[p],
+						connect.wait.players[1 - p]
+					];
+			})();
 			connect.duel.player[0].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[0].name = players[0].name;
@@ -627,7 +638,7 @@ class Protocol {
 			connect.response = async (i : number, command : number)=> {
 				await send(
 					new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 						.write.uint32(this.get.response(i, command))
 				);
 				duel.clear.activate();
@@ -677,7 +688,7 @@ class Protocol {
 			connect.response = async (i : number, command : number) => {
 				await send(
 					new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 						.write.uint32(this.get.response(i, command))
 				);
 				duel.clear.activate();
@@ -704,7 +715,7 @@ class Protocol {
 			connect.response = async (i : boolean) => {
 				connect.duel.select.confirm.show = false;
 				await send(new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 					.write.uint32(Number(i))
 				);
 			};
@@ -722,7 +733,7 @@ class Protocol {
 			connect.response = async (i : boolean) => {
 				connect.duel.select.confirm.show = false;
 				await send(new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 					.write.uint32(Number(i))
 				);
 			};
@@ -736,7 +747,7 @@ class Protocol {
 			connect.response = async (i : number) => {
 				connect.duel.select.option.show = false;
 				await send(new Msg()
-					.write.uint32(CTOS.RESPONSE)
+					.write.uint8(CTOS.RESPONSE)
 					.write.uint32(i)
 				);
 			};
@@ -784,7 +795,7 @@ class Protocol {
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
 				const msg = new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 				if (i) {
 					msg.write.uint32(codes.length);
 					Array.isArray(i)
@@ -854,7 +865,7 @@ class Protocol {
 			connect.response = async (i ?: Client_Card) => {
 				connect.duel.select.group.show = false;
 				const msg = new Msg()
-					.write.uint32(CTOS.RESPONSE)
+					.write.uint8(CTOS.RESPONSE)
 				if (i) {
 					const ct = connect.duel.select.group.unselect.indexOf(i);
 					msg.write.uint32(ct > - 1
@@ -870,7 +881,7 @@ class Protocol {
 		[MSG.SELECT_CHAIN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
 			const ct = msg.read.uint8() ?? 0;
-			msg.index ++;
+			msg.index += 9;
 			const codes : Array<[Client_Card, number]> = [];
 			let cancelable = true;
 			for (let i = 0; i < ct; i ++) {
@@ -899,8 +910,7 @@ class Protocol {
 				if (card) {
 					codes.push([card, code]);
 					card.set.activate(COMMAND.ACTIVATE, i, desc);
-					if (cancelable)
-						cancelable = !forced;
+					cancelable = cancelable && !forced;
 				}
 			}
 			if (codes.length) {
@@ -928,13 +938,13 @@ class Protocol {
 				};
 				connect.response = async (i : number) => await send(
 					new Msg()
-						.write.uint32(CTOS.RESPONSE)
+						.write.uint8(CTOS.RESPONSE)
 						.write.uint32(i)
 				);
 				connect.duel.select.cards.confirm = async (i ?: Client_Card) => {
 					connect.duel.select.cards.show = false;
 					if (i)
-						i.get.activate(KEYS.ACTIVATE).length
+						i.get.activate(KEYS.ACTIVATE).length > 1
 							? option(i.get.activate(KEYS.ACTIVATE))
 							: await connect.response?.(i.get.activate(KEYS.ACTIVATE)[0].index);
 					else
@@ -943,7 +953,7 @@ class Protocol {
 				connect.duel.select.cards.show = true;
 			} else
 				await send(new Msg()
-					.write.uint32(CTOS.RESPONSE)
+					.write.uint8(CTOS.RESPONSE)
 					.write.uint32(- 1)
 				);
 		}],
@@ -966,7 +976,7 @@ class Protocol {
 			connect.response = async (i ?: Plaid) => {
 				connect.duel.select.plaid.show = false;
 				const msg = new Msg()
-					.write.uint32(CTOS.RESPONSE);
+					.write.uint8(CTOS.RESPONSE);
 				if (i)
 					msg.write.uint32(this.to.player(i.seq[1]))
 						.write.uint32(i.seq[0] & 0xff)
@@ -993,13 +1003,74 @@ class Protocol {
 					POS.FACEDOWN_DEFENSE
 				].includes(pos))
 				await send(new Msg()
-					.write.uint32(CTOS.RESPONSE)
+					.write.uint8(CTOS.RESPONSE)
 					.write.uint32(pos)
 				)
 			else {
 				const title = mainGame.get.strings.system(561);
-				//to do...
+				connect.duel.select.pos.title = title;
+				connect.duel.select.pos.id = code;
+				connect.duel.select.pos.pos = pos;
+				connect.response = async (i : number) => {
+					connect.duel.select.pos.show = false;
+					await send(new Msg()
+						.write.uint8(CTOS.RESPONSE)
+						.write.uint32(i)
+					);
+				};
+				connect.duel.select.pos.show = true;
 			}
+		}],
+		[MSG.SELECT_TRIBUTE, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const cancelable = msg.read.uint8();
+			const min = msg.read.uint8();
+			const max = msg.read.uint8();
+			if (cancelable === undefined || min === undefined || max === undefined)
+				return;
+			const codes : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
+					return;
+				const card = loc
+					? this.get.overlay(tp, loc, seq, ct)
+						?? this.get.card(tp, loc, seq)
+					: new Client_Card()
+						.set.pos(POS.FACEUP_ATTACK);
+				if (card)
+					codes.push([card, code]);
+			}
+			await mainGame.load.pic(codes.map(i => i[1]));
+			codes.forEach(i => i[0].set.id(i[1]));
+			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(531);
+			connect.duel.select.cards.cancelable = !!cancelable;
+			connect.duel.select.cards.cards = codes.map(i => i[0]);
+			connect.duel.select.cards.min = min;
+			connect.duel.select.cards.max = max;
+			connect.duel.select.cards.title = title;
+			this.select_hint = 0;
+			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
+				connect.duel.select.cards.show = false;
+				const msg = new Msg()
+						.write.uint8(CTOS.RESPONSE)
+				if (i) {
+					msg.write.uint32(codes.length);
+					Array.isArray(i)
+						? i.forEach(i => msg.write.uint32(
+							connect.duel.select.cards.cards
+								.indexOf(i)
+						))
+						: msg.write.uint32(connect.duel.select.cards.cards.indexOf(i));
+				} else msg.write.uint32(- 1);
+				await send(msg);
+			};
+			connect.duel.select.cards.show = true;
 		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1007,19 +1078,11 @@ class Protocol {
 			if (ct === undefined)
 				return;
 			this.event = mainGame.get.strings.system(1611 + tp, ct);
-			const cards = duel.draw(tp, ct);
-			const codes : Array<number> = new Array(ct)
-				.map(_ => msg.read.uint32())
-				.filter(i => i !== undefined);
-			if (!tp) {
-				await mainGame.load.pic(codes);
-				for (let i = 0; i < ct; i ++) {
-					const code = codes[i];
-					const card = cards[i];
-					if (card && code)
-						card.set.id(code);
-				}
-			}
+			const codes : Array<number> = [];
+			for (let i = 0; i < ct; i ++)
+				codes.push(msg.read.uint32() ?? 0);
+			await mainGame.load.pic(codes);
+			duel.draw(tp, ct, codes);
 			history.push(HISTORY.DRAW, {
 				self : !tp,
 				cards : codes.map(i => {return { id : i, pos : POS.FACEUP_ATTACK }; }),

@@ -52,6 +52,8 @@ class Msg {
 	};
 	write = {
 		uint8 : (data : number) : Msg => {
+			if (data < 0)
+				return this.write.int8(data);
 			if (this.readonly)
 				return this;
 			if (this.index >= this.length())
@@ -61,6 +63,8 @@ class Msg {
 			return this;
 		},
 		uint16 : (data : number) : Msg => {
+			if (data < 0)
+				return this.write.int16(data);
 			if (this.readonly)
 				return this;
 			if (this.index + 1 >= this.length())
@@ -70,11 +74,40 @@ class Msg {
 			return this;
 		},
 		uint32 : (data : number) : Msg => {
+			if (data < 0)
+				return this.write.int32(data);
 			if (this.readonly)
 				return this;
 			if (this.index + 3 >= this.length())
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt32LE(data, this.index);
+			this.index += 4;
+			return this;
+		},
+		int8 : (data : number) : Msg => {
+			if (this.readonly)
+				return this;
+			if (this.index >= this.length())
+				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
+			this.content.writeInt8(data, this.index);
+			this.index ++;
+			return this;
+		},
+		int16 : (data : number) : Msg => {
+			if (this.readonly)
+				return this;
+			if (this.index + 3 >= this.length())
+				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
+			this.content.writeInt16LE(data, this.index);
+			this.index += 2;
+			return this;
+		},
+		int32 : (data : number) : Msg => {
+			if (this.readonly)
+				return this;
+			if (this.index + 3 >= this.length())
+				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
+			this.content.writeInt32LE(data, this.index);
 			this.index += 4;
 			return this;
 		},

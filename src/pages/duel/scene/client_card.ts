@@ -22,7 +22,6 @@ class Client_Card {
 	id : number;
 	alias : number;
 	card ?: Card;
-	pic : string;
 	type : number;
 	level : number;
 	rank : number;
@@ -66,8 +65,6 @@ class Client_Card {
 		this.status = 0;
 		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
-		this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
-			: mainGame.unknown.pic;
 		this.activatable = new Map([
 			[COMMAND.ACTIVATE, []],
 			[COMMAND.SUMMON, []],
@@ -330,18 +327,11 @@ class Client_Card {
 		id : (id : number) : Client_Card => {
 			if (!id)
 				this.clear.self();
-			const card = mainGame.get.card(id);
 			this.id = id;
-			return this.set.pic(card.pic);
+			return this;
 		},
 		alias : (alias : number) : Client_Card => {
 			this.alias = alias;
-			return this;
-		},
-		pic : (pic : string) : Client_Card => {
-			this.pic = pic;
-			if (this.pos & POS.FACEUP)
-				this.get.el.img().src = this.pic;
 			return this;
 		},
 		atk : (atk : number) : Client_Card => {
@@ -581,29 +571,30 @@ class Client_Card {
 				});
 				tl.set(el, {
 					rotationY : -90
-				}, 0.125);
+				}, 0.2);
 				tl.to(el, {
 					rotationY : 0,
 					duration : 0.1
-				}, 0.15);
+				}, 0.25);
 			};
 			const img = this.get.el.img();
-			const back = mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string;
+			const back = mainGame.back.pic;
 			const is_back = img.src === back;
+			if (this.location & LOCATION.HAND)
 			if ((this.pos & POS.FACEDOWN) && !is_back)
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
-				turn(img, this.pic ?? mainGame.unknown.pic);
+				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
 			if ((this.pos & POS.ATTACK) && gsap.getProperty(img, 'rotationZ'))
 				tl.to(img, {
 					rotationZ : 0,
 					duration : 0.1,
-				}, 0);
+				});
 			else if ((this.pos & POS.DEFENSE) && !gsap.getProperty(img, 'rotationZ'))
 				tl.to(img, {
 					rotationZ : - 90,
 					duration : 0.1,
-				}, 0);
+				});
 			return tl;
 		};
 		const location = () : gsap.core.Timeline | void => {
@@ -727,8 +718,8 @@ class Client_Card {
 			tl.add(type() ?? gsap.timeline());
 			tl.add(counter() ?? gsap.timeline());
 			tl.then(() => resolve?.());
-			return promise;
-		}
+			await promise;
+		};
 		if (this.clicked && !(this.location & LOCATION.HAND))
 			this.click.img();
 		await Promise.all([
@@ -755,8 +746,6 @@ class Client_Card {
 			this.scale = 0;
 			this.status = 0;
 			this.need_change.type = true;
-			this.pic = this.pos & POS.FACEDOWN ? mainGame.get.textures(KEYS.OTHER, KEYS.COVER) as string
-				: mainGame.unknown.pic;
 			this.activatable = new Map([
 				[COMMAND.ACTIVATE, []],
 				[COMMAND.SUMMON, []],
@@ -799,16 +788,39 @@ class Client_Card {
 			style.filter = 'initial';
 		},
 		selected : async () : Promise<void> => {
-			const style = this.get.el.border().style;
-			if (style.transform === 'scale(1.2)' || style.opacity === '1')
-				return;
-			style.opacity = '1';
-			await mainGame.sleep(100);
-			style.transform = 'scale(1.2)';
-			await mainGame.sleep(200);
-			style.opacity = '0';
-			await mainGame.sleep(200);
-			style.transform = 'initial';
+			const tl = gsap.timeline();
+			if (this.location & LOCATION.ONFIELD) {
+				const div = this.get.el.border();
+				tl.to(div, {
+					opacity : 1,
+					duration : 0.1
+				});
+				tl.to(div, {
+					scale : 1.2,
+					duration : 0.2
+				}, 0.1);
+				tl.to(div, {
+					opacity : 0,
+					duration : 0.2
+				}, 0.3);
+				tl.set(div, {
+					scale : 1
+				}, 0.5);
+			} else if (this.location & (LOCATION.GRAVE | LOCATION.EXTRA)) {
+				const div = this.get.el.img();
+				tl.to(div, {
+					x : `+= ${SIZE.WIDTH * 1.2}px`,
+					duration : 0.1
+				});
+				tl.to(div, {
+					x : `-= ${SIZE.WIDTH * 1.2}px`,
+					duration : 0.1
+				}, 0.6);
+			}
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			tl.then(() => resolve?.());
+			await promise;
 		},
 	};
 
@@ -869,11 +881,11 @@ class Client_Card {
 						connect.duel.select.cards.cards = c;
 						connect.duel.select.cards.confirm = async (i : Client_Card) => {
 							connect.duel.select.cards.show = false;
-							i.get.activate(j.key).length ? option(i.get.activate(j.key), j.key, j.command)
+							i.get.activate(j.key).length > 1 ? option(i.get.activate(j.key), j.key, j.command)
 								: await connect.response?.(i.get.activate(j.key)[0].index, j.command);
 						};
 						connect.duel.select.cards.show = true;
-					} else if (this.get.activate(j.key).length > 0)
+					} else if (this.get.activate(j.key).length > 1)
 						option(this.get.activate(j.key), j.key, j.command);
 					else
 						connect.response?.(this.get.activate(j.key)[0], j.command);

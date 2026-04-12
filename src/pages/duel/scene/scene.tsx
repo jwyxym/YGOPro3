@@ -136,18 +136,23 @@ class _Duel {
 	};
 
 	
-	draw = (player : number, ct : number) : Array<Client_Card> => {
+	draw = (player : number, ct : number, codes : Array<number> = []) : Array<Client_Card> => {
 		const deck = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.DECK)
 			.reverse()
 			.slice(0, ct);
 		const hands = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
-		deck.forEach((i, v) => i
-			.set.location(LOCATION.HAND)
-			.set.seq(v + hands.length)
-			.set.pos(POS.FACEUP_ATTACK)
-		);
+		
+		codes.reverse();
+		deck.forEach((i, v) => {
+			if (!player && codes[v])
+				i.set.id(codes[v]);
+			i
+				.set.location(LOCATION.HAND)
+				.set.seq(v + hands.length)
+				.set.pos(player ? POS.FACEDOWN_ATTACK : POS.FACEUP_ATTACK);
+		});
 		return deck;
 	};
 
@@ -367,46 +372,62 @@ class _Duel {
 			.all(this.cards.map(i => i.update()));
 	};
 	
-	click = (event : Event) : void => {
-		const target = event.target as HTMLElement;
+	click = (event : Event | Client_Card | number) : void => {
+		if (!this.element) return;
 		connect.duel.cards.length = 0;
-		if (target.classList.contains('history__card__pic')
-			|| target.classList.contains('list__card__pic')
-			|| target.classList.contains('chain__card__pic')) {
-			connect.duel.card = mainGame.get.card(target.id);
+		if (event instanceof Client_Card || typeof event === 'number') {
+			const card = event;
+			connect.duel.card = card;
 			this.cards
 				.filter(i => i.clicked)
 				.forEach(i => i.click.img());
 		} else {
-			const card = this.cards.find(i => i.contains(target));
-			if (!card) {
-				connect.duel.card = undefined;
+			const target = event.target as HTMLElement;
+			if (target.classList.contains('history__card__pic')
+				|| target.classList.contains('list__card__pic')
+				|| target.classList.contains('chain__card__pic')) {
+				connect.duel.card = mainGame.get.card(target.id);
 				this.cards
 					.filter(i => i.clicked)
 					.forEach(i => i.click.img());
-				return;
-			}
-			if (card.location & LOCATION.HAND) {
-				connect.duel.card = connect.duel.card === card ? undefined : card;
-				if (target.classList.contains('duel__card__btn'))
-					card?.click.btn(target);
 			} else {
-				const cards = this.cards.filter(i => i.owner === card.owner
-					&& (i.location & card.location)
-					&& i.seq === card.seq || !(i.location & LOCATION.ONFIELD)
-				)
-				const c = lodash.maxBy(cards, i => i.seq);
-				connect.duel.card = connect.duel.card === c ? undefined : c;
-				if (target.classList.contains('duel__card__btn'))
-					card?.click.btn(target, cards);
-				if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
-					connect.duel.cards = cards;
-			}
+				const card = this.cards.find(i => i.contains(target));
+				if (!card) {
+					connect.duel.card = undefined;
+					this.cards
+						.filter(i => i.clicked)
+						.forEach(i => i.click.img());
+					return;
+				}
+				if (card.location & LOCATION.HAND) {
+					if (connect.duel.card === card && card.clicked)
+						connect.duel.card = undefined;
+					else
+						connect.duel.card = card;
 
-			this.cards
-				.filter(i => i.clicked && i !== connect.duel.card)
-				.forEach(i => i.click.img());
-			connect.duel.card?.click.img();
+					if (target.classList.contains('duel__card__btn'))
+						card?.click.btn(target);
+				} else {
+					const cards = this.cards.filter(i => i.owner === card.owner
+						&& (i.location & card.location)
+						&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
+					)
+					const c = lodash.maxBy(cards, i => i.seq);
+					if (connect.duel.card === c && c?.clicked)
+						connect.duel.card = undefined;
+					else
+						connect.duel.card = c;
+					if (target.classList.contains('duel__card__btn'))
+						card?.click.btn(target, cards);
+					if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
+						connect.duel.cards = cards;
+				}
+
+				this.cards
+					.filter(i => i.clicked && i !== connect.duel.card)
+					.forEach(i => i.click.img());
+				connect.duel.card?.click.img();
+			}
 		}
 	};
 

@@ -76,6 +76,7 @@
 		> div:nth-child(2) {
 			background-color: rgba(0, 0, 0, 0.5);
 			border: 1px solid white;
+			overflow-y: hidden;
 			> * {
 				width: 100%;
 				height: 100%;

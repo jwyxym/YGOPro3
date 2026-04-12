@@ -29,7 +29,7 @@
 				class = 'group'
 			>
 				<div v-for = 'i in cards'>
-					<div @click = 'page.select(i)'>
+					<div @click.stop = "page.select(i); emit('click', i);">
 						<img :src = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
@@ -107,6 +107,7 @@
 
 	const emit = defineEmits<{
 		exit : [card ?: Array<Client_Card> | Client_Card];
+		click : [card : Client_Card];
 	}>();
 
 </script>

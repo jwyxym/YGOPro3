@@ -25,7 +25,7 @@
 						? i.toString().includes(page.input) || mainGame.get.card(i).name.includes(page.input)
 						: true)'
 				>
-					<div @click = 'page.select(i)'>
+					<div @click.stop = "page.select(i); emit('click', i);">
 						<img :src = 'mainGame.get.card(i).pic'/>
 						<span>[{{ mainGame.get.card(i).name }}]</span>
 					</div>
@@ -61,6 +61,7 @@
 
 	const emit = defineEmits<{
 		exit : [card ?: number];
+		click : [card : number];
 	}>();
 
 </script>
