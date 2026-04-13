@@ -1072,6 +1072,44 @@ class Protocol {
 			};
 			connect.duel.select.cards.show = true;
 		}],
+		[MSG.SELECT_COUNTER, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const counter = msg.read.uint16();
+			const count = msg.read.uint16();
+			if (counter === undefined || count === undefined)
+				return;
+			const cards : Array<Client_Card> = [];
+			const counts : Array<number> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				msg.index += 4;
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint16();
+				if (loc === undefined || seq === undefined || ct === undefined)
+					return;
+				const card = this.get.card(tp, loc, seq);
+				if (card) {
+					cards.push(card);
+					counts.push(ct);
+				}
+			}
+			connect.duel.select.counter.cards = cards
+			connect.duel.select.counter.counter = counter;
+			connect.duel.select.counter.count = count;
+			connect.duel.select.counter.counts = counts;
+			connect.duel.select.counter.title = mainGame.get.strings.system(204, [count, mainGame.get.strings.counter(counter)]);
+			connect.response = async (i : Array<number>) => {
+				connect.duel.select.counter.show = false;
+				const msg = new Msg()
+					.write.uint8(CTOS.RESPONSE);
+				for (const ct of i)
+					msg.write.int16(ct);
+				await send(msg);
+			};
+			connect.duel.select.counter.show = true;
+			return;
+		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8();

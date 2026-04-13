@@ -225,6 +225,9 @@ class Game {
 			},
 			setcode : (i : number) : string => {
 				return this.strings.get(CONSTANT.KEYS.SETCODE)?.get(i) ?? `0x${i.toString(16)}`;
+			},
+			counter : (i : number) : string => {
+				return this.strings.get(CONSTANT.KEYS.COUNTER)?.get(i) ?? this.get.text(I18N_KEYS.UNKNOW);
 			}
 		},
 		desc : (data : number, replace : Array<string | number> | string | number = []) : string => {

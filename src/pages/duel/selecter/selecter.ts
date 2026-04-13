@@ -63,4 +63,11 @@ class Pos extends Base {
 	id  = 0;
 	title = '';
 };
-export { Cards, Group, Confirm, Codes, Plaids, Number, Option, Race, Attribute, Pos };
+class Counter extends Base {
+	cards : Array<Client_Card> = [];
+	counter = 0;
+	title = '';
+	count = 0;
+	counts : Array<number> = [];
+};
+export { Cards, Group, Confirm, Codes, Plaids, Number, Option, Race, Attribute, Pos, Counter };

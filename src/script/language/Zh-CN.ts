@@ -142,7 +142,8 @@ Zh_CN[I18N_KEYS.SETTING_DOWNLOAD_LEN] = 'url不可为空';
 Zh_CN[I18N_KEYS.SETTING_RULE_NAME_UNLAWFUL] = '文件名非法';
 Zh_CN[I18N_KEYS.SETTING_I18N] = '游戏语言';
 
-Zh_CN[I18N_KEYS.DUEL_DECK_COUNT] = '{:?}卡组数量: {:?} - {:?} - {:?}'
+Zh_CN[I18N_KEYS.DUEL_DECK_COUNT] = '{:?}卡组数量: {:?} - {:?} - {:?}';
+Zh_CN[I18N_KEYS.DUEL_SELECT] = '已选';
 Zh_CN[I18N_KEYS.DUEL_WIN] = 'You Win!';
 Zh_CN[I18N_KEYS.DUEL_LOSE] = 'You Lose!';
 Zh_CN[I18N_KEYS.DUEL_GAME] = 'DUEL Game';

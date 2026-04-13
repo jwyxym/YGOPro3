@@ -127,7 +127,8 @@ class Duel {
 		option : new Selecter.Option(),
 		race : new Selecter.Race(),
 		attribute : new Selecter.Attribute(),
-		pos : new Selecter.Pos()
+		pos : new Selecter.Pos(),
+		counter : new Selecter.Counter()
 	};
 	rps = {
 		show : false,

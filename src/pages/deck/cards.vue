@@ -196,7 +196,7 @@
 			main : [] as CardPics,
 			extra : [] as CardPics,
 			side : [] as CardPics,
-			on : undefined as undefined | NodeJS.Timeout ,
+			on : undefined as undefined | number,
 			card : undefined as undefined | CardPic,
 			target : undefined as undefined | HTMLElement,
 			sort : (a : CardPic, b : CardPic) : number => a.index - b.index,

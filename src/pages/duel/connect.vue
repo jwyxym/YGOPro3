@@ -178,6 +178,18 @@
 				@click = 'duel.click'
 				key = '7'
 			/>
+			<Select_Counter
+				v-if = 'connect.duel.select.counter.show'
+				:cards = 'connect.duel.select.counter.cards'
+				:counter = 'connect.duel.select.counter.counter'
+				:title = 'connect.duel.select.counter.title'
+				:count = 'connect.duel.select.counter.count'
+				:counts = 'connect.duel.select.counter.counts'
+				@exit = '(i ?: number | Array<number>) => connect.duel.select.counter.confirm?.(i)
+					?? connect.response?.(i)'
+				@click = 'duel.click'
+				key = '8'
+			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'right_in'>
 			<Chain
@@ -227,6 +239,7 @@
 	import Select_Race from './selecter/race.vue';
 	import Select_Attribute from './selecter/attribute.vue';
 	import Select_Pos from './selecter/pos.vue';
+	import Select_Counter from './selecter/counter.vue';
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
 	import Client_Card from './scene/client_card';
