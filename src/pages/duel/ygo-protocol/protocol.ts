@@ -1174,6 +1174,33 @@ class Protocol {
 			};
 			connect.duel.select.cards.show = true;
 		}],
+		[MSG.SORT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			const codes : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				if (code === undefined || loc === undefined || seq === undefined)
+					return;
+				const card = this.get.card(tp, loc, seq);
+				if (card)
+					codes.push([card, code]);
+			}
+			await mainGame.load.pic(codes.map(i => i[1]));
+			codes.forEach(i => i[0].set.id(i[1]));
+			connect.duel.select.sort.cards = codes.map(i => i[0]);
+			connect.duel.select.sort.title = mainGame.get.strings.system(205);
+			connect.response = async (i : Array<number>) => {
+				connect.duel.select.sort.show = false;
+				const msg = new Msg()
+					.write.uint8(CTOS.RESPONSE);
+				for (const ct of i)
+					msg.write.uint32(ct);
+				await send(msg);
+			};
+			connect.duel.select.sort.show = true;
+		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8();

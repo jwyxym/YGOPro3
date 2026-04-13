@@ -191,6 +191,15 @@
 				@click = 'duel.click'
 				key = '8'
 			/>
+			<Select_Sort
+				v-if = 'connect.duel.select.sort.show'
+				:cards = 'connect.duel.select.sort.cards'
+				:title = 'connect.duel.select.sort.title'
+				@exit = '(i ?: number | Array<number>) => connect.duel.select.sort.confirm?.(i)
+					?? connect.response?.(i)'
+				@click = 'duel.click'
+				key = '9'
+			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'right_in'>
 			<Chain
@@ -241,6 +250,7 @@
 	import Select_Attribute from './selecter/attribute.vue';
 	import Select_Pos from './selecter/pos.vue';
 	import Select_Counter from './selecter/counter.vue';
+	import Select_Sort from './selecter/sort.vue';
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
 	import Client_Card from './scene/client_card';
