@@ -11,6 +11,7 @@ class Cards extends Base {
 	min = 0;
 	max = 0;
 	title = '';
+	selected : Array<Client_Card> = [];
 };
 class Group extends Base {
 	select : Array<Client_Card> = [];

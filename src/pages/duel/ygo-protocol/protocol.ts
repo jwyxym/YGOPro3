@@ -791,11 +791,12 @@ class Protocol {
 			connect.duel.select.cards.min = min;
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
+			connect.duel.select.cards.selected.length = 0;
 			this.select_hint = 0;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
 				const msg = new Msg()
-						.write.uint8(CTOS.RESPONSE)
+					.write.uint8(CTOS.RESPONSE);
 				if (i) {
 					msg.write.uint32(codes.length);
 					Array.isArray(i)
@@ -922,6 +923,7 @@ class Protocol {
 				connect.duel.select.cards.min = 1;
 				connect.duel.select.cards.max = 1;
 				connect.duel.select.cards.title = this.event + mainGame.get.strings.system(203);
+				connect.duel.select.cards.selected.length = 0;
 				this.select_hint = 0;
 				const option = (effect : Array<{ desc ?: number; index : number; }>) => {
 					const array = effect
@@ -1054,6 +1056,7 @@ class Protocol {
 			connect.duel.select.cards.min = min;
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
+			connect.duel.select.cards.selected.length = 0;
 			this.select_hint = 0;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
@@ -1109,6 +1112,67 @@ class Protocol {
 			};
 			connect.duel.select.counter.show = true;
 			return;
+		}],
+		[MSG.SELECT_SUM, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index += 6;
+			const min = msg.read.uint8();
+			const max = msg.read.uint8();
+			if (min === undefined || max === undefined)
+				return;
+			const selected : Array<Client_Card> = [];
+			const codes : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				msg.index += 4;
+				if (code === undefined || loc === undefined || seq === undefined)
+					return;
+				const card = this.get.card(tp, loc, seq);
+				if (card) {
+					codes.push([card, code]);
+					selected.push(card);
+				}
+			}
+			const select : Array<Client_Card> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const code = msg.read.uint32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				msg.index += 4;
+				if (code === undefined || loc === undefined || seq === undefined)
+					return;
+				const card = this.get.card(tp, loc, seq);
+				if (card) {
+					codes.push([card, code]);
+					select.push(card);
+				}
+			}
+			await mainGame.load.pic(codes.map(i => i[1]));
+			codes.forEach(i => i[0].set.id(i[1]));
+			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(560);
+			connect.duel.select.cards.cancelable = false;
+			connect.duel.select.cards.cards = codes.map(i => i[0]);
+			connect.duel.select.cards.min = min;
+			connect.duel.select.cards.max = max;
+			connect.duel.select.cards.title = title;
+			connect.duel.select.cards.selected = selected;
+			this.select_hint = 0;
+			connect.response = async (i : Array<Client_Card>) => {
+				connect.duel.select.cards.show = false;
+				const msg = new Msg()
+					.write.uint8(CTOS.RESPONSE);
+				msg.write.uint32(codes.length);
+				for (const c of i) {
+					const ct = select.indexOf(c);
+					msg.write.uint32(ct > - 1 ? ct : 0);
+				}
+				await send(msg);
+			};
+			connect.duel.select.cards.show = true;
 		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

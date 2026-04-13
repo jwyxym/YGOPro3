@@ -20,7 +20,7 @@
 						<img :src = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
-					<var-checkbox :checked-value = 'i'></var-checkbox>
+					<var-checkbox :checked-value = 'i' :readonly = 'selected.includes(i) ?? false'/>
 				</div>
 			</var-checkbox-group>
 			<var-radio-group
@@ -55,6 +55,7 @@
 		min : number;
 		max : number;
 		cancelable : boolean;
+		selected : Array<Client_Card>;
 	}>();
 
 	const players = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
@@ -71,10 +72,14 @@
 
 	const page = reactive({
 		show : false,
-		cards : props.min > 1 ? [] : undefined as Array<Client_Card> | Client_Card | undefined,
+		cards : props.min > 1 || props.selected.length > 0
+			? props.selected ?? []
+			: undefined as Array<Client_Card> | Client_Card | undefined,
 		select : (card : Client_Card) => {
-			if (props.min > 1) {
-				const cards = page.cards as Array<Client_Card>;
+			if (Array.isArray(page.cards)) {
+				if (props.selected.includes(card))
+					return;
+				const cards = page.cards;
 				const ct = cards.indexOf(card);
 				if (ct > -1)
 					cards.splice(ct, 1);
@@ -97,8 +102,8 @@
 			return str;
 		},
 		confirmable : computed(() : boolean => {
-			if (props.min > 1) {
-				const cards = page.cards as Array<Client_Card>;
+			if (Array.isArray(page.cards)) {
+				const cards = page.cards;
 				return cards.length >= props.min;
 			}
 			return !!page.cards;

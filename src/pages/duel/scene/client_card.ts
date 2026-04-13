@@ -879,6 +879,7 @@ class Client_Card {
 						connect.duel.select.cards.min = 1;
 						connect.duel.select.cards.max = 1;
 						connect.duel.select.cards.cards = c;
+						connect.duel.select.cards.selected.length = 0;
 						connect.duel.select.cards.confirm = async (i : Client_Card) => {
 							connect.duel.select.cards.show = false;
 							i.get.activate(j.key).length > 1 ? option(i.get.activate(j.key), j.key, j.command)

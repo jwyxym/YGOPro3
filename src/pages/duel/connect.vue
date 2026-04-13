@@ -99,6 +99,7 @@
 				:max = 'connect.duel.select.cards.max'
 				:title = 'connect.duel.select.cards.title'
 				:cancelable = 'connect.duel.select.cards.cancelable'
+				:selected = 'connect.duel.select.cards.selected'
 				@exit = '(i ?: Client_Card | Array<Client_Card>) => connect.duel.select.cards.confirm?.(i)
 					?? connect.response?.(i)'
 				@click = 'duel.click'
