@@ -442,12 +442,6 @@ class Client_Card {
 					return '0 0 8px rgba(119, 166, 255, 1)';
 				else return 'initial';
 			})();
-			await mainGame.sleep(100);
-		};
-		const activate_btn = async () : Promise<void> => {
-			if (!this.need_change.activate)
-				return;
-			this.need_change.activate = false;
 			const ACTIVATE = this.activatable.get(COMMAND.ACTIVATE)!;
 			const SUMMON = this.activatable.get(COMMAND.SUMMON)!;
 			const SPSUMMON = this.activatable.get(COMMAND.SPSUMMON)!;
@@ -510,7 +504,7 @@ class Client_Card {
 						tl.to(el, {
 							x : v * 28,
 							duration : 0.1
-						});
+						}, 0);
 					if (span.innerText !== text)
 						if (gsap.getProperty(el, 'opacity'))
 							if (gsap.getProperty(span, 'opacity')) {
@@ -541,12 +535,12 @@ class Client_Card {
 					tl.to(el, {
 						x : 0,
 						duration : 0.1
-					});
+					}, 0);
 					tl.to(el, {
 						opacity : 0,
 						duration : 0.1,
 						onComplete : () => (span.innerText = text) as any as void
-					});
+					}, 0);
 				}
 			}
 			return tl;
@@ -563,12 +557,12 @@ class Client_Card {
 			const turn = (el : HTMLImageElement, pic : string) => {
 				tl.set(el, {
 					rotationY : 0
-				});
+				}, 0);
 				tl.to(el, {
 					rotationY : 90,
 					duration : 0.1,
 					onComplete : () => (el.src = pic ?? '') as unknown as void
-				});
+				}, 0);
 				tl.set(el, {
 					rotationY : -90
 				}, 0.2);
@@ -580,8 +574,10 @@ class Client_Card {
 			const img = this.get.el.img();
 			const back = mainGame.back.pic;
 			const is_back = img.src === back;
-			if (this.location & LOCATION.HAND)
-			if ((this.pos & POS.FACEDOWN) && !is_back)
+			const pic = mainGame.get.card(this.id).pic;
+			if (this.id && img.src !== pic && (this.pos & POS.FACEUP) && !is_back)
+				img.src = pic;
+			else if ((this.pos & POS.FACEDOWN) && !is_back)
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
 				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
@@ -589,12 +585,12 @@ class Client_Card {
 				tl.to(img, {
 					rotationZ : 0,
 					duration : 0.1,
-				});
+				}, 0);
 			else if ((this.pos & POS.DEFENSE) && !gsap.getProperty(img, 'rotationZ'))
 				tl.to(img, {
 					rotationZ : - 90,
 					duration : 0.1,
-				});
+				}, 0);
 			return tl;
 		};
 		const location = () : gsap.core.Timeline | void => {
@@ -608,7 +604,7 @@ class Client_Card {
 				tl.to(this.three.position, {
 					z : axis.z,
 					duration : 0.05
-				});
+				}, 0);
 				tl.to(this.three.position, {
 					x : axis.x,
 					y : axis.y,
@@ -619,7 +615,7 @@ class Client_Card {
 					x : axis.x,
 					y : axis.y,
 					duration : 0.15
-				});
+				}, 0);
 				tl.to(this.three.position, {
 					z : axis.z,
 					duration : 0.05
@@ -638,7 +634,7 @@ class Client_Card {
 					opacity : 0,
 					duration : 0.1,
 					onComplete : () => atk.innerText = text as unknown as any
-				});
+				}, 0);
 				tl.to(atk, {
 					opacity : 1,
 					duration : 0.1
@@ -677,7 +673,7 @@ class Client_Card {
 						tl.to(i, {
 							opacity : 0,
 							duration : 0.1
-						});
+						}, 0);
 					tl.set(i, {
 						x : elements.indexOf(i as HTMLDivElement) * 30,
 					}, 0.1);
@@ -708,23 +704,28 @@ class Client_Card {
 			this.get.el.counter().style.opacity = '0';
 		}
 		const run = async () => {
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
-			const tl = gsap.timeline();
-			tl.add(owner() ?? gsap.timeline());
-			tl.add(location() ?? gsap.timeline());
-			tl.add(position() ?? gsap.timeline());
-			tl.add(atk() ?? gsap.timeline());
-			tl.add(type() ?? gsap.timeline());
-			tl.add(counter() ?? gsap.timeline());
-			tl.then(() => resolve?.());
-			await promise;
+			const tls = [
+				owner(),
+				location(),
+				position(),
+				atk(),
+				type(),
+				counter()
+			]
+				.filter(i => i !== undefined);
+			if (tls.length) {
+				let resolve = undefined as (() => void) | undefined;
+				const promise = new Promise<void>((r) => resolve = r);
+				const tl = gsap.timeline();
+				tls.forEach(i => tl.add(i));
+				tl.then(() => resolve?.());
+				await promise;
+			}
 		};
 		if (this.clicked && !(this.location & LOCATION.HAND))
 			this.click.img();
 		await Promise.all([
 			run(),
-			activate_btn(),
 			activate(),
 			status()
 		]);
@@ -746,6 +747,8 @@ class Client_Card {
 			this.scale = 0;
 			this.status = 0;
 			this.need_change.type = true;
+			if ((this.location & LOCATION.HAND) && this.owner)
+				this.pos = POS.FACEDOWN_ATTACK;
 			this.activatable = new Map([
 				[COMMAND.ACTIVATE, []],
 				[COMMAND.SUMMON, []],
@@ -794,7 +797,7 @@ class Client_Card {
 				tl.to(div, {
 					opacity : 1,
 					duration : 0.1
-				});
+				}, 0);
 				tl.to(div, {
 					scale : 1.2,
 					duration : 0.2
@@ -811,7 +814,7 @@ class Client_Card {
 				tl.to(div, {
 					x : `+= ${SIZE.WIDTH * 1.2}px`,
 					duration : 0.1
-				});
+				}, 0);
 				tl.to(div, {
 					x : `-= ${SIZE.WIDTH * 1.2}px`,
 					duration : 0.1

@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted } from 'vue';
+import { defineComponent } from 'vue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { PHASE } from '../ygo-protocol/network';

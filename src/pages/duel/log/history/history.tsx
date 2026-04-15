@@ -20,6 +20,7 @@ const HISTORY = {
 	DECK_COUNT : 6,
 	CHAINING : 7,
 	CHAIN_SOLVED : 8,
+	CONFIRM : 9,
 }
 
 interface HistoryContent {
@@ -203,6 +204,19 @@ const History  = defineComponent({
 								pos = {i.content.cards[0].pos}
 							/>
 							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED, i.content.number!)} />
+						</div>
+					case HISTORY.CONFIRM:
+						return <div class = {['history__confirm',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<Pic
+								id = {i.content.cards[0].id}
+								pos = {i.content.cards[0].pos}
+							/>
 						</div>
 				}
 			})}

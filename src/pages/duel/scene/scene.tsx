@@ -63,42 +63,157 @@ class _Duel {
 		window.addEventListener('click', duel.click);
 	};
 
-	sort = {
-		deck : async (owner : 0 | 1) : Promise<void> => {
-			const sort = () : gsap.core.Timeline => {
+	confrim = {
+		hand : async (cards : Array<Client_Card>) : Promise<void> => {
+			const tls = gsap.timeline();
+			const turn = (el : HTMLImageElement, pic : string) : gsap.core.Timeline => {
 				const tl = gsap.timeline();
-				const cards = lodash.orderBy(
-					this.cards
-						.filter(i => i.owner === owner && i.location === LOCATION.DECK),
-					['seq']
-				);
-				const len = cards.length;
-				if (len > 1) {
-					const card = cards[1];
-					for (let v = 0; v < 4; v ++) {
-						tl.to(card.three.position, {
-							x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
-							duration : 0.05
-						}, v * 0.2);
-						tl.to(card.three.position, {
-							z : card.seq * SIZE.TOP / 2,
-							duration : 0.05
-						}, 0.05 + v * 0.2);
-						tl.to(card.three.position, {
-							x : `${!!owner ? '-' : '+'}=${SIZE.WIDTH}px`,
-							duration : 0.05
-						}, 0.1 + v * 0.2);
-						tl.to(card.three.position, {
-							z : card.seq * SIZE.TOP,
-							duration : 0.05
-						}, 0.15 + v * 0.2);
-					}
-				}
+				tl.set(el, {
+					rotationY : 0
+				});
+				tl.to(el, {
+					rotationY : 90,
+					duration : 0.1,
+					onComplete : () => (el.src = pic ?? '') as unknown as void
+				});
+				tl.set(el, {
+					rotationY : -90
+				}, 0.2);
+				tl.to(el, {
+					rotationY : 0,
+					duration : 0.1
+				}, 0.25);
 				return tl;
+			};
+			for (const card of cards) {
+				const img = card.get.el.img();
+				const back = mainGame.back.pic;
+				const tl = gsap.timeline();
+				if (img.src === back)
+					tl.add(turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic));
+
+				tl.to(card.three.rotation, {
+					z : 0,
+					duration : 0.1,
+				}, '>');
+				const x = card.three.position.x;
+				const y = card.three.position.y;
+				tl.to(card.three.position, {
+					x : 0,
+					y : -200,
+					z : '+=250',
+					duration : 0.1,
+				}, '>');
+				tl.to(card.three.position, {
+					x : x,
+					y : y,
+					z : '-=250',
+					duration : 0.1,
+				}, '>');
+				tl.to(card.three.rotation, {
+					z : Math.PI,
+					duration : 0.1,
+				}, '>');
+				if (img.src !== back)
+					tl.add(turn(img, back), '>');
+				tls.add(tl, '>');
 			}
 			let resolve = undefined as (() => void) | undefined;
 			const promise = new Promise<void>((r) => resolve = r);
-			const tl = sort();
+			tls.then(() => resolve?.());
+			await promise;
+		},
+		decktop : async (card : Client_Card) : Promise<void> => {
+			const tl = gsap.timeline();
+			const img = card.get.el.img();
+			const pic = mainGame.get.card(card.id).pic
+				?? mainGame.unknown.pic;
+			const back = mainGame.back.pic;
+			tl.to(card.three.position, {
+				x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+				duration : 0.1
+			}, 0);
+			tl.to(img, {
+				rotationY : 90,
+				duration : 0.05,
+				onComplete : () => (img.src = pic ?? '') as unknown as void
+			}, 0.1);
+			tl.set(img, {
+				rotationY : -90
+			}, 0.15);
+			tl.to(img, {
+				rotationY : 0,
+				duration : 0.05
+			}, 0.2);
+			tl.to(img, {
+				rotationY : 90,
+				duration : 0.05,
+				onComplete : () => (img.src = back) as unknown as void
+			}, 0.45);
+			tl.set(img, {
+				rotationY : -90
+			}, 0.5);
+			tl.to(img, {
+				rotationY : 0,
+				duration : 0.05
+			}, 0.55);
+			tl.to(card.three.position, {
+				x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+				duration : 0.1
+			}, 0.6);
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			tl.then(() => resolve?.());
+			await promise;
+		} 
+	};
+
+	sort = {
+		on : (owner : 0 | 1, loc : number) : gsap.core.Timeline => {
+			const tl = gsap.timeline();
+			const cards = lodash.orderBy(
+				this.cards
+					.filter(i => i.owner === owner
+						&& (i.location & loc)
+						&& (i.pos & POS.FACEDOWN)
+					),
+				i => i.seq
+			);
+			const len = cards.length;
+			if (len > 1) {
+				const card = cards[1];
+				for (let v = 0; v < 4; v ++) {
+					tl.to(card.three.position, {
+						x : `${!!owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						duration : 0.05
+					}, v * 0.2);
+					tl.to(card.three.position, {
+						z : card.seq * SIZE.TOP / 2,
+						duration : 0.05
+					}, 0.05 + v * 0.2);
+					tl.to(card.three.position, {
+						x : `${!!owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						duration : 0.05
+					}, 0.1 + v * 0.2);
+					tl.to(card.three.position, {
+						z : card.seq * SIZE.TOP,
+						duration : 0.05
+					}, 0.15 + v * 0.2);
+				}
+			}
+			return tl;
+		},
+		deck : async (owner : 0 | 1) : Promise<void> => {
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			const tl = this.sort.on(owner, LOCATION.DECK);
+			tl.then(() => resolve?.());
+			return promise;
+		},
+		ex_deck : async (owner : 0 | 1) : Promise<void> => {
+			let resolve = undefined as (() => void) | undefined;
+			const promise = new Promise<void>((r) => resolve = r);
+			const tl = this.sort.on(owner, LOCATION.EXTRA);
 			tl.then(() => resolve?.());
 			return promise;
 		},
@@ -119,8 +234,11 @@ class _Duel {
 					const pointer = pointers.get(i) ?? 0;
 					if (group && pointer < group.length) {
 						const card = group[pointer];
-						card.set.seq(v);
-						pointers.set(i, pointer + 1);
+						card
+							.set.seq(v)
+							.set.id(i);
+						pointers
+							.set(i, pointer + 1);
 					}
 				});
 			}
@@ -357,19 +475,31 @@ class _Duel {
 		}
 	}
 
-	update = async () : Promise<void> => {
-		for (let tp = 0; tp < 2; tp ++) {
-			const cards = this.get.cards()
-				.filter(i => i.owner === tp);
-			[LOCATION.HAND, LOCATION.DECK, LOCATION.EXTRA, LOCATION.GRAVE, LOCATION.REMOVED]
-				.forEach(loc => cards
-					.filter(i => i.location & loc)
-					.forEach((i, v) => i.set.seq(v))
-				);
+	update = async (cards : Array<Client_Card> = []) : Promise<void> => {
+		if (cards.length)
+			await Promise
+				.all(cards.map(i => i.update()));
+		else {
+			for (let tp = 0; tp < 2; tp ++) {
+				const cards = this.get.cards()
+					.filter(i => i.owner === tp);
+				[LOCATION.HAND, LOCATION.DECK, LOCATION.EXTRA, LOCATION.GRAVE, LOCATION.REMOVED]
+					.forEach(loc => cards
+						.filter(i => i.location & loc)
+						.forEach((i, v) => {
+							i.set.seq(v);
+							if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
+								|| (loc & LOCATION.HAND) && !i.owner)
+								i.set.pos(POS.FACEUP_ATTACK);
+							else if (loc & LOCATION.DECK)
+								i.set.pos(POS.FACEDOWN_ATTACK);
+						})
+					);
+			}
+				
+			await Promise
+				.all(this.cards.map(i => i.update()));
 		}
-			
-		await Promise
-			.all(this.cards.map(i => i.update()));
 	};
 	
 	click = (event : Event | Client_Card | number) : void => {

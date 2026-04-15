@@ -269,17 +269,19 @@ class Game {
 	load = {
 		deck : invoke.game.get_deck,
 		ypk : invoke.game.load_ypk,
-		pic : async (deck : Deck | Array<number | string>) => {
+		pic : async (deck : Deck | Array<number | string>) : Promise<boolean> => {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
 			deck = deck
 				.filter(i => !this.get.card(i).has_pic())
 				.map(i => Number(i));
-			(await invoke.game.get_pic(deck as Array<number>))
+			const pics = await invoke.game.get_pic(deck as Array<number>);
+			pics
 				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
 			deck
 				.map(i => this.get.card(i))
 				.filter(i => !i.has_pic())
 				.forEach(i => i.update_pic(this.unknown.pic));
+			return !!pics.length;
 		}
 	};
 
