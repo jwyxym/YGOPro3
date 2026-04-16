@@ -2,6 +2,9 @@ import { reactive } from 'vue';
 import { exit } from '@tauri-apps/plugin-process';
 import { fetch } from '@tauri-apps/plugin-http';
 
+import Deck from '@/pages/deck/deck';
+import { LOCATION } from '@/pages/duel/ygo-protocol/network';
+
 import fs from './fs';
 import * as CONSTANT from './constant';
 import Card from './card';
@@ -10,9 +13,6 @@ import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import YGOPRO_STR from './language/string';
 import invoke from './invoke';
-import { LOCATION } from '../pages/duel/ygo-protocol/network';
-
-import Deck from '@/pages/deck/deck';
 
 class Game {
 	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
@@ -239,10 +239,20 @@ class Game {
 			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW)
 				: this.replace(card.hint[offset], replace);
 		},
-		location : (loc : number, seq : number) : string => {
-			if (loc === LOCATION.SZONE)
-				return this.get.strings.system(seq < 5 ? 1003 : seq === 5 ? 1008 : 1009);
-			return this.get.strings.system(1000 + Object.entries(LOCATION).findIndex((_, i) => i === loc));
+		location : (loc : number) : string => {
+			const locs = new Map([
+				[LOCATION.NONE, I18N_KEYS.DUEL_LOCATION_NONE],
+				[LOCATION.HAND, I18N_KEYS.DUEL_LOCATION_HAND],
+				[LOCATION.DECK, I18N_KEYS.DUEL_LOCATION_DECK],
+				[LOCATION.EXTRA, I18N_KEYS.DUEL_LOCATION_EX_DECK],
+				[LOCATION.GRAVE, I18N_KEYS.DUEL_LOCATION_GRAVE],
+				[LOCATION.REMOVED, I18N_KEYS.DUEL_LOCATION_REMOVED],
+				[LOCATION.OVERLAY, I18N_KEYS.DUEL_LOCATION_OVERLAY],
+				[LOCATION.MZONE, I18N_KEYS.DUEL_LOCATION_MZONE],
+				[LOCATION.SZONE, I18N_KEYS.DUEL_LOCATION_SZONE]
+			]);
+			const key = locs.get(loc & LOCATION.OVERLAY ? LOCATION.OVERLAY : loc);
+			return this.get.text(key ?? I18N_KEYS.UNKNOW);
 		},
 		name : (id : number | undefined) : string => {
 			if (id === undefined)

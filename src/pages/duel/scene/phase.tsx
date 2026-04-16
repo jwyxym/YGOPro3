@@ -31,6 +31,7 @@ const Phase = defineComponent({
 	setup () {
 		return () => <div
 			ref = {(el) => phase.set_element(el as HTMLDivElement | null)}
+			class = 'font-title'
 			style = {{
 				'width' : '0',
 				'color' : 'white',

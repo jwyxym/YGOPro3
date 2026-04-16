@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted, reactive } from 'vue';
+import { defineComponent, onMounted, onUnmounted, toRaw } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
@@ -269,7 +269,7 @@ class _Duel {
 			i
 				.set.location(LOCATION.HAND)
 				.set.seq(v + hands.length)
-				.set.pos(player ? POS.FACEDOWN_ATTACK : POS.FACEUP_ATTACK);
+				.set.pos(player || !codes[v] ? POS.FACEDOWN_ATTACK : POS.FACEUP_ATTACK);
 		});
 		return deck;
 	};
@@ -434,7 +434,7 @@ class _Duel {
 			pos : number = POS.FACEDOWN_ATTACK,
 			id ?: number
 		) : Client_Card => {
-			const card = reactive(new Client_Card());
+			const card = new Client_Card();
 			card
 				.set.owner(owner)
 				.set.location(location)
@@ -449,6 +449,14 @@ class _Duel {
 			return card;
 		}
 	};
+
+	remove = {
+		card : (card : Client_Card) : Client_Card => {
+			this.cards.splice(this.cards.indexOf(card), 1);
+			this.scene.remove(card.three);
+			return card;
+		}
+	}
 
 	get = {
 		cards : () => this.cards,
@@ -488,8 +496,7 @@ class _Duel {
 						.filter(i => i.location & loc)
 						.forEach((i, v) => {
 							i.set.seq(v);
-							if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
-								|| (loc & LOCATION.HAND) && !i.owner)
+							if (loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
 								i.set.pos(POS.FACEUP_ATTACK);
 							else if (loc & LOCATION.DECK)
 								i.set.pos(POS.FACEDOWN_ATTACK);
@@ -530,7 +537,7 @@ class _Duel {
 					return;
 				}
 				if (card.location & LOCATION.HAND) {
-					if (connect.duel.card === card && card.clicked)
+					if (toRaw(connect.duel.card) === card && card.clicked)
 						connect.duel.card = undefined;
 					else
 						connect.duel.card = card;

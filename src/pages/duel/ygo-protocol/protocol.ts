@@ -46,7 +46,11 @@ class Protocol {
 	}> = connect.wait.players) => {
 		msg = msg instanceof ChatMsg ? msg : player ? new ChatMsg(players[player].name, msg, players[player].avatar) : this.server_msg(msg);
 		if (!connect.chat.show)
-			toast.info(connect.wait.players.find(i => i.name === msg.name) ? msg.name + (msg.name.length > 0 ? ': ' : '') : '' + msg.msg);
+			toast.info((connect.wait.players.find(i => i.name === msg.name)
+					? msg.name + (msg.name.length > 0 ? ': ' : '')
+					: ''
+				) + msg.msg
+			);
 		chat.push(msg);
 	};
 	error = (msg : ChatMsg | string) => {
@@ -74,13 +78,15 @@ class Protocol {
 		overlay : (tp : number, loc : number, seq : number, ct : number) : Client_Card | undefined => {
 			if (!(loc & LOCATION.OVERLAY))
 				return;
-			const cards = duel.get.cards()
-				.filter(i =>
-					(i.owner === tp || tp === 2)
-					&& (i.location & loc)
-					&& i.seq === seq
-					&& !i.overlay
-				);
+			const cards = lodash.orderBy(
+				duel.get.cards()
+					.filter(i =>
+						(i.owner === tp || tp === 2)
+						&& (i.location & loc)
+						&& i.seq === seq
+					),
+				i => i.overlay
+			);
 			return cards.length > ct ? cards[ct] : cards[0];
 		},
 		response : (i : number, command : number) : number => {
@@ -107,7 +113,7 @@ class Protocol {
 			if (!flag)
 				return card.clear.self();
 			if (flag & QUERY.CODE) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				if (!code)
 					return card.clear.self();
 				result.push([card, code]);
@@ -172,7 +178,7 @@ class Protocol {
 					);
 				for (let i = 0; i < ct; i ++) {
 					const c = cards[i];
-					const code = msg.read.uint32();
+					const code = msg.read.int32();
 					if (!c || code === undefined) return;
 					result.push([c, code]);
 					c.set.overlay(ct - (i + 1));
@@ -247,7 +253,7 @@ class Protocol {
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();
 			msg.index += 3;
-			const code = msg.read.uint32();
+			const code = msg.read.int32();
 			if (protocol === undefined || code === undefined)
 				return;
 			switch (protocol) {
@@ -610,7 +616,7 @@ class Protocol {
 			duel.clear.activate();
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -619,7 +625,7 @@ class Protocol {
 					return;
 				const card = this.get.card(tp, loc, seq);
 				if (card) {
-					card.set.activate(COMMAND.ACTIVATE, i, desc);
+					card.set.activate(COMMAND.ACTIVATE, i, desc, true);
 					codes.push([card, code]);
 				}
 			}
@@ -631,7 +637,8 @@ class Protocol {
 				msg.index ++;
 				if (loc === undefined || seq === undefined)
 					return;
-				this.get.card(tp, loc, seq)?.set.activate(COMMAND.ATTACK, i);
+				this.get.card(tp, loc, seq)
+					?.set.activate(COMMAND.ATTACK, i, undefined, true);
 			}
 			await this.update.codes(codes);
 			if (msg.read.uint8())
@@ -655,29 +662,40 @@ class Protocol {
 			const codes : Array<[Client_Card, number]> = [];
 			const commands = [COMMAND.SUMMON, COMMAND.SPSUMMON, COMMAND.REPOS, COMMAND.MSET, COMMAND.SSET, COMMAND.ACTIVATE];
 			for (const command of commands) {
-				for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-					if (command === COMMAND.SPSUMMON) {
-						const code = msg.read.uint32();
+				const ct = msg.read.uint8() ?? 0;
+				for (let i = 0; i < ct; i ++) {
+					if (command === COMMAND.ACTIVATE) {
+						const code = msg.read.int32();
 						const tp = this.to.player(msg.read.uint8() ?? 0);
 						const loc = msg.read.uint8();
 						const seq = msg.read.uint8();
-						if (code === undefined || loc === undefined || seq === undefined)
+						const desc = msg.read.int32();
+						if (code === undefined
+							|| loc === undefined
+							|| seq === undefined
+							|| desc === undefined
+						)
 							return;
 						const card = this.get.card(tp, loc, seq);
 						if (card) {
 							codes.push([card, code]);
-							card.set.activate(COMMAND.SPSUMMON, i);
+							card.set.activate(command, i, desc, true);
 						}
 					} else {
-						const count = msg.read.uint8();
+						const code = msg.read.int32();
 						const tp = this.to.player(msg.read.uint8() ?? 0);
 						const loc = msg.read.uint8();
 						const seq = msg.read.uint8();
-						if (count === undefined || loc === undefined || seq === undefined)
+						if (code === undefined
+							|| loc === undefined
+							|| seq === undefined
+						)
 							return;
 						const card = this.get.card(tp, loc, seq);
-						if (card)
-							card.set.activate(command, i)
+						if (card) {
+							codes.push([card, code]);
+							card.set.activate(command, i, undefined, true);
+						}
 					}
 				}
 			}
@@ -700,7 +718,7 @@ class Protocol {
 		}],
 		[MSG.SELECT_EFFECTYN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
-			const code = msg.read.uint32();
+			const code = msg.read.int32();
 			const player = msg.read.uint8();
 			const loc = msg.read.uint8();
 			const seq = msg.read.uint8();
@@ -722,8 +740,8 @@ class Protocol {
 				);
 			};
 			connect.duel.select.confirm.title = desc === 0
-				? this.event + mainGame.get.strings.system(200, [mainGame.get.location(loc, seq), mainGame.get.desc(desc)])
-				: desc === 221 ? this.event + mainGame.get.strings.system(221, [mainGame.get.location(loc, seq), mainGame.get.desc(desc)])
+				? this.event + mainGame.get.strings.system(200, [mainGame.get.location(loc), mainGame.get.desc(desc)])
+				: desc === 221 ? this.event + mainGame.get.strings.system(221, [mainGame.get.location(loc), mainGame.get.desc(desc)])
 				: desc <= mainGame.max_string_id ? mainGame.get.strings.system(desc, mainGame.get.name(code))
 				: mainGame.get.desc(desc, mainGame.get.name(code));
 			connect.duel.select.confirm.show = true;
@@ -769,7 +787,7 @@ class Protocol {
 				return;
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -799,13 +817,13 @@ class Protocol {
 				const msg = new Msg()
 					.write.uint8(CTOS.RESPONSE);
 				if (i) {
-					msg.write.uint32(codes.length);
+					msg.write.uint8(codes.length);
 					Array.isArray(i)
-						? i.forEach(i => msg.write.uint32(
+						? i.forEach(i => msg.write.uint8(
 							connect.duel.select.cards.cards
 								.indexOf(i)
 						))
-						: msg.write.uint32(connect.duel.select.cards.cards.indexOf(i));
+						: msg.write.uint8(connect.duel.select.cards.cards.indexOf(i));
 				} else msg.write.uint32(- 1);
 				await send(msg);
 			};
@@ -820,7 +838,7 @@ class Protocol {
 				return;
 			const codesI : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -837,7 +855,7 @@ class Protocol {
 			}
 			const codesII : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -887,7 +905,7 @@ class Protocol {
 			for (let i = 0; i < ct; i ++) {
 				let flag = msg.read.uint8();
 				const forced = msg.read.uint8();
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -931,7 +949,7 @@ class Protocol {
 					connect.duel.select.option.show = true;
 					connect.duel.select.option.confirm = async (i ?: number) => {
 						connect.duel.select.option.show = false;
-						i ? connect.response?.(effect[i].index)
+						i !== undefined ? connect.response?.(effect[i].index)
 							: connect.duel.select.cards.show = true;
 					}
 				};
@@ -959,17 +977,15 @@ class Protocol {
 		[MSG.SELECT_PLACE, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = Math.max(msg.read.uint8() ?? 1, 1);
-			const data = msg.read.uint32();
-			if (data === undefined)
-				return;
-			const place = tp === this.to.player(0) ? ~data : ((~data >> 16) | (~data << 16));
-			const plaids = duel.get.plaids().filter(i => i.location & place);
+			const data = ~ (msg.read.int32() ?? 0);
+			const place = tp === this.to.player(0) ? data : (data >> 16) | (data << 16);
+			const plaids = duel.get.plaids().filter(i => i.data & place);
 			const title = !!this.select_hint ? mainGame.get.strings.system(569, mainGame.get.name(this.select_hint))
 				: mainGame.get.strings.system(560);
 			this.select_hint = 0;
 			connect.duel.select.plaid.title = title;
 			connect.duel.select.plaid.plaids = plaids
-			connect.duel.select.plaid.cards = plaids.map(i => this.get.card(i.seq[1], i.seq[0] & 0xff, (i.seq[0] >> 16) & 0xff));
+			connect.duel.select.plaid.cards = plaids.map(i => this.get.card(i.owner, i.location, i.seq));
 			connect.duel.select.plaid.min = ct;
 			connect.duel.select.plaid.cancelable = false;
 			connect.response = async (i ?: Plaid) => {
@@ -977,20 +993,20 @@ class Protocol {
 				const msg = new Msg()
 					.write.uint8(CTOS.RESPONSE);
 				if (i)
-					msg.write.uint32(this.to.player(i.seq[1]))
-						.write.uint32(i.seq[0] & 0xff)
-						.write.uint32((i.seq[0] >> 16) & 0xff);
+					msg.write.uint8(this.to.player(i.owner === 2 ? 0 : i.owner))
+						.write.uint8(i.location)
+						.write.uint8(i.seq);
 				else
-					msg.write.uint32(this.to.player(0))
-						.write.uint32(0)
-						.write.uint32(0);
+					msg.write.uint8(this.to.player(0))
+						.write.uint8(0)
+						.write.uint8(0);
 				await send(msg);
 			};
 			connect.duel.select.plaid.show = true;
 		}],
 		[MSG.SELECT_POSITION, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
-			const code = msg.read.uint32();
+			const code = msg.read.int32();
 			const pos = msg.read.uint8();
 			if (code === undefined || pos === undefined)
 				return;
@@ -1029,7 +1045,7 @@ class Protocol {
 				return;
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -1059,13 +1075,13 @@ class Protocol {
 				const msg = new Msg()
 						.write.uint8(CTOS.RESPONSE)
 				if (i) {
-					msg.write.uint32(codes.length);
+					msg.write.uint8(codes.length);
 					Array.isArray(i)
-						? i.forEach(i => msg.write.uint32(
+						? i.forEach(i => msg.write.uint8(
 							connect.duel.select.cards.cards
 								.indexOf(i)
 						))
-						: msg.write.uint32(connect.duel.select.cards.cards.indexOf(i));
+						: msg.write.uint8(connect.duel.select.cards.cards.indexOf(i));
 				} else msg.write.uint32(- 1);
 				await send(msg);
 			};
@@ -1118,7 +1134,7 @@ class Protocol {
 			const selected : Array<Client_Card> = [];
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -1133,7 +1149,7 @@ class Protocol {
 			}
 			const select : Array<Client_Card> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -1172,7 +1188,7 @@ class Protocol {
 		[MSG.SORT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -1199,7 +1215,7 @@ class Protocol {
 			msg.index += 2;
 			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
 				const seq = msg.read.uint8();
@@ -1228,7 +1244,7 @@ class Protocol {
 			const ct = duel.get.cards()
 				.filter(i => i.owner === tp && (i.location & LOCATION.HAND)).length;
 			for (let i = 0; i < ct; i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				if (code === undefined) return;
 				codes.push(code);
 			}
@@ -1241,7 +1257,7 @@ class Protocol {
 			const ct = duel.get.cards()
 				.filter(i => i.owner === tp && (i.location & LOCATION.EXTRA)).length;
 			for (let i = 0; i < ct; i ++) {
-				const code = msg.read.uint32();
+				const code = msg.read.int32();
 				if (code === undefined) return;
 				codes.push(code);
 			}
@@ -1284,7 +1300,7 @@ class Protocol {
 		[MSG.DECK_TOP, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const seq = msg.read.uint8();
-			const code = msg.read.uint32();
+			const code = msg.read.int32();
 			if (seq === undefined || code === undefined)
 				return;
 			const cards = duel.get.cards()
@@ -1329,12 +1345,79 @@ class Protocol {
 		[MSG.NEW_TURN, async (msg : Msg) => {
 			const tp = this.to.player((msg.read.uint8() ?? 0) & 0x1);
 			connect.duel.turn = tp;
+			connect.duel.turns[tp] ++;
+			history.push(HISTORY.TURN, {
+				self : !tp,
+				cards : [],
+				avatar : mainGame.get.avatar(0),
+				number : connect.duel.turns[tp]
+			});
 		}],
 		[MSG.NEW_PHASE, async (msg : Msg) => {
 			const p = msg.read.uint16();
 			if (p === undefined)
 				return;
 			await phase.on(connect.duel.turn, p);
+			history.push(HISTORY.PHASE, {
+				self : true,
+				cards : [],
+				avatar : mainGame.get.avatar(0),
+				number : p
+			});
+		}],
+		[MSG.MOVE, async (msg : Msg) => {
+			const code = msg.read.int32();
+			const from = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8(),
+				ct : msg.read.uint8()
+			};
+			const to = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8(),
+				ct : msg.read.uint8()
+			};
+			const reason = msg.read.int32();
+			if (code === undefined || reason === undefined
+				|| Object.values(from).includes(undefined)
+				|| Object.values(to).includes(undefined)
+			)
+				return;
+			await mainGame.load.pic([code]);
+
+			let card : Client_Card | undefined = undefined;
+			if (!from.loc)
+				card = duel.add.card(to.tp, to.loc!, to.seq!)
+					.set.id(code);
+			else if (!to.loc) {
+				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
+					?? this.get.card(from.tp, from.loc!, from.seq!);
+				if (c)
+					duel.remove.card(c);
+			} else {
+				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
+					?? this.get.card(from.tp, from.loc!, from.seq!);
+				if (c) {
+					card = c;
+					card
+						.set.id(code)
+						.set.owner(to.tp)
+						.set.location(to.loc!)
+						.set.seq(to.seq!);
+				}
+			}
+			if (card)
+				history.push(HISTORY.MOVE, {
+					self : true,
+					cards : [{
+						id : card.id,
+						pos : card.id ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK
+					}],
+					from : mainGame.get.location(from.loc!),
+					to : mainGame.get.location(to.loc!)
+				});
 		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

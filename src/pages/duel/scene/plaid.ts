@@ -9,8 +9,9 @@ class Plaid {
 	three : CSS.CSS3DObject;
 	child : HTMLDivElement;
 	name : string;
+	data : number;
 	location : number;
-	seq : [number, number];
+	seq : number;
 	disable : boolean;
 	owner : number;
 
@@ -28,7 +29,7 @@ class Plaid {
 		this.child = child;
 		this.disable = false;
 		this.three = new CSS.CSS3DObject(dom);
-		this.location = Math.abs(x) === 3 ?
+		this.data = Math.abs(x) === 3 ?
 			(() : number  => {
 				if (x * y <= 0 || Math.abs(y) !== 1)
 					return 0;
@@ -50,26 +51,25 @@ class Plaid {
 					return parseInt(location, 2) << ((- 1 - y) * 8);
 				}
 			})();
-		this.seq = Math.abs(x) === 3 ?
-			(() : [number, number]  => {
+		[this.location, this.seq, this.owner] = Math.abs(x) === 3 ?
+			(() : [number, number, number]  => {
 				if (x * y <= 0 || Math.abs(y) !== 1)
-					return [0, 0];
-				return [LOCATION.FZONE, y < 0 ? 0 : 1];
-			})() : (() : [number, number] => {
+					return [0, 0, 0];
+				return [LOCATION.SZONE, 5, y < 0 ? 0 : 1];
+			})() : (() : [number, number, number] => {
 				switch (y) {
 					case 2:
-						return [LOCATION.SZONE | ((- x + 2) << 16), 1];
+						return [LOCATION.SZONE, 2 - x, 1];
 					case 1:
-						return [LOCATION.MZONE | ((- x + 2) << 16), 1];
+						return [LOCATION.MZONE, 2 - x, 1];
 					case -1:
-						return [LOCATION.MZONE | ((x + 2) << 16), 0];
+						return [LOCATION.MZONE, 2 + x, 0];
 					case -2:
-						return [LOCATION.SZONE | ((x + 2) << 16), 0];
+						return [LOCATION.SZONE, x + 2, 0];
 					default:
-						return [LOCATION.MZONE | ((x > 0 ? 6 : 5) << 16), 2];
+						return [LOCATION.MZONE, x > 0 ? 6 : 5, 2];
 				}
 			})();
-		this.owner = (y > 0 || (y === 0 && x === -3)) ? 1 : 0;
 		const owners = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
 		this.name = `[${mainGame.get.text(owners[this.owner])}]${(() : string => {
 			if ((x === -3 && y === 2) || (x === 3 && y === -2))

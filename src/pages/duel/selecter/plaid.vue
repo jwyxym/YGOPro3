@@ -83,10 +83,11 @@
 					height: 100%;
 					width: 100%;
 					display: flex;
+					justify-content: center;
 					align-items: center;
 					flex-direction: column;
 					> div:first-child {
-						height: calc(100% - 30px);
+						height: calc(100% - 50px);
 						aspect-ratio: 1 / 1.3;
 						border: 2px solid #9ed3ff;
 						display: flex;

@@ -3,6 +3,8 @@ import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 
+import { PHASE } from '@/pages/duel/ygo-protocol/network';
+
 import Pic from './pic';
 import Desc from './desc';
 import Avatar from './avatar';
@@ -21,6 +23,8 @@ const HISTORY = {
 	CHAINING : 7,
 	CHAIN_SOLVED : 8,
 	CONFIRM : 9,
+	PHASE : 10,
+	TURN : 11,
 }
 
 interface HistoryContent {
@@ -70,6 +74,18 @@ class _History {
 };
 
 const history = new _History ();
+
+
+const Phase = new Map([
+	[PHASE.NONE, mainGame.get.text(I18N_KEYS.DUEL_PHASE_NEW)],
+	[PHASE.DRAW, mainGame.get.text(I18N_KEYS.DUEL_PHASE_DRAW)],
+	[PHASE.STANDBY, mainGame.get.text(I18N_KEYS.DUEL_PHASE_STANDBY)],
+	[PHASE.MAIN1, mainGame.get.text(I18N_KEYS.DUEL_PHASE_MAIN1)],
+	[PHASE.BATTLE_START, mainGame.get.text(I18N_KEYS.DUEL_PHASE_BATTLE)],
+	[PHASE.MAIN2, mainGame.get.text(I18N_KEYS.DUEL_PHASE_MAIN2)],
+	[PHASE.END, mainGame.get.text(I18N_KEYS.DUEL_PHASE_END)],
+]);
+
 const History  = defineComponent({
 	setup () {
 		onMounted(() => {
@@ -183,7 +199,10 @@ const History  = defineComponent({
 								i.content.self ? 'history__self' : 'history__oppo'
 							]}>
 							<Cover/>
-							<Desc desc = {String(i.content.number!)} />
+							<Desc
+								desc = {String(i.content.number!)}
+								position = {true}
+							/>
 						</div>
 					case HISTORY.CHAINING:
 						return <div class = {['history__chaining',
@@ -216,6 +235,30 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+							/>
+						</div>
+					case HISTORY.PHASE:
+						return <div class = {['history__phase',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<Num
+								number = {Phase.get(i.content.number as number)!}
+							/>
+						</div>
+					case HISTORY.TURN:
+						return <div class = {['history__phase',
+								i.content.self ? 'history__self' : 'history__oppo'
+							]}>
+							<Avatar
+								avatar = {i.content.avatar!}
+								self = {i.content.self}
+							/>
+							<Num
+								number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_TURN, i.content.number!)}
 							/>
 						</div>
 				}

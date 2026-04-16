@@ -1,4 +1,3 @@
-import * as CONSTANT from './constant';
 import mainGame from './game';
 
 const TYPE = {

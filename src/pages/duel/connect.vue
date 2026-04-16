@@ -200,6 +200,18 @@
 				@click = 'duel.click'
 				key = '9'
 			/>
+			<Select_Plaid
+				v-if = 'connect.duel.select.plaid.show'
+				:plaids = 'connect.duel.select.plaid.plaids'
+				:cards = 'connect.duel.select.plaid.cards'
+				:title = 'connect.duel.select.plaid.title'
+				:min = 'connect.duel.select.plaid.min'
+				:cancelable = 'connect.duel.select.plaid.cancelable'
+				@exit = '(i ?: Plaid) => connect.duel.select.plaid.confirm?.(i)
+					?? connect.response?.(i)'
+				@click = 'duel.click'
+				key = '10'
+			/>
 		</TransitionGroup>
 		<TransitionGroup tag = 'div' name = 'right_in'>
 			<Chain
@@ -236,11 +248,17 @@
 	import Wait from './wait.vue';
 	import connect from './connect';
 	import RPS from './rps.vue';
+	import Avatar from './avatar.vue';
+
 	import Log from './log/log.vue';
+
 	import Scene, { duel } from './scene/scene';
 	import Phase from './scene/phase';
 	import Chain from './scene/chain.vue';
 	import Cards from './scene/cards.vue';
+	import Client_Card from './scene/client_card';
+	import Plaid from './scene/plaid';
+
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
 	import Select_Codes from './selecter/code.vue';
@@ -248,13 +266,13 @@
 	import Select_Option from './selecter/option.vue';
 	import Select_Race from './selecter/race.vue';
 	import Select_Attribute from './selecter/attribute.vue';
+	import Select_Plaid from './selecter/plaid.vue';
 	import Select_Pos from './selecter/pos.vue';
 	import Select_Counter from './selecter/counter.vue';
 	import Select_Sort from './selecter/sort.vue';
+
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
-	import Client_Card from './scene/client_card';
-	import Avatar from './avatar.vue';
 
 	const card_info = {
 		width : 360,

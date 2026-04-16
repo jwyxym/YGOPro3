@@ -116,6 +116,7 @@ class Duel {
 	player : [Player, Player] = [reactive(new Player()), reactive(new Player())];
 	chain : Array<Client_Card> = [];
 	turn : 0 | 1 = 0;
+	turns : [number, number] = [0, 0];
 	shuffle = false;
 	select = {
 		cards : new Selecter.Cards(),

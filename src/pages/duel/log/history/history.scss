@@ -12,6 +12,7 @@
 			height: 100%;
 		}
 	}
+	:deep(.history__deck__count),
 	:deep(.history__card__move),
 	:deep(.history__draw),
 	:deep(.history__chaining),
@@ -34,6 +35,8 @@
 		}
 	}
 	:deep(.history__cover),
+	:deep(.history__turn),
+	:deep(.history__phase),
 	:deep(.history__lp) {
 		> div:first-child {
 			width: 20%;
@@ -60,5 +63,13 @@
 	}
 	:deep(.history__self) {
 		background: linear-gradient(to right, blue 0%, rgba($color: blue, $alpha: 0) 40%);
+	}
+	:deep(.history__oppo.history__turn),
+	:deep(.history__oppo.history__phase) {
+		background: linear-gradient(to right, red 0%, rgba($color: red, $alpha: 0) 100%);
+	}
+	:deep(.history__self.history__turn),
+	:deep(.history__self.history__phase) {
+		background: linear-gradient(to right, blue 0%, rgba($color: blue, $alpha: 0) 100%);
 	}
 }

@@ -14,6 +14,7 @@ const Desc  = defineComponent({
 	setup (props) {
 		return () => <div style = {{
 			'display' : 'flex',
+			'font-size' : '1.5em',
 			'justify-content' : props.position ? 'flex-start' : 'center',
 			'align-items' : 'center',
 			'white-space' : 'pre-wrap'

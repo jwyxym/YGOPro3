@@ -116,17 +116,17 @@
 0x4000 = "type/type_token.png"
 
 [btn]
-"ACTIVATE" = ["btn_activate.png", "btn_hover_activate.png"]
-"SCALE" = ["btn_scale.png", "btn_hover_scale.png"]
-"ATTACK" = ["btn_attack.png", "btn_hover_attack.png"]
-"SUMMON" = ["btn_summon.png", "btn_hover_summon.png"]
-"SPSUMMON" = ["btn_spsummon.png", "btn_hover_spsummon.png"]
-"PSUMMON" = ["btn_psummon.png", "btn_hover_psummon.png"]
-"FLIP" = ["btn_flip.png", "btn_hover_flip.png"]
-"MSET" = ["btn_mset.png", "btn_hover_mset.png"]
-"SSET" = ["btn_sset.png", "btn_hover_sset.png"]
-"POS_ATTACK" = ["btn_pos_attack.png", "btn_hover_pos_attack.png"]
-"POS_DEFENCE" = ["btn_pos_defence", "btn_hover_pos_defence.png"]
+"ACTIVATE" = ["btn/btn_activate.png", "btn/btn_hover_activate.png"]
+"SCALE" = ["btn/btn_scale.png", "btn/btn_hover_scale.png"]
+"ATTACK" = ["btn/btn_attack.png", "btn/btn_hover_attack.png"]
+"SUMMON" = ["btn/btn_summon.png", "btn/btn_hover_summon.png"]
+"SPSUMMON" = ["btn/btn_spsummon.png", "btn/btn_hover_spsummon.png"]
+"PSUMMON" = ["btn/btn_psummon.png", "btn/btn_hover_psummon.png"]
+"FLIP" = ["btn/btn_flip.png", "btn/btn_hover_flip.png"]
+"MSET" = ["btn/btn_mset.png", "btn/btn_hover_mset.png"]
+"SSET" = ["btn/btn_sset.png", "btn/btn_hover_sset.png"]
+"POS_ATTACK" = ["btn/btn_pos_attack.png", "btn/btn_hover_pos_attack.png"]
+"POS_DEFENCE" = ["btn/btn_pos_defence", "btn/btn_hover_pos_defence.png"]
 
 [info]
 "LEVEL" = "info/info_level.png"

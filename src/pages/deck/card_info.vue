@@ -117,7 +117,7 @@
 			def : ''
 		}
 		if (!n)
-			return;
+			return page.show = false;
 		if (n instanceof Client_Card) {
 			if (n.id) {
 				const [card, orgin] = Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
@@ -157,7 +157,7 @@
 				page.card.def = card.def >= 0 ? card.def.toString() : '?';
 			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
 		}
-	}, { immediate : true, deep : true });
+	}, { immediate : true });
 </script>
 <style lang = 'scss' scoped>
 	$color-sub : rgb(203, 203, 203);

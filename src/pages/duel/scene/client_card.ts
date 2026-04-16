@@ -133,8 +133,8 @@ class Client_Card {
 				backgroundColor : 'rgba(0, 0, 0, 0.3)',
 				opacity : '0',
 				position : 'absolute',
-				bottom : '0',
-				left : `-${(SIZE.HEIGHT - SIZE.WIDTH) / 2}px`,
+				left : `-${SIZE.HEIGHT / 2}px`,
+				top : `${SIZE.HEIGHT / 2 - 16}px`,
 				width : `${SIZE.HEIGHT}px`,
 				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
 				fontSize : '20px',
@@ -150,8 +150,8 @@ class Client_Card {
 			Object.assign(child.style, {
 				opacity : '1',
 				position : 'absolute',
-				bottom : '40px',
-				left : `-${(SIZE.HEIGHT - SIZE.WIDTH) / 2}px`,
+				left : `-${SIZE.HEIGHT / 2}px`,
+				top : `${SIZE.HEIGHT / 2 - 56}px`,
 				height : '16px',
 				width : `${SIZE.HEIGHT}px`,
 				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
@@ -198,8 +198,8 @@ class Client_Card {
 			Object.assign(child.style, {
 				opacity : '1',
 				position : 'absolute',
-				bottom : '20px',
-				left : `-${(SIZE.HEIGHT - SIZE.WIDTH) / 2}px`,
+				left : `-${SIZE.HEIGHT / 2}px`,
+				top : `${SIZE.HEIGHT / 2 - 36}px`,
 				height : '16px',
 				width : `${SIZE.HEIGHT}px`,
 				color : 'white',
@@ -312,6 +312,7 @@ class Client_Card {
 			return this;
 		},
 		pos : (pos : number) : Client_Card => {
+			if (!pos) pos = POS.FACEDOWN_ATTACK;
 			if (this.pos === pos) return this;
 			this.pos = pos;
 			return this;
@@ -393,8 +394,8 @@ class Client_Card {
 				: this.counter.set(ctype, Math.max(0, ccount));
 			return this;
 		},
-		activate : (flag : number, index : number, desc ?: number) => {
-			this.need_change.activate = true;
+		activate : (flag : number, index : number, desc ?: number, chk : boolean = false) => {
+			this.need_change.activate = chk;
 			this.activatable
 				.get(flag)?.push({ index : index, desc : desc});
 		},
@@ -461,7 +462,16 @@ class Client_Card {
 			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
 			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
 			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
-			elements.forEach(i => i[0].style.opacity = this.btnable && i[1] ? '1' : '0');
+			this.btnable = true;
+			elements.forEach(i => {
+				if (this.btnable && i[1]) {
+					i[0].style.display = 'initial';
+					i[0].style.opacity = '1';
+				} else {
+					i[0].style.opacity = '0';
+					setTimeout(() => i[0].style.display = 'none', 100);
+				}
+			});
 			await mainGame.sleep(100);
 		};
 		const counter = () : gsap.core.Timeline | void => {
@@ -762,13 +772,13 @@ class Client_Card {
 		activate : () : Client_Card => {
 			this.btnable = false;
 			this.need_change.activate = true;
-			this.activatable.get(COMMAND.ACTIVATE)!.length = 0;
-			this.activatable.get(COMMAND.SUMMON)!.length = 0;
-			this.activatable.get(COMMAND.SPSUMMON)!.length = 0;
-			this.activatable.get(COMMAND.SSET)!.length = 0;
-			this.activatable.get(COMMAND.MSET)!.length = 0;
-			this.activatable.get(COMMAND.REPOS)!.length = 0;
-			this.activatable.get(COMMAND.ATTACK)!.length = 0;
+			this.activatable.set(COMMAND.ACTIVATE, [])
+			this.activatable.set(COMMAND.SUMMON, []);
+			this.activatable.set(COMMAND.SPSUMMON, []);
+			this.activatable.set(COMMAND.SSET, []);
+			this.activatable.set(COMMAND.MSET, []);
+			this.activatable.set(COMMAND.REPOS, []);
+			this.activatable.set(COMMAND.ATTACK, []);
 			return this;
 		}
 	}
@@ -839,7 +849,7 @@ class Client_Card {
 					transform : 'translate(-50%, 0)'
 				} : {
 					opacity : '1',
-					transform : 'translate(-50%, -50px)'
+					transform : 'translate(-50%, -100px)'
 				});
 			}
 			this.clicked = !this.clicked;
@@ -855,7 +865,7 @@ class Client_Card {
 				connect.duel.select.option.show = true;
 				connect.duel.select.option.confirm = async (i ?: number) => {
 					connect.duel.select.option.show = false;
-					i ? connect.response?.(effect[i].index, command)
+					i !== undefined ? connect.response?.(effect[i].index, command)
 						: connect.duel.select.cards.show = !!cards
 							.filter(i => i.get.activate(key).length > 0)
 							.length;

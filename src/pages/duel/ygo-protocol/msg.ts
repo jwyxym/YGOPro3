@@ -31,6 +31,27 @@ class Msg {
 			this.index += 4;
 			return data;
 		},
+		int8 : () : number | undefined => {
+			if (this.index >= this.length())
+				return undefined;
+			const data = this.content.readInt8(this.index);
+			this.index ++;
+			return data;
+		},
+		int16 : () : number | undefined => {
+			if (this.index + 1 >= this.length())
+				return undefined;
+			const data = this.content.readInt16LE(this.index);
+			this.index += 2;
+			return data;
+		},
+		int32 : () : number | undefined => {
+			if (this.index + 2 >= this.length())
+				return undefined;
+			const data = this.content.readInt32LE(this.index);
+			this.index += 4;
+			return data;
+		},
 		str : (len ?: number) : string | undefined => {
 			const length = this.length();
 
