@@ -224,7 +224,8 @@ class Client_Card {
 				top : '0px',
 				left : '50%',
 				transform: 'translate(-50%, 0)',
-				transition : 'all 0.2s ease'
+				transition : 'all 0.2s ease',
+				userSelect: 'none'
 			});
 			for (const i of [
 				KEYS.ACTIVATE,
@@ -591,12 +592,13 @@ class Client_Card {
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
 				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
-			if ((this.pos & POS.ATTACK) && gsap.getProperty(img, 'rotationZ'))
+			const z = Number(gsap.getProperty(img, 'rotationZ'));
+			if (((this.pos & POS.ATTACK) || !(this.location & LOCATION.MZONE)) && z)
 				tl.to(img, {
 					rotationZ : 0,
 					duration : 0.1,
 				}, 0);
-			else if ((this.pos & POS.DEFENSE) && !gsap.getProperty(img, 'rotationZ'))
+			else if ((this.pos & POS.DEFENSE) && !z)
 				tl.to(img, {
 					rotationZ : - 90,
 					duration : 0.1,
@@ -674,7 +676,7 @@ class Client_Card {
 				elements.push(this.get.el.info(KEYS.TUNER));
 			} else {
 				this.get.el.info(KEYS.LEVEL).querySelector('span')!.innerText = this.level.toString();
-				elements.push(this.get.el.info(KEYS.TUNER));
+				elements.push(this.get.el.info(KEYS.LEVEL));
 			}
 			const tl = gsap.timeline();
 			Array.from(this.get.el.info().children).forEach((i) => {
@@ -902,7 +904,7 @@ class Client_Card {
 					} else if (this.get.activate(j.key).length > 1)
 						option(this.get.activate(j.key), j.key, j.command);
 					else
-						connect.response?.(this.get.activate(j.key)[0], j.command);
+						connect.response?.(this.get.activate(j.key)[0].index, j.command);
 				}
 		}
 	};

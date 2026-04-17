@@ -27,7 +27,13 @@ class _Toast {
 
 	set_elements = (el : HTMLDivElement | null, key : Hint) => el ? this.elements.set(key, el) : this.elements.delete(key);
 
-	splice = (v: number) => {
+	clear = () => this.queue.add(async () => {
+		this.list.forEach(i => i.status = 'leave');
+		await mainGame.sleep(200);
+		this.list.length = 0;
+	});
+
+	splice = (v : number) => {
 		this.list[v].status = 'leave';
 		const offset = this.list[v].height + 20;
 
@@ -37,7 +43,7 @@ class _Toast {
 		setTimeout(() => this.list.splice(v, 1), 100);
 	};
 
-	push = (str: string | number, type: HintType) => {
+	push = (str : string | number, type : HintType) => {
 		const obj = this.to_toast(str, type);
 
 		this.queue.add(async () => {

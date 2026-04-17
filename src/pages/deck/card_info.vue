@@ -128,7 +128,7 @@
 				page.card.pic = card.pic;
 				page.card.name = card.name;
 				page.card.description = card.desc;
-				page.card.type = mainGame.get.strings.type(card.type);
+				page.card.type = mainGame.get.strings.type(n.type);
 				if (n.type & TYPE.MONSTER) {
 					page.card.attribute = mainGame.get.strings.attribute(n.attribute);
 					page.card.race = mainGame.get.strings.race(n.race);

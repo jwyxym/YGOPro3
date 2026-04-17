@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 import lodash from 'lodash';
+import PQueue from 'p-queue';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
@@ -22,6 +23,10 @@ import connect from '../connect';
 class _Duel {
 	element : HTMLDivElement | null = null;
 	set_element = (el : HTMLDivElement | null) => this.element = el;
+	queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
 	
 	renderer : CSS.CSS3DRenderer = new CSS.CSS3DRenderer();
 	scene : THREE.Scene = new THREE.Scene();
@@ -235,8 +240,7 @@ class _Duel {
 					if (group && pointer < group.length) {
 						const card = group[pointer];
 						card
-							.set.seq(v)
-							.set.id(i);
+							.set.seq(v);
 						pointers
 							.set(i, pointer + 1);
 					}
@@ -262,7 +266,6 @@ class _Duel {
 		const hands = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
 		
-		codes.reverse();
 		deck.forEach((i, v) => {
 			if (!player && codes[v])
 				i.set.id(codes[v]);
@@ -492,15 +495,17 @@ class _Duel {
 				const cards = this.get.cards()
 					.filter(i => i.owner === tp);
 				[LOCATION.HAND, LOCATION.DECK, LOCATION.EXTRA, LOCATION.GRAVE, LOCATION.REMOVED]
-					.forEach(loc => cards
-						.filter(i => i.location & loc)
-						.forEach((i, v) => {
-							i.set.seq(v);
-							if (loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
-								i.set.pos(POS.FACEUP_ATTACK);
-							else if (loc & LOCATION.DECK)
-								i.set.pos(POS.FACEDOWN_ATTACK);
-						})
+					.forEach(loc => lodash.sortBy(
+							cards.filter(i => i.location & loc),
+							i => i.seq
+						)
+							.forEach((i, v) => {
+								i.set.seq(v);
+								if (loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
+									i.set.pos(POS.FACEUP_ATTACK);
+								else if (loc & LOCATION.DECK)
+									i.set.pos(POS.FACEDOWN_ATTACK);
+							})
 					);
 			}
 				
@@ -511,61 +516,66 @@ class _Duel {
 	
 	click = (event : Event | Client_Card | number) : void => {
 		if (!this.element) return;
-		connect.duel.cards.length = 0;
-		if (event instanceof Client_Card || typeof event === 'number') {
-			const card = event;
-			connect.duel.card = card;
-			this.cards
-				.filter(i => i.clicked)
-				.forEach(i => i.click.img());
-		} else {
-			const target = event.target as HTMLElement;
-			if (target.classList.contains('history__card__pic')
-				|| target.classList.contains('list__card__pic')
-				|| target.classList.contains('chain__card__pic')) {
-				connect.duel.card = mainGame.get.card(target.id);
+		this.queue.add(async () => {
+			if (connect.duel.cards.length) {
+				connect.duel.cards.length = 0;
+				await mainGame.sleep(100);
+			}
+			if (event instanceof Client_Card || typeof event === 'number') {
+				const card = event;
+				connect.duel.card = card;
 				this.cards
 					.filter(i => i.clicked)
 					.forEach(i => i.click.img());
 			} else {
-				const card = this.cards.find(i => i.contains(target));
-				if (!card) {
-					connect.duel.card = undefined;
+				const target = event.target as HTMLElement;
+				if (target.classList.contains('history__card__pic')
+					|| target.classList.contains('list__card__pic')
+					|| target.classList.contains('chain__card__pic')) {
+					connect.duel.card = mainGame.get.card(target.id);
 					this.cards
 						.filter(i => i.clicked)
 						.forEach(i => i.click.img());
-					return;
-				}
-				if (card.location & LOCATION.HAND) {
-					if (toRaw(connect.duel.card) === card && card.clicked)
-						connect.duel.card = undefined;
-					else
-						connect.duel.card = card;
-
-					if (target.classList.contains('duel__card__btn'))
-						card?.click.btn(target);
 				} else {
-					const cards = this.cards.filter(i => i.owner === card.owner
-						&& (i.location & card.location)
-						&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
-					)
-					const c = lodash.maxBy(cards, i => i.seq);
-					if (connect.duel.card === c && c?.clicked)
+					const card = this.cards.find(i => i.contains(target));
+					if (!card) {
 						connect.duel.card = undefined;
-					else
-						connect.duel.card = c;
-					if (target.classList.contains('duel__card__btn'))
-						card?.click.btn(target, cards);
-					if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
-						connect.duel.cards = cards;
-				}
+						this.cards
+							.filter(i => i.clicked)
+							.forEach(i => i.click.img());
+						return;
+					}
+					if (card.location & LOCATION.HAND) {
+						if (toRaw(connect.duel.card) === card && card.clicked)
+							connect.duel.card = undefined;
+						else
+							connect.duel.card = card;
 
-				this.cards
-					.filter(i => i.clicked && i !== connect.duel.card)
-					.forEach(i => i.click.img());
-				connect.duel.card?.click.img();
+						if (target.classList.contains('duel__card__btn'))
+							card?.click.btn(target);
+					} else {
+						const cards = this.cards.filter(i => i.owner === card.owner
+							&& (i.location & card.location)
+							&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
+						)
+						const c = lodash.maxBy(cards, i => i.seq);
+						if (connect.duel.card === c && c?.clicked)
+							connect.duel.card = undefined;
+						else
+							connect.duel.card = c;
+						if (target.classList.contains('duel__card__btn'))
+							card?.click.btn(target, cards);
+						if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
+							connect.duel.cards = cards;
+					}
+
+					this.cards
+						.filter(i => i.clicked && i !== connect.duel.card)
+						.forEach(i => i.click.img());
+					connect.duel.card?.click.img();
+				}
 			}
-		}
+		});
 	};
 
 	win = (title : string, message : string) : void => Dialog({

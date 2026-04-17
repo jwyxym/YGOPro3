@@ -150,7 +150,10 @@ const connect = reactive({
 	chat : {
 		show : false,
 		on : () : void => connect.chat.show ? connect.chat.off()
-			: connect.chat.show = true as any,
+			: (() => {
+				connect.chat.show = true;
+				toast.clear();
+			})(),
 		off : () : void => connect.chat.show = false as any,
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
