@@ -118,6 +118,8 @@ class Protocol {
 					card.clear.self();
 					return [];
 				}
+				console.log(card, code)
+				if (code)
 				result.push([card, code]);
 			}
 			if (flag & QUERY.POSITION) {
@@ -225,10 +227,8 @@ class Protocol {
 			return result;
 		},
 		codes : async (codes : Array<[Client_Card | undefined, number]>) : Promise<void> => {
-			const load = await mainGame.load.pic(codes.map(i => i[1]));
+			await mainGame.load.pic(codes.map(i => i[1]));
 			codes.forEach(i => i[0]?.set.id(i[1]));
-			if (load)
-				await duel.update(codes.map(i => i[0]).filter(i => i !== undefined));
 		}
 	}
 	read = async (msg : Msg, send : (msg : Msg) => Promise<void>) : Promise<void> => {
@@ -545,7 +545,8 @@ class Protocol {
 				for (let v = 0; v < loc.length; v ++)
 					for (let seq = 0; seq < i[v]; seq ++)
 						duel.add.card(tp, loc[v], seq);
-			})
+			});
+			await duel.update();
 		}],
 		[MSG.WIN, async (msg : Msg) => {
 			const player = msg.read.uint8();
@@ -562,6 +563,7 @@ class Protocol {
 			if (location === undefined)
 				return;
 			let codes : Array<[Client_Card | undefined, number]> = [];
+			let cards : Array<Client_Card> = [];
 			if (location & LOCATION.ONFIELD) {
 				const ct = location === LOCATION.MZONE ? 7 : 8;
 				for (let seq = 0; seq < ct; seq ++) {
@@ -571,13 +573,16 @@ class Protocol {
 					const index = msg.index + len - 4;
 					if (len > 8 && card) {
 						const code = this.update.card(msg, card);
+						cards.push(card);
 						codes = codes.concat(code);
 					}
 					msg.index = index;
 				}
 			} else {
-				const cards = duel.get.cards()
-					.filter(i => i.owner === tp && (i.location & location));
+				cards = lodash.sortBy(duel.get.cards()
+					.filter(i => i.owner === tp && (i.location & location)),
+					i => i.seq
+				);
 				for (const card of cards) {
 					const len = msg.read.uint32();
 					if (len === undefined) break;
@@ -590,6 +595,7 @@ class Protocol {
 				}
 			}
 			await this.update.codes(codes);
+			await duel.update(cards);
 		}],
 		[MSG.UPDATE_CARD, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -603,6 +609,7 @@ class Protocol {
 				const codes = this.update.card(msg, card);
 				await this.update.codes(codes);
 			}
+			await card?.update();
 		}],
 		[MSG.SELECT_BATTLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
@@ -1381,9 +1388,9 @@ class Protocol {
 			await mainGame.load.pic([code]);
 
 			let card : Client_Card | undefined = undefined;
-			if (!from.loc)
+			if (!from.loc) {
 				card = duel.add.card(to.tp, to.loc!, to.seq!, to.pos, code);
-			else if (!to.loc) {
+			} else if (!to.loc) {
 				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
 					?? this.get.card(from.tp, from.loc!, from.seq!);
 				if (c)

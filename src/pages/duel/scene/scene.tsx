@@ -265,7 +265,7 @@ class _Duel {
 			.slice(0, ct);
 		const hands = this.get.cards()
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
-		
+
 		deck.forEach((i, v) => {
 			if (!player && codes[v])
 				i.set.id(codes[v]);
@@ -517,10 +517,6 @@ class _Duel {
 	click = (event : Event | Client_Card | number) : void => {
 		if (!this.element) return;
 		this.queue.add(async () => {
-			if (connect.duel.cards.length) {
-				connect.duel.cards.length = 0;
-				await mainGame.sleep(100);
-			}
 			if (event instanceof Client_Card || typeof event === 'number') {
 				const card = event;
 				connect.duel.card = card;
@@ -528,6 +524,10 @@ class _Duel {
 					.filter(i => i.clicked)
 					.forEach(i => i.click.img());
 			} else {
+				if (connect.duel.cards.length) {
+					connect.duel.cards.length = 0;
+					await mainGame.sleep(100);
+				}
 				const target = event.target as HTMLElement;
 				const card = this.cards.find(i => i.contains(target));
 				if (!card) {

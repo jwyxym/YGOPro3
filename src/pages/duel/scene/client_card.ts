@@ -39,6 +39,9 @@ class Client_Card {
 		activate : false,
 		counter : false,
 		status : false,
+		z : false,
+		pos : false,
+		loc : false,
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
@@ -217,7 +220,7 @@ class Client_Card {
 				opacity : '0',
 				height : '48px',
 				minWidth : '0px',
-				display : 'flex',
+				display : 'none',
 				gap : '2px',
 				justifyContent: 'center',
 				position : 'absolute',
@@ -309,20 +312,27 @@ class Client_Card {
 
 	set = {
 		owner : (owner : number) : Client_Card => {
+			if (!this.need_change.z)
+				this.need_change.z = this.owner !== owner;
 			this.owner = owner;
 			return this;
 		},
 		pos : (pos : number) : Client_Card => {
 			if (!pos) pos = POS.FACEDOWN_ATTACK;
-			if (this.pos === pos) return this;
+			if (!this.need_change.pos)
+				this.need_change.pos = this.pos !== pos;
 			this.pos = pos;
 			return this;
 		},
 		location : (location : number) : Client_Card => {
+			if (!this.need_change.loc)
+				this.need_change.loc = this.location !== location;
 			this.location = location;
 			return this;
 		},
 		seq : (seq : number) : Client_Card => {
+			if (!this.need_change.loc)
+				this.need_change.loc = this.seq !== seq;
 			this.seq = seq;
 			return this;
 		},
@@ -463,7 +473,6 @@ class Client_Card {
 			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
 			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
 			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
-			this.btnable = true;
 			elements.forEach(i => {
 				if (this.btnable && i[1]) {
 					i[0].style.display = 'initial';
@@ -557,6 +566,8 @@ class Client_Card {
 			return tl;
 		};
 		const owner = () : gsap.core.Tween | void => {
+			if (!this.need_change.z) return;
+			this.need_change.z = false;
 			if (this.three.rotation.z !== this.owner * Math.PI)
 				return gsap.to(this.three.rotation, {
 					z : this.owner * Math.PI,
@@ -564,6 +575,8 @@ class Client_Card {
 				});
 		};
 		const position = () : gsap.core.Timeline | void => {
+			if (!this.need_change.pos) return;
+			this.need_change.pos = false;
 			const tl = gsap.timeline();
 			const turn = (el : HTMLImageElement, pic : string) => {
 				tl.set(el, {
@@ -606,6 +619,8 @@ class Client_Card {
 			return tl;
 		};
 		const location = () : gsap.core.Timeline | void => {
+			if (!this.need_change.loc) return;
+			this.need_change.loc = false;
 			const axis = Axis.computed.card(this);
 			const tl = gsap.timeline();
 			if (this.three.position.x === axis.x
@@ -846,13 +861,18 @@ class Client_Card {
 				const img = this.get.el.img();
 				
 				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
-				Object.assign(btn.style, this.clicked || !this.btnable ? {
-					opacity : '0',
-					transform : 'translate(-50%, 0)'
-				} : {
-					opacity : '1',
-					transform : 'translate(-50%, -100px)'
-				});
+				if (this.clicked || !this.btnable) {
+					Object.assign(btn.style, {
+						opacity : '0',
+						transform : 'translate(-50%, 0)'
+					});
+					setTimeout(() => btn.style.display = 'none', 100);
+				} else
+					Object.assign(btn.style, {
+						display : 'flex',
+						opacity : '1',
+						transform : 'translate(-50%, -100px)'
+					});
 			}
 			this.clicked = !this.clicked;
 		},
