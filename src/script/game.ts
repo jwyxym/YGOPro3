@@ -254,8 +254,8 @@ class Game {
 			const key = locs.get(loc & LOCATION.OVERLAY ? LOCATION.OVERLAY : loc);
 			return this.get.text(key ?? I18N_KEYS.UNKNOW);
 		},
-		name : (id : number | undefined) : string => {
-			if (id === undefined)
+		name : (id ?: number) : string => {
+			if (!id)
 				return this.get.text(I18N_KEYS.UNKNOW);
 			const card = mainGame.get.card(id);
 			return card === this.unknown ? this.get.text(I18N_KEYS.UNKNOW) : card.name;

@@ -13,8 +13,8 @@ class Plaid {
 	location : number;
 	seq : number;
 	disable : boolean;
+	forbbiden : boolean;
 	owner : number;
-
 
 	constructor (x : number, y : number) {
 		const dom = document.createElement('div');
@@ -28,6 +28,7 @@ class Plaid {
 		dom.appendChild(child);
 		this.child = child;
 		this.disable = false;
+		this.forbbiden = false;
 		this.three = new CSS.CSS3DObject(dom);
 		this.data = Math.abs(x) === 3 ?
 			(() : number  => {
@@ -101,6 +102,22 @@ class Plaid {
 			this.disable = !this.disable;
 			this.child.style.boxShadow = this.disable ? 'inset 0 0 20px rgba(0, 255, 255, 0.6)'
 				: 'initial';
+			await mainGame.sleep(200);
+		},
+		forbbiden : async () : Promise<void> => {
+			this.forbbiden = !this.forbbiden;
+			Object.assign(this.child.style, this.forbbiden ? {
+					background : `
+						linear-gradient(to top right, transparent calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% + 2px), transparent calc(50% + 2px)),
+						linear-gradient(to bottom right, transparent calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% + 2px), transparent calc(50% + 2px)),
+						rgba(255, 0, 0, 0.15)
+					`,
+					borderColor : 'rgba(255, 50, 50, 0.8)'
+				} : {
+					background : 'initial',
+					borderColor : '#9ed3ff'
+				}
+			);
 			await mainGame.sleep(200);
 		}
 	};

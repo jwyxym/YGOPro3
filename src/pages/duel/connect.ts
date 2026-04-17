@@ -107,6 +107,14 @@ class Player {
 		this.lp = lp;
 		await mainGame.sleep(600);
 	};
+	lose_lp = async (lp : number) : Promise<void> => {
+		this.lp -= lp;
+		await mainGame.sleep(600);
+	};
+	recover_lp = async (lp : number) : Promise<void> => {
+		this.lp += lp;
+		await mainGame.sleep(600);
+	};
 };
 
 class Duel {
@@ -130,7 +138,21 @@ class Duel {
 		attribute : new Selecter.Attribute(),
 		pos : new Selecter.Pos(),
 		counter : new Selecter.Counter(),
-		sort : new Selecter.Sort()
+		sort : new Selecter.Sort(),
+		chk : () : boolean => [
+			connect.duel.select.cards.show,
+			connect.duel.select.group.show,
+			connect.duel.select.confirm.show,
+			connect.duel.select.code.show,
+			connect.duel.select.plaid.show,
+			connect.duel.select.number.show,
+			connect.duel.select.option.show,
+			connect.duel.select.race.show,
+			connect.duel.select.attribute.show,
+			connect.duel.select.pos.show,
+			connect.duel.select.counter.show,
+			connect.duel.select.sort.show
+		].includes(true)
 	};
 	rps = {
 		show : false,

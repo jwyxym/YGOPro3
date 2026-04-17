@@ -9,7 +9,7 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import GLOBAL from '@/script/scale'
 ;
-import { LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
+import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import Dialog from '@/pages/ui/dialog';
 
 import * as SIZE from './scene-size';
@@ -19,6 +19,7 @@ import Btn from './btn';
 import Client_Card from './client_card';
 
 import connect from '../connect';
+import { I18N_KEYS } from '@/script/language/i18n';
 
 class _Duel {
 	element : HTMLDivElement | null = null;
@@ -529,6 +530,22 @@ class _Duel {
 					await mainGame.sleep(100);
 				}
 				const target = event.target as HTMLElement;
+				if (this.btn?.contains(target)) {
+					if (this.btn.enable.length > 0 && !connect.duel.select.chk()) {
+						const array = this.btn.enable
+							.map(i => mainGame.get.text(i));
+						connect.duel.select.option.cancelable = true;
+						connect.duel.select.option.title = mainGame.get.text(I18N_KEYS.DUEL_PHASE_CHANGE);
+						connect.duel.select.option.array = array;
+						connect.duel.select.option.show = true;
+						connect.duel.select.option.confirm = async (i ?: number) => {
+							connect.duel.select.option.show = false;
+							if (this.btn && i!== undefined)
+								await connect.response?.(this.btn.enable[i], COMMAND.PHASE);
+						}
+					}
+					return;
+				}
 				const card = this.cards.find(i => i.contains(target));
 				if (!card) {
 					connect.duel.card = undefined;

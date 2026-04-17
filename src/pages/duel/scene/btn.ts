@@ -18,7 +18,7 @@ class Btn {
 			height : `${SIZE.HEIGHT / 3}px`,
 			color : '#9ed3ff',
 			textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-			fontSize : '17px',
+			fontSize : '14px',
 			fontFamily : 'AtkDef',
 			display : 'flex',
 			alignItems : 'center',
@@ -34,8 +34,6 @@ class Btn {
 		child.appendChild(span);
 		dom.appendChild(child);
 		this.three = new CSS.CSS3DObject(dom);
-		// dom.addEventListener('click', async () => {
-		// })
 	};
 	map = new Map([
 		[PHASE.NONE, mainGame.get.text(I18N_KEYS.DUEL_PHASE_NEW)],
@@ -56,6 +54,7 @@ class Btn {
 		await mainGame.sleep(100);
 		this.span.style.opacity = '1';
 	};
+	contains = (target : HTMLElement) : boolean => this.three.element.contains(target);
 }
 
 export default Btn;

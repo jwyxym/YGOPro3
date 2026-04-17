@@ -796,6 +796,11 @@ class Client_Card {
 			this.activatable.set(COMMAND.REPOS, []);
 			this.activatable.set(COMMAND.ATTACK, []);
 			return this;
+		},
+		counter : () : Client_Card => {
+			this.need_change.counter = true;
+			this.counter.clear();
+			return this;
 		}
 	}
 
@@ -818,7 +823,19 @@ class Client_Card {
 		},
 		selected : async () : Promise<void> => {
 			const tl = gsap.timeline();
-			if (this.location & LOCATION.ONFIELD) {
+			if ((this.location & LOCATION.OVERLAY)
+				|| !(this.location & (LOCATION.ONFIELD | LOCATION.HAND))
+			) {
+				const div = this.get.el.img();
+				tl.to(div, {
+					x : `+= ${SIZE.WIDTH * 1.2}px`,
+					duration : 0.1
+				}, 0);
+				tl.to(div, {
+					x : `-= ${SIZE.WIDTH * 1.2}px`,
+					duration : 0.1
+				}, 0.6);
+			} else {
 				const div = this.get.el.border();
 				tl.to(div, {
 					opacity : 1,
@@ -835,16 +852,6 @@ class Client_Card {
 				tl.set(div, {
 					scale : 1
 				}, 0.5);
-			} else if (this.location & (LOCATION.GRAVE | LOCATION.EXTRA)) {
-				const div = this.get.el.img();
-				tl.to(div, {
-					x : `+= ${SIZE.WIDTH * 1.2}px`,
-					duration : 0.1
-				}, 0);
-				tl.to(div, {
-					x : `-= ${SIZE.WIDTH * 1.2}px`,
-					duration : 0.1
-				}, 0.6);
 			}
 			let resolve = undefined as (() => void) | undefined;
 			const promise = new Promise<void>((r) => resolve = r);
@@ -876,7 +883,7 @@ class Client_Card {
 			this.clicked = !this.clicked;
 		},
 		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {
-			if (!this.clicked) return;
+			if (!this.clicked || connect.duel.select.chk()) return;
 			const option = (effect : Array<{ desc ?: number; index : number; }>, key : string, command : number) => {
 				const array = effect
 					.map(i => mainGame.get.desc(i.desc ?? - 1));
@@ -886,7 +893,7 @@ class Client_Card {
 				connect.duel.select.option.show = true;
 				connect.duel.select.option.confirm = async (i ?: number) => {
 					connect.duel.select.option.show = false;
-					i !== undefined ? connect.response?.(effect[i].index, command)
+					i !== undefined ? await connect.response?.(effect[i].index, command)
 						: connect.duel.select.cards.show = !!cards
 							.filter(i => i.get.activate(key).length > 0)
 							.length;

@@ -26,14 +26,17 @@ class Protocol {
 	current_msg : number;
 	select_hint : number;
 	last_select_hint : number;
+	chain_code : number;
 	turn_player : number;
 	constructor () {
 		this.event = '';
 		this.current_msg = 0;
 		this.select_hint = 0;
 		this.last_select_hint = 0;
+		this.chain_code = 0;
 		this.turn_player = 0;
 
+		this.msg.set(MSG.CHAIN_DISABLED, this.msg.get(MSG.CHAIN_NEGATED)!);
 		this.msg.set(MSG.SELECT_DISFIELD, this.msg.get(MSG.SELECT_PLACE)!);
 	};
 	server_msg = (str : string) => new ChatMsg(SERVER, str, '');
@@ -99,6 +102,13 @@ class Protocol {
 					return (i << 16) + 4;
 				case COMMAND.ACTIVATE:
 					return (i << 16) + 5;
+				case COMMAND.PHASE:
+					const map : Map<number, number> = new Map([
+						[I18N_KEYS.DUEL_PHASE_END, 3 + (this.current_msg - 10) * 4],
+						[I18N_KEYS.DUEL_PHASE_MAIN2, 2],
+						[I18N_KEYS.DUEL_PHASE_BATTLE, 6],
+					]);
+					return map.get(i) ?? 0;
 				default:
 					return 0;
 			}
@@ -606,8 +616,8 @@ class Protocol {
 			if (card && len > 8) {
 				const codes = this.update.card(msg, card);
 				await this.update.codes(codes);
+				await card.update();
 			}
-			await card?.update();
 		}],
 		[MSG.SELECT_BATTLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
@@ -640,9 +650,9 @@ class Protocol {
 			}
 			await this.update.codes(codes);
 			if (msg.read.uint8())
-				duel.btn?.enable.push(PHASE.MAIN2);
+				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_MAIN2);
 			if (msg.read.uint8())
-				duel.btn?.enable.push(PHASE.END);
+				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_END);
 			duel.get.cards().forEach(i => i.btnable = true);
 			await duel.update();
 			connect.response = async (i : number, command : number)=> {
@@ -699,9 +709,9 @@ class Protocol {
 			}
 			await this.update.codes(codes);
 			if (msg.read.uint8())
-				duel.btn?.enable.push(PHASE.MAIN2);
+				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_BATTLE);
 			if (msg.read.uint8())
-				duel.btn?.enable.push(PHASE.END);
+				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_END);
 			connect.duel.shuffle = !!msg.read.uint8();
 			duel.get.cards().forEach(i => i.btnable = true);
 			await duel.update();
@@ -947,7 +957,7 @@ class Protocol {
 					connect.duel.select.option.show = true;
 					connect.duel.select.option.confirm = async (i ?: number) => {
 						connect.duel.select.option.show = false;
-						i !== undefined ? connect.response?.(effect[i].index)
+						i !== undefined ? await connect.response?.(effect[i].index)
 							: connect.duel.select.cards.show = true;
 					}
 				};
@@ -1355,7 +1365,10 @@ class Protocol {
 			const p = msg.read.uint16();
 			if (p === undefined)
 				return;
-			await phase.on(connect.duel.turn, p);
+			await Promise.all([
+				phase.on(connect.duel.turn, p),
+				duel.btn?.phase(p)
+			]);
 			history.push(HISTORY.PHASE, {
 				self : true,
 				cards : [],
@@ -1418,6 +1431,191 @@ class Protocol {
 				});
 			await duel.update();
 		}],
+		[MSG.POS_CHANGE, async (msg : Msg) => {
+			const code = msg.read.int32();
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const loc = msg.read.uint8();
+			const seq = msg.read.uint8();
+			const per_pos = msg.read.uint8();
+			const pos = msg.read.uint8();
+			if (code === undefined
+				|| loc === undefined
+				|| seq === undefined
+				|| per_pos === undefined
+				|| pos === undefined
+			)
+				return;
+			const card = this.get.card(tp, loc, seq);
+			if (card) {
+				if ((per_pos & POS.FACEUP) && (pos & POS.FACEDOWN))
+					card.clear.counter();
+				if (code)
+					await this.update.codes([[card, code]]);
+				card.set.pos(pos);
+				this.event = mainGame.get.strings.system(1600);
+				await card.update();
+			}
+		}],
+		[MSG.SWAP, async (msg : Msg) => {
+			msg.index += 4;
+			const card_I = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8()
+			};
+			msg.index += 5;
+			const card_II = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8()
+			};
+			if (card_I.loc === undefined
+				|| card_I.seq === undefined
+				|| card_II.loc === undefined
+				|| card_II.seq === undefined)
+				return;
+			const cards = [
+				duel.get.cards().filter(i =>
+					i.owner === card_I.tp
+					&& (i.location & card_I.loc!)
+					&& i.seq === card_I.seq
+				),
+				duel.get.cards().filter(i =>
+					i.owner === card_II.tp
+					&& (i.location & card_II.loc!)
+					&& i.seq === card_II.seq
+				),
+			];
+			cards[0]
+				.forEach(i => i
+					.set.owner(card_II.tp!)
+					.set.location(card_II.loc!)
+					.set.seq(card_II.seq!)
+				);
+			cards[1]
+				.forEach(i => i
+					.set.owner(card_I.tp!)
+					.set.location(card_I.loc!)
+					.set.seq(card_I.seq!)
+				);
+			this.event = mainGame.get.strings.system(1602);
+		}],
+		[MSG.FIELD_DISABLED, async (msg : Msg) => {
+			const data = msg.read.int32();
+			if (data === undefined) return;
+			const place = connect.duel.is_first ? data : (data >> 16) | (data << 16);
+			const pre_plaids = duel.get.plaids().filter(i => i.forbbiden);
+			const plaids = duel.get.plaids().filter(i => i.data & place);
+			await Promise.all(lodash.xor(pre_plaids, plaids)
+				.map(i => i.set.disable())
+			);
+		}],
+		[MSG.SUMMONING, async (msg : Msg) => {
+			const code = msg.read.int32();
+			this.event = mainGame.get.strings.system(1603, mainGame.get.name(code));
+			await mainGame.load.pic([code ?? 0]);
+		}],
+		[MSG.SUMMONED, async () => {
+			this.event = mainGame.get.strings.system(1604);
+		}],
+		[MSG.SPSUMMONING, async (msg : Msg) => {
+			const code = msg.read.int32();
+			this.event = mainGame.get.strings.system(1605, mainGame.get.name(code));
+			await mainGame.load.pic([code ?? 0]);
+		}],
+		[MSG.SPSUMMONED, async () => {
+			this.event = mainGame.get.strings.system(1606);
+		}],
+		[MSG.FLIPSUMMONING, async (msg : Msg) => {
+			const code = msg.read.int32();
+			this.event = mainGame.get.strings.system(1607, mainGame.get.name(code));
+			await mainGame.load.pic([code ?? 0]);
+		}],
+		[MSG.FLIPSUMMONED, async () => {
+			this.event = mainGame.get.strings.system(1608);
+		}],
+		[MSG.CHAINING, async (msg : Msg) => {
+			const code = msg.read.int32();
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const loc = msg.read.uint8();
+			const seq = msg.read.uint8();
+			const ct = msg.read.uint8();
+			if (code === undefined
+				|| loc === undefined
+				|| seq === undefined
+				|| ct === undefined
+			)
+				return;
+			const card = this.get.overlay(tp, loc, seq, ct)
+				?? this.get.card(tp, loc, seq);
+			if (card) {
+				await mainGame.load.pic([code]);
+				card.set.id(code);
+				this.chain_code = code;
+				connect.duel.chain.push(card);
+				history.push(HISTORY.CHAINING, {
+					self : true,
+					cards : [{
+						id : card.id,
+						pos : POS.FACEUP_ATTACK
+					}],
+					number : connect.duel.chain.length
+				});
+				await Promise.all([
+					card.update(),
+					card.hint.activate()
+				]);
+			}
+		}],
+		[MSG.CHAINED, async () => {
+			this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
+		}],
+		[MSG.CHAIN_SOLVING, async (msg : Msg) => {
+			const ct = msg.read.uint8();
+			if (!ct) return;
+			connect.duel.chain.splice(ct - 1, 1);
+			if (!connect.duel.chain.length)
+				this.chain_code = 0;
+		}],
+		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
+			const ct = msg.read.uint8();
+			if (!ct) return;
+			await connect.duel.chain[ct].hint.negative();
+		}],
+		[MSG.RANDOM_SELECTED, async (msg : Msg) => {
+			msg.index ++;
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (loc === undefined
+					|| seq === undefined
+					|| ct === undefined)
+					return;
+				const card = this.get.overlay(tp, loc, seq, ct)
+					?? this.get.card(tp, loc, seq);
+				if (card)
+					await card.hint.selected();
+			}
+		}],
+		[MSG.BECOME_TARGET, async (msg : Msg) => {
+			msg.index ++;
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				msg.index ++;
+				if (loc === undefined
+					|| seq === undefined)
+					return;
+				const card = this.get.card(tp, loc, seq);
+				if (card) {
+					await card.hint.selected();
+					this.event = mainGame.get.strings.system(1610, mainGame.get.name(card.id));
+				}
+			}
+		}],
 		[MSG.DRAW, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8();
@@ -1434,6 +1632,29 @@ class Protocol {
 				avatar : mainGame.get.avatar(tp)
 			});
 			await duel.update(duel.draw(tp, ct, codes));
+		}],
+		[MSG.DAMAGE, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const val = msg.read.int32();
+			if (val === undefined) return;
+			connect.duel.player[tp].lose_lp(val);
+			this.event = mainGame.get.strings.system(1613 + tp, val);
+		}],
+		[MSG.RECOVER, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const val = msg.read.int32();
+			if (val === undefined) return;
+			connect.duel.player[tp].recover_lp(val);
+			this.event = mainGame.get.strings.system(1615 + tp, val);
+		}],
+		[MSG.EQUIP, async (msg : Msg) => {
+		}],
+		[MSG.LPUPDATE, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const val = msg.read.int32();
+			if (val === undefined) return;
+			connect.duel.player[tp].change_lp(val);
+			this.event = mainGame.get.strings.system(1615 + tp, val);
 		}],
 	]);
 };
