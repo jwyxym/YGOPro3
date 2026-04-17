@@ -27,7 +27,7 @@
 			</div>
 		</TransitionGroup>
 		<transition name = 'right_in'>
-			<History v-show = 'page.select'/>
+			<History v-show = 'page.select' @click = "(i : string | number) => emit('click', i)"/>
 		</transition>
 	</div>
 </template>
@@ -63,7 +63,8 @@
 	});
 
 	const emit = defineEmits<{
-		exit : []
+		exit : [];
+		click : [card : string | number];
 	}>();
 </script>
 <style scoped lang = 'scss'>

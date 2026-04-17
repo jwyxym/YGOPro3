@@ -4,7 +4,7 @@
 			v-for = '(i, v) in cards'
 			:key = 'v'
 			:id = 'i.id.toString()'
-			class = 'list__card__pic'
+			@click.stop = "emit('click', i);"
 		>
 			<img :src = 'mainGame.get.card(i.id).pic'/>
 			{{ loc(i) }}
@@ -46,6 +46,9 @@
 		return str;
 	};
 
+	const emit = defineEmits<{
+		click : [card : Client_Card];
+	}>();
 </script>
 <style scoped lang = 'scss'>
 	.cards {

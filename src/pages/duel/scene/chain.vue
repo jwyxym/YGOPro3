@@ -5,7 +5,7 @@
 			:key = 'v'
 			:style = "{ '--color' : i.owner ? 'red' : 'blue' }"
 			:id = 'i.id.toString()'
-			class = 'chain__card__pic'
+			@click.stop = "emit('click', i);"
 			ref = 'el'
 		>
 			{{ mainGame.get.text(I18N_KEYS.DUEL_CHAIN) }} : {{ v }}
@@ -31,6 +31,10 @@
 		if (scrollTop + clientHeight > scrollHeight - 80)
 			el.value.scrollTop = scrollHeight;
 	});
+
+	const emit = defineEmits<{
+		click : [card : Client_Card];
+	}>();
 </script>
 <style scoped lang = 'scss'>
 	.chain {

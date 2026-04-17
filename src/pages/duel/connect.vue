@@ -217,11 +217,13 @@
 			<Chain
 				v-if = 'connect.duel.chain.length && !connect.duel.cards.length'
 				:cards = 'connect.duel.chain'
+				@click = 'duel.click'
 				key = '0'
 			/>
 			<Cards
 				v-if = 'connect.duel.cards.length'
 				:cards = 'connect.duel.cards'
+				@click = 'duel.click'
 				key = '1'
 			/>
 			<Log

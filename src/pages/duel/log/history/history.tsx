@@ -87,7 +87,10 @@ const Phase = new Map([
 ]);
 
 const History  = defineComponent({
-	setup () {
+	emits : {
+		click : (_ : number | string) => true
+	},
+	setup (_, { emit }) {
 		onMounted(() => {
 			const el = history.element;
 			if (el) {
@@ -105,6 +108,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 							<Desc
 								position = {true}
@@ -118,6 +122,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 							<Desc
 								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
@@ -125,6 +130,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[1].id}
 								pos = {i.content.cards[1].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 						</div>
 					case HISTORY.ANNOUNCE:
@@ -133,6 +139,7 @@ const History  = defineComponent({
 							if (i.content.cards.length)
 								content = <Pic
 									id = {i.content.cards[0].id}
+									onClick = {(v : number | string) => emit('click', v)}
 								/>
 							else if (i.content.number !== undefined)
 								content = <Num
@@ -176,6 +183,7 @@ const History  = defineComponent({
 							<Cards
 								cards = {i.content.cards.map(i => i.id)}
 								width = {300}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 						</div>
 					case HISTORY.POS_CHANGE:
@@ -185,6 +193,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 							<Desc
 								desc = ' →'
@@ -192,6 +201,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[1].id}
 								pos = {i.content.cards[1].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 						</div>
 					case HISTORY.DECK_COUNT:
@@ -211,6 +221,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAINING, i.content.number!)} />
 						</div>
@@ -221,6 +232,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED, i.content.number!)} />
 						</div>
@@ -235,6 +247,7 @@ const History  = defineComponent({
 							<Pic
 								id = {i.content.cards[0].id}
 								pos = {i.content.cards[0].pos}
+								onClick = {(v : number | string) => emit('click', v)}
 							/>
 						</div>
 					case HISTORY.PHASE:

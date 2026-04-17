@@ -3,6 +3,9 @@ import { POS } from '@/pages/duel/ygo-protocol/network';
 import mainGame from '@/script/game';
 
 const Pic  = defineComponent({
+	emits : {
+		click : (_ : number | string) => true
+	},
 	props: {
 		id : {
 			type : [String, Number] as PropType<string | number>,
@@ -13,7 +16,7 @@ const Pic  = defineComponent({
 			default : POS.ATTACK
 		}
 	},
-	setup (props) {
+	setup (props, { emit }) {
 		return () => <div style = {{
 			'display' : 'flex',
 			'flex-direction' : 'column',
@@ -21,12 +24,14 @@ const Pic  = defineComponent({
 			'justify-content' : 'center'
 		}}>
 			<img
-				class = 'history__card__pic'
-				id = {`${props.id}`}
 				src = {mainGame.get.card(props.id).pic}
 				style = {{
 					'height' : '80%',
 					'transform' : props.pos & POS.DEFENSE ? 'rotate(-90deg)' : 'initial'
+				}}
+				onClick = {(e : MouseEvent) => {
+					emit('click', props.id);
+					e.stopPropagation();
 				}}
 			/>
 		</div>;
