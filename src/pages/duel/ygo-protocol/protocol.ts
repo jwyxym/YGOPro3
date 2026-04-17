@@ -118,8 +118,6 @@ class Protocol {
 					card.clear.self();
 					return [];
 				}
-				console.log(card, code)
-				if (code)
 				result.push([card, code]);
 			}
 			if (flag & QUERY.POSITION) {

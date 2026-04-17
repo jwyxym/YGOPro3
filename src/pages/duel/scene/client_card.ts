@@ -568,11 +568,10 @@ class Client_Card {
 		const owner = () : gsap.core.Tween | void => {
 			if (!this.need_change.z) return;
 			this.need_change.z = false;
-			if (this.three.rotation.z !== this.owner * Math.PI)
-				return gsap.to(this.three.rotation, {
-					z : this.owner * Math.PI,
-					duration : 0.2
-				});
+			return gsap.to(this.three.rotation, {
+				z : this.owner * Math.PI,
+				duration : 0.2
+			});
 		};
 		const position = () : gsap.core.Timeline | void => {
 			if (!this.need_change.pos) return;
