@@ -94,6 +94,7 @@ class Wait {
 
 class Player {
 	index : - 1 | 0 | 1;
+	index : number;
 	name : string;
 	time : number;
 	lp : number;
@@ -121,7 +122,7 @@ class Duel {
 	is_first = false;
 	card : undefined | Client_Card | Card | number = undefined;
 	cards : Array<Client_Card> = [];
-	player : [Player, Player] = [reactive(new Player()), reactive(new Player())];
+	player : [Player, Player] = reactive([new Player(), new Player()]);
 	chain : Array<Client_Card> = [];
 	turn : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];

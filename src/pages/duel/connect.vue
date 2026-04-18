@@ -49,6 +49,7 @@
 				:player = 'connect.duel.player[0]'
 				:turn = 'connect.duel.turn'
 				:style = "{ '--top' : `${card_info.height}px` }"
+				:index = '0'
 				key = '6'
 			/>
 			<Avatar
@@ -56,6 +57,7 @@
 				v-if = 'connect.duel.player[1].index > - 1'
 				:player = 'connect.duel.player[1]'
 				:turn = 'connect.duel.turn'
+				:index = '1'
 				key = '7'
 			/>
 		</TransitionGroup>

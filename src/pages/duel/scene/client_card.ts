@@ -268,9 +268,9 @@ class Client_Card {
 			Object.assign(child.style, {
 				position : 'absolute',
 				opacity : '0',
-				left : `${- SIZE.WIDTH / 2}px`,
+				left : `${SIZE.WIDTH / 2}px`,
 				top : `${- SIZE.HEIGHT / 2}px`,
-				width : `${SIZE.WIDTH}px`,
+				width : `${SIZE.HEIGHT}px`,
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease',
 				boxShadow: '0 0 5px 2px blue',

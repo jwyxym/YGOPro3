@@ -2,14 +2,14 @@
 	<div
 		class = 'avatar'
 		:class = "{
-			'avatar__oppo' : player.index,
-			'avatar__self' : !player.index
+			'avatar__oppo' : index,
+			'avatar__self' : !index
 		}"
 	>
 		<var-avatar
-			:src = 'mainGame.get.avatar(player.index)'
+			:src = 'mainGame.get.avatar(index)'
 			:bordered = 'true'
-			:border-color = "player.index ? 'red' : 'blue'"
+			:border-color = "index ? 'red' : 'blue'"
 		/>
 		<div>
 			<strong>{{ player.name }}</strong>
@@ -66,6 +66,7 @@
 	const props = defineProps<{
 		player : Player;
 		turn : 0 | 1;
+		index : 0 | 1;
 	}>();
 
 	watch(() => { return props.player.lp; }, async (n) => {
@@ -83,15 +84,15 @@
 		page.lp.damage = 0;
 		page.lp.from = page.lp.to;
 		page.lp.to = n;
-	}, { immediate : true });
+	}, { immediate : true, deep : true });
 
 	watch(() => { return props.player.time; }, (n) => {
 		page.time = n;
-	}, { immediate : true });
+	}, { immediate : true, deep : true });
 
 	watch(() => { return props.turn; }, (n) => {
 		if (!countdown.value) return;
-		props.player.index === n ? countdown.value.start() : countdown.value.pause();
+		props.index === n ? countdown.value.start() : countdown.value.pause();
 	}, { immediate : true });
 
 </script>
