@@ -1648,6 +1648,32 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1615 + tp, val);
 		}],
 		[MSG.EQUIP, async (msg : Msg) => {
+			const card_I = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8()
+			};
+			msg.index ++;
+			const card_II = {
+				tp : this.to.player(msg.read.uint8() ?? 0),
+				loc : msg.read.uint8(),
+				seq : msg.read.uint8()
+			};
+			msg.index ++;
+			if (card_I.loc === undefined
+				|| card_I.seq === undefined
+				|| card_II.loc === undefined
+				|| card_II.seq === undefined
+			)
+				return;
+			const cards = [
+				this.get.card(card_I.tp, card_I.loc, card_I.seq),
+				this.get.card(card_II.tp, card_II.loc, card_II.seq),
+			];
+			if (cards[0] === undefined || cards[1] === undefined)
+				return;
+			cards[1]
+				.set.equip(cards[0]);
 		}],
 		[MSG.LPUPDATE, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1655,6 +1681,15 @@ class Protocol {
 			if (val === undefined) return;
 			connect.duel.player[tp].change_lp(val);
 			this.event = mainGame.get.strings.system(1615 + tp, val);
+		}],
+		[MSG.UNEQUIP, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const loc = msg.read.uint8();
+			const seq = msg.read.uint8();
+			if (loc === undefined || seq === undefined)
+				return;
+			const card = this.get.card(tp, loc, seq);
+			card?.clear.equip();
 		}],
 	]);
 };

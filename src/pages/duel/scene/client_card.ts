@@ -33,6 +33,7 @@ class Client_Card {
 	scale : number;
 	overlay : number;
 	status : number;
+	equip ?: Client_Card;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
 	need_change = {
 		type : false,
@@ -98,6 +99,7 @@ class Client_Card {
 			dom.appendChild(this.init.info());
 			dom.appendChild(this.init.counter());
 			dom.appendChild(this.init.btn());
+			dom.appendChild(this.init.equip());
 			setTimeout(() => dom.style.opacity = '1', 0);
 			return new CSS.CSS3DObject(dom);
 		},
@@ -260,6 +262,21 @@ class Client_Card {
 				child.appendChild(img);
 			}
 			return child;
+		},
+		equip : () : HTMLDivElement => {
+			const child = document.createElement('div');
+			Object.assign(child.style, {
+				position : 'absolute',
+				opacity : '0',
+				left : `${- SIZE.WIDTH / 2}px`,
+				top : `${- SIZE.HEIGHT / 2}px`,
+				width : `${SIZE.WIDTH}px`,
+				height : `${SIZE.HEIGHT}px`,
+				transition : 'all 0.2s ease',
+				boxShadow: '0 0 5px 2px blue',
+				userSelect: 'none'
+			});
+			return child;
 		}
 	};
 
@@ -273,6 +290,7 @@ class Client_Card {
 			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
 			btn : (query ?: string) : HTMLDivElement => query ? this.get.el.btn().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[5] as HTMLDivElement,
+			equip : () : HTMLDivElement => this.three.element.children[6] as HTMLDivElement
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -414,6 +432,10 @@ class Client_Card {
 			if (!this.need_change.status)
 				this.need_change.status = this.status !== status;
 			this.status = status;
+			return this;
+		},
+		equip : (c : Client_Card) : Client_Card => {
+			this.equip = c;
 			return this;
 		}
 	};
@@ -801,7 +823,11 @@ class Client_Card {
 			this.need_change.counter = true;
 			this.counter.clear();
 			return this;
-		}
+		},
+		equip : () : Client_Card => {
+			this.equip = undefined;
+			return this;
+		},
 	}
 
 	hint = {
@@ -858,28 +884,33 @@ class Client_Card {
 			tl.then(() => resolve?.());
 			await promise;
 		},
+		equip : (show ?: boolean) : void => {
+			if (this.location & LOCATION.ONFIELD) {
+				const i = this.get.el.equip();
+				i.style.opacity = (show ? 1 : 0).toString();
+			}
+		}
 	};
 
 	click = {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
-				const btn = this.get.el.btn();
 				const img = this.get.el.img();
-				
 				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
-				if (this.clicked || !this.btnable) {
-					Object.assign(btn.style, {
+			}
+			const btn = this.get.el.btn();
+			if (this.clicked || !this.btnable) {
+				Object.assign(btn.style, {
 						opacity : '0',
 						transform : 'translate(-50%, 0)'
 					});
-					setTimeout(() => btn.style.display = 'none', 100);
-				} else
-					Object.assign(btn.style, {
-						display : 'flex',
-						opacity : '1',
-						transform : 'translate(-50%, -100px)'
-					});
-			}
+				setTimeout(() => btn.style.display = 'none', 100);
+			} else
+				Object.assign(btn.style, {
+					display : 'flex',
+					opacity : '1',
+					transform : 'translate(-50%, -100px)'
+				});
 			this.clicked = !this.clicked;
 		},
 		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {

@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, onUnmounted, toRaw } from 'vue';
+import { defineComponent, onMounted, onUnmounted, toRaw, watch } from 'vue';
 import * as THREE from 'three';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
@@ -592,6 +592,15 @@ class _Duel {
 			cancelButton : false
 		}, true) as any;
 };
+
+watch(() => connect.duel.card, (n, o) => {
+	const get_equip = (c : Client_Card) => duel.get.cards()
+		.filter(i => i === c || i.equip === c || (c?.equip && (i.equip === c.equip || i === c.equip)));
+	if (o instanceof Client_Card)
+		get_equip(toRaw(o)).forEach(i => i.hint.equip());
+	if (n instanceof Client_Card)
+		get_equip(toRaw(n)).forEach(i => i.hint.equip(true));
+})
 
 const duel = new _Duel();
 
