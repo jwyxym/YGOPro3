@@ -483,6 +483,8 @@ class _Duel {
 		activate : () : Array<Client_Card> => {
 			const cards = this.cards.filter(i => Array.from(i.activatable.values()).length);
 			cards.forEach(i => i.clear.activate());
+			if (duel.btn)
+				duel.btn.enable.length = 0;
 			return cards;
 		}
 	}

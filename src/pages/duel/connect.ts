@@ -93,7 +93,6 @@ class Wait {
 };
 
 class Player {
-	index : - 1 | 0 | 1;
 	index : number;
 	name : string;
 	time : number;
