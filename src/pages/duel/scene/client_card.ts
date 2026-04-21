@@ -110,7 +110,7 @@ class Client_Card {
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease',
 				boxShadow: '0 0 10px 5px yellow',
-				userSelect : 'none'
+				pointerEvents : 'none'
 			});
 			return child;
 		},
@@ -142,7 +142,8 @@ class Client_Card {
 				display : 'flex',
 				justifyContent : 'center',
 				transition : 'all 0.2s ease',
-				userSelect : 'none'
+				userSelect : 'none',
+				pointerEvents : 'none'
 			});
 			return child;
 		},
@@ -208,7 +209,8 @@ class Client_Card {
 				fontSize : '20px',
 				alignItems: 'center',
 				transition : 'all 0.2s ease',
-				userSelect : 'none'
+				userSelect : 'none',
+				pointerEvents : 'none'
 			});
 			return child;
 		},
@@ -223,7 +225,8 @@ class Client_Card {
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease',
 				boxShadow: '0 0 5px 2px blue',
-				userSelect : 'none'
+				userSelect : 'none',
+				pointerEvents : 'none'
 			});
 			return child;
 		}
@@ -820,8 +823,10 @@ class Client_Card {
 	click = {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
+				const z = Axis.computed.card(this).z ?? 0;
 				const img = this.get.el.img();
 				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
+				this.three.position.z = z + (this.clicked ? 0 : SIZE.GAP.HAND * 2);
 			}
 			this.clicked = !this.clicked;
 		}

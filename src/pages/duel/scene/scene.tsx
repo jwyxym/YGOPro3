@@ -402,7 +402,7 @@ class _Duel {
 	add = {
 		activate : () : void => {
 			const activate = new Activate();
-			activate.three.position.set(0, 0, 0);
+			activate.three.position.set(0, 0, - 100);
 			this.scene.add(activate.three);
 			this.activate = activate;
 		},

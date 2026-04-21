@@ -149,28 +149,23 @@ class Activate {
 			if (this.btnable && i[1])
 				Object.assign(i[0].style, {
 					opacity : '1',
-					display : 'initial',
-					pointerEvents : 'initial'
+					display : 'initial'
 				});
-			else {
+			else
 				Object.assign(i[0].style, {
 					opacity : '0',
-					display : 'none',
-					pointerEvents : 'none'
+					display : 'none'
 				});
-				setTimeout(() => i[0].style.display = 'none', 100);
-			}
 		});
 	};
 
 	off = () : void => {
 		this.card = undefined;
-		this.three.position.set(0, 0, 0);
+		this.three.position.set(0, 0, - 100);
 		this.btns.style.opacity = '0';
 		this.btn.forEach(i => Object.assign(i.style, {
 			opacity : '0',
-			display : 'none',
-			pointerEvents : 'none'
+			display : 'none'
 		}));
 	};
 	
