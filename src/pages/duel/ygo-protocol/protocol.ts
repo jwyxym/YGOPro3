@@ -7,7 +7,7 @@ import { TYPE } from '@/script/card';
 import { toast } from '@/pages/toast/toast';
 
 import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, PHASE } from './network';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS } from './network';
 
 import connect from '../connect';
 import { duel } from '../scene/scene';
@@ -659,7 +659,7 @@ class Protocol {
 				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_MAIN2);
 			if (msg.read.uint8())
 				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_END);
-			duel.get.cards().forEach(i => i.btnable = true);
+			duel.btnable(true);
 			await duel.update();
 			connect.response = async (i : number, command : number)=> {
 				await send(
@@ -719,7 +719,7 @@ class Protocol {
 			if (msg.read.uint8())
 				duel.btn?.enable.push(I18N_KEYS.DUEL_PHASE_END);
 			connect.duel.shuffle = !!msg.read.uint8();
-			duel.get.cards().forEach(i => i.btnable = true);
+			duel.btnable(true);
 			await duel.update();
 			connect.response = async (i : number, command : number) => {
 				await send(

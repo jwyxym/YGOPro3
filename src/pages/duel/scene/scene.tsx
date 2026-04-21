@@ -7,8 +7,9 @@ import PQueue from 'p-queue';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
-import GLOBAL from '@/script/scale'
-;
+import GLOBAL from '@/script/scale';
+import { I18N_KEYS } from '@/script/language/i18n';
+
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import Dialog from '@/pages/ui/dialog';
 
@@ -17,9 +18,9 @@ import Axis from './axis';
 import Plaid from './plaid';
 import Btn from './btn';
 import Client_Card from './client_card';
+import Activate from './activate';
 
 import connect from '../connect';
-import { I18N_KEYS } from '@/script/language/i18n';
 
 class _Duel {
 	element : HTMLDivElement | null = null;
@@ -36,6 +37,7 @@ class _Duel {
 	cards : Array<Client_Card> = [];
 	back ?: CSS.CSS3DObject;
 	btn ?: Btn;
+	activate ?: Activate;
 	animation_id : number = 0;
 
 	animate = () => {
@@ -55,6 +57,7 @@ class _Duel {
 		this.camera.position.set(0, -300, 780);
 		this.camera.lookAt(0, -60, 0);
 
+		this.add.activate();
 		this.add.back();
 		this.add.btn();
 		for (let x = -3; x < 4; x++)
@@ -397,6 +400,12 @@ class _Duel {
 	};
 
 	add = {
+		activate : () : void => {
+			const activate = new Activate();
+			activate.three.position.set(0, 0, 0);
+			this.scene.add(activate.three);
+			this.activate = activate;
+		},
 		back : () : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
@@ -486,6 +495,7 @@ class _Duel {
 			cards.forEach(i => i.clear.activate());
 			if (duel.btn)
 				duel.btn.enable.length = 0;
+			this.btnable(false);
 			return cards;
 		}
 	}
@@ -516,6 +526,11 @@ class _Duel {
 			await Promise
 				.all(this.cards.map(i => i.update()));
 		}
+	};
+
+	btnable = (chk : boolean) : void => {
+		if (this.activate)
+			this.activate.btnable = chk;
 	};
 	
 	click = (event : Event | Client_Card | number) : void => {
@@ -549,6 +564,8 @@ class _Duel {
 					}
 					return;
 				}
+				if (this.activate?.contains(target))
+					return this.activate.click(target);
 				const card = this.cards.find(i => i.contains(target));
 				if (!card) {
 					connect.duel.card = undefined;
@@ -563,20 +580,16 @@ class _Duel {
 					else
 						connect.duel.card = card;
 
-					if (target.classList.contains('duel__card__btn'))
-						card?.click.btn(target);
 				} else {
 					const cards = this.cards.filter(i => i.owner === card.owner
 						&& (i.location & card.location)
 						&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
 					)
 					const c = lodash.maxBy(cards, i => i.seq);
-					if (connect.duel.card === c && c?.clicked)
+					if (toRaw(connect.duel.card) === c && c?.clicked)
 						connect.duel.card = undefined;
 					else
 						connect.duel.card = c;
-					if (target.classList.contains('duel__card__btn'))
-						card?.click.btn(target, cards);
 					if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
 						connect.duel.cards = cards;
 				}
@@ -608,7 +621,8 @@ watch(() => connect.duel.card, (n, o) => {
 		const cards = get_equip(toRaw(n));
 		if (cards.length > 1)
 			cards.forEach(i => i.hint.equip(true));
-	}
+		duel.activate?.on(n);
+	} else duel.activate?.off();
 })
 
 const duel = new _Duel();

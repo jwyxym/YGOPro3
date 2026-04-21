@@ -129,7 +129,7 @@ class Axis {
 					.length;
 				const x = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x + (SIZE.HEIGHT - SIZE.WIDTH) / 2 * (card.owner ? 1 : - 1) + Math.min(width / ct, SIZE.WIDTH) * card.seq * (!!card.owner ? - 1 : 1);
 				const y = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y;
-				const z = card.seq * SIZE.GAP.HAND + 0;
+				const z = card.seq * SIZE.GAP.HAND + 60;
 				return new Axis(x, y, z);
 			} else {
 				const loc = card.location & LOCATION.ONFIELD;

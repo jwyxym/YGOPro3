@@ -10,7 +10,6 @@ import * as SIZE from './scene-size';
 import Axis from './axis';
 import { duel } from './scene';
 
-import connect from '../connect';
 import { COMMAND, LOCATION, POS, STATUS } from '../ygo-protocol/network';
 
 class Client_Card {
@@ -46,7 +45,6 @@ class Client_Card {
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
-	btnable : boolean;
 
 	constructor () {
 		this.owner = 0;
@@ -80,7 +78,6 @@ class Client_Card {
 		]);
 		this.counter = new Map();
 		this.clicked = false;
-		this.btnable = false;
 	};
 
 	init = {
@@ -91,14 +88,13 @@ class Client_Card {
 				opacity : '0',
 				fontFamily : 'ATK',
 				color : 'white',
-				transition : 'all 0.2s ease'
+				transition : 'opacity 0.2s ease'
 			});
 			dom.appendChild(this.init.border());
 			dom.appendChild(this.init.img(mainGame.back.pic));
 			dom.appendChild(this.init.atk());
 			dom.appendChild(this.init.info());
 			dom.appendChild(this.init.counter());
-			dom.appendChild(this.init.btn());
 			dom.appendChild(this.init.equip());
 			setTimeout(() => dom.style.opacity = '1', 0);
 			return new CSS.CSS3DObject(dom);
@@ -216,52 +212,6 @@ class Client_Card {
 			});
 			return child;
 		},
-		btn : () : HTMLDivElement => {
-			const child = document.createElement('div');
-			Object.assign(child.style, {
-				opacity : '0',
-				height : '48px',
-				display : 'none',
-				width : `${SIZE.HEIGHT}px`,
-				gap : '2px',
-				justifyContent: 'center',
-				position : 'absolute',
-				top : '0px',
-				transform: 'translate(-50%, 0)',
-				transition : 'all 0.2s ease',
-				userSelect : 'none'
-			});
-			for (const i of [
-				KEYS.ACTIVATE,
-				KEYS.ATTACK,
-				KEYS.MSET,
-				KEYS.SSET,
-				KEYS.POS_ATTACK,
-				KEYS.POS_DEFENCE,
-				KEYS.FLIP,
-				KEYS.SUMMON,
-				KEYS.PSUMMON,
-				KEYS.SPSUMMON,
-				KEYS.SCALE,
-			]) {
-				const img = document.createElement('img');
-				img.classList.add(i);
-				img.classList.add('duel__card__btn');
-				Object.assign(img.style, {
-					height : '100%',
-					opacity : '0',
-					transition : 'all 0.1s ease',
-					display : 'none',
-					userSelect : 'initial'
-				});
-				const srcs = mainGame.get.textures(KEYS.BTN, i) as [string, string];
-				img.src = srcs[0];
-				img.addEventListener('mouseenter', () => img.src = srcs[1]);
-				img.addEventListener('mouseout', () => img.src = srcs[0]);
-				child.appendChild(img);
-			}
-			return child;
-		},
 		equip : () : HTMLDivElement => {
 			const child = document.createElement('div');
 			Object.assign(child.style, {
@@ -287,9 +237,7 @@ class Client_Card {
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[3] as HTMLDivElement,
 			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
-			btn : (query ?: string) : HTMLDivElement => query ? this.get.el.btn().querySelector('.' + query) as HTMLDivElement
-				: this.three.element.children[5] as HTMLDivElement,
-			equip : () : HTMLDivElement => this.three.element.children[6] as HTMLDivElement
+			equip : () : HTMLDivElement => this.three.element.children[5] as HTMLDivElement
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -476,34 +424,6 @@ class Client_Card {
 					return '0 0 8px rgba(119, 166, 255, 1)';
 				else return 'initial';
 			})();
-			const ACTIVATE = this.activatable.get(COMMAND.ACTIVATE)!;
-			const SUMMON = this.activatable.get(COMMAND.SUMMON)!;
-			const SPSUMMON = this.activatable.get(COMMAND.SPSUMMON)!;
-			const SSET = this.activatable.get(COMMAND.SSET)!;
-			const MSET = this.activatable.get(COMMAND.MSET)!;
-			const REPOS = this.activatable.get(COMMAND.REPOS)!;
-			const ATTACK = this.activatable.get(COMMAND.ATTACK)!;
-			const elements : Array<[HTMLDivElement, number]> = [];
-			const is_pendulum = (this.location & LOCATION.SZONE) && [0, 4].includes(this.seq) && this.type & TYPE.PENDULUM;
-
-			elements.push([this.get.el.btn(KEYS.SCALE), Number(!!ACTIVATE.find(i => i.desc === 1160))]);
-			elements.push([this.get.el.btn(KEYS.ACTIVATE), Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
-			elements.push([this.get.el.btn(KEYS.SUMMON), Number(!!SUMMON.length)]);
-			elements.push([this.get.el.btn(KEYS.PSUMMON), is_pendulum ? Number(!!SPSUMMON.length) : 0]);
-			elements.push([this.get.el.btn(KEYS.SPSUMMON), is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
-			elements.push([this.get.el.btn(KEYS.SSET), Number(!!SSET.length)]);
-			elements.push([this.get.el.btn(KEYS.MSET), Number(!!MSET.length)]);
-			elements.push([this.get.el.btn(KEYS.FLIP), Number(!!REPOS.length)]);
-			elements.push([this.get.el.btn(KEYS.ATTACK), Number(!!ATTACK.length)]);
-			elements.forEach(i => {
-				if (this.btnable && i[1]) {
-					i[0].style.display = 'initial';
-					i[0].style.opacity = '1';
-				} else {
-					i[0].style.opacity = '0';
-					setTimeout(() => i[0].style.display = 'none', 100);
-				}
-			});
 			await mainGame.sleep(100);
 		};
 		const counter = () : gsap.core.Timeline | void => {
@@ -814,7 +734,6 @@ class Client_Card {
 			]);
 		},
 		activate : () : Client_Card => {
-			this.btnable = false;
 			this.need_change.activate = true;
 			this.activatable.set(COMMAND.ACTIVATE, [])
 			this.activatable.set(COMMAND.SUMMON, []);
@@ -904,74 +823,7 @@ class Client_Card {
 				const img = this.get.el.img();
 				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
 			}
-			const btn = this.get.el.btn();
-			if (this.clicked || !this.btnable) {
-				Object.assign(btn.style, {
-						opacity : '0',
-						transform : 'translate(-50%, 0)'
-					});
-				setTimeout(() => {
-					btn.style.display = 'none';
-				}, 100);
-			} else {
-				Object.assign(btn.style, {
-					display : 'flex',
-					opacity : '1',
-					transform : 'translate(-50%, -100px)'
-				});
-			}
 			this.clicked = !this.clicked;
-		},
-		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {
-			if (!this.clicked || connect.duel.select.chk()) return;
-			const option = (effect : Array<{ desc ?: number; index : number; }>, key : string, command : number) => {
-				const array = effect
-					.map(i => mainGame.get.desc(i.desc ?? - 1));
-				connect.duel.select.option.cancelable = true;
-				connect.duel.select.option.title = mainGame.get.strings.system(555);
-				connect.duel.select.option.array = array;
-				connect.duel.select.option.show = true;
-				connect.duel.select.option.confirm = async (i ?: number) => {
-					connect.duel.select.option.show = false;
-					i !== undefined ? await connect.response?.(effect[i].index, command)
-						: connect.duel.select.cards.show = !!cards
-							.filter(i => i.get.activate(key).length > 0)
-							.length;
-				}
-			};
-			for (const j of [
-				{ key : KEYS.ACTIVATE, command : COMMAND.ACTIVATE },
-				{ key : KEYS.ATTACK, command : COMMAND.ATTACK },
-				{ key : KEYS.MSET, command : COMMAND.MSET },
-				{ key : KEYS.SSET, command : COMMAND.SSET },
-				{ key : KEYS.POS_ATTACK, command : COMMAND.REPOS },
-				{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS },
-				{ key : KEYS.FLIP, command : COMMAND.REPOS },
-				{ key : KEYS.SUMMON, command : COMMAND.SUMMON },
-				{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
-				{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
-				{ key : KEYS.SCALE, command : COMMAND.ACTIVATE }
-			])
-				if (target.classList.contains(j.key)) {
-					const c = cards
-						.filter(i => i.get.activate(j.key).length > 0);
-					if (c.length) {
-						connect.duel.select.cards.cancelable = true;
-						connect.duel.select.cards.min = 1;
-						connect.duel.select.cards.max = 1;
-						connect.duel.select.cards.cards = c;
-						connect.duel.select.cards.selected.length = 0;
-						connect.duel.select.cards.confirm = async (i : Client_Card) => {
-							connect.duel.select.cards.show = false;
-							i.get.activate(j.key).length > 1 ? option(i.get.activate(j.key), j.key, j.command)
-								: await connect.response?.(i.get.activate(j.key)[0].index, j.command);
-						};
-						connect.duel.select.cards.show = true;
-					} else if (this.get.activate(j.key).length > 1)
-						option(this.get.activate(j.key), j.key, j.command);
-					else
-						connect.response?.(this.get.activate(j.key)[0].index, j.command);
-				}
 		}
 	};
 
