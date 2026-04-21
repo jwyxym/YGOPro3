@@ -11,6 +11,7 @@ import GLOBAL from '@/script/scale';
 import { I18N_KEYS } from '@/script/language/i18n';
 
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
+import connect from '@/pages/duel/connect';
 import Dialog from '@/pages/ui/dialog';
 
 import * as SIZE from './scene-size';
@@ -20,7 +21,6 @@ import Btn from './btn';
 import Client_Card from './client_card';
 import Activate from './activate';
 
-import connect from '../connect';
 
 class _Duel {
 	element : HTMLDivElement | null = null;

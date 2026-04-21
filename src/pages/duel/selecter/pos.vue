@@ -59,7 +59,7 @@
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
 	import mainGame from '@/script/game';
-	import { POS } from '../ygo-protocol/network';
+	import { POS } from '@/pages/duel/ygo-protocol/network';
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{

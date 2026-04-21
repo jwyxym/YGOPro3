@@ -39,12 +39,12 @@
 
 	import Input from '@/pages/ui/input.vue';
 	import Button from '@/pages/ui/button.vue';
+	import connect from '@/pages/duel/connect';
+	import Msg from '@/pages/duel/ygo-protocol/msg';
+	import { CTOS } from '@/pages/duel/ygo-protocol/network';
 
 	import Chat, { chat } from './chat';
 	import History from './history/history';
-	import connect from '../connect';
-	import Msg from '../ygo-protocol/msg';
-	import { CTOS } from '../ygo-protocol/network';
 
 
 	const page = reactive({

@@ -27,8 +27,9 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
-	import { LOCATION } from '../ygo-protocol/network';
-	import Client_Card from '../scene/client_card';
+	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
+	import Client_Card from '@/pages/duel/scene/client_card';
+	
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{

@@ -1,5 +1,5 @@
-import Client_Card from '../scene/client_card';
-import Plaid from '../scene/plaid';
+import Client_Card from '@/pages/duel/scene/client_card';
+import Plaid from '@/pages/duel/scene/plaid';
 
 class Base {
 	show = false;

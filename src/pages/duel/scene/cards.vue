@@ -14,7 +14,7 @@
 <script setup lang = 'ts'>
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import { LOCATION } from '../ygo-protocol/network';
+	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 	import Client_Card from './client_card';
 
 	const props  = defineProps<{

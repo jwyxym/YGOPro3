@@ -4,11 +4,11 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import { TYPE } from '@/script/card';
 
+import { COMMAND, LOCATION } from '@/pages/duel/ygo-protocol/network';
+import connect from '@/pages/duel/connect';
+
 import Client_Card from './client_card';
 import Axis from './axis';
-
-import { COMMAND, LOCATION } from '../ygo-protocol/network';
-import connect from '../connect';
 
 class Activate {
 	three : CSS.CSS3DObject;

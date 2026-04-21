@@ -1,7 +1,7 @@
 import { defineComponent } from 'vue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
-import { PHASE } from '../ygo-protocol/network';
+import { PHASE } from '@/pages/duel/ygo-protocol/network';
 
 class _Phase {
 	element : HTMLDivElement | null = null;

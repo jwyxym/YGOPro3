@@ -9,13 +9,13 @@ import { toast } from '@/pages/toast/toast';
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS } from './network';
 
-import connect from '../connect';
-import { duel } from '../scene/scene';
-import { chat, ChatMsg } from '../log/chat';
-import { HISTORY, history } from '../log/history/history';
-import { phase } from '../scene/phase';
-import Client_Card from '../scene/client_card';
-import Plaid from '../scene/plaid';
+import connect from '@/pages/duel/connect';
+import { duel } from '@/pages/duel/scene/scene';
+import { chat, ChatMsg } from '@/pages/duel/log/chat';
+import { HISTORY, history } from '@/pages/duel/log/history/history';
+import { phase } from '@/pages/duel/scene/phase';
+import Client_Card from '@/pages/duel/scene/client_card';
+import Plaid from '@/pages/duel/scene/plaid';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 

@@ -6,11 +6,11 @@ import Card, { TYPE } from '@/script/card';
 import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
 
+import { COMMAND, LOCATION, POS, STATUS } from '@/pages/duel/ygo-protocol/network';
+
 import * as SIZE from './scene-size';
 import Axis from './axis';
 import { duel } from './scene';
-
-import { COMMAND, LOCATION, POS, STATUS } from '../ygo-protocol/network';
 
 class Client_Card {
 	three : CSS.CSS3DObject;

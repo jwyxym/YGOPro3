@@ -45,7 +45,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 
 	import Selecter from './selecter.vue';
-	import Client_Card from '../scene/client_card';
+	import Client_Card from '@/pages/duel/scene/client_card';
 
 	const props = defineProps<{
 		cards : Array<Client_Card>;

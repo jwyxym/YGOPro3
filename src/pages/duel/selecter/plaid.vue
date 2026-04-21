@@ -33,9 +33,9 @@
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
 	
-	import { POS } from '../ygo-protocol/network';
-	import Plaid from '../scene/plaid';
-	import Client_Card from '../scene/client_card';
+	import { POS } from '@/pages/duel/ygo-protocol/network';
+	import Plaid from '@/pages/duel/scene/plaid';
+	import Client_Card from '@/pages/duel/scene/client_card';
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{
