@@ -12,7 +12,7 @@
 			:border-color = "index ? 'red' : 'blue'"
 		/>
 		<div>
-			<strong>{{ player.name }}</strong>
+			<strong>{{ name }}</strong>
 			<div>
 				<div>
 					<strong>LP</strong>
@@ -28,7 +28,7 @@
 					<span>:</span>
 					<var-countdown
 						:auto-start = 'false'
-						:time = 'page.time'
+						:time = 'time'
 						format = 'ss'
 						ref = 'countdown'
 					/>
@@ -44,7 +44,6 @@
 <script setup lang = 'ts'>
 	import { reactive, watch, ref } from 'vue';
 	import mainGame from '@/script/game';
-	import { Player } from './connect';
 
 	interface VarCountdown extends HTMLElement {
 		start : Function;
@@ -56,22 +55,24 @@
 		lp : {
 			from : 0,
 			to : 0,
-			damage : 0,
+			damage : '',
 			show : false,
 			move : false,
-		},
-		time : 0
+		}
 	});
 
 	const props = defineProps<{
-		player : Player;
-		turn : 0 | 1;
+		lp : number;
+		name : string;
+		time : number;
+		time_player : 0 | 1;
 		index : 0 | 1;
 	}>();
 
-	watch(() => { return props.player.lp; }, async (n) => {
-		page.lp.damage = page.lp.to - n;
-		page.lp.move = page.lp.damage > 0;
+	watch(() => { return props.lp; }, async (n) => {
+		const damage = n - page.lp.to;
+		page.lp.move = !!damage;
+		page.lp.damage = damage.toString();
 		if (page.lp.move) {
 			await mainGame.sleep(150);
 			page.lp.show = page.lp.move;
@@ -81,16 +82,12 @@
 			page.lp.show = false;
 			await mainGame.sleep(150);
 		}
-		page.lp.damage = 0;
+		page.lp.damage = '';
 		page.lp.from = page.lp.to;
 		page.lp.to = n;
-	}, { immediate : true, deep : true });
+	}, { immediate : true });
 
-	watch(() => { return props.player.time; }, (n) => {
-		page.time = n;
-	}, { immediate : true, deep : true });
-
-	watch(() => { return props.turn; }, (n) => {
+	watch(() => { return props.time_player; }, (n) => {
 		if (!countdown.value) return;
 		props.index === n ? countdown.value.start() : countdown.value.pause();
 	}, { immediate : true });

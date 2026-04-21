@@ -103,15 +103,15 @@ class Player {
 		this.time = 0;
 		this.lp = 0;
 	};
-	change_lp = async (lp : number) : Promise<void> => {
+	async change_lp (lp : number) : Promise<void> {
 		this.lp = lp;
 		await mainGame.sleep(600);
 	};
-	lose_lp = async (lp : number) : Promise<void> => {
+	async lose_lp (lp : number) : Promise<void> {
 		this.lp -= lp;
 		await mainGame.sleep(600);
 	};
-	recover_lp = async (lp : number) : Promise<void> => {
+	async recover_lp (lp : number) : Promise<void> {
 		this.lp += lp;
 		await mainGame.sleep(600);
 	};
@@ -124,6 +124,7 @@ class Duel {
 	player : [Player, Player] = reactive([new Player(), new Player()]);
 	chain : Array<Client_Card> = [];
 	turn : 0 | 1 = 0;
+	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
 	shuffle = false;
 	select = {

@@ -366,17 +366,17 @@ class Protocol {
 			});
 		}],
 		[STOC.JOIN_GAME,async (msg : Msg) => {
-			connect.wait.info.lflist = msg.read.uint8() ?? 0;
+			connect.wait.info.lflist = msg.read.uint32() ?? 0;
 			connect.wait.info.rule = msg.read.uint8() ?? 0;
 			connect.wait.info.mode = msg.read.uint8() ?? 0;
 			connect.wait.info.duel_rule = msg.read.uint8() ?? 0;
 			connect.wait.info.no_check_deck = (msg.read.uint8() ?? 1) === 0;
 			connect.wait.info.no_shuffle_deck = (msg.read.uint8() ?? 1) === 0;
 			msg.index += 3;
-			connect.wait.info.start_lp = msg.read.uint32() ?? 8000;
+			connect.wait.info.start_lp = msg.read.int32() ?? 8000;
 			connect.wait.info.start_hand = msg.read.uint8() ?? 5;
 			connect.wait.info.draw_count = msg.read.uint8() ?? 1;
-			connect.wait.info.time_limit = msg.read.uint8() ?? 240;
+			connect.wait.info.time_limit = msg.read.uint16() ?? 240;
 			connect.state = 1;
 		}],
 		[STOC.TYPE_CHANGE,async (msg : Msg) => {
@@ -395,8 +395,9 @@ class Protocol {
 			if (player === undefined || time === undefined)
 				return;
 			if (connect.duel.player[player])
-				connect.duel.player[player]!.time = time;
-			if(this.to.player(player) === 0)
+				connect.duel.player[player]!.time = time * 1000;
+			connect.duel.time_player = this.to.player(player);
+			if(!connect.duel.time_player)
 				await send(new Msg()
 					.write.uint8(CTOS.TIME_CONFIRM));
 		}],
@@ -548,6 +549,8 @@ class Protocol {
 			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[0].name = players[0].name;
 			connect.duel.player[1].name = players[players.length - 1].name;
+			connect.duel.player[0].time = connect.wait.info.time_limit * 1000;
+			connect.duel.player[1].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[0].index = 0;
 			connect.duel.player[1].index = players.length - 1;
 			const decks = [[msg.read.uint16() ?? 0, msg.read.uint16() ?? 0], [msg.read.uint16() ?? 0, msg.read.uint16() ?? 0]];
