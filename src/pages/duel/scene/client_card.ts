@@ -114,7 +114,7 @@ class Client_Card {
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease',
 				boxShadow: '0 0 10px 5px yellow',
-				userSelect: 'none'
+				userSelect : 'none'
 			});
 			return child;
 		},
@@ -146,7 +146,7 @@ class Client_Card {
 				display : 'flex',
 				justifyContent : 'center',
 				transition : 'all 0.2s ease',
-				userSelect: 'none'
+				userSelect : 'none'
 			});
 			return child;
 		},
@@ -212,7 +212,7 @@ class Client_Card {
 				fontSize : '20px',
 				alignItems: 'center',
 				transition : 'all 0.2s ease',
-				userSelect: 'none'
+				userSelect : 'none'
 			});
 			return child;
 		},
@@ -221,16 +221,15 @@ class Client_Card {
 			Object.assign(child.style, {
 				opacity : '0',
 				height : '48px',
-				minWidth : '0px',
 				display : 'none',
+				width : `${SIZE.HEIGHT}px`,
 				gap : '2px',
 				justifyContent: 'center',
 				position : 'absolute',
 				top : '0px',
-				left : '50%',
 				transform: 'translate(-50%, 0)',
 				transition : 'all 0.2s ease',
-				userSelect: 'none'
+				userSelect : 'none'
 			});
 			for (const i of [
 				KEYS.ACTIVATE,
@@ -253,7 +252,7 @@ class Client_Card {
 					opacity : '0',
 					transition : 'all 0.1s ease',
 					display : 'none',
-					userSelect: 'initial'
+					userSelect : 'initial'
 				});
 				const srcs = mainGame.get.textures(KEYS.BTN, i) as [string, string];
 				img.src = srcs[0];
@@ -268,13 +267,13 @@ class Client_Card {
 			Object.assign(child.style, {
 				position : 'absolute',
 				opacity : '0',
-				left : `${SIZE.WIDTH / 2}px`,
+				left : `-${SIZE.HEIGHT / 2}px`,
 				top : `${- SIZE.HEIGHT / 2}px`,
 				width : `${SIZE.HEIGHT}px`,
 				height : `${SIZE.HEIGHT}px`,
 				transition : 'all 0.2s ease',
 				boxShadow: '0 0 5px 2px blue',
-				userSelect: 'none'
+				userSelect : 'none'
 			});
 			return child;
 		}
@@ -423,10 +422,11 @@ class Client_Card {
 				: this.counter.set(ctype, Math.max(0, ccount));
 			return this;
 		},
-		activate : (flag : number, index : number, desc ?: number, chk : boolean = false) => {
+		activate : (flag : number, index : number, desc ?: number, chk : boolean = false) : Client_Card => {
 			this.need_change.activate = chk;
 			this.activatable
 				.get(flag)?.push({ index : index, desc : desc});
+			return this;
 		},
 		status : (status : number) : Client_Card => {
 			if (!this.need_change.status)
@@ -627,14 +627,20 @@ class Client_Card {
 			else if ((this.pos & POS.FACEUP) && is_back)
 				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
 			const z = Number(gsap.getProperty(img, 'rotationZ'));
-			if (((this.pos & POS.ATTACK) || !(this.location & LOCATION.MZONE)) && z)
+			if (this.location & LOCATION.MZONE)
+				if ((this.pos & POS.ATTACK) && z)
+					tl.to(img, {
+						rotationZ : 0,
+						duration : 0.1,
+					}, 0);
+				else if ((this.pos & POS.DEFENSE) && !z)
+					tl.to(img, {
+						rotationZ : - 90,
+						duration : 0.1,
+					}, 0);
+			else if (z)
 				tl.to(img, {
 					rotationZ : 0,
-					duration : 0.1,
-				}, 0);
-			else if ((this.pos & POS.DEFENSE) && !z)
-				tl.to(img, {
-					rotationZ : - 90,
 					duration : 0.1,
 				}, 0);
 			return tl;
@@ -904,13 +910,16 @@ class Client_Card {
 						opacity : '0',
 						transform : 'translate(-50%, 0)'
 					});
-				setTimeout(() => btn.style.display = 'none', 100);
-			} else
+				setTimeout(() => {
+					btn.style.display = 'none';
+				}, 100);
+			} else {
 				Object.assign(btn.style, {
 					display : 'flex',
 					opacity : '1',
 					transform : 'translate(-50%, -100px)'
 				});
+			}
 			this.clicked = !this.clicked;
 		},
 		btn : (target : HTMLElement, cards : Array<Client_Card> = []) : void => {

@@ -967,11 +967,14 @@ class Protocol {
 							: connect.duel.select.cards.show = true;
 					}
 				};
-				connect.response = async (i : number) => await send(
-					new Msg()
-						.write.uint8(CTOS.RESPONSE)
-						.write.uint32(i)
-				);
+				connect.response = async (i : number) => {
+					await send(
+						new Msg()
+							.write.uint8(CTOS.RESPONSE)
+							.write.uint32(i)
+					);
+					duel.clear.activate();
+				};
 				connect.duel.select.cards.confirm = async (i ?: Client_Card) => {
 					connect.duel.select.cards.show = false;
 					if (i)
@@ -1754,10 +1757,10 @@ class Protocol {
 				this.get.card(card_I.tp, card_I.loc, card_I.seq),
 				this.get.card(card_II.tp, card_II.loc, card_II.seq),
 			];
-			if (cards[0] === undefined || cards[1] === undefined)
+			if (cards[0] === undefined)
 				return;
 			this.attack_code = cards[0].id;
-			await duel.attack(...(cards as [Client_Card, Client_Card]));
+			await duel.attack(...(cards as [Client_Card, Client_Card | undefined]));
 		}],
 		[MSG.ATTACK_DISABLED, async () => {
 			this.event = mainGame.get.strings.system(1621, mainGame.get.name(this.attack_code));

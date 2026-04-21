@@ -95,33 +95,34 @@ class _Duel {
 				const img = card.get.el.img();
 				const back = mainGame.back.pic;
 				const tl = gsap.timeline();
-				if (img.src === back)
+				const chk = img.src === back;
+				if (chk)
 					tl.add(turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic));
 
-				tl.to(card.three.rotation, {
-					z : 0,
+				tl.to(img, {
+					rotationZ : - 180,
 					duration : 0.1,
-				}, '>');
+				}, '+=0');
 				const x = card.three.position.x;
 				const y = card.three.position.y;
 				tl.to(card.three.position, {
 					x : 0,
-					y : -200,
+					y : - 200,
 					z : '+=250',
-					duration : 0.1,
-				}, '>');
+					duration : 0.2,
+				}, '+=0.2');
 				tl.to(card.three.position, {
 					x : x,
 					y : y,
 					z : '-=250',
+					duration : 0.2,
+				}, '+=0.5');
+				tl.to(img, {
+					rotationZ : 0,
 					duration : 0.1,
-				}, '>');
-				tl.to(card.three.rotation, {
-					z : Math.PI,
-					duration : 0.1,
-				}, '>');
-				if (img.src !== back)
-					tl.add(turn(img, back), '>');
+				}, '+=0.2');
+				if (chk)
+					tl.add(turn(img, back), '+=0.1');
 				tls.add(tl, '>');
 			}
 			let resolve = undefined as (() => void) | undefined;
@@ -598,10 +599,16 @@ class _Duel {
 watch(() => connect.duel.card, (n, o) => {
 	const get_equip = (c : Client_Card) => duel.get.cards()
 		.filter(i => i === c || i.equip === c || (c?.equip && (i.equip === c.equip || i === c.equip)));
-	if (o instanceof Client_Card)
-		get_equip(toRaw(o)).forEach(i => i.hint.equip());
-	if (n instanceof Client_Card)
-		get_equip(toRaw(n)).forEach(i => i.hint.equip(true));
+	if (o instanceof Client_Card) {
+		const cards = get_equip(toRaw(o));
+		if (cards.length > 1)
+			cards.forEach(i => i.hint.equip());
+	}
+	if (n instanceof Client_Card) {
+		const cards = get_equip(toRaw(n));
+		if (cards.length > 1)
+			cards.forEach(i => i.hint.equip(true));
+	}
 })
 
 const duel = new _Duel();

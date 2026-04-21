@@ -98,10 +98,14 @@ class Axis {
 			new Axis(- 2, 2)
 		]],
 		[LOCATION.SZONE | (5 << 16), [
-			new Axis(- 2, - 2),
+			new Axis(- 3, - 1),
 			new Axis(2, 2)
 		]],
 		[LOCATION.SZONE | (6 << 16), [
+			new Axis(- 2, - 2),
+			new Axis(2, 2)
+		]],
+		[LOCATION.SZONE | (7 << 16), [
 			new Axis(2, - 2),
 			new Axis(- 2, 2)
 		]],
