@@ -476,9 +476,6 @@ class Protocol {
 		}]
 	]);
 	msg = new Map<number, Protocol_Func>([
-		[MSG.RETRY, async (msg : Msg) => {
-
-		}],
 		[MSG.HINT, async (msg : Msg) => {
 			const type = msg.read.uint8();
 			const player = this.to.player(msg.read.uint8() ?? 0);

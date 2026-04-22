@@ -17,8 +17,8 @@
 					ref = 'input'
 					:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_ADDRESS)'
 					:options = 'server.options'
-					v-model = 'server.address'
-					@clear = '() => server.protocal = 0'
+					v-model = 'address'
+					@clear = 'server.protocal = 0'
 				/>
 			</div>
 		</div>
@@ -48,7 +48,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { ref, computed, onBeforeMount, reactive, watch } from 'vue';
+	import { ref, computed, onBeforeMount, reactive } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -92,13 +92,7 @@
 			server.input_pass = `${model.join(',')}#${pass[pass.length - 1]}`;
 		} else server.input_pass = pass[0];
 		server.name = mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string;
-		const address = mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string;
-		if (address.startsWith('ws://'))
-			server.address = address.slice(5);
-		else if (address.startsWith('wss://'))
-			server.address = address.slice(6);
-		else server.address = address;
-		server.protocal = mainGame.get.system(KEYS.SETTING_SERVER_PROTOCAL) as 0 | 1 | 2;
+		address.value = mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string;
 	});
 
 	const emit = defineEmits<{
@@ -110,18 +104,24 @@
 		}];
 	}>();
 
-	watch(() => server.address, (n : string) => {
-		if (n.startsWith('ws://')) {
-			server.address = n.slice(5);
-			server.protocal = 1;
-		} else if (n.startsWith('wss://')) {
-			server.address = n.slice(6);
-			server.protocal = 2;
-		} else if (options.find(i => i.value === n.trim()))
-			server.protocal = 0;
-		lock ? lock = false
-			: input.value?.exported?.blur?.();
-	}, { flush : 'post' });
+	const address = computed({
+		get : () => server.address,
+		set : (v : string) => {
+			if (v.startsWith('ws://')) {
+				server.address = v.slice(5);
+				server.protocal = 1;
+			} else if (v.startsWith('wss://')) {
+				server.address = v.slice(6);
+				server.protocal = 2;
+			} else if (options.find(i => i.value === v.trim())) {
+				server.address = v.trim();
+				server.protocal = 0;
+			} else
+				server.address = v.trim();
+			lock ? lock = false
+				: input.value?.exported?.blur?.();
+		}
+	});
 
 </script>
 <style scoped lang = 'scss'>

@@ -28,7 +28,7 @@
 				v-model = 'connect.duel.card'
 				:width = 'card_info.width'
 				:height = 'card_info.height'
-				v-if = 'connect.state === 2'
+				v-if = 'connect.state === 2 && connect.duel.card'
 				key = '3'
 			/>
 			<RPS

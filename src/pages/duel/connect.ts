@@ -244,11 +244,10 @@ const connect = reactive({
 				await Promise.all([
 					mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para!.name, false),
 					mainGame.set.system(KEYS.SETTING_SERVER_PASS, para!.pass, false),
-					mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para!.address, false),
 					get_srv()
 				]);
 				await Promise.all([
-					mainGame.set.system(KEYS.SETTING_SERVER_PROTOCAL, para!.protocal),
+					mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para!.address),
 					connect.protocol.connect(para!.address, p)
 				]);
 				break;

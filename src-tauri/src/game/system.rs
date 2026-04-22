@@ -30,9 +30,6 @@ impl System {
 					.or_insert(true);
 			});
 		system.number
-			.entry(String::from("SERVER_PROTOCAL"))
-			.or_insert(0.0);
-		system.number
 			.entry(String::from("CT_VOICE"))
 			.or_insert(0.2);
 		system.number
