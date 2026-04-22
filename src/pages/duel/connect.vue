@@ -49,8 +49,9 @@
 				:time = 'connect.duel.player[0].time'
 				:lp = 'connect.duel.player[0].lp'
 				:name = 'connect.duel.player[0].name'
-				:time_player = 'connect.duel.time_player'
+				:desc = 'Array.from(connect.duel.player[0].desc.keys())'
 				:style = "{ '--top' : `${card_info.height}px` }"
+				:time_player = 'connect.duel.time_player'
 				:index = '0'
 				key = '6'
 			/>
@@ -60,6 +61,7 @@
 				:time = 'connect.duel.player[1].time'
 				:lp = 'connect.duel.player[1].lp'
 				:name = 'connect.duel.player[1].name'
+				:desc = 'Array.from(connect.duel.player[1].desc.keys())'
 				:time_player = 'connect.duel.time_player'
 				:index = '1'
 				key = '7'

@@ -1,14 +1,11 @@
 import lodash from 'lodash';
+
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { KEYS } from '@/script/constant';
 import { TYPE } from '@/script/card';
 
 import { toast } from '@/pages/toast/toast';
-
-import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS } from './network';
-
 import connect from '@/pages/duel/connect';
 import { duel } from '@/pages/duel/scene/scene';
 import { chat, ChatMsg } from '@/pages/duel/log/chat';
@@ -16,6 +13,11 @@ import { HISTORY, history } from '@/pages/duel/log/history/history';
 import { phase } from '@/pages/duel/scene/phase';
 import Client_Card from '@/pages/duel/scene/client_card';
 import Plaid from '@/pages/duel/scene/plaid';
+import { voice } from '@/pages/voice/voice';
+
+import Msg from './msg';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS } from './network';
+
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
@@ -377,7 +379,6 @@ class Protocol {
 			connect.wait.info.start_hand = msg.read.uint8() ?? 5;
 			connect.wait.info.draw_count = msg.read.uint8() ?? 1;
 			connect.wait.info.time_limit = msg.read.uint16() ?? 240;
-			connect.state = 1;
 		}],
 		[STOC.TYPE_CHANGE,async (msg : Msg) => {
 			const type = msg.read.uint8();
@@ -563,6 +564,7 @@ class Protocol {
 						duel.add.card(tp, loc[v], seq);
 			});
 			await duel.update();
+			voice.play(KEYS.BATTLE_BGM);
 		}],
 		[MSG.WIN, async (msg : Msg) => {
 			const player = msg.read.uint8();

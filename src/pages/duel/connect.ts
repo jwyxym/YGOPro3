@@ -7,6 +7,7 @@ import Card from '@/script/card';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
+import { voice } from '@/pages/voice/voice';
 
 import ws, { Ws } from './ygo-protocol/ws';
 import tcp, { Tcp } from './ygo-protocol/tcp';
@@ -97,11 +98,13 @@ class Player {
 	name : string;
 	time : number;
 	lp : number;
+	desc : Map<number, number>;
 	constructor () {
 		this.index = - 1;
 		this.name = '';
 		this.time = 0;
 		this.lp = 0;
+		this.desc = new Map();
 	};
 	async change_lp (lp : number) : Promise<void> {
 		this.lp = lp;
@@ -165,6 +168,7 @@ class Duel {
 	};
 };
 const connect = reactive({
+	debouncing : false,
 	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3,
 	wait : new Wait(),
@@ -182,6 +186,9 @@ const connect = reactive({
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
 	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
+		if (connect.debouncing)
+			return;
+		connect.debouncing = true;
 		switch (connect.state) {
 			case 0:
 				if (!para?.name || !para?.address) return;
@@ -208,6 +215,7 @@ const connect = reactive({
 					on_disconnect : async () : Promise<void> => {
 						connect.clear();
 						connect.state = 0;
+						voice.play(KEYS.BACK_BGM);
 					}
 				};
 				const get_srv = async () => {
@@ -249,11 +257,10 @@ const connect = reactive({
 					? toast.info(mainGame.get.text(I18N_KEYS.SERVER_PLAYER_ERROR))
 					: await connect.wait.start();
 				break;
-			case 2:
-				break;
 			case 3:
 				break;
 		}
+		connect.debouncing = false;
 	},
 	close : async () => await connect.protocol?.disconnect(),
 	clear : () => {

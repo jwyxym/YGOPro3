@@ -5,6 +5,10 @@
 			'avatar__oppo' : index,
 			'avatar__self' : !index
 		}"
+		@mouseenter = 'page.desc = true'
+		@mouseleave = 'page.desc = false'
+		@touchstart = 'page.desc = true'
+		@touchend = 'page.desc = false'
 	>
 		<var-avatar
 			:src = 'mainGame.get.avatar(index)'
@@ -15,16 +19,16 @@
 			<strong>{{ name }}</strong>
 			<div>
 				<div>
-					<strong>LP</strong>
+					<strong>{{ mainGame.get.text(I18N_KEYS.DUEL_LP) }}</strong>
 					<span>:</span>
 					<var-count-to
-						:from = 'page.lp.from'
-						:to = 'page.lp.to'
+						:from = 'lp.from'
+						:to = 'lp.to'
 						:duration = '300'
 					/>
 				</div>
 				<div>
-					<strong>Time</strong>
+					<strong>{{ mainGame.get.text(I18N_KEYS.DUEL_TIME) }}</strong>
 					<span>:</span>
 					<var-countdown
 						:auto-start = 'false'
@@ -36,29 +40,43 @@
 			</div>
 		</div>
 		<strong :class = "{
-			'damage__show' : page.lp.show,
-			'damage__move' : page.lp.move 
-		}">{{ page.lp.damage }}</strong>
+			'damage__show' : lp.show,
+			'damage__move' : lp.move 
+		}">
+			{{ lp.damage }}
+		</strong>
+		<transition name = 'opacity'>
+			<div v-show = 'page.desc'>
+				<span
+					v-for = 'i in desc'
+				>
+					*&nbsp;{{ mainGame.get.desc(i) }}
+				</span>
+			</div>
+		</transition>
 	</div>
 </template>
 <script setup lang = 'ts'>
 	import { reactive, watch, ref } from 'vue';
 	import mainGame from '@/script/game';
+	import { I18N_KEYS } from '@/script/language/i18n';
 
 	interface VarCountdown extends HTMLElement {
 		start : Function;
 		pause : Function;
-	}
+	};
 
 	const countdown = ref<VarCountdown | null>(null);
+	const lp = reactive({
+		from : 0,
+		to : 0,
+		damage : '',
+		show : false,
+		move : false
+	});
+
 	const page = reactive({
-		lp : {
-			from : 0,
-			to : 0,
-			damage : '',
-			show : false,
-			move : false,
-		}
+		desc : false
 	});
 
 	const props = defineProps<{
@@ -67,24 +85,25 @@
 		time : number;
 		time_player : 0 | 1;
 		index : 0 | 1;
+		desc : Array<number>
 	}>();
 
 	watch(() => { return props.lp; }, async (n) => {
-		const damage = n - page.lp.to;
-		page.lp.move = !!damage;
-		page.lp.damage = damage.toString();
-		if (page.lp.move) {
+		const damage = n - lp.to;
+		lp.move = !!damage;
+		lp.damage = damage.toString();
+		if (lp.move) {
 			await mainGame.sleep(150);
-			page.lp.show = page.lp.move;
+			lp.show = lp.move;
 			await mainGame.sleep(150);
-			page.lp.move = false;
+			lp.move = false;
 			await mainGame.sleep(150);
-			page.lp.show = false;
+			lp.show = false;
 			await mainGame.sleep(150);
 		}
-		page.lp.damage = '';
-		page.lp.from = page.lp.to;
-		page.lp.to = n;
+		lp.damage = '';
+		lp.from = lp.to;
+		lp.to = n;
 	}, { immediate : true });
 
 	watch(() => { return props.time_player; }, (n) => {
@@ -96,7 +115,6 @@
 <style scoped lang = 'scss'>
 	.avatar {
 		color: white;
-		pointer-events: none;
 		display: flex;
 		gap: 10px;
 		width: 250px;
@@ -137,6 +155,11 @@
 			opacity: 0;
 			transition: all 0.15s ease;
 		}
+		> div:last-child {
+			position: absolute;
+			display: flex;
+			flex-direction: column;
+		}
 	}
 	.avatar__self {
 		bottom: 10px;
@@ -147,6 +170,9 @@
 		}
 		.damage__move {
 			transform: translate(160px, -60px) !important;
+		}
+		> div:last-child {
+			bottom: calc(100% + 10px);
 		}
 	}
 	.avatar__oppo {
@@ -164,8 +190,27 @@
 		.damage__move {
 			transform: translate(100px, 60px) !important;
 		}
+		> div:last-child {
+			top: calc(100% + 10px);
+		}
 	}
 	.damage__show {
 		opacity: 1 !important;
+	}
+	.opacity {
+		&-enter-active,
+		&-leave-active {
+			transition: opacity 0.2s ease;
+		}
+
+		&-enter-from,
+		&-leave-to {
+			opacity: 0;
+		}
+
+		&-enter-to,
+		&-leave-from {
+			opacity: 1;
+		}
 	}
 </style>
