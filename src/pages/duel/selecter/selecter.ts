@@ -28,9 +28,6 @@ class Confirm extends Base {
 };
 class Codes extends Base {
 	codes : Array<number> = [];
-	cancelable = false;
-	min = 0;
-	max = 0;
 	title = '';
 };
 class Plaids extends Base {

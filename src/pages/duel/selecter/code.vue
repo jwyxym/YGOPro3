@@ -2,12 +2,12 @@
 	<Selecter
 		@confirm = "emit('exit', page.cards)"
 		@cancel = "emit('exit')"
-		:cancelable = 'cancelable'
+		:cancelable = 'false'
 		:confirmable = '!!page.cards'
 	>
 		<template #title>
 			<div class = 'title'>
-				<span>{{ title }} [{{ min }} - {{ max }}]</span>
+				<span>{{ title }}</span>
 				<Input
 					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
 					variant = 'outlined'
@@ -48,9 +48,6 @@
 	const props = defineProps<{
 		cards : Array<number>;
 		title : string;
-		min : number;
-		max : number;
-		cancelable : boolean;
 	}>();
 	const page = reactive({
 		input : '',

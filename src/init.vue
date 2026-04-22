@@ -39,7 +39,7 @@
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
 	import Voice from './pages/voice/voice';
-	import Dialog from './pages/ui/dialog';
+	import dialog from './pages/ui/dialog';
 
 	import mainGame from './script/game';
 	import fs from './script/fs';
@@ -94,7 +94,7 @@
 
 	onBeforeMount(async () : Promise<void> => {
 		if (!await fs.exists('assets')) {
-			await (await Dialog({
+			await (await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
 				closeOnClickOverlay : false
@@ -103,7 +103,7 @@
 		}
 		let chk = false;
 		while (!await mainGame.init(chk))
-			if (await Dialog({
+			if (await dialog({
 				title : mainGame.get.text(I18N_KEYS.RELOAD_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
 				closeOnClickOverlay : false

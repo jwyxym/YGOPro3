@@ -2,8 +2,8 @@
 	<div class = 'card'
 		:class = "{ 'hover' : hover, 'show' : !!i.loc }"
 		:style = "{
-			'--position_x' :  `${(i.index % 10) * size.width + 2}px`,
-			'--position_y' :  `${(Math.trunc(i.index / 10) + i.y) * size.height + i.loc}px`,
+			'--position_x' :  `${(i.index % count) * size.width + 2}px`,
+			'--position_y' :  `${(Math.trunc(i.index / count) + i.y) * size.height + i.loc}px`,
 			'--url' : `url('${mainGame.get.card(i.code).pic}')`,
 			'--card_height' : `${size.height}px`,
 			'--card_width' : `${size.width}px`
@@ -34,6 +34,7 @@
 		i : CardPic;
 		hover : boolean;
 		size : { width : number; height : number; }
+		count : number;
 		lflist ?: LFList;
 	}>();
 

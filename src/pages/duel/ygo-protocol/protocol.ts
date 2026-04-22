@@ -16,7 +16,7 @@ import Plaid from '@/pages/duel/scene/plaid';
 import { voice } from '@/pages/voice/voice';
 
 import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS } from './network';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC } from './network';
 
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -306,7 +306,7 @@ class Protocol {
 					break;
 			}
 		}],
-		[STOC.SELECT_HAND,async () => {
+		[STOC.SELECT_HAND, async () => {
 			connect.duel.rps.show = true;
 		}],
 		[STOC.SELECT_TP, async (_, send : (msg : Msg) => Promise<void>) => {
@@ -326,7 +326,7 @@ class Protocol {
 			connect.duel.select.option.show = true;
 		return;
 		}],
-		[STOC.HAND_RESULT,async (msg : Msg) => {
+		[STOC.HAND_RESULT, async (msg : Msg) => {
 			const res = [msg.read.uint8(), msg.read.uint8()];
 			if (res[0] === undefined || res[1] === undefined)
 				return;
@@ -343,7 +343,13 @@ class Protocol {
 			}
 			this.hint(mainGame.get.text(key));
 		}],
-		[STOC.DECK_COUNT,async (msg : Msg) => {
+		[STOC.CHANGE_SIDE, async () => {
+			connect.on();
+		}],
+		[STOC.WAITING_SIDE, async () => {
+			connect.state = 4;
+		}],
+		[STOC.DECK_COUNT, async (msg : Msg) => {
 			const self_main = msg.read.uint16() ?? 0;
 			const self_ex = msg.read.uint16() ?? 0;
 			const self_side = msg.read.uint16() ?? 0;
@@ -367,7 +373,7 @@ class Protocol {
 				number : `${oppo_main} - ${oppo_ex} - ${oppo_side}`
 			});
 		}],
-		[STOC.JOIN_GAME,async (msg : Msg) => {
+		[STOC.JOIN_GAME, async (msg : Msg) => {
 			connect.wait.info.lflist = msg.read.uint32() ?? 0;
 			connect.wait.info.rule = msg.read.uint8() ?? 0;
 			connect.wait.info.mode = msg.read.uint8() ?? 0;
@@ -380,16 +386,16 @@ class Protocol {
 			connect.wait.info.draw_count = msg.read.uint8() ?? 1;
 			connect.wait.info.time_limit = msg.read.uint16() ?? 240;
 		}],
-		[STOC.TYPE_CHANGE,async (msg : Msg) => {
+		[STOC.TYPE_CHANGE, async (msg : Msg) => {
 			const type = msg.read.uint8();
 			if (type === undefined) return;
 			connect.wait.self.is_host = !!((type >> 4) & 0xf);
 			connect.wait.self.position = (type & 0xf) as 0 | 1 | 2 | 3;
 		}],
-		[STOC.DUEL_START,async () => {
+		[STOC.DUEL_START, async () => {
 			connect.state = 2;
 		}],
-		[STOC.TIME_LIMIT,async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
+		[STOC.TIME_LIMIT, async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
 			const player = msg.read.uint8();
 			msg.index ++;
 			const time = msg.read.uint16();
@@ -402,7 +408,7 @@ class Protocol {
 				await send(new Msg()
 					.write.uint8(CTOS.TIME_CONFIRM));
 		}],
-		[STOC.CHAT,async (msg : Msg) => {
+		[STOC.CHAT, async (msg : Msg) => {
 			const player = msg.read.uint16();
 			const str = msg.read.str(msg.length() - msg.index);
 			if (player === undefined || str === undefined)
@@ -426,7 +432,7 @@ class Protocol {
 				this.hint(new ChatMsg(mainGame.get.text(I18N_KEYS.SERVER_WATCHER), str, ''));
 			else this.hint(str);
 		}],
-		[STOC.HS_PLAYER_ENTER,async (msg : Msg) => {
+		[STOC.HS_PLAYER_ENTER, async (msg : Msg) => {
 			const name = msg.read.str(40);
 			const player = msg.read.uint8();
 			if (player === undefined || name === undefined)
@@ -435,7 +441,7 @@ class Protocol {
 				&& connect.wait.self.position !== player ? mainGame.get.text(I18N_KEYS.HIDDEN_NAME)
 				: name;
 		}],
-		[STOC.HS_PLAYER_CHANGE,async (msg : Msg) => {
+		[STOC.HS_PLAYER_CHANGE, async (msg : Msg) => {
 			const ct = msg.read.uint8();
 			if (ct === undefined) return;
 			const state = ct & 0xf;
@@ -467,10 +473,10 @@ class Protocol {
 					break;
 			}
 		}],
-		[STOC.HS_WATCH_CHANGE,async (msg : Msg) => {
+		[STOC.HS_WATCH_CHANGE, async (msg : Msg) => {
 			connect.wait.info.watch = msg.read.uint16() ?? 0;
 		}],
-		[STOC.TEAMMATE_SURRENDER,async () => {
+		[STOC.TEAMMATE_SURRENDER, async () => {
 			const str = mainGame.get.strings.system(1355);
 			this.hint(str);
 		}]
@@ -1421,6 +1427,7 @@ class Protocol {
 				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
 					?? this.get.card(from.tp, from.loc!, from.seq!);
 				if (c) {
+					c.hint_msg = '';
 					card = c;
 					card
 						.set.id(code)
@@ -1784,8 +1791,177 @@ class Protocol {
 				str += ` [${msg.read.uint8() ?? 0}] `;
 			this.hint(str);
 		}],
-		//todo
-		
+		[MSG.ROCK_PAPER_SCISSORS, async () => {
+			connect.duel.rps.show = true;
+		}],
+		[MSG.HAND_RES, async (msg : Msg) => {
+			const data = msg.read.uint8();
+			if (data === undefined)
+				return;
+			let key : number;
+			const res = [
+				(data & 0x3) - 1,
+				((data >> 2) & 0x3) - 1
+			];
+			if (!connect.duel.is_first)
+				res.reverse();
+			if (res[0] === res[1])
+				key = I18N_KEYS.SERVER_RPS_BYE;
+			else {
+				if (res[0] === res[1] + 1 || res[0] === res[1] - 2) {
+					key = I18N_KEYS.SERVER_RPS_WIN;
+					await (this.stoc.get(STOC.SELECT_TP) as () => Promise<void> | undefined)?.();
+				} else
+					key = I18N_KEYS.SERVER_RPS_LOSE;
+				connect.duel.rps.show = false;
+			}
+			this.hint(mainGame.get.text(key));
+		}],
+		[MSG.ANNOUNCE_RACE, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const ct = msg.read.uint8();
+			const available = msg.read.int32();
+			if (ct === undefined || available === undefined)
+				return;
+			connect.duel.select.race.available = available;
+			connect.duel.select.race.count = ct;
+			connect.duel.select.race.title = !!this.select_hint
+				? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(563);
+			this.select_hint = 0;
+			connect.response = async (i : number) => {
+				connect.duel.select.race.show = false;
+				await send(new Msg()
+					.write.uint8(CTOS.RESPONSE)
+					.write.uint32(i)
+				);
+			};
+			connect.duel.select.race.show = true;
+		}],
+		[MSG.ANNOUNCE_ATTRIB, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const ct = msg.read.uint8();
+			const available = msg.read.int32();
+			if (ct === undefined || available === undefined)
+				return;
+			connect.duel.select.attribute.available = available;
+			connect.duel.select.attribute.count = ct;
+			connect.duel.select.attribute.title = !!this.select_hint
+				? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(563);
+			this.select_hint = 0;
+			connect.response = async (i : number) => {
+				connect.duel.select.attribute.show = false;
+				await send(new Msg()
+					.write.uint8(CTOS.RESPONSE)
+					.write.uint32(i)
+				);
+			};
+			connect.duel.select.attribute.show = true;
+		}],
+		[MSG.ANNOUNCE_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const codes : Array<number> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const ct = msg.read.uint32();
+				if (ct === undefined)
+					return;
+				codes.push(ct);
+			}
+			await mainGame.load.pic(codes);
+			connect.duel.select.code.codes = codes;
+			connect.duel.select.code.title = !!this.select_hint
+				? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(564);
+			this.select_hint = 0;
+			connect.response = async (i : number) => {
+				connect.duel.select.code.show = false;
+				await send(new Msg()
+					.write.uint8(CTOS.RESPONSE)
+					.write.uint32(i)
+				);
+			};
+			connect.duel.select.code.show = true;
+		}],
+		[MSG.ANNOUNCE_NUMBER, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			msg.index ++;
+			const array : Array<number> = [];
+			for (let i = 0; i < (msg.read.uint8() ?? 0); i ++) {
+				const ct = msg.read.uint32();
+				if (ct === undefined)
+					return;
+				array.push(ct);
+			}
+			connect.duel.select.number.array = array;
+			connect.duel.select.number.title = !!this.select_hint
+				? mainGame.get.desc(this.select_hint)
+				: mainGame.get.strings.system(565);
+			this.select_hint = 0;
+			connect.response = async (i : number) => {
+				connect.duel.select.number.show = false;
+				await send(new Msg()
+					.write.uint8(CTOS.RESPONSE)
+					.write.uint32(i)
+				);
+			};
+			connect.duel.select.number.show = true;
+		}],
+		[MSG.CARD_HINT, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const loc = msg.read.uint8();
+			const seq = msg.read.uint8();
+			msg.index ++;
+			const type = msg.read.uint8();
+			const key = msg.read.int32();
+			if (loc === undefined
+				|| seq === undefined
+				|| type === undefined
+				|| key === undefined
+			)
+				return;
+			const card = this.get.card(tp, loc, seq);
+			if (card) {
+				if (type === DESC.ADD) {
+					const v = card.desc.get(key) ?? 0;
+					card.desc.set(key, v + 1);
+				} else if (type === DESC.REMOVE) {
+					const v = (card.desc.get(key) ?? 1) - 1;
+					v >= 1 ? card.desc.set(key, v)
+						: card.desc.delete(key);
+				} else
+					card.hint_msg = (() : string => {
+						switch (type) {
+							case DESC.TURN:
+								return mainGame.get.strings.system(211) + key;
+							case DESC.CARD:
+								return mainGame.get.strings.system(212) + mainGame.get.name(key);
+							case DESC.RACE:
+								return mainGame.get.strings.system(213) + mainGame.get.strings.race(key);
+							case DESC.ATTRIBUTE:
+								return mainGame.get.strings.system(214) + mainGame.get.strings.attribute(key);
+							case DESC.NUMBER:
+								return mainGame.get.strings.system(215) + key;
+							default:
+								return '';
+						}
+					})();
+			}
+		}],
+		[MSG.PLAYER_HINT, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const type = msg.read.uint8();
+			const key = msg.read.int32();
+			if (key === undefined)
+				return;
+			if (type === DESC.ADD) {
+				const v = connect.duel.player[tp].desc.get(key) ?? 0;
+				connect.duel.player[tp].desc.set(key, v + 1);
+			} else if (type === DESC.REMOVE) {
+				const v = (connect.duel.player[tp].desc.get(key) ?? 1) - 1;
+				v >= 1 ? connect.duel.player[tp].desc.set(key, v)
+					: connect.duel.player[tp].desc.delete(key);
+			}
+		}],
 		[MSG.MATCH_KILL, async (msg : Msg) => {
 			this.match_kill = msg.read.int32() ?? 0;
 		}],

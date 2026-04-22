@@ -21,6 +21,7 @@
 				:i = 'i'
 				:hover = 'page.move.card === i'
 				:size = 'page.size'
+				:count = 'count'
 				:lflist = 'lflist'
 				ref = 'cards'
 			/>
@@ -163,11 +164,11 @@
 		size : {
 			width : 0,
 			height : 0,
-			main : computed(() : number => Math.max((Math.trunc(page.deck.main.length / 10) + 1), 6)),
-			extra : computed(() : number => Math.max((Math.trunc(page.deck.extra.length / 10) + 1), 2)),
-			side : computed(() : number => Math.max((Math.trunc(page.deck.side.length / 10) + 1), 2)),
+			main : computed(() : number => Math.max((Math.trunc(page.deck.main.length / props.count) + 1), 6)),
+			extra : computed(() : number => Math.max((Math.trunc(page.deck.extra.length / props.count) + 1), 2)),
+			side : computed(() : number => Math.max((Math.trunc(page.deck.side.length / props.count) + 1), 2)),
 			resize : async () : Promise<void> => {
-				page.size.width = (GLOBAL.WIDTH * 0.9 / 3) / props.count;
+				page.size.width = (props.width - 24) / props.count;
 				page.size.height = page.size.width * 1.45;
 				
 				const extra_y = page.size.main;
@@ -300,7 +301,7 @@
 							}
 							if (typeof page.move.now.chk === 'string')
 								return page.move.moving = false;
-							const index = pic_y * 10 + pic_x;
+							const index = pic_y * props.count + pic_x;
 							if (page.move.index.deck > -1 && page.move.index.deck !== 0)
 								page.move.resort(decks[page.move.index.deck]);
 							page.move.index.deck = 0;
@@ -312,7 +313,7 @@
 							}
 							if (typeof page.move.now.chk === 'string')
 								return page.move.moving = false;
-							const index = (pic_y - page.size.main) * 10 + pic_x;
+							const index = (pic_y - page.size.main) * props.count + pic_x;
 							if (page.move.index.deck > -1 && page.move.index.deck !== 1)
 								page.move.resort(decks[page.move.index.deck]);
 							page.move.index.deck = 1;
@@ -324,7 +325,7 @@
 							}
 							if (typeof page.move.now.chk === 'string')
 								return page.move.moving = false;
-							const index = (pic_y - page.size.main - page.size.extra) * 10 + pic_x;
+							const index = (pic_y - page.size.main - page.size.extra) * props.count + pic_x;
 							if (page.move.index.deck > -1 && page.move.index.deck !== 2)
 								page.move.resort(decks[page.move.index.deck]);
 							page.move.index.deck = 2;
@@ -413,6 +414,7 @@
 		window.removeEventListener('touchstart', page.move.touchstart);
 		window.removeEventListener('touchmove', page.move.touchmove);
 		window.removeEventListener('touchend', page.move.touchend);
+		emit('deck', [[], [], []]);
 	});
 
 	const emit = defineEmits<{
@@ -442,8 +444,8 @@
 </script>
 <style scoped lang = 'scss'>
 	main {
-		width: var(--width);
-		height: var(--height);
+		width: var(--width) !important;
+		height: var(--height) !important;
 		overflow-y: auto;
 		overflow-x: hidden;
 		scroll-behavior: smooth;

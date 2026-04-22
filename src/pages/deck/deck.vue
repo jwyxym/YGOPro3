@@ -104,7 +104,9 @@
 		},
 		copy : async (name : string) => emit('copy', page.to_deck(name)),
 		disrupt : async () : Promise<void> => {
-			const on = async () : Promise<void> => {
+			if (await dialog({
+				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK))) {
 				const sort = () : number =>  Math.random() - 0.5;
 				page.deck.forEach(deck => {
 					deck.sort(sort);
@@ -113,22 +115,16 @@
 							i.index = v;
 					});
 				});
-			};
-			await dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
-				onConfirm : on
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK));
+			}
 		},
 		clear : async () => {
-			const on = () => {
+			if (await dialog({
+				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK))) {
 				page.deck[0].length = 0;
 				page.deck[1].length = 0;
 				page.deck[2].length = 0;
-			};
-			await dialog({
-				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
-				onConfirm : on
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK));
+			}
 		}
 	});
 

@@ -28,7 +28,7 @@
 				v-model = 'connect.duel.card'
 				:width = 'card_info.width'
 				:height = 'card_info.height'
-				v-if = 'connect.state === 2 && connect.duel.card'
+				v-if = 'connect.state > 1 && connect.duel.card'
 				key = '3'
 			/>
 			<RPS
@@ -66,6 +66,15 @@
 				:index = '1'
 				key = '7'
 			/>
+			<Side
+				v-if = 'connect.state >= 3 && side.show'
+				:height = 'side.height'
+				:width = 'side.width'
+				:count = 'side.count'
+				:deck = 'connect.wait.deck.current!'
+				@card = '(card : number) => connect.duel.card = card'
+				@deck = '(deck : [CardPics, CardPics, CardPics]) => side.deck = deck'
+			/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -78,25 +87,54 @@
 				@click = "async () => await connect.send?.(new Msg()
 					.write.uint8(CTOS.CHAT)
 					.write.str('/ai'))"
-				v-show = 'connect.state == 1'
+				v-show = 'connect.state === 1'
 				key = '1'
 			/>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.DUEL_SURRENDER)'
-				@click = "async () => Dialog({
+				@click = "async () => dialog({
 							title : mainGame.get.text(I18N_KEYS.DUEL_SURRENDER_TITLE)
 						}, mainGame.get.system(KEYS.SETTING_CHK_SURRENDER)
 					).then(async i => i ? await connect.send?.(new Msg().write.uint8(CTOS.SURRENDER))
 						: undefined)
 				"
-				v-show = 'connect.state == 2'
+				v-show = 'connect.state === 2'
 				key = '2'
+			/>
+			<Button
+				:content = 'mainGame.get.text(connect.state === 3 ? I18N_KEYS.CONFIRM : I18N_KEYS.DUEL_DECK_CONFIRM)'
+				@click = 'connect.state === 3 ? (async () => {
+					const deck = connect.wait.deck.current ?? new Deck();
+					const main : Array<number> = [];
+					const extra : Array<number> = [];
+					const sides : Array<number> = [];
+					side.deck[0].forEach(i => main.push(i.code));
+					side.deck[1].forEach(i => extra.push(i.code));
+					side.deck[2].forEach(i => sides.push(i.code));
+					deck.main = main;
+					deck.extra = extra;
+					deck.side = sides;
+					connect.wait.deck.current = deck;
+					await connect.on();
+				})() : true'
+				v-show = 'connect.state >= 3'
+				key = '3'
+			/>
+			<Button
+				:content = 'mainGame.get.text(I18N_KEYS.DUEL_DECK_RESTORE)'
+				@click = 'async () => {
+					side.show = false;
+					await mainGame.sleep(100);
+					side.show = true;
+				}'
+				v-show = 'connect.state === 3'
+				key = '4'
 			/>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.DUEL_HISTORY)'
 				@click = 'connect.chat.on'
 				v-show = 'connect.state'
-				key = '3'
+				key = '5'
 			/>
 		</div>
 		<TransitionGroup tag = 'div' name = 'bottom_in'>
@@ -129,10 +167,7 @@
 			<Select_Codes
 				v-if = 'connect.duel.select.code.show'
 				:cards = 'connect.duel.select.code.codes'
-				:min = 'connect.duel.select.code.min'
-				:max = 'connect.duel.select.code.max'
 				:title = 'connect.duel.select.code.title'
-				:cancelable = 'connect.duel.select.code.cancelable'
 				@exit = '(i ?: number) => connect.duel.select.code.confirm?.(i)
 					?? connect.response?.(i)'
 				@click = 'duel.click'
@@ -243,11 +278,14 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { onUnmounted, watch } from 'vue';
+	import { onUnmounted, reactive, watch } from 'vue';
 
 	import Button from '@/pages/ui/button.vue';
-	import Dialog, { close } from '@/pages/ui/dialog';
+	import dialog, { close } from '@/pages/ui/dialog';
 	import Card_info from '@/pages/deck/card_info.vue';
+	import Side from '@/pages/deck/cards.vue';
+	import { CardPics } from '@/pages/deck/pic.vue';
+	import Deck from '@/pages/deck/deck';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -288,10 +326,23 @@
 		width : 360,
 		height : GLOBAL.HEIGHT * 0.8
 	};
+	
+	const side = reactive({
+		show : true,
+		count : 15,
+		width : (GLOBAL.WIDTH - 360) * 0.9 / 1.6 + 40,
+		height : GLOBAL.HEIGHT * 0.9,
+		deck : [[], [], []] as [CardPics, CardPics, CardPics]
+	});
 
 	onUnmounted(connect.clear);
 
-	const exit = () => connect.state ? connect.close() : emit('exit');
+	const exit = async () => connect.state ? (async () => {
+		if (await dialog({
+			title : mainGame.get.text(I18N_KEYS.DECK_EXIT),
+		}, mainGame.get.system(KEYS.SETTING_CHK_EXIT_SERVER)))
+			connect.close()
+	})() : emit('exit');
 
 	const emit = defineEmits<{
 		exit : []
@@ -299,7 +350,7 @@
 
 	watch(() => connect.duel.select.confirm.show, (n : boolean) => {
 		if (n)
-			Dialog({
+			dialog({
 				title : connect.duel.select.confirm.title,
 				message : connect.duel.select.confirm.message,
 				closeOnClickOverlay : false
@@ -328,6 +379,11 @@
 				left: 50%;
 				top: 50%;
 				transform: translate(-50%, -50%);
+			}
+			> main {
+				position: fixed;
+				left: 50%;
+				transform: translateX(-50%);
 			}
 			.info {
 				position: fixed;

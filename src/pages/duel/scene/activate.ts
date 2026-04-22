@@ -19,7 +19,7 @@ class Activate {
 
 	constructor () {
 		this.btn = new Map();
-		this.btnable = !false;
+		this.btnable = false;
 		const btns = () : HTMLDivElement => {
 			const dom = document.createElement('div');
 			Object.assign(dom.style, {

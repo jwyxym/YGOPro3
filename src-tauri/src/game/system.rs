@@ -23,7 +23,17 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(false);
 			});
-		["DELETE_YPK", "DELETE_DECK", "EXIT_DECK", "SWAP_BUTTON", "SORT_DECK", "DISRUPT_DECK", "CLEAR_DECK", "SELECT_SORT"]
+		[
+			"DELETE_YPK",
+			"DELETE_DECK",
+			"EXIT_DECK",
+			"SWAP_BUTTON",
+			"SORT_DECK",
+			"DISRUPT_DECK",
+			"CLEAR_DECK",
+			"SELECT_SORT",
+			"EXIT_SERVER"
+		]
 			.into_iter().for_each(|i| {
 				system.boolean
 					.entry(String::from(i))

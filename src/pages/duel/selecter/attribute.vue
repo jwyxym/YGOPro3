@@ -1,6 +1,6 @@
 <template>
 	<Selecter
-		@confirm = "emit('exit', page.ct)"
+		@confirm = 'page.emit'
 		:cancelable = 'false'
 		:confirmable = 'page.ct !== undefined'
 		:width = 'GLOBAL.WIDTH * 0.3'
@@ -40,7 +40,11 @@
 	const page = reactive({
 		available : [] as Array<number>,
 		show : false,
-		ct : undefined as undefined | number | Array<number>
+		ct : undefined as undefined | number | Array<number>,
+		emit : () => {
+			const ct = Array.isArray(page.ct) ? page.ct.reduce((acc, val) => acc | val,  0) : page.ct;
+			emit('exit', ct);
+		}
 	});
 
 	onBeforeMount(() => {
@@ -54,7 +58,7 @@
 	})
 
 	const emit = defineEmits<{
-		exit : [ct ?: number | Array<number>];
+		exit : [ct ?: number];
 	}>();
 
 </script>

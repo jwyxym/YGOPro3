@@ -4,6 +4,7 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import invoke from '@/script/invoke';
 import Card from '@/script/card';
+import { I18N_KEYS } from '@/script/language/i18n';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
@@ -14,12 +15,13 @@ import tcp, { Tcp } from './ygo-protocol/tcp';
 import Protocol from './ygo-protocol/protocol';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
-import { history } from './log/history/history';
-import { chat } from './log/chat';
 
 import * as Selecter from './selecter/selecter';
+
 import Client_Card from './scene/client_card';
-import { I18N_KEYS } from '@/script/language/i18n';
+
+import { history } from './log/history/history';
+import { chat } from './log/chat';
 
 class Wait {
 	players = [
@@ -52,8 +54,10 @@ class Wait {
 			.write.uint8(v)
 	);
 	deck = {
+		current : undefined as undefined | Deck,
 		send : async (deck ?: Deck) : Promise<void> => {
 			if (deck) {
+				this.deck.current = deck;
 				if (this.players[this.self.position].status)
 					await connect.send?.(new Msg()
 						.write.uint8(CTOS.HS_NOTREADY));
@@ -170,7 +174,7 @@ class Duel {
 const connect = reactive({
 	debouncing : false,
 	srv_cache : new Map<string, string>(),
-	state : 0 as 0 | 1 | 2 | 3,
+	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
 	duel : new Duel(),
 	protocol : undefined as undefined | Tcp | Ws,
@@ -185,7 +189,12 @@ const connect = reactive({
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
-	on : async (para ?: { name : string; pass : string; address : string; protocal : 0 | 1 | 2; }) => {
+	on : async (para ?: {
+		name : string;
+		pass : string;
+		address : string;
+		protocal : 0 | 1 | 2;
+	}) => {
 		if (connect.debouncing)
 			return;
 		connect.debouncing = true;
@@ -256,22 +265,48 @@ const connect = reactive({
 					? toast.info(mainGame.get.text(I18N_KEYS.SERVER_PLAYER_ERROR))
 					: await connect.wait.start();
 				break;
+			case 2:
+				history.clear();
+				chat.clear();
+				connect.chat.off();
+				connect.state = 3;
+				connect.duel.player[0] = new Player();
+				connect.duel.player[1] = new Player();
+				
+				connect.duel.select.cards.show = false;
+				Object.values(connect.duel.select).forEach(i => {
+					if ('show' in i)
+						i.show = false;
+				});
+				break;
 			case 3:
+				const deck = connect.wait.deck.current!;  
+				const msg = new Msg()
+					.write.uint8(CTOS.UPDATE_DECK)
+					.write.uint32(deck.main.length + deck.extra.length)
+					.write.uint32(deck.side.length);
+				for (const i of deck.main
+					.concat(deck.extra)
+					.concat(deck.side)
+				)
+					msg.write.uint32(i);
+				await connect.send?.(msg);
 				break;
 		}
 		connect.debouncing = false;
 	},
 	close : async () => await connect.protocol?.disconnect(),
-	clear : () => {
+	clear : async () => {
+		connect.chat.off();
 		history.clear();
 		chat.clear();
-		connect.protocol = undefined;
 		connect.state = 0;
 		connect.wait = new Wait();
 		connect.duel = new Duel();
-		connect.chat.off();
 		connect.response = undefined;
 		connect.send = undefined;
+		await connect.close();
+		connect.protocol = undefined;
 	}
 });
 

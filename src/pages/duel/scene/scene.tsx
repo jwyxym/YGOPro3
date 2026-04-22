@@ -12,7 +12,7 @@ import { I18N_KEYS } from '@/script/language/i18n';
 
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
-import Dialog from '@/pages/ui/dialog';
+import dialog from '@/pages/ui/dialog';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
@@ -602,7 +602,7 @@ class _Duel {
 		});
 	};
 
-	win = (title : string, message : string) : void => Dialog({
+	win = (title : string, message : string) : void => dialog({
 			title : title,
 			message : message,
 			cancelButton : false

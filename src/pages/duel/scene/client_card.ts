@@ -34,6 +34,8 @@ class Client_Card {
 	status : number;
 	equip ?: Client_Card;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
+	desc : Map<number, number>;
+	hint_msg : string;
 	need_change = {
 		type : false,
 		activate : false,
@@ -76,6 +78,8 @@ class Client_Card {
 			[COMMAND.REPOS, []],
 			[COMMAND.ATTACK, []]
 		]);
+		this.desc = new Map();
+		this.hint_msg = '';
 		this.counter = new Map();
 		this.clicked = false;
 	};
