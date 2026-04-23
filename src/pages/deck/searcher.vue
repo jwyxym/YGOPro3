@@ -195,7 +195,6 @@
 	import Button, { Icon } from '@/pages/ui/button.vue';
 	import Select from '@/pages/ui/select.vue';
 	import { toast } from '@/pages/toast/toast';
-	import { Hover } from './cards.vue';
 	import Deck from './deck';
 
 	const search_div = ref<HTMLDivElement | null>(null);
@@ -223,7 +222,7 @@
 			cards.value![v].$el.style.transition = 'none';
 			const card = page.list[v].pic;
 			emit('card', card.code);
-			props.hover?.(target, card.code);
+			emit('hover', [target, card.code]);
 			page.card = card;
 		},
 		end : () : void => page.card = undefined,
@@ -436,13 +435,13 @@
 		disrupt : [];
 		clear : [];
 		exit : [];
+		hover : [para : [HTMLElement, number]];
 	}>();
 
 	const props = defineProps<{
 		width : number;
 		height : number;
 		count : number;
-		hover ?: Hover;
 		deck : Deck;
 	}>();
 

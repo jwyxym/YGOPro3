@@ -67,13 +67,13 @@
 				key = '7'
 			/>
 			<Side
+				:ref = '(el) => (side.el = el as InstanceType<typeof Side> | null)'
 				v-if = 'connect.state >= 3 && side.show'
 				:height = 'side.height'
 				:width = 'side.width'
 				:count = 'side.count'
 				:deck = 'connect.wait.deck.current!'
 				@card = '(card : number) => connect.duel.card = card'
-				@deck = '(deck : [CardPics, CardPics, CardPics]) => side.deck = deck'
 			/>
 		</TransitionGroup>
 		<div>
@@ -103,20 +103,7 @@
 			/>
 			<Button
 				:content = 'mainGame.get.text(connect.state === 3 ? I18N_KEYS.CONFIRM : I18N_KEYS.DUEL_DECK_CONFIRM)'
-				@click = 'connect.state === 3 ? (async () => {
-					const deck = connect.wait.deck.current ?? new Deck();
-					const main : Array<number> = [];
-					const extra : Array<number> = [];
-					const sides : Array<number> = [];
-					side.deck[0].forEach(i => main.push(i.code));
-					side.deck[1].forEach(i => extra.push(i.code));
-					side.deck[2].forEach(i => sides.push(i.code));
-					deck.main = main;
-					deck.extra = extra;
-					deck.side = sides;
-					connect.wait.deck.current = deck;
-					await connect.on();
-				})() : true'
+				@click = 'update_side'
 				v-show = 'connect.state >= 3'
 				key = '3'
 			/>
@@ -284,7 +271,6 @@
 	import dialog, { close } from '@/pages/ui/dialog';
 	import Card_info from '@/pages/deck/card_info.vue';
 	import Side from '@/pages/deck/cards.vue';
-	import { CardPics } from '@/pages/deck/pic.vue';
 	import Deck from '@/pages/deck/deck';
 
 	import mainGame from '@/script/game';
@@ -332,7 +318,7 @@
 		count : 15,
 		width : (GLOBAL.WIDTH - 360) * 0.9 / 1.6 + 40,
 		height : GLOBAL.HEIGHT * 0.9,
-		deck : [[], [], []] as [CardPics, CardPics, CardPics]
+		el : null as InstanceType<typeof Side> | null
 	});
 
 	onUnmounted(connect.clear);
@@ -343,6 +329,13 @@
 		}, mainGame.get.system(KEYS.SETTING_CHK_EXIT_SERVER)))
 			connect.close()
 	})() : emit('exit');
+
+	const update_side = async () : Promise<void> => {
+		if (connect.state === 3) {
+			const deck = side.el?.to_deck('') ?? new Deck();
+			await connect.on(deck);
+		}
+	};
 
 	const emit = defineEmits<{
 		exit : []

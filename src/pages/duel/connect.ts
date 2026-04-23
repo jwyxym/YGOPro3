@@ -189,17 +189,23 @@ const connect = reactive({
 	},
 	send : undefined as undefined | ((msg : Msg) => Promise<void>),
 	response : undefined as undefined | ((...args : any[]) => Promise<void>),
-	on : async (para ?: {
+	on : async (i ?: {
 		name : string;
 		pass : string;
 		address : string;
 		protocal : 0 | 1 | 2;
-	}) => {
+	} | Deck) => {
 		if (connect.debouncing)
 			return;
 		connect.debouncing = true;
 		switch (connect.state) {
 			case 0:
+				const para = i as {
+					name : string;
+					pass : string;
+					address : string;
+					protocal : 0 | 1 | 2;
+				};
 				if (!para?.name || !para?.address) return;
 				const protocol = new Protocol();
 				const p = {
@@ -280,7 +286,7 @@ const connect = reactive({
 				});
 				break;
 			case 3:
-				const deck = connect.wait.deck.current!;  
+				const deck = i as Deck;  
 				const msg = new Msg()
 					.write.uint8(CTOS.UPDATE_DECK)
 					.write.uint32(deck.main.length + deck.extra.length)

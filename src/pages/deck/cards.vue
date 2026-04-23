@@ -73,7 +73,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { computed, onBeforeMount, onMounted, onUnmounted, reactive, ref, watch, ComponentPublicInstance } from 'vue';
+	import { computed, onMounted, onUnmounted, reactive, ref, watch, ComponentPublicInstance } from 'vue';
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -370,11 +370,6 @@
 		}
 	});
 
-	onBeforeMount(() => {
-		emit('hover', page.move.start);
-		emit('deck', [page.deck.main, page.deck.extra, page.deck.side]);
-	});
-
 	onMounted(async () => {
 		await mainGame.load.pic(props.deck);
 		for (let i = 0; i < props.deck.main.length; i++)
@@ -404,13 +399,10 @@
 		window.removeEventListener('touchstart', page.move.touchstart);
 		window.removeEventListener('touchmove', page.move.touchmove);
 		window.removeEventListener('touchend', page.move.touchend);
-		emit('deck', [[], [], []]);
 	});
 
 	const emit = defineEmits<{
 		card : [card : number];
-		hover : [hover : Hover];
-		deck : [deck : [CardPics, CardPics, CardPics]];
 	}>();
 
 	const props = defineProps<{
@@ -421,6 +413,46 @@
 		lflist ?: LFList;
 	}>();
 
+	const deck_export = {
+		sort : () : void => {
+			const sort = (a : CardPic, b : CardPic) : number => {
+				const card = {
+					a : mainGame.get.card(a.code),
+					b : mainGame.get.card(b.code)
+				};
+				return card.a.level === card.b.level ? card.a.id - card.b.id : card.b.level - card.a.level;
+			};
+			[page.deck.main, page.deck.extra, page.deck.side]
+				.forEach(deck => {
+					deck.sort(sort);
+					deck.forEach((i, v) => {
+						if (i.index !== v)
+							i.index = v;
+					});
+				});
+		},
+		clear : () : void => [page.deck.main, page.deck.extra, page.deck.side]
+			.forEach(i => i.length = 0),
+		disrupt : () : void => {
+			const sort = () : number =>  Math.random() - 0.5;
+			[page.deck.main, page.deck.extra, page.deck.side]
+				.forEach(deck => {
+					deck.sort(sort);
+					deck.forEach((i, v) => {
+						if (i.index !== v)
+							i.index = v;
+					});
+				});
+		},
+		to_deck : (name : string) : Deck => new Deck({
+			main : page.deck.main.slice().sort((a, b) => a.index - b.index).map(i => i.code),
+			extra : page.deck.extra.slice().sort((a, b) => a.index - b.index).map(i => i.code),
+			side : page.deck.side.slice().sort((a, b) => a.index - b.index).map(i => i.code),
+			name : name
+		}),
+		hover : page.move.start
+	};
+
 	watch(() => page.move.card, (n) => {
 		if (!n || !(page.deck.main.includes(n) || page.deck.extra.includes(n) || page.deck.side.includes(n)))
 			return;
@@ -428,6 +460,14 @@
 	});
 
 	watch(() => GLOBAL.SCALE, page.size.resize);
+
+	defineExpose<{
+		clear : () => void;
+		sort : () => void;
+		disrupt : () => void;
+		to_deck : (name : string) => Deck;
+		hover : Hover
+	}>(deck_export);
 
 	type Hover = (target : HTMLElement, code ?: number) => void;
 	export type { Hover };

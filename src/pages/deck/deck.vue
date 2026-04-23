@@ -6,6 +6,7 @@
 			v-model = 'page.card'
 		/>
 		<Deck_Box
+			:ref = '(el) => (page.el = el as InstanceType<typeof Deck_Box> | null)'
 			:height = 'page.height'
 			:width = 'page.width[1]'
 			:count = '10'
@@ -13,14 +14,11 @@
 			:lflist = 'page.lflist'
 			@card = 'page.oncard'
 			@move = 'page.move.on'
-			@hover = '(hover : Hover) => page.hover = hover'
-			@deck = '(deck : [CardPics, CardPics, CardPics]) => page.deck = deck'
 		/>
 		<Search_Box
 			:height = 'page.height'
 			:width = 'page.width[0]'
 			:count = '10'
-			:hover = 'page.hover!'
 			:move = 'page.move'
 			:deck = 'this_deck'
 			@card = 'page.oncard'
@@ -31,6 +29,7 @@
 			@disrupt = 'page.disrupt'
 			@clear = 'page.clear'
 			@exit = "emit('exit')"
+			@hover = '(i : [HTMLElement, number]) => page.el?.hover(i[0], i[1])'
 		/>
 	</main>
 </template>
@@ -43,21 +42,20 @@
 	import LFList from '@/script/lflist';
 
 	import dialog from '@/pages/ui/dialog';
-	import { CardPic, CardPics } from '@/pages/deck/pic.vue';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
 	import Search_Box from './searcher.vue';
-	import Deck_Box, { Hover } from './cards.vue';
+	import Deck_Box from './cards.vue';
 	import Card_Box from './card_info.vue';
 	import GLOBAL from '@/script/scale';
 
 	const page = reactive({
+		el : null as null | InstanceType<typeof Deck_Box>,
 		lflist : undefined as LFList | undefined,
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
 		card : 0,
-		deck : [[], [], []] as [CardPics, CardPics, CardPics],
 		move : {
 			x : 0,
 			y : 0,
@@ -66,14 +64,10 @@
 				page.move.y = y;
 			}
 		},
-		hover : undefined as undefined | Hover,
 		oncard : (card : number) => page.card = card,
-		to_deck : (name : string) => new Deck({
-			main : page.deck[0].slice().sort((a, b) => a.index - b.index).map(i => i.code),
-			extra : page.deck[1].slice().sort((a, b) => a.index - b.index).map(i => i.code),
-			side : page.deck[2].slice().sort((a, b) => a.index - b.index).map(i => i.code),
-			name : name
-		}),
+		to_deck : (name : string) : Deck => {
+			return page.el?.to_deck(name) ?? new Deck();
+		},
 		save : async (name : string) => {
 			const deck = page.to_deck(name);
 			const write = await mainGame.deck.write(name, deck.toYdkString());
@@ -87,44 +81,20 @@
 				emit('update', name);
 		},
 		sort : () => {
-			const sort = (a : CardPic, b : CardPic) : number => {
-				const card = {
-					a : mainGame.get.card(a.code),
-					b : mainGame.get.card(b.code)
-				};
-				return card.a.level === card.b.level ? card.a.id - card.b.id : card.b.level - card.a.level;
-			};
-			page.deck.forEach(deck => {
-				deck.sort(sort);
-				deck.forEach((i, v) => {
-					if (i.index !== v)
-						i.index = v;
-				});
-			});
+			page.el?.sort();
 		},
 		copy : async (name : string) => emit('copy', page.to_deck(name)),
 		disrupt : async () : Promise<void> => {
 			if (await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK))) {
-				const sort = () : number =>  Math.random() - 0.5;
-				page.deck.forEach(deck => {
-					deck.sort(sort);
-					deck.forEach((i, v) => {
-						if (i.index !== v)
-							i.index = v;
-					});
-				});
-			}
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK)))
+				page.el?.disrupt();
 		},
 		clear : async () => {
 			if (await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK))) {
-				page.deck[0].length = 0;
-				page.deck[1].length = 0;
-				page.deck[2].length = 0;
-			}
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK)))
+				page.el?.clear();
 		}
 	});
 
