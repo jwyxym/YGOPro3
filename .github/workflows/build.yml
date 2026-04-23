@@ -107,7 +107,7 @@ jobs:
         out-file-path: "./src-tauri/"
         
     - name: Rename assets
-      run: mv src-tauri\assets.zip src-tauri\assets
+      run: mv ./src-tauri/assets.zip ./src-tauri/assets
 
     - name: Write Tauri Config
       run: |
