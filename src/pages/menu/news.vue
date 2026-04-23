@@ -15,8 +15,9 @@
 	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import { URL } from '@/script/constant';
-	import fs from '@/script/fs';
 	import http from '@/script/http';
+	import mainGame from '@/script/game';
+	
 	import { toast } from '@/pages/toast/toast';
 
 	interface swipe {
@@ -35,7 +36,7 @@
 				return true;
 			} catch (e) {
 				toast.error(e);
-				fs.write.log(e);
+				mainGame.log.write(e);
 			}
 		}
 	});

@@ -5,7 +5,6 @@ import { fetch } from '@tauri-apps/plugin-http';
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
-import fs from './fs';
 import * as CONSTANT from './constant';
 import Card from './card';
 import LFList from './lflist';
@@ -42,6 +41,7 @@ class Game {
 	};
 
 	init = async () : Promise<boolean> => {
+		this.log.write('error');
 		try {
 			if (!await invoke.game.init())
 				return false;
@@ -108,7 +108,7 @@ class Game {
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
 				.set.readonly();
 		} catch (error) {
-			fs.write.log(error);
+			this.log.write(error);
 			return false;
 		}
 		return true;
@@ -123,7 +123,7 @@ class Game {
 			await this.init();
 			return true;
 		} catch (error) {
-			fs.write.log(error);
+			this.log.write(error);
 		}
 		return false;
 	};
@@ -288,7 +288,7 @@ class Game {
 		ypk : async (name : string, del : boolean = false) : Promise<boolean> => {
 			const i : [boolean, boolean] = await Promise.all([
 				invoke.game.unload_ypk(name),
-				del ? fs.delete.ypk(name) : Promise.resolve(true)
+				del ? invoke.ypk.del(name) : Promise.resolve(true)
 			]);
 			return i[0] && i[1];
 		}
@@ -310,7 +310,7 @@ class Game {
 				});
 				if (time.ok) {
 					const date = new Date(Number((await time.text()).trim()) * 1000);
-					if (await fs.exists('expansions/ygopro-super-pre.ypk')) {
+					if (await invoke.ypk.exists('expansions/ygopro-super-pre.ypk')) {
 						const local = await invoke.game.time(['expansions', 'ygopro-super-pre.ypk']);
 						if (local)
 							return local >= date;
@@ -336,6 +336,10 @@ class Game {
 		write : invoke.deck.write,
 		rename : invoke.deck.rename,
 		del : invoke.deck.del
+	};
+
+	log = {
+		write : invoke.log.write
 	};
 
 	exit = async () : Promise<void> => {

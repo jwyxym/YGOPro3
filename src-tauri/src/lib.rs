@@ -1,6 +1,8 @@
 mod api;
 mod game;
 mod deck;
+mod log;
+mod ypk;
 
 use game::PATH;
 use std::path::PathBuf;
@@ -49,17 +51,23 @@ pub fn run() {
 			api::write_deck,
 			api::rename_deck,
 			api::del_deck,
+			api::write_log,
+			api::del_ypk,
+			api::exists_ypk,
 		])
 		.setup(|app| {
 			match type_() {
 				OsType::Android => {
 					let path: PathBuf = app.path().resolve("./", BaseDirectory::Public)?;
 					if let Some(path) = path.parent() {
-						let _ = PATH.set(path.to_path_buf());
+						let path: PathBuf = path.to_path_buf();
+						let _ = log::init(&path);
+						let _ = PATH.set(path);
 					}
 				}
 				_ => {
 					let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;
+					let _ = log::init(&path);
 					let _ = PATH.set(path);
 				}
 			};

@@ -1,6 +1,5 @@
 import { fetch } from '@tauri-apps/plugin-http';
-
-import fs from '@/script/fs';
+import mainGame from './game';
 
 class Http {
 	cache : Map<string, any> = new Map();
@@ -14,7 +13,7 @@ class Http {
 			this.cache.set(url, data);
 			return data;
 		} catch (e) {
-			fs.write.log(e);
+			mainGame.log.write(e);
 		}
 		return undefined;
 	}

@@ -44,7 +44,10 @@ use tokio::{
 use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
-	collections::BTreeMap, fs::{exists, write}, path::{Path, PathBuf}, sync::OnceLock
+	collections::BTreeMap,
+	fs::{exists, write},
+	path::{Path, PathBuf},
+	sync::OnceLock
 };
 use tauri::{AppHandle, Emitter};
 

@@ -1,7 +1,7 @@
 import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
 import PQueue from 'p-queue';
 
-import fs from '@/script/fs';
+import mainGame from '@/script/game';
 import Msg from './msg';
 
 class Ws {
@@ -36,7 +36,7 @@ class Ws {
 				};
 			});
 		} catch (e) {
-			fs.write.log(e);
+			mainGame.log.write(e);
 			return false;
 		}
 		return true;

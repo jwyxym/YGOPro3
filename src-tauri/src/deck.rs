@@ -22,6 +22,7 @@ impl Deck {
 		)?;
 		Ok(())
 	}
+	
 	pub async fn rename (old_name: String, new_name: String) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let path = path
@@ -39,6 +40,7 @@ impl Deck {
 		rename(old_path, new_path)?;
 		Ok(())
 	}
+
 	pub async fn del (name: String) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 

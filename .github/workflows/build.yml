@@ -121,13 +121,9 @@ jobs:
       run: |
         npm run tauri:android:init
 
-    - name: Android copy
-      run: |
-        npm run copy:sh
-
     - name: Android build
       run: |
-        npm run tauri:android:build
+        npm run tauri:android:build:sh
 
     - name: Decode Keystore File
       run: |

@@ -1,9 +1,9 @@
 import { invoke } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
-import fs from './fs';
 import Card from './card';
 import LFList from './lflist';
+import { toast } from '@/pages/toast/toast';
 
 interface Srv {
 	priority : number;
@@ -19,7 +19,7 @@ class Invoke {
 				await invoke<void>('init');
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return false;
 			}
 		},
@@ -28,7 +28,7 @@ class Invoke {
 				await invoke<void>('reload', { overwrite : overwrite });
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return false;
 			}
 		},
@@ -37,7 +37,7 @@ class Invoke {
 				const time = await invoke<string>('get_time', { path : path });
 				return time.length > 0 ? new Date(time) : undefined;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return undefined;
 			}
 		},
@@ -45,7 +45,7 @@ class Invoke {
 			try {
 				return await invoke<boolean>('chk_version');
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return true;
 			}
 		},
@@ -53,7 +53,7 @@ class Invoke {
 			try {
 				return await invoke<string>('download', { url : url, name : name ?? ''});
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return '';
 			}
 		},
@@ -64,7 +64,7 @@ class Invoke {
 					bincode.Collection(bincode.String), result
 				).value as Array<string>;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -75,7 +75,7 @@ class Invoke {
 					return true;
 				} else return await this.game.get_ypk();
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return name ? false : [];
 			}
 		},
@@ -84,7 +84,16 @@ class Invoke {
 				await invoke<void>('unload_ypk', { name : name });
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
+				return false;
+			}
+		},
+		del_ypk : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('del_ypk', { name : name });
+				return true;
+			} catch (error) {
+				this.log.write(error);
 				return false;
 			}
 		},
@@ -93,7 +102,7 @@ class Invoke {
 				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return false;
 			}
 		},
@@ -102,7 +111,7 @@ class Invoke {
 				const result = await invoke<Srv>('get_srv', { url : url });
 				return result.target + ':' + result.port;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return url;
 			}
 		},
@@ -120,7 +129,7 @@ class Invoke {
 				}))]);
 				return [pics[0], buffer_url].flat();
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -134,7 +143,7 @@ class Invoke {
 					type : 'application/x-font-ttf'
 				}))]);
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -148,7 +157,7 @@ class Invoke {
 					type : 'audio/mp3'
 				}))]);
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -181,7 +190,7 @@ class Invoke {
 					avatar : bincode.Collection(bincode.String)
 				}), result).value as any;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return {
 					ot : [],
 					attribute : [],
@@ -207,7 +216,7 @@ class Invoke {
 					)), result).value as any as Array<[Array<number>, Array<string>]>)
 						.map(i => [i[0][0], new Card(i.flat())]);
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -227,7 +236,7 @@ class Invoke {
 						array : bincode.Collection(bincode.Tuple(bincode.String,  bincode.Collection(bincode.String))),
 					}), result).value as any;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return {
 					string : [],
 					bool : [],
@@ -243,7 +252,7 @@ class Invoke {
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -264,7 +273,7 @@ class Invoke {
 					glist : Array<[number, number]>
 				}]>).map(i => [i[0], new LFList(i[0], i[1])]);
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
@@ -283,7 +292,7 @@ class Invoke {
 					setname : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
 				}), result).value as any;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return {
 					system : [],
 					victory : [],
@@ -311,7 +320,7 @@ class Invoke {
 					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
 				}), result).value as any;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return {
 					ot : [],
 					attribute : [],
@@ -329,7 +338,7 @@ class Invoke {
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		}
@@ -343,42 +352,73 @@ class Invoke {
 				), result).value as Array<[string, string]>)
 					.map(i => Deck.fromYdkString(i[1]).set_name(i[0]));
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return [];
 			}
 		},
 		write : async (name : string, deck : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('write_deck', {
+				await invoke<void>('write_deck', {
 					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`,
 					deck : deck
 				});
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return false;
 			}
 		},
 		rename : async (old_name : string, new_name : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('rename_deck', {
+				await invoke<void>('rename_deck', {
 					oldName : old_name,
 					newName : new_name
 				});
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
 				return false;
 			}
 		},
 		del : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('del_deck', {
+				await invoke<void>('del_deck', {
 					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`
 				});
 				return true;
 			} catch (error) {
-				fs.write.log(error);
+				this.log.write(error);
+				return false;
+			}
+		}
+	};
+	ypk = {
+		del : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('del_ypk', { name : name });
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		},
+		exists : async (name : string) : Promise<boolean> => {
+			try {
+				return await invoke<boolean>('exists_ypk', { name : name });
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		}
+	};
+	log = {
+		write : async (line : string) : Promise<boolean> => {
+			try {
+				console.error(line);
+				await invoke<void>('write_log', { line : line });
+				return true;
+			} catch (error) {
+				toast.error(error.toString());
 				return false;
 			}
 		}

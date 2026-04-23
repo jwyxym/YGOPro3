@@ -1,6 +1,6 @@
 
 use crate::game::{self, Game, Srv};
-use crate::deck::Deck;
+use crate::{deck::Deck, log, ypk::Ypk};
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -184,4 +184,19 @@ pub async fn get_deck () -> Response {
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
 		.unwrap_or_else(|| Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn write_log (line: String) -> Result<(), String> {
+	log::write(line).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn del_ypk (name: String) -> Result<(), String> {
+	Ypk::del(name).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn exists_ypk (name: String) -> Result<bool, String> {
+	Ypk::exists(name).await.map_err(|e| e.to_string())
 }

@@ -1,7 +1,7 @@
 import * as tcp from '@kuyoonjo/tauri-plugin-tcp';
 import PQueue from 'p-queue';
 
-import fs from '@/script/fs';
+import mainGame from '@/script/game';
 import Msg from './msg';
 class Tcp {
 	cid = 'YGOPro3';
@@ -26,7 +26,7 @@ class Tcp {
 			await tcp.connect(this.cid, this.address);
 			await call_back.on_connect?.(this.send);
 		} catch (e) {
-			fs.write.log(e);
+			mainGame.log.write(e);
 			return false;
 		}
 		return true;

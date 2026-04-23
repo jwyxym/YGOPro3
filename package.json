@@ -15,7 +15,11 @@
 		"tauri:dev": "tauri dev",
 		"tauri:build": "tauri build",
 		"tauri:android:dev": "tauri android dev",
+		"tauri:android:dev:cmd": "npm run copy:cmd&&npm run tauri:android:dev",
+		"tauri:android:dev:sh": "npm run copy:sh&&npm run tauri:android:dev",
 		"tauri:android:build": "tauri android build",
+		"tauri:android:build:cmd": "npm run copy:cmd&&npm run tauri:android:build",
+		"tauri:android:build:sh": "npm run copy:sh&&npm run tauri:android:build",
 		"tauri:android:init": "tauri android init&&npm run icon",
 		"tauri": "tauri"
 	},
