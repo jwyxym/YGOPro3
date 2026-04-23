@@ -3,7 +3,7 @@ import YGO from './init.vue';
 import Vue3StarrySky from 'vue3-starry-sky';
 import 'vue3-starry-sky/lib/style.css';
 import Varlet from '@varlet/ui';
-import '@varlet/ui/es/style';
+import '@varlet/ui/es/style.mjs';
 import { FakeQQUI } from 'fake-qq-ui';
 import 'fake-qq-ui/styles/fake-qq-ui.css';
 import 'fake-qq-ui/styles/light.scss';
