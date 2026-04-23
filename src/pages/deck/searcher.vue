@@ -213,9 +213,9 @@
 				page.size.height = page.size.width * 1.45;
 			}
 		},
-		touchstart : (e : TouchEvent) : void => page.start(e.target as HTMLElement, e.touches[0].clientX, e.touches[0].clientY),
-		mousedown : (e : MouseEvent) : void => page.start(e.target as HTMLElement, e.clientX, e.clientY),
-		start : (target : HTMLElement, x : number, y : number) : void => {
+		touchstart : (e : TouchEvent) : void => page.start(e.target as HTMLElement),
+		mousedown : (e : MouseEvent) : void => page.start(e.target as HTMLElement),
+		start : (target : HTMLElement) : void => {
 			if (search.off(target)) return;
 			if (setting.off(target)) return;
 			const v : number = cards.value?.findIndex(i => i.$el.contains(target)) ?? -1;

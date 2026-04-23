@@ -63,10 +63,8 @@ class _History {
 			this.msg.push(msg);
 			if (!this.element) return;
 			const { scrollTop, scrollHeight, clientHeight } = this.element;
-			if (scrollTop + clientHeight > scrollHeight - 80) {
-				await mainGame.sleep(100);
+			if (scrollTop + clientHeight > scrollHeight - 80)
 				this.element.scrollTop = scrollHeight;
-			}
 			await mainGame.sleep(100);
 		}
 	);

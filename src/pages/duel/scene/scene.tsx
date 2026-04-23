@@ -529,8 +529,11 @@ class _Duel {
 	};
 
 	btnable = (chk : boolean) : void => {
-		if (this.activate)
+		if (this.activate) {
 			this.activate.btnable = chk;
+			if (!chk)
+				duel.activate?.off();
+		}
 	};
 	
 	click = (event : Event | Client_Card | number) : void => {

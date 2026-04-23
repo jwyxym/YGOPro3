@@ -42,7 +42,10 @@ class Tcp {
 						const len = msg.read.uint16();
 						if (!len) break;
 						const m = msg.slice(len);
-						if (!m) break;
+						if (!m) {
+							msg.index -= 2;
+							break;
+						}
 						this.queue.add(
 							async () => await this.on_message?.(m, this.send)
 						);

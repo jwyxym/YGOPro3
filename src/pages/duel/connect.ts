@@ -305,7 +305,6 @@ const connect = reactive({
 		connect.duel = new Duel();
 		connect.response = undefined;
 		connect.send = undefined;
-		await connect.close();
 		connect.protocol = undefined;
 	}
 });
