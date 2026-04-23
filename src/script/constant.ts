@@ -26,7 +26,7 @@ const URL = {
 	SUPER_PRE_VERSION : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/version.txt',
 	MYCARD_NEWS : 'https://sapi.moecube.com:444/apps.json',
 	NEWS_URL : 'https://ygobbs2.com/t/',
-	YGOPRO3 : ''
+	YGOPRO3 : 'https://github.com/jwyxym/YGOPro3/releases/release-latest'
 }
 
 const KEYS = {

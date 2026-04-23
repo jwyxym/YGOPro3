@@ -2,8 +2,7 @@ import json
 import sys
 
 os = sys.argv[1] if len(sys.argv) >= 2 else ''
-pack = sys.argv[2] if len(sys.argv) >= 3 else ''
-args = (sys.argv[3] if len(sys.argv) >= 4 else '0.1.0').split('.')
+args = (sys.argv[2] if len(sys.argv) >= 3 else '0.1.0').split('.')
 version = f"{args[0]}.{int(args[1])}.{int(args[2])}"
 
 tauri_config = {
@@ -50,17 +49,9 @@ tauri_config = {
 	}
 }
 
-if os == 'linux':
-	if pack == 'appimage':
-		tauri_config["bundle"]["targets"] = ['appimage']
-	elif pack == 'deb':
-		tauri_config["bundle"]["targets"] = ['deb']
-	elif pack == 'rpm':
-		tauri_config["bundle"]["targets"] = ['rpm']
-
-if os == 'windows' or os == 'macos' or (os == 'linux' and pack != 'appimage'):
+if os != 'dev':
 	tauri_config["bundle"]["resources"] = [
-		"assets.zip"
+		"assets"
 	]
 
 path = './src-tauri/tauri.conf.json'

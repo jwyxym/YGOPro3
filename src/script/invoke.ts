@@ -41,21 +41,20 @@ class Invoke {
 				return undefined;
 			}
 		},
-		chk_version : async () : Promise<[boolean, boolean]> => {
+		chk_version : async () : Promise<boolean> => {
 			try {
-				return await invoke<[boolean, boolean]>('chk_version');
+				return await invoke<boolean>('chk_version');
 			} catch (error) {
 				fs.write.log(error);
-				return [true, true];
+				return true;
 			}
 		},
-		download : async (url ?: string, name ?: string) : Promise<string | undefined> => {
+		download : async (url : string, name ?: string) : Promise<string> => {
 			try {
-				return await (url ? invoke<string>('download', { url : url, name : name ?? ''})
-					: invoke<void>('download_assets')) ?? undefined;
+				return await invoke<string>('download', { url : url, name : name ?? ''});
 			} catch (error) {
 				fs.write.log(error);
-				return undefined;
+				return '';
 			}
 		},
 		get_ypk : async () : Promise<Array<string>> => {

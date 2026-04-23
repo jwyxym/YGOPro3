@@ -6,13 +6,8 @@
 	"scripts": {
 		"copy:cmd": "xcopy src-tauri\\android-custom\\ src-tauri\\gen\\android\\app\\src\\main /s /Y /e /I",
 		"copy:sh": "cp -r src-tauri/android-custom/* src-tauri/gen/android/app/src/main/",
-		"json:android": "node .ci/tauri.conf.json.cjs android",
-		"json:windows": "node .ci/tauri.conf.json.cjs windows",
-		"json:linux:appimage": "node .ci/tauri.conf.json.cjs linux appimage",
-		"json:linux:deb": "node .ci/tauri.conf.json.cjs linux deb",
-		"json:linux:rpm": "node .ci/tauri.conf.json.cjs linux rpm",
-		"json:macos": "node .ci/tauri.conf.json.cjs macos",
-		"json:dev": "node .ci/tauri.conf.json.cjs android",
+		"json:build": "node .ci/tauri.conf.json.cjs build",
+		"json:dev": "node .ci/tauri.conf.json.cjs dev",
 		"icon": "npm run tauri icon -p src-tauri/icons/icon.jpg",
 		"dev": "vite",
 		"build": "vite build",
@@ -21,7 +16,7 @@
 		"tauri:build": "tauri build",
 		"tauri:android:dev": "tauri android dev",
 		"tauri:android:build": "tauri android build",
-		"tauri:android:init": "tauri android init",
+		"tauri:android:init": "tauri android init&&npm run icon",
 		"tauri": "tauri"
 	},
 	"dependencies": {

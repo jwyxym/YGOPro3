@@ -2,8 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const os = process.argv[2] || '';
-const pack = process.argv[3] || '';
-const arg = (process.argv[4] || '0.1.0').split('.');
+const arg = (process.argv[3] || '0.1.0').split('.');
 const version = `${arg[0]}.${Number(arg[1])}.${Number(arg[2])}`;
 
 const tauriConfig = {
@@ -50,17 +49,10 @@ const tauriConfig = {
 	}
 };
 
-if (os === 'linux')
-	if (pack === 'appimage') 
-		tauriConfig.bundle.targets = ['appimage'];
-	else if (pack === 'deb') 
-		tauriConfig.bundle.targets = ['deb'];
-	else if (pack === 'rpm') 
-		tauriConfig.bundle.targets = ['rpm'];
 
-if (os === 'windows' || os === 'macos' || (os === 'linux' && pack !== 'appimage'))
+if (os !== 'dev')
 	tauriConfig.bundle.resources = [
-		"assets.zip"
+		"assets"
 	];
 
 const configPath = path.join(__dirname, '../src-tauri/tauri.conf.json');

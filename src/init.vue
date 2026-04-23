@@ -42,7 +42,6 @@
 	import dialog from './pages/ui/dialog';
 
 	import mainGame from './script/game';
-	import fs from './script/fs';
 	import { I18N_KEYS } from './script/language/i18n';
 
 	const page = reactive({
@@ -93,24 +92,15 @@
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		if (!await fs.exists('assets')) {
-			await (await dialog({
+		if (!await mainGame.init()) {
+			await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
-				closeOnClickOverlay : false
-			}, true) ? mainGame.download
-				: mainGame.exit)();
+				closeOnClickOverlay : false,
+				cancelButton : false
+			}, true);
+			await mainGame.exit();
 		}
-		let chk = false;
-		while (!await mainGame.init(chk))
-			if (await dialog({
-				title : mainGame.get.text(I18N_KEYS.RELOAD_TITLE),
-				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
-				closeOnClickOverlay : false
-			}, true)) {
-				await mainGame.download();
-				chk = true;
-			}
 		page.show.voice = true;
 		page.show.menu = true;
 	});

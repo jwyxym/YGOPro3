@@ -25,7 +25,6 @@ dist-ssr
 *.bat
 /src-tauri/assets
 /src-tauri/gen
-/src-tauri/2
 *.jks
 *.b64
 src-tauri/src/assets.rs

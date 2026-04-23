@@ -27,7 +27,6 @@ pub fn run() {
 			api::init,
 			api::reload,
 			api::download,
-			api::download_assets,
 			api::get_ypk,
 			api::load_ypk,
 			api::unload_ypk,
@@ -52,13 +51,18 @@ pub fn run() {
 			api::del_deck,
 		])
 		.setup(|app| {
-			let path: PathBuf = app.path().resolve("./", {
-				match type_() {
-					OsType::Android => BaseDirectory::Public,
-					_ => BaseDirectory::Resource
+			match type_() {
+				OsType::Android => {
+					let path: PathBuf = app.path().resolve("./", BaseDirectory::Public)?;
+					if let Some(path) = path.parent() {
+						let _ = PATH.set(path.to_path_buf());
+					}
 				}
-			})?;
-			let _ = PATH.set(path);
+				_ => {
+					let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;
+					let _ = PATH.set(path);
+				}
+			};
 			Ok(())
 		})
 		.run(tauri::generate_context!())

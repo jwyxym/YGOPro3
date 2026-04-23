@@ -104,15 +104,18 @@
 	
 	class Version {
 		title : number;
+		to_true ?: boolean;
 		loading = ref<undefined | boolean | string>(undefined);
 		chk : () => Promise<void>;
 		update : () => Promise<void>;
 		constructor (obj : {
 			title : number,
+			to_true ?: boolean,
 			chk : () => Promise<boolean>,
 			update : () => Promise<any>
 		}) {
 			this.title = obj.title;
+			this.to_true = obj.to_true;
 			this.chk = async () : Promise<void> => {
 				this.loading.value = 'loading';
 				this.loading.value = await obj.chk();
@@ -120,7 +123,8 @@
 			this.update = async () : Promise<void> => {
 				this.loading.value = 'loading';
 				await obj.update();
-				this.loading.value = true;
+				if (this.to_true)
+					this.loading.value = true;
 			};
 		};
 		
@@ -133,14 +137,10 @@
 				update : async () => await Opener.openUrl(URL.YGOPRO3)
 			}),
 			new Version({
-				title : I18N_KEYS.SETTING_ASSETS_VERSION,
-				chk : mainGame.chk.version.assets,
-				update : mainGame.update
-			}),
-			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
-				update : async () => await mainGame.download(URL.SUPER_PRE)
+				update : async () => await mainGame.download(URL.SUPER_PRE),
+				to_true : true
 			}),
 		],
 		reload : [

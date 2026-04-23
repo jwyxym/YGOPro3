@@ -51,9 +51,12 @@ use tauri::{AppHandle, Emitter};
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
-const URL_DOWNLOAD: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/assets.zip/download";
-const URL_ASSETS_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
 const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/game_version.txt/download";
+
+lazy_static! {
+	pub static ref PIC_REGEX: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$").unwrap();
+	pub static ref COMMENTS_REGEX: Regex = Regex::new(r"#.*").unwrap();
+}
 
 pub async fn init (app: &AppHandle) -> Result<(), Error> {
 	if !GAME.get().is_some() {
@@ -69,20 +72,9 @@ pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	Ok(())
 }
 
-pub async fn download (app: &AppHandle) -> Result<(), Error> {
-	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	Request::download(app, path, URL_DOWNLOAD, "assets").await?;
-	Ok(())
-}
-
-lazy_static! {
-	pub static ref PIC_REGEX: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$").unwrap();
-	pub static ref COMMENTS_REGEX: Regex = Regex::new(r"#.*").unwrap();
-}
-
 #[derive(Serialize, Clone, Debug)]
 pub struct Game {
-	version: (String, String),
+	version: String,
 	model: Model,
 	system: System,
 	resource: Resource,
@@ -103,19 +95,19 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<String, Error> {
+	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		metadata(path.join("assets")).await?;
-		let (version, tasks) = Zip::unzip(app, path, overwrite).await?;
+		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
 		}
-		version.ok_or(anyhow!("version error"))
+		Ok(())
 	}
 
 	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let version: String = Self::unzip(app, overwrite).await?;
+		Self::unzip(app, overwrite).await?;
 
 		let mut font: Font = Font::new();
 		let mut sound: Sound = Sound::new();
@@ -138,7 +130,7 @@ impl Game {
 			pics: Pic::new().read_dir(path.join("pics"))
 		});
 		Ok(Self {
-			version: (format!("YGOPro3://{}/", app.package_info().version.to_string()), version),
+			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
 			system: system,
 			resource: resource,
@@ -665,13 +657,10 @@ impl Game {
 		}
 		Ok(())
 	}
-	pub async fn chk_version () -> Result<(bool, bool), Error> {
+	pub async fn chk_version () -> Result<bool, Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
-		Ok(join!(
-			Request::version(URL_GAME_VERSION, &game.version.0),
-			Request::version(URL_ASSETS_VERSION, &game.version.1)
-		))
+		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;

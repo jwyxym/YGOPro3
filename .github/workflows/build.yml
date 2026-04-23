@@ -54,7 +54,7 @@ jobs:
           cd .ci
           pip install requests
           python write_version.py ${{ github.ref_name }}
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} game_version.txt
+          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
 
   build-android:
     runs-on: ubuntu-latest
@@ -99,9 +99,19 @@ jobs:
       with:
         workspaces: './src-tauri -> target'
 
+    - name: Download assets
+      uses: robinraju/release-downloader@v1.10
+      with:
+        tag: assets-latest
+        fileName: "assets.zip"
+        out-file-path: "./src-tauri/"
+        
+    - name: Rename assets
+      run: move src-tauri\assets.zip src-tauri\assets
+
     - name: Write Tauri Config
       run: |
-        npm run json:android ${{ github.ref_name }}
+        npm run json:build ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -114,10 +124,6 @@ jobs:
     - name: Android copy
       run: |
         npm run copy:sh
-
-    - name: Android icon
-      run: |
-        npm run icon
 
     - name: Android build
       run: |
@@ -176,11 +182,14 @@ jobs:
         tag: assets-latest
         fileName: "assets.zip"
         out-file-path: "./src-tauri/"
+        
+    - name: Rename assets
+      run: move src-tauri\assets.zip src-tauri\assets
 
     - name: Write Tauri Config
       shell: cmd
       run: |
-        npm run json:windows ${{ github.ref_name }}
+        npm run json:build ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -262,10 +271,13 @@ jobs:
         tag: assets-latest
         fileName: "assets.zip"
         out-file-path: "./src-tauri/"
+        
+    - name: Rename assets
+      run: mv ./src-tauri/assets.zip ./src-tauri/assets
 
     - name: Write Tauri Config
       run: |
-        npm run json:macos ${{ github.ref_name }}
+        npm run json:build ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
@@ -333,6 +345,9 @@ jobs:
         fileName: "assets.zip"
         out-file-path: "./src-tauri/"
 
+    - name: Rename assets
+      run: mv ./src-tauri/assets.zip ./src-tauri/assets
+
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -352,13 +367,13 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:linux:appimage ${{ github.ref_name }}
+        npm run json:build ${{ github.ref_name }}
 
     - name: NPM Init
       run: |
         npm ci
 
-    - name: Build AppImage
+    - name: Build
       run: |
         npm run tauri:build
 
@@ -366,18 +381,8 @@ jobs:
       run: |
         mkdir -p ./build
         cp ./src-tauri/target/release/bundle/appimage/*.AppImage ./build/YGOPro3.AppImage
-
-    - name: Write Tauri Config
-      run: |
-        npm run json:linux:deb ${{ github.ref_name }}
-
-    - name: Build Deb
-      run: |
-        npm run tauri:build
-
-    - name: Copy
-      run: |
         cp ./src-tauri/target/release/bundle/deb/*.deb ./build/YGOPro3.deb
+        cp ./src-tauri/target/release/bundle/deb/*.rpm ./build/YGOPro3.rpm
 
     - name: Upload File
       uses: actions/upload-artifact@v4
@@ -385,6 +390,13 @@ jobs:
         name: YGOPro3-linux-${{ matrix.target }}.deb
         retention-days: 7
         path: ./build/YGOPro3.deb
+
+    - name: Upload File
+      uses: actions/upload-artifact@v4
+      with:
+        name: YGOPro3-linux-${{ matrix.target }}.rpm
+        retention-days: 7
+        path: ./build/YGOPro3.rpm
 
     - name: Upload File
       uses: actions/upload-artifact@v4
@@ -555,6 +567,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/YGOPro3-linux-x86_64.rpm/YGOPro3.rpm
+          asset_name: YGOPro3-linux-x86_64.rpm
+          asset_content_type: application/octet-stream
+
+      - name: Upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/YGOPro3-linux-x86_64.AppImage/YGOPro3.AppImage
           asset_name: YGOPro3-linux-x86_64.AppImage
           asset_content_type: application/octet-stream
@@ -567,6 +589,16 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./build/YGOPro3-linux-aarch64.deb/YGOPro3.deb
           asset_name: YGOPro3-linux-aarch64.deb
+          asset_content_type: application/octet-stream
+
+      - name: Upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./build/YGOPro3-linux-aarch64.rpm/YGOPro3.rpm
+          asset_name: YGOPro3-linux-aarch64.rpm
           asset_content_type: application/octet-stream
 
       - name: Upload

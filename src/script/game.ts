@@ -41,9 +41,9 @@ class Game {
 		document.head.appendChild(this.font.dom);
 	};
 
-	init = async (chk : boolean) : Promise<boolean> => {
+	init = async () : Promise<boolean> => {
 		try {
-			if (!(chk ? await invoke.game.reload(false) : await invoke.game.init()))
+			if (!await invoke.game.init())
 				return false;
 			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
 				invoke.game.get_font(),
@@ -107,11 +107,11 @@ class Game {
 			this.back
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
 				.set.readonly();
-			return true;
 		} catch (error) {
 			fs.write.log(error);
 			return false;
 		}
+		return true;
 	};
 
 	reload = async (overwrite : boolean = false) : Promise<boolean> => {
@@ -120,18 +120,7 @@ class Game {
 				this.clear(),
 				invoke.game.reload(overwrite)
 			]);
-			await this.init(false);
-			return true;
-		} catch (error) {
-			fs.write.log(error);
-		}
-		return false;
-	};
-
-	update = async () : Promise<boolean> => {
-		try {
-			await invoke.game.download();
-			await this.reload(true);
+			await this.init();
 			return true;
 		} catch (error) {
 			fs.write.log(error);
@@ -307,18 +296,13 @@ class Game {
 
 	chk = {
 		result : {
-			game : undefined as undefined | [boolean, boolean]
+			game : undefined as undefined | boolean
 		},
 		version : {
 			game : async () : Promise<boolean> => {
-				if (!this.chk.result.game)
+				if (this.chk.result.game === undefined)
 					this.chk.result.game = await invoke.game.chk_version();
-				return this.chk.result.game[0];
-			},
-			assets : async () : Promise<boolean> => {
-				if (!this.chk.result.game)
-					this.chk.result.game = await invoke.game.chk_version();
-				return this.chk.result.game[1];
+				return this.chk.result.game;
 			},
 			superpre : async () : Promise<boolean> => {
 				const time = await fetch(CONSTANT.URL.SUPER_PRE_VERSION, {

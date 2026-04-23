@@ -20,11 +20,6 @@ pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn download_assets (app: AppHandle) -> Result<(), String> {
-	game::download(&app).await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
 pub async fn download (app: AppHandle, url: String, name: String) -> Result<String, String> {
 	Game::download(&app, url, name).await.map_err(|e| e.to_string())
 }
@@ -54,7 +49,7 @@ pub async fn set_system (key: String, ct: i8, value: String, write: bool) -> Res
 }
 
 #[tauri::command]
-pub async fn chk_version () -> Result<(bool, bool), String> {
+pub async fn chk_version () -> Result<bool, String> {
 	Game::chk_version().await.map_err(|e| e.to_string())
 }
 
