@@ -78,6 +78,7 @@
 			const deck = page.to_deck(name);
 			const write = await mainGame.deck.write(name, deck.toYdkString());
 			let rename = true;
+			console.log(write, !props.this_deck.new, props.this_deck.name, name)
 			if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
 				rename = await mainGame.deck.rename(props.this_deck.name, name);
 			if (write && rename)

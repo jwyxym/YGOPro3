@@ -350,11 +350,11 @@ class Invoke {
 		},
 		write : async (name : string, deck : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('rename_deck', {
-					name : name,
+				await invoke<ArrayBuffer>('write_deck', {
+					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`,
 					deck : deck
 				});
-				return true
+				return true;
 			} catch (error) {
 				fs.write.log(error);
 				return false;
@@ -366,7 +366,7 @@ class Invoke {
 					oldName : old_name,
 					newName : new_name
 				});
-				return true
+				return true;
 			} catch (error) {
 				fs.write.log(error);
 				return false;
@@ -374,10 +374,10 @@ class Invoke {
 		},
 		del : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('rename_deck', {
+				await invoke<ArrayBuffer>('del_deck', {
 					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`
 				});
-				return true
+				return true;
 			} catch (error) {
 				fs.write.log(error);
 				return false;
