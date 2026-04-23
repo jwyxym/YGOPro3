@@ -61,24 +61,6 @@ jobs:
         retention-days: 7
         path: ./.ci/assets.zip
 
-  update-gitcode:
-    needs: [make-assets]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Upload to GitCode
-        run: |
-          pip install requests
-          python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
-
   create-release:
     needs: [make-assets]
     runs-on: ubuntu-latest
