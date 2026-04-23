@@ -7,10 +7,9 @@ const arg = (process.argv[4] || '0.1.0').split('.');
 const version = `${arg[0]}.${Number(arg[1])}.${Number(arg[2])}`;
 
 const tauriConfig = {
-	$schema: "https://schema.tauri.app/config/2",
 	productName: "ygopro3",
 	version: version,
-	identifier: "pro.jwyxym.ygo3",
+	identifier: "cn.jwyxym.ygopro3",
 	build: {
 		beforeDevCommand: "npm run dev",
 		devUrl: "http://localhost:1420",

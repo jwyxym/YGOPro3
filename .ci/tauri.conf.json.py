@@ -7,10 +7,9 @@ args = (sys.argv[3] if len(sys.argv) >= 4 else '0.1.0').split('.')
 version = f"{args[0]}.{int(args[1])}.{int(args[2])}"
 
 tauri_config = {
-	"$schema" : "https://schema.tauri.app/config/2",
 	"productName" : "ygopro3",
 	"version" : version,
-	"identifier" : "pro.jwyxym.ygo3",
+	"identifier" : "cn.jwyxym.ygopro3",
 	"build" : {
 		"beforeDevCommand" : "npm run dev",
 		"devUrl" : "http://localhost:1420",

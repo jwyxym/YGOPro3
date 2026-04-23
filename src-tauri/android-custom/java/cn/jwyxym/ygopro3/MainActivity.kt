@@ -1,4 +1,4 @@
-package pro.jwyxym.ygo3
+package cn.jwyxym.ygopro3
 
 import android.os.Bundle
 import android.view.View
