@@ -553,7 +553,7 @@ class Client_Card {
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
 				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
-			const z = Number(gsap.getProperty(img, 'rotationZ'));
+			const z = parseInt(gsap.getProperty(img, 'rotationZ').toString());
 			if (this.location & LOCATION.MZONE)
 				if ((this.pos & POS.ATTACK) && z)
 					tl.to(img, {

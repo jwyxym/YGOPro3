@@ -515,10 +515,14 @@ class _Duel {
 						)
 							.forEach((i, v) => {
 								i.set.seq(v);
-								if (loc & (LOCATION.GRAVE | LOCATION.OVERLAY))
-									i.set.pos(POS.FACEUP_ATTACK);
-								else if (loc & LOCATION.DECK)
-									i.set.pos(POS.FACEDOWN_ATTACK);
+								if (loc === LOCATION.HAND)
+									i.set.pos(i.id ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK);
+								else {
+									if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY)))
+										i.set.pos(POS.FACEUP_ATTACK);
+									else if (loc & LOCATION.DECK)
+										i.set.pos(POS.FACEDOWN_ATTACK);
+								}
 							})
 					);
 			}

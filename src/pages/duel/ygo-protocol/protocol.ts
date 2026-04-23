@@ -174,15 +174,23 @@ class Protocol {
 			if (flag & QUERY.DEFENSE)
 				card.set.def(msg.read.int32() ?? 0);
 			if (flag & QUERY.BASE_ATTACK)
-				msg.index ++;
+				msg.index += 4;
 			if (flag & QUERY.BASE_DEFENSE)
-				msg.index ++;
+				msg.index += 4;
 			if (flag & QUERY.REASON)
-				msg.index ++;
+				msg.index += 4;
 			if (flag & QUERY.REASON_CARD)
 				msg.index += 4;
-			if (flag & QUERY.EQUIP_CARD)
-				msg.index += 4;
+			if (flag & QUERY.EQUIP_CARD) {
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				msg.index ++;
+				if (loc === undefined || seq === undefined) return result;
+				const c = this.get.card(tp, loc, seq);
+				if  (c)
+					card.set.equip(c);
+			}
 			if (flag & QUERY.TARGET_CARD) {
 				const len = msg.read.int32();
 				msg.index += 4 * (len ?? 0);
@@ -226,14 +234,12 @@ class Protocol {
 			}
 			if (flag & QUERY.LSCALE) {
 				const scale = msg.read.int32();
-				if (scale === undefined || !(card.location & LOCATION.SZONE) || card.seq) return result;
+				console.log(scale)
+				if (scale === undefined) return result;
 				card.set.scale(scale);
 			}
-			if (flag & QUERY.RSCALE) {
-				const scale = msg.read.int32();
-				if (scale === undefined || !(card.location & LOCATION.SZONE) || card.seq !== 4) return result;
-				card.set.scale(scale);
-			}
+			if (flag & QUERY.RSCALE)
+				msg.index += 4;
 			if (flag & QUERY.LINK) {
 				const link = msg.read.int32();
 				if (link === undefined) return result;
@@ -258,7 +264,7 @@ class Protocol {
 			if (protocol === undefined)
 				return;
 			this.current_msg = protocol;
-			console.log(this.current_msg)
+			// console.log(this.current_msg)
 			await this.msg.get(protocol)?.(msg, send);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
@@ -1616,7 +1622,7 @@ class Protocol {
 					number : connect.duel.chain.length
 				});
 				await Promise.all([
-					card.update(),
+					duel.update(),
 					card.hint.activate()
 				]);
 			}
