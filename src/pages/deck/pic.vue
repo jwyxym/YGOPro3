@@ -64,17 +64,16 @@
 		background-image: var(--url);
 		background-size: cover;
 		z-index: 0;
-		transition: transform 0.1s ease;
 	}
 	.show {
 		opacity: 1;
+		transition: transform 0.1s ease;
 	}
 	.hover {
 		position: fixed;
 		opacity: 0;
 		left: 0;
 		top: 0;
-		transform: initial;
 		z-index: 1;
 	}
 </style>

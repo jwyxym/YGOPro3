@@ -181,8 +181,6 @@
 			}
 		},
 		move : {
-			x : 0,
-			y : 0,
 			index : {
 				x : 0,
 				y : 0,
@@ -208,12 +206,10 @@
 						i.index = v;
 				});
 			},
-			start : (target : HTMLElement, x : number, y : number, code ?: number) => {
+			start : (target : HTMLElement, code ?: number) => {
 				const v : number = cards.value?.findIndex(i => i.$el.contains(target)) ?? -1;
 				if (v < 0) {
 					if (code) {
-						page.move.x = (x / GLOBAL.SCALE) - GLOBAL.LEFT * 2;
-						page.move.y = (y / GLOBAL.SCALE) - GLOBAL.TOP * 2;
 						page.move.card = { code: code, index: 0, y: 0, loc: 0, key: code.toString() + 0 + Math.random() };
 						page.move.main = page.deck.main.slice().sort(page.move.sort);
 						page.move.extra = page.deck.extra.slice().sort(page.move.sort);
@@ -221,8 +217,6 @@
 					}
 					return;
 				}
-				page.move.x = (x / GLOBAL.SCALE) - GLOBAL.LEFT * 2;
-				page.move.y = (y / GLOBAL.SCALE) - GLOBAL.TOP * 2;
 				page.move.main = page.deck.main.slice().sort(page.move.sort);
 				page.move.extra = page.deck.extra.slice().sort(page.move.sort);
 				page.move.side = page.deck.side.slice().sort(page.move.sort);
@@ -237,8 +231,6 @@
 			move : (x : number, y : number) => {
 				if (!page.move.card || !deck.value || page.move.moving) return;
 				page.move.moving = true;
-				page.move.x = (x / GLOBAL.SCALE) - GLOBAL.LEFT * 2;
-				page.move.y = (y / GLOBAL.SCALE) - GLOBAL.TOP * 2;
 				const decks = [page.move.main, page.move.extra, page.move.side];
 				const moveout = () => {
 					if (page.move.index.deck > -1)
@@ -359,8 +351,6 @@
 				page.move.now.deck = -1;
 				page.move.now.chk = true;
 				page.move.card = undefined;
-				page.move.x = 0;
-				page.move.y = 0;
 				page.move.main.length = 0;
 				page.move.extra.length = 0;
 				page.move.side.length = 0;
@@ -371,10 +361,10 @@
 					page.move.on = undefined;
 				}
 			},
-			touchstart : (e : TouchEvent) => page.move.start(e.target as HTMLElement, e.touches[0].clientX, e.touches[0].clientY),
+			touchstart : (e : TouchEvent) => page.move.start(e.target as HTMLElement),
 			touchmove : (e : TouchEvent) => page.move.move(e.touches[0].clientX, e.touches[0].clientY),
 			touchend : async () : Promise<void> => await page.move.end(),
-			mousedown : (e : MouseEvent) => e.button === 2 ? false : page.move.start(e.target as HTMLElement, e.clientX, e.clientY),
+			mousedown : (e : MouseEvent) => e.button === 2 ? false : page.move.start(e.target as HTMLElement),
 			mousemove : (e : MouseEvent) => page.move.move(e.clientX, e.clientY),
 			mouseup : async () : Promise<void> => await page.move.end()
 		}
@@ -439,7 +429,7 @@
 
 	watch(() => GLOBAL.SCALE, page.size.resize);
 
-	type Hover = (target : HTMLElement, x : number, y : number, code ?: number) => void;
+	type Hover = (target : HTMLElement, code ?: number) => void;
 	export type { Hover };
 </script>
 <style scoped lang = 'scss'>

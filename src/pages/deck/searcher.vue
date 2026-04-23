@@ -223,7 +223,7 @@
 			cards.value![v].$el.style.transition = 'none';
 			const card = page.list[v].pic;
 			emit('card', card.code);
-			props.hover?.(target, x, y, card.code);
+			props.hover?.(target, card.code);
 			page.card = card;
 		},
 		end : () : void => page.card = undefined,
