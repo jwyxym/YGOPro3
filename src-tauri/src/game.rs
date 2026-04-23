@@ -54,7 +54,7 @@ use tauri::{AppHandle, Emitter};
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
-const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/game_version.txt/download";
+const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
 
 lazy_static! {
 	pub static ref PIC_REGEX: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$").unwrap();
