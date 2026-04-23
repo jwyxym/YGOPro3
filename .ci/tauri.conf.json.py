@@ -3,7 +3,8 @@ import sys
 
 os = sys.argv[1] if len(sys.argv) >= 2 else ''
 pack = sys.argv[2] if len(sys.argv) >= 3 else ''
-version = sys.argv[3] if len(sys.argv) >= 4 else '0.1.0'
+args = (sys.argv[3] if len(sys.argv) >= 4 else '0.1.0').split('.')
+version = f"{args[0]}.{int(args[1])}.{int(args[2])}"
 
 tauri_config = {
 	"$schema" : "https://schema.tauri.app/config/2",

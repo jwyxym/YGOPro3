@@ -3,7 +3,8 @@ const path = require('path');
 
 const os = process.argv[2] || '';
 const pack = process.argv[3] || '';
-const version = process.argv[4] || '0.1.0';
+const arg = (process.argv[4] || '0.1.0').split('.');
+const version = `${arg[0]}.${Number(arg[1])}.${Number(arg[2])}`;
 
 const tauriConfig = {
 	$schema: "https://schema.tauri.app/config/2",
