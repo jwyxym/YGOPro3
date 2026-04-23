@@ -3,7 +3,7 @@ const path = require('path');
 
 const os = process.argv[2] || '';
 const arg = (process.argv[3] || '0.1.0').split('.');
-const version = `${arg[0]}.${Number(arg[1])}.${Number(arg[2])}`;
+const version = `${arg[0].slice(-2)}.${Number(arg[1])}.${Number(arg[2])}`;
 
 const tauriConfig = {
 	productName: "ygopro3",

@@ -3,7 +3,7 @@ import sys
 
 os = sys.argv[1] if len(sys.argv) >= 2 else ''
 args = (sys.argv[2] if len(sys.argv) >= 3 else '0.1.0').split('.')
-version = f"{args[0]}.{int(args[1])}.{int(args[2])}"
+version = f"{args[0][-2:]}.{int(args[1])}.{int(args[2])}"
 
 tauri_config = {
 	"productName" : "ygopro3",
