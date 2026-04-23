@@ -333,8 +333,10 @@ class Invoke {
 				fs.write.log(error);
 				return [];
 			}
-		},
-		get_deck : async () : Promise<Array<Deck>> => {
+		}
+	};
+	deck = {
+		get : async () : Promise<Array<Deck>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_deck');
 				return (bincode.decode(bincode.Collection(
@@ -346,6 +348,41 @@ class Invoke {
 				return [];
 			}
 		},
+		write : async (name : string, deck : string) : Promise<boolean> => {
+			try {
+				await invoke<ArrayBuffer>('rename_deck', {
+					name : name,
+					deck : deck
+				});
+				return true
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		},
+		rename : async (old_name : string, new_name : string) : Promise<boolean> => {
+			try {
+				await invoke<ArrayBuffer>('rename_deck', {
+					oldName : old_name,
+					newName : new_name
+				});
+				return true
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		},
+		del : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<ArrayBuffer>('rename_deck', {
+					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`
+				});
+				return true
+			} catch (error) {
+				fs.write.log(error);
+				return false;
+			}
+		}
 	};
 };
 

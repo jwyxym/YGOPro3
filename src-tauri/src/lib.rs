@@ -1,5 +1,6 @@
 mod api;
 mod game;
+mod deck;
 
 use game::PATH;
 use std::path::PathBuf;
@@ -46,6 +47,9 @@ pub fn run() {
 			api::get_deck,
 			api::get_time,
 			api::set_system,
+			api::write_deck,
+			api::rename_deck,
+			api::del_deck,
 		])
 		.setup(|app| {
 			let path: PathBuf = app.path().resolve("./", {

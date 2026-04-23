@@ -277,7 +277,7 @@ class Game {
 	};
 
 	load = {
-		deck : invoke.game.get_deck,
+		deck : invoke.deck.get,
 		ypk : invoke.game.load_ypk,
 		pic : async (deck : Deck | Array<number | string>) : Promise<boolean> => {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
@@ -346,6 +346,12 @@ class Game {
 			});
 			await invoke.game.set_system(k, this.get.system_index(k), v, write);
 		}
+	};
+
+	deck = {
+		write : invoke.deck.write,
+		rename : invoke.deck.rename,
+		del : invoke.deck.del
 	};
 
 	exit = async () : Promise<void> => {

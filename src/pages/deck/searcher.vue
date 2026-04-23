@@ -30,6 +30,7 @@
 					<Pic
 						:i = 'i.pic'
 						:hover = 'page.card === i.pic'
+						:count = '10'
 						:size = 'page.size'
 						:lflist = 'search.info.lflist ? mainGame.get.lflist(search.info.lflist) : undefined'
 						ref = 'cards'
@@ -540,8 +541,8 @@
 			top: 50%;
 			left: 50%;
 			transform: translate(var(--x), -50%);
-			width: calc(var(--width) / 2);
-			height: calc(var(--height) * 0.9);
+			width: calc(var(--width) * 2);
+			height: var(--height);
 			background-color: rgba(0, 0, 0, 0.8);
 			color: white;
 			overflow-y: auto;

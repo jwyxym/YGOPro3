@@ -102,7 +102,6 @@
 
 	import Deck from './deck';
 	import mainGame from '@/script/game';
-	import fs from '@/script/fs';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
@@ -178,7 +177,7 @@
 			if (list.selected > -1 && await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE),
 				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '')
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DELETE_DECK)) && await fs.delete.ydk(list.decks[list.selected].name!)) {
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DELETE_DECK)) && await mainGame.deck.del(list.decks[list.selected].name!)) {
 				toast.info(mainGame.get.text(I18N_KEYS.DELETE_COMPELETE));
 				list.decks.splice(list.selected, 1);
 				list.selected = -1;

@@ -40,7 +40,6 @@
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import fs from '@/script/fs';
 	import LFList from '@/script/lflist';
 
 	import dialog from '@/pages/ui/dialog';
@@ -77,10 +76,10 @@
 		}),
 		save : async (name : string) => {
 			const deck = page.to_deck(name);
-			const write = await fs.write.ydk(deck);
+			const write = await mainGame.deck.write(name, deck.toYdkString());
 			let rename = true;
 			if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
-				rename = await fs.rename.ydk(props.this_deck.name, name);
+				rename = await mainGame.deck.rename(props.this_deck.name, name);
 			if (write && rename)
 				toast.info(mainGame.get.text(I18N_KEYS.DECK_SAVE_COMPELETE));
 			if (props.this_deck.new)

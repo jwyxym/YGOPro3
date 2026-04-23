@@ -651,34 +651,6 @@ impl Game {
 			.to_array())
 	}
 
-	pub async fn get_deck () -> Result<Vec<(String, String)>, Error> {
-		let mut tasks: Vec<JoinHandle<Result<(String, String), Error>>> = Vec::new();
-		let mut deck: Vec<(String, String)> = Vec::new();
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		WalkDir::new(path.join("deck"))
-			.max_depth(1)
-			.into_iter()
-			.for_each(|i| {
-				if let Ok(i) = i {
-					if let Some(file) = File::new(i.path()) {
-						tasks.push(spawn(async move {
-							let text: String = read_to_string(i.path()).await?;
-							let name: &str = file.name();
-							Ok((String::from(name), text))
-						}));
-					}
-				}
-			});
-		let mut tasks: FuturesUnordered<JoinHandle<Result<(String, String), Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
-		while let Some(task) = tasks.next().await {
-			if let Ok(task) = task {
-				if let Ok(i) = task {
-					deck.push(i);
-				}
-			}
-		}
-		Ok(deck)
-	}
 	pub async fn set_system (key: String, ct: i8, value: String, w: bool) -> Result<(), Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
