@@ -53,14 +53,7 @@ jobs:
         run: |
           cd .ci
           pip install requests
-          VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//' | awk -F. '{
-              v1 = $1 ? $1 + 0 : 0
-              v2 = $2 ? $2 + 0 : 0
-              v3 = $3 ? $3 + 0 : 0
-              printf "%d.%d.%d", v1, v2, v3
-          }')
-
-          echo "YGOPro3://$VERSION" > game_version.txt
+          python write_version.py ${{ github.ref_name }}
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} game_version.txt
 
   build-android:
