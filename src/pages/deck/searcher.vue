@@ -34,6 +34,7 @@
 						:size = 'page.size'
 						:lflist = 'search.info.lflist ? mainGame.get.lflist(search.info.lflist) : undefined'
 						ref = 'cards'
+						@contextmenu.prevent = "emit('add', i.pic.code)"
 					/>
 					<div>
 						<span>{{ i.card.name }}</span>
@@ -436,6 +437,7 @@
 		clear : [];
 		exit : [];
 		hover : [para : [HTMLElement, number]];
+		add : [code : number];
 	}>();
 
 	const props = defineProps<{

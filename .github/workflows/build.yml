@@ -434,7 +434,7 @@ jobs:
           pip install requests
           python update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
-  upload-version:
+  upload-release:
     runs-on: ubuntu-latest
     needs: [upload-gitcode]
     steps:

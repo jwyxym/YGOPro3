@@ -24,6 +24,7 @@
 				:count = 'count'
 				:lflist = 'lflist'
 				ref = 'cards'
+				@contextmenu.prevent = 'page.deck.del(i)'
 			/>
 			<span ref = 'main_title'>{{ page.title.main }}&nbsp;:&nbsp;{{ page.deck.main.length }}
 				<span v-if = 'props.lflist?.genesys'>&nbsp;&nbsp;&nbsp;&nbsp;{{ page.deck.genesys }}/{{ props.lflist?.genesys }}</span>
@@ -104,21 +105,38 @@
 			main : [] as CardPics,
 			extra : [] as CardPics,
 			side : [] as CardPics,
-			add : (code : number, deck : 0 | 1 | 2, index ?: number) => {
-				const err = page.deck.check(code, deck);
+			del : (i : CardPic) : boolean => {
+				if (!props.del) return false;
+				for (const deck of [page.deck.main, page.deck.extra, page.deck.side]) {
+					const v = deck.indexOf(i);
+					if (v > - 1) {
+						deck.splice(v, 1);
+						page.move.resort(deck);
+						page.size.resize();
+						return true;
+					}
+				}
+				return false;
+			},
+			add : (code : number, i : 0 | 1 | 2, index ?: number) : boolean => {
+				const err = page.deck.check(code, i);
 				if (typeof err === 'string') {
-					toast.error(err);
-					return;
+						toast.error(err);
+					return false;
 				}
 				const decks = [page.deck.main, page.deck.extra, page.deck.side];
-				index = index ?? decks[deck].length;
-				decks[deck].push({
+				const deck = decks[i];
+				index = index ?? decks[i].length;
+				decks[i].push({
 					code : code,
 					index : index,
 					y : 0,
 					loc : 0,
 					key : code.toString() + index + Math.random()
 				});
+				page.move.resort(deck);
+				page.size.resize();
+				return true;
 			},
 			check : (code : number | string, deck : 0 | 1 | 2) : true | string => {
 				const card : Card = mainGame.get.card(code);
@@ -410,10 +428,26 @@
 		height : number;
 		count : number;
 		deck : Deck;
+		del : boolean;
 		lflist ?: LFList;
 	}>();
 
-	const deck_export = {
+	watch(() => page.move.card, (n) => {
+		if (!n || !(page.deck.main.includes(n) || page.deck.extra.includes(n) || page.deck.side.includes(n)))
+			return;
+		emit('card', n.code);
+	});
+
+	watch(() => GLOBAL.SCALE, page.size.resize);
+
+	defineExpose<{
+		clear : () => void;
+		sort : () => void;
+		disrupt : () => void;
+		to_deck : (name : string) => Deck;
+		hover : (target : HTMLElement, code ?: number) => void;
+		add : (code : number) => void;
+	}>({
 		sort : () : void => {
 			const sort = (a : CardPic, b : CardPic) : number => {
 				const card = {
@@ -450,27 +484,21 @@
 			side : page.deck.side.slice().sort((a, b) => a.index - b.index).map(i => i.code),
 			name : name
 		}),
-		hover : page.move.start
-	};
-
-	watch(() => page.move.card, (n) => {
-		if (!n || !(page.deck.main.includes(n) || page.deck.extra.includes(n) || page.deck.side.includes(n)))
-			return;
-		emit('card', n.code);
+		hover : page.move.start,
+		add : (code : number) => {
+			const c = mainGame.get.card(code);
+			let deck : 0 | 1 | 2;
+			if (c.is_ex())
+				deck = page.deck.extra.length
+					< (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_EX) as number)
+						? 1 : 2
+			else
+				deck = page.deck.main.length
+					< (mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_MAIN) as number)
+						? 0 : 2
+			page.deck.add(code, deck)	
+		}
 	});
-
-	watch(() => GLOBAL.SCALE, page.size.resize);
-
-	defineExpose<{
-		clear : () => void;
-		sort : () => void;
-		disrupt : () => void;
-		to_deck : (name : string) => Deck;
-		hover : Hover
-	}>(deck_export);
-
-	type Hover = (target : HTMLElement, code ?: number) => void;
-	export type { Hover };
 </script>
 <style scoped lang = 'scss'>
 	main {

@@ -12,6 +12,7 @@
 			:count = '10'
 			:deck = 'this_deck'
 			:lflist = 'page.lflist'
+			:del = 'true'
 			@card = 'page.oncard'
 			@move = 'page.move.on'
 		/>
@@ -30,6 +31,7 @@
 			@clear = 'page.clear'
 			@exit = "emit('exit')"
 			@hover = '(i : [HTMLElement, number]) => page.el?.hover(i[0], i[1])'
+			@add = '(i : number) => page.el?.add(i)'
 		/>
 	</main>
 </template>

@@ -73,6 +73,7 @@
 				:width = 'side.width'
 				:count = 'side.count'
 				:deck = 'connect.wait.deck.current!'
+				:del = 'false'
 				@card = '(card : number) => connect.duel.card = card'
 			/>
 		</TransitionGroup>
