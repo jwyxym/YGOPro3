@@ -409,7 +409,9 @@ jobs:
 
       - name: Upload assets
         run: |
-          gh release upload release-latest $(find build -type f) --clobber
+          cd build
+          sh ../.ci/rename.sh
+          gh release upload release-latest $(find . -type f) --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -478,9 +480,10 @@ jobs:
           cd .ci
           pip install requests
           python write_version.py ${{ github.ref_name }}
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
-          find ../build -type f -exec python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} {} \;
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
+          cd ../build
+          sh ../.ci/rename.sh
+          find . -type f -exec python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} {} \;
+          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} ../.ci/version.txt
 
       - name: Stop Proxy
         if: always()
