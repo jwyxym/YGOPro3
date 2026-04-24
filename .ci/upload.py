@@ -13,6 +13,10 @@ headers = {
 }
 response = requests.request("GET", url, headers=headers, data=payload)
 data = json.loads(response.text)
-files = {"file": (file_name, open(file_path, "rb"), "application/octet-stream")}
-response = requests.request("PUT", data.get('url'), headers=data.get('headers'), files=files)
+with open(file_path, "rb") as f:
+    response = requests.put(
+        data.get('url'),
+        headers=data.get('headers'),
+        data=f
+    )
 print(response.status_code)

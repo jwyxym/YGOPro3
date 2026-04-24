@@ -37,25 +37,6 @@ jobs:
           git merge origin/main
           git push gitcode gitcode-main:main
 
-  upload-version:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Upload to GitCode
-        run: |
-          cd .ci
-          pip install requests
-          python write_version.py ${{ github.ref_name }}
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
-
   build-android:
     runs-on: ubuntu-latest
     
@@ -289,6 +270,10 @@ jobs:
         DMG_FILES=(./src-tauri/target/release/bundle/dmg/*.dmg)
         cp "${DMG_FILES[0]}" ./build/YGOPro3.dmg
 
+    - name: Zip .app
+      run: |
+        zip -r ./build/YGOPro3.app.zip ./src-tauri/target/release/bundle/macos/ygopro3.app
+
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
@@ -301,7 +286,7 @@ jobs:
       with:
         name: YGOPro3-macos-${{ matrix.target }}.app
         retention-days: 1
-        path: ./src-tauri/target/release/bundle/macos/
+        path: ./build/YGOPro3.app.zip
 
   build-linux:
     name: build-linux-${{ matrix.target }}
@@ -414,195 +399,88 @@ jobs:
         with:
           path: build
 
-      - name: Delete old Release
+      - name: Ensure release exists
         run: |
-          TAG_NAME=release-latest
-          gh release delete "$TAG_NAME" --yes || true
+          gh release view release-latest || \
+          gh release create release-latest --title "release-latest" --notes "Auto build"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Delete old tag
+      - name: Upload assets
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git fetch --tags
-          git tag -d release-latest || true
-          git push origin :refs/tags/release-latest || true
+          gh release upload release-latest $(find build -type f) --clobber
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create tag
+  upload-gitcode:
+    runs-on: ubuntu-latest
+    needs: [build-android, build-windows, build-macos, build-linux]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Upload to GitCode
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git tag release-latest
-          git push origin release-latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          cd .ci
+          pip install requests
+          python update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  upload-version:
+    runs-on: ubuntu-latest
+    needs: [upload-gitcode]
+    steps:
+      - uses: actions/checkout@v4
         with:
-          tag_name: release-latest
-          release_name: release-latest
-          draft: false
-          prerelease: false
+          submodules: 'recursive'
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3.apk/YGOPro3.apk
-          asset_name: YGOPro3.apk
-          asset_content_type: application/octet-stream
+          path: build
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Python
+        uses: actions/setup-python@v4
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-windows-x86_64.msi/YGOPro3.msi
-          asset_name: YGOPro3-windows-x86_64.msi
-          asset_content_type: application/octet-stream
+          python-version: '3.13'
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-windows-x86_64.exe/YGOPro3.exe
-          asset_name: YGOPro3-windows-x86_64.exe
-          asset_content_type: application/octet-stream
+          node-version: '22.18.0'
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-windows-aarch64.msi/YGOPro3.msi
-          asset_name: YGOPro3-windows-aarch64.msi
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-windows-aarch64.exe/YGOPro3.exe
-          asset_name: YGOPro3-windows-aarch64.exe
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-macos-x86_64.dmg/YGOPro3.dmg
-          asset_name: YGOPro3-macos-x86_64.dmg
-          asset_content_type: application/octet-stream
-
-      - name: zip
+      - name: Install wget and unzip
         run: |
-          cd build
-          zip -r YGOPro3-macos-x86_64.app.zip YGOPro3-macos-x86_64.app/
-          zip -r YGOPro3-macos-aarch64.app.zip YGOPro3-macos-aarch64.app/
+          sudo apt-get update
+          sudo apt-get install -y wget
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-macos-x86_64.app.zip
-          asset_name: YGOPro3-macos-x86_64.app.zip
-          asset_content_type: application/octet-stream
+      - name: Install privoxy
+        run: |
+          npm i -g pm2
+          mkdir ss
+          cd ss
+          wget https://github.com/shadowsocks/shadowsocks-rust/releases/download/v1.24.0/shadowsocks-v1.24.0.x86_64-unknown-linux-gnu.tar.xz
+          tar -xvf shadowsocks-v1.24.0.x86_64-unknown-linux-gnu.tar.xz
+          chmod +777 sslocal
+          pm2 start sslocal --name ss -- -b "127.0.0.1:1080" ${{ secrets.PROXY }}
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
+      - name: Upload to GitCode
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-macos-aarch64.dmg/YGOPro3.dmg
-          asset_name: YGOPro3-macos-aarch64.dmg
-          asset_content_type: application/octet-stream
+          http_proxy: http://127.0.0.1:1080
+          https_proxy: http://127.0.0.1:1080
+        run: |
+          cd .ci
+          pip install requests
+          python write_version.py ${{ github.ref_name }}
+          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
+          find ../build -type f -exec python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} {} \;
+          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
 
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-macos-aarch64.app.zip
-          asset_name: YGOPro3-macos-aarch64.app.zip
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-x86_64.deb/YGOPro3.deb
-          asset_name: YGOPro3-linux-x86_64.deb
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-x86_64.rpm/YGOPro3.rpm
-          asset_name: YGOPro3-linux-x86_64.rpm
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-x86_64.AppImage/YGOPro3.AppImage
-          asset_name: YGOPro3-linux-x86_64.AppImage
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-aarch64.deb/YGOPro3.deb
-          asset_name: YGOPro3-linux-aarch64.deb
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-aarch64.rpm/YGOPro3.rpm
-          asset_name: YGOPro3-linux-aarch64.rpm
-          asset_content_type: application/octet-stream
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/YGOPro3-linux-aarch64.AppImage/YGOPro3.AppImage
-          asset_name: YGOPro3-linux-aarch64.AppImage
-          asset_content_type: application/octet-stream
+      - name: Stop Proxy
+        if: always()
+        run: pm2 stop all

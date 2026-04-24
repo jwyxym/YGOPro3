@@ -55,7 +55,7 @@ class MainActivity : TauriActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            setSimpleFullScreen()
+            screen()
         }
     }
 }
