@@ -58,7 +58,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: assets.zip
-        retention-days: 7
+        retention-days: 1
         path: ./.ci/assets.zip
 
   create-release:

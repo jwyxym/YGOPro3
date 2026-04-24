@@ -138,7 +138,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3.apk
-        retention-days: 7
+        retention-days: 1
         path: ./build/YGOPro3.apk
 
   build-windows:
@@ -220,14 +220,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-windows-${{ matrix.target }}.exe
-        retention-days: 7
+        retention-days: 1
         path: .\build\YGOPro3.exe
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-windows-${{ matrix.target }}.msi
-        retention-days: 7
+        retention-days: 1
         path: .\build\YGOPro3.msi
 
   build-macos:
@@ -293,14 +293,14 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-macos-${{ matrix.target }}.dmg
-        retention-days: 7
+        retention-days: 1
         path: ./build/YGOPro3.dmg
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-macos-${{ matrix.target }}.app
-        retention-days: 7
+        retention-days: 1
         path: ./src-tauri/target/release/bundle/macos/
 
   build-linux:
@@ -384,21 +384,21 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-linux-${{ matrix.target }}.deb
-        retention-days: 7
+        retention-days: 1
         path: ./build/YGOPro3.deb
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-linux-${{ matrix.target }}.rpm
-        retention-days: 7
+        retention-days: 1
         path: ./build/YGOPro3.rpm
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
         name: YGOPro3-linux-${{ matrix.target }}.AppImage
-        retention-days: 7
+        retention-days: 1
         path: ./build/YGOPro3.AppImage
 
   create-release:
