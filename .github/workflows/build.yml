@@ -264,15 +264,16 @@ jobs:
       run: |
         npm run tauri:build
 
+    - name: Zip .app
+      run: |
+        cd ./src-tauri/target/release/bundle/macos/
+        zip -r YGOPro3.app.zip ygopro3.app
+
     - name: Copy
       run: |
         mkdir -p ./build
         DMG_FILES=(./src-tauri/target/release/bundle/dmg/*.dmg)
         cp "${DMG_FILES[0]}" ./build/YGOPro3.dmg
-
-    - name: Zip .app
-      run: |
-        zip -r ./build/YGOPro3.app.zip ./src-tauri/target/release/bundle/macos/ygopro3.app
 
     - name: Upload File
       uses: actions/upload-artifact@v4
@@ -286,7 +287,7 @@ jobs:
       with:
         name: YGOPro3-macos-${{ matrix.target }}.app.zip
         retention-days: 1
-        path: ./build/YGOPro3.app.zip
+        path: ./src-tauri/target/release/bundle/macos/YGOPro3.app.zip
 
   build-linux:
     name: build-linux-${{ matrix.target }}
