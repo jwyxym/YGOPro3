@@ -284,7 +284,7 @@ jobs:
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: YGOPro3-macos-${{ matrix.target }}.app
+        name: YGOPro3-macos-${{ matrix.target }}.app.zip
         retention-days: 1
         path: ./build/YGOPro3.app.zip
 
