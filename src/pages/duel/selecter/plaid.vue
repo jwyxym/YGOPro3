@@ -51,7 +51,8 @@
 		plaid : undefined as Plaid | undefined,
 		select : (plaid : Plaid) => page.plaid = page.plaid === plaid ? undefined : plaid,
 		info : (v : number) => {
-			if (props.cards[v]) emit('click', props.cards[v]);
+			if (props.cards[v])
+				emit('click', props.cards[v]);
 		}
 	});
 

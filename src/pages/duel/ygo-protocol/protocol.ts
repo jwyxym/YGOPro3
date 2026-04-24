@@ -237,7 +237,6 @@ class Protocol {
 			}
 			if (flag & QUERY.LSCALE) {
 				const scale = msg.read.int32();
-				console.log(scale)
 				if (scale === undefined) return result;
 				card.set.scale(scale);
 			}
@@ -266,8 +265,18 @@ class Protocol {
 			const protocol = msg.read.uint8();
 			if (protocol === undefined)
 				return;
+
+			if (import.meta.env.DEV)
+				console.log((() => {
+					for (const key in MSG) {
+						if (Object.prototype.hasOwnProperty.call(MSG, key)
+							&& MSG[key as keyof typeof MSG] === protocol)
+							return key;
+					}
+					return undefined;
+				})())
+
 			this.current_msg = protocol;
-			// console.log(this.current_msg)
 			await this.msg.get(protocol)?.(msg, send);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
@@ -325,6 +334,7 @@ class Protocol {
 				I18N_KEYS.SERVER_PLAYER_NEXT
 			].map(i => mainGame.get.text(i));
 			connect.duel.select.option.title = mainGame.get.text(I18N_KEYS.SERVER_PLAYER_SELECT);
+			connect.duel.select.option.confirm = undefined;
 			connect.response = async (v : number) => {
 				await send(new Msg()
 					.write.uint8(CTOS.TP_RESULT)
@@ -626,7 +636,7 @@ class Protocol {
 				}
 			}
 			await this.update.codes(codes);
-			await duel.update(cards);
+			// await duel.update(cards);
 		}],
 		[MSG.UPDATE_CARD, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -639,7 +649,7 @@ class Protocol {
 			if (card && len > 8) {
 				const codes = this.update.card(msg, card);
 				await this.update.codes(codes);
-				await card.update();
+				// await card.update();
 			}
 		}],
 		[MSG.SELECT_BATTLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
@@ -777,6 +787,7 @@ class Protocol {
 				: desc === 221 ? this.event + mainGame.get.strings.system(221, [mainGame.get.location(loc), mainGame.get.name(code)])
 					: desc <= mainGame.max_string_id ? mainGame.get.strings.system(desc, mainGame.get.name(code))
 						: mainGame.get.desc(desc, mainGame.get.name(code));
+			connect.duel.select.confirm.confirm = undefined;
 			connect.duel.select.confirm.show = true;
 		}],
 		[MSG.SELECT_YESNO, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
@@ -791,6 +802,7 @@ class Protocol {
 				);
 			};
 			connect.duel.select.confirm.title = mainGame.get.desc(desc);
+			connect.duel.select.confirm.confirm = undefined;
 			connect.duel.select.confirm.show = true;
 		}],
 		[MSG.SELECT_OPTION, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
@@ -808,6 +820,7 @@ class Protocol {
 				.map(() => msg.read.uint32())
 				.map(i => mainGame.get.desc(i ?? - 1));
 			connect.duel.select.option.title = mainGame.get.strings.system(this.select_hint ?? 555);
+			connect.duel.select.option.confirm = undefined;
 			connect.duel.select.option.show = true;
 			this.select_hint = 0;
 		}],
@@ -849,6 +862,7 @@ class Protocol {
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected.length = 0;
+			connect.duel.select.cards.confirm = undefined;
 			this.select_hint = 0;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
@@ -922,18 +936,21 @@ class Protocol {
 			connect.duel.select.group.min = min;
 			connect.duel.select.group.max = max;
 			connect.duel.select.group.title = title;
+			connect.duel.select.group.confirm = undefined;
 			this.select_hint = 0;
 			connect.response = async (i ?: Client_Card) => {
 				connect.duel.select.group.show = false;
 				const msg = new Msg()
 					.write.uint8(CTOS.RESPONSE)
 				if (i) {
-					const ct = connect.duel.select.group.unselect.indexOf(i);
-					msg.write.uint32(ct > - 1
-						? ct
-						: connect.duel.select.group.unselect.length
-							+ connect.duel.select.group.select.indexOf(i)
-					);
+					let ct = connect.duel.select.group.unselect.indexOf(i);
+					msg
+						.write.uint8(1)
+						.write.uint8(ct > - 1
+							? ct
+							: connect.duel.select.group.unselect.length
+								+ connect.duel.select.group.select.indexOf(i)
+						);
 				} else
 					msg.write.uint32(- 1);
 				await send(msg);
@@ -1035,12 +1052,13 @@ class Protocol {
 			connect.duel.select.plaid.cards = plaids.map(i => this.get.card(i.owner, i.location, i.seq));
 			connect.duel.select.plaid.min = ct;
 			connect.duel.select.plaid.cancelable = false;
+			connect.duel.select.plaid.confirm = undefined;
 			connect.response = async (i ?: Plaid) => {
 				connect.duel.select.plaid.show = false;
 				const msg = new Msg()
 					.write.uint8(CTOS.RESPONSE);
 				if (i)
-					msg.write.uint8(this.to.player(i.owner === 2 ? 0 : i.owner))
+					msg.write.uint8(this.to.player(i.owner))
 						.write.uint8(i.location)
 						.write.uint8(i.seq);
 				else
@@ -1073,6 +1091,7 @@ class Protocol {
 				connect.duel.select.pos.title = title;
 				connect.duel.select.pos.id = code;
 				connect.duel.select.pos.pos = pos;
+				connect.duel.select.pos.confirm = undefined;
 				connect.response = async (i : number) => {
 					connect.duel.select.pos.show = false;
 					await send(new Msg()
@@ -1117,6 +1136,7 @@ class Protocol {
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected.length = 0;
+			connect.duel.select.cards.confirm = undefined;
 			this.select_hint = 0;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
@@ -1166,6 +1186,7 @@ class Protocol {
 			connect.duel.select.counter.count = count;
 			connect.duel.select.counter.counts = counts;
 			connect.duel.select.counter.title = mainGame.get.strings.system(204, [count, mainGame.get.strings.counter(counter)]);
+			connect.duel.select.counter.confirm = undefined;
 			connect.response = async (i : Array<number>) => {
 				connect.duel.select.counter.show = false;
 				const msg = new Msg()
@@ -1225,6 +1246,7 @@ class Protocol {
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected = selected;
+			connect.duel.select.cards.confirm = undefined;
 			this.select_hint = 0;
 			connect.response = async (i : Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
@@ -1261,6 +1283,7 @@ class Protocol {
 			await this.update.codes(codes);
 			connect.duel.select.sort.cards = codes.map(i => i[0]);
 			connect.duel.select.sort.title = mainGame.get.strings.system(205);
+			connect.duel.select.sort.confirm = undefined;
 			connect.response = async (i : Array<number>) => {
 				connect.duel.select.sort.show = false;
 				const msg = new Msg()
@@ -1872,6 +1895,7 @@ class Protocol {
 				return;
 			connect.duel.select.race.available = available;
 			connect.duel.select.race.count = ct;
+			connect.duel.select.race.confirm = undefined;
 			connect.duel.select.race.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(563);
@@ -1893,6 +1917,7 @@ class Protocol {
 				return;
 			connect.duel.select.attribute.available = available;
 			connect.duel.select.attribute.count = ct;
+			connect.duel.select.attribute.confirm = undefined;
 			connect.duel.select.attribute.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(563);
@@ -1918,6 +1943,7 @@ class Protocol {
 			}
 			await mainGame.load.pic(codes);
 			connect.duel.select.code.codes = codes;
+			connect.duel.select.code.confirm = undefined;
 			connect.duel.select.code.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(564);
@@ -1942,6 +1968,7 @@ class Protocol {
 				array.push(num);
 			}
 			connect.duel.select.number.array = array;
+			connect.duel.select.number.confirm = undefined;
 			connect.duel.select.number.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(565);

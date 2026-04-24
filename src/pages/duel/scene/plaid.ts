@@ -14,7 +14,7 @@ class Plaid {
 	seq : number;
 	disable : boolean;
 	forbbiden : boolean;
-	owner : number;
+	owner : 0 | 1;
 
 	constructor (x : number, y : number) {
 		const dom = document.createElement('div');
@@ -53,11 +53,11 @@ class Plaid {
 				}
 			})();
 		[this.location, this.seq, this.owner] = Math.abs(x) === 3 ?
-			(() : [number, number, number]  => {
+			(() : [number, number, 0 | 1]  => {
 				if (x * y <= 0 || Math.abs(y) !== 1)
 					return [0, 0, 0];
 				return [LOCATION.SZONE, 5, y < 0 ? 0 : 1];
-			})() : (() : [number, number, number] => {
+			})() : (() : [number, number, 0 | 1] => {
 				switch (y) {
 					case 2:
 						return [LOCATION.SZONE, 2 - x, 1];
@@ -68,7 +68,7 @@ class Plaid {
 					case -2:
 						return [LOCATION.SZONE, x + 2, 0];
 					default:
-						return [LOCATION.MZONE, x > 0 ? 6 : 5, 2];
+						return [LOCATION.MZONE, x > 0 ? 6 : 5, 0];
 				}
 			})();
 		const owners = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
