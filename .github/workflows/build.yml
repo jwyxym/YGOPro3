@@ -378,7 +378,7 @@ jobs:
         mkdir -p ./build
         cp ./src-tauri/target/release/bundle/appimage/*.AppImage ./build/YGOPro3.AppImage
         cp ./src-tauri/target/release/bundle/deb/*.deb ./build/YGOPro3.deb
-        cp ./src-tauri/target/release/bundle/deb/*.rpm ./build/YGOPro3.rpm
+        cp ./src-tauri/target/release/bundle/rpm/*.rpm ./build/YGOPro3.rpm
 
     - name: Upload File
       uses: actions/upload-artifact@v4

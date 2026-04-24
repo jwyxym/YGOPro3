@@ -15,9 +15,9 @@ class MainActivity : TauriActivity() {
             copyAssets()
         }.start()
 
-        setSimpleFullScreen()
+        screen()
     }
-`
+
     private fun copyAssets() {
 
         val targetDir = getExternalFilesDir(null) ?: return
@@ -39,7 +39,7 @@ class MainActivity : TauriActivity() {
         }
     }
 
-    private fun setSimpleFullScreen() {
+    private fun screen() {
         supportActionBar?.hide()
 
         window.decorView.systemUiVisibility = (
