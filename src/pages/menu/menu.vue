@@ -22,6 +22,7 @@
 </template>
 <script setup lang = 'ts'>
 	import { reactive, onUnmounted, onBeforeMount } from 'vue';
+	import hotkeys from 'hotkeys-js';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -37,7 +38,7 @@
 			hour : '',
 			minute : '',
 			second : '',
-			interval : null as null | NodeJS.Timeout
+			interval : null as null | number
 		},
 		select : 0,
 		menu : [I18N_KEYS.MENU_SINGLE, I18N_KEYS.MENU_CONENCT, I18N_KEYS.MENU_DECK, I18N_KEYS.MENU_SETTING, I18N_KEYS.MENU_EXIT],
@@ -79,7 +80,18 @@
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		window.addEventListener('keydown', page.keydown);
+		hotkeys('down, pagedown', () => {
+			const len = page.menu.length - 1;
+			page.select = page.select >= len ? 0 : page.select + 1;
+		});
+		hotkeys('up, pageup', () => {
+			const len = page.menu.length - 1;
+			page.select = page.select <= 0 ? len : page.select - 1;
+		});
+		hotkeys('enter', () => {
+			page.click(page.select, true);
+		});
+
 		const time = () => {
 			const now = new Date();
 			const year = now.getFullYear().toString();
@@ -100,7 +112,9 @@
 	})
 
 	onUnmounted(() => {
-		window.removeEventListener('keydown', page.keydown);
+		hotkeys.unbind('down, pagedown');
+		hotkeys.unbind('up, pageup');
+		hotkeys.unbind('enter');
 		if (page.time.interval)
 			clearInterval(page.time.interval);
 	});

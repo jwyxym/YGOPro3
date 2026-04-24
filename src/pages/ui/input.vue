@@ -8,9 +8,18 @@
 		text-color = 'white'
 		blur-color = 'white'
 		size = 'small'
+		@keydown = 'keydown'
 	/>
 </template>
 <script setup lang = 'ts'>
+	const keydown = async (event : KeyboardEvent) => {
+		if (event.key === 'Enter' && !event.shiftKey)
+			emit('enter');
+	};
+
+	const emit = defineEmits<{
+		enter : [];
+	}>();
 
 	defineProps<{
 		placeholder ?: string;

@@ -101,14 +101,17 @@ class Protocol {
 			switch (command) {
 				case COMMAND.SUMMON:
 					return i << 16;
+				case COMMAND.ATTACK:
 				case COMMAND.SPSUMMON:
 					return (i << 16) + 1;
+				case COMMAND.REPOS:
+					return (i << 16) + 2;
 				case COMMAND.MSET:
 					return (i << 16) + 3;
 				case COMMAND.SSET:
 					return (i << 16) + 4;
 				case COMMAND.ACTIVATE:
-					return (i << 16) + 5;
+					return (i << 16) + (this.current_msg === MSG.SELECT_BATTLECMD ? 0 : 5);
 				case COMMAND.PHASE:
 					const map : Map<number, number> = new Map([
 						[I18N_KEYS.DUEL_PHASE_END, 3 + (this.current_msg - 10) * 4],

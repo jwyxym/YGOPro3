@@ -19,6 +19,7 @@
 					v-model = 'page.input'
 					variant = 'outlined'
 					:maxlength = '256'
+					@enter = 'page.send'
 				/>
 				<Button
 					:content = 'mainGame.get.text(I18N_KEYS.DUEL_SEND)'
