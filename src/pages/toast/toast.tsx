@@ -86,7 +86,7 @@ class _Toast {
 
 	to_toast = (str : string | number, type : HintType) : Hint => {
 		const prepared = prepare(`${str}`, '16px Inter');
-		const height = Math.max(70, layout(prepared, 270, 22).height);
+		const height = layout(prepared, 270, 16).height + 54;
 		return {
 			text : str,
 			type : type,

@@ -41,7 +41,6 @@ class Game {
 	};
 
 	init = async () : Promise<boolean> => {
-		this.log.write('error');
 		try {
 			if (!await invoke.game.init())
 				return false;
