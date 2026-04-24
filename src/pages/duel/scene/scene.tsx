@@ -544,8 +544,7 @@ class _Duel {
 		if (!this.element) return;
 		this.queue.add(async () => {
 			if (event instanceof Client_Card || typeof event === 'number') {
-				const card = event;
-				connect.duel.card = card;
+				connect.duel.card = event;
 				this.cards
 					.filter(i => i.clicked)
 					.forEach(i => i.click.img());
@@ -628,7 +627,7 @@ watch(() => connect.duel.card, (n, o) => {
 		const cards = get_equip(toRaw(n));
 		if (cards.length > 1)
 			cards.forEach(i => i.hint.equip(true));
-		duel.activate?.on(n);
+		duel.activate?.on(n, n.location & LOCATION.ONFIELD ? [] : connect.duel.cards);
 	} else duel.activate?.off();
 })
 

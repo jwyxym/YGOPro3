@@ -15,7 +15,7 @@ class Activate {
 	btns : HTMLDivElement;
 	btn : Map<string, HTMLImageElement>;
 	btnable : boolean;
-	card ?: Client_Card;
+	cards : Array<Client_Card>;
 
 	constructor () {
 		this.btn = new Map();
@@ -67,10 +67,11 @@ class Activate {
 		this.btns = btns();
 		dom.appendChild(this.btns);
 		this.three = new CSS.CSS3DObject(dom);
+		this.cards = [];
 	};
 
-	click =  (target : HTMLElement, cards : Array<Client_Card> = []) : void => {
-		if (!this.card?.clicked || connect.duel.select.chk()) return;
+	click =  (target : HTMLElement) : void => {
+		if (connect.duel.select.chk() || !this.btnable) return;
 		const option = (effect : Array<{ desc ?: number; index : number; }>, key : string, command : number) => {
 			const array = effect
 				.map(i => mainGame.get.desc(i.desc ?? - 1));
@@ -81,7 +82,7 @@ class Activate {
 			connect.duel.select.option.confirm = async (i ?: number) => {
 				connect.duel.select.option.show = false;
 				i !== undefined ? await connect.response?.(effect[i].index, command)
-					: connect.duel.select.cards.show = !!cards
+					: connect.duel.select.cards.show = !!this.cards
 						.filter(i => i.get.activate(key).length > 0)
 						.length;
 			}
@@ -95,14 +96,19 @@ class Activate {
 			{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS },
 			{ key : KEYS.FLIP, command : COMMAND.REPOS },
 			{ key : KEYS.SUMMON, command : COMMAND.SUMMON },
-			{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
-			{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
+			{ key : KEYS.PSUMMON, command : COMMAND.PSUMMON },
+			{ key : KEYS.SPSUMMON, command : COMMAND.SPSUMMON },
 			{ key : KEYS.SCALE, command : COMMAND.ACTIVATE }
 		])
 			if (target.classList.contains(j.key)) {
-				const c = cards
-					.filter(i => i.get.activate(j.key).length > 0);
-				if (c.length) {
+				if (this.cards[0].location & (LOCATION.ONFIELD | LOCATION.HAND)) {
+					if (this.cards[0].get.activate(j.key).length > 1)
+						option(this.cards[0].get.activate(j.key), j.key, j.command);
+					else
+						connect.response?.(this.cards[0].get.activate(j.key)[0].index, j.command);
+				} else {
+					const c = this.cards
+						.filter(i => i.get.activate(j.key).length > 0);
 					connect.duel.select.cards.cancelable = true;
 					connect.duel.select.cards.min = 1;
 					connect.duel.select.cards.max = 1;
@@ -110,29 +116,36 @@ class Activate {
 					connect.duel.select.cards.selected.length = 0;
 					connect.duel.select.cards.confirm = async (i : Client_Card) => {
 						connect.duel.select.cards.show = false;
-						i.get.activate(j.key).length > 1 ? option(i.get.activate(j.key), j.key, j.command)
-							: await connect.response?.(i.get.activate(j.key)[0].index, j.command);
+						const activate = i.get.activate(j.key);
+						activate.length > 1 ? option(activate, j.key, j.command)
+							: await connect.response?.(activate[0].index, j.command);
 					};
 					connect.duel.select.cards.show = true;
-				} else if (this.card.get.activate(j.key).length > 1)
-					option(this.card.get.activate(j.key), j.key, j.command);
-				else
-					connect.response?.(this.card.get.activate(j.key)[0].index, j.command);
+				}
 			}
 	};
 
-	on = (c : Client_Card) : void => {
-		this.card = c;
+	on = (c : Client_Card, cards : Array<Client_Card>) : void => {
+		this.cards = cards.concat([c]);
 		const axis = Axis.computed.card(c);
 		this.three.position.set(axis.x, axis.y + (c.location & LOCATION.HAND ? 80 : 5), 100);
 		this.btns.style.opacity = '1';
-		const ACTIVATE = c.activatable.get(COMMAND.ACTIVATE)!;
-		const SUMMON = c.activatable.get(COMMAND.SUMMON)!;
-		const SPSUMMON = c.activatable.get(COMMAND.SPSUMMON)!;
-		const SSET = c.activatable.get(COMMAND.SSET)!;
-		const MSET = c.activatable.get(COMMAND.MSET)!;
-		const REPOS = c.activatable.get(COMMAND.REPOS)!;
-		const ATTACK = c.activatable.get(COMMAND.ATTACK)!;
+		const ACTIVATE : Array<{ desc ?: number; index : number; }> = [];
+		const SUMMON : Array<{ desc ?: number; index : number; }> = [];
+		const SPSUMMON : Array<{ desc ?: number; index : number; }> = [];
+		const SSET : Array<{ desc ?: number; index : number; }> = [];
+		const MSET : Array<{ desc ?: number; index : number; }> = [];
+		const REPOS : Array<{ desc ?: number; index : number; }> = [];
+		const ATTACK : Array<{ desc ?: number; index : number; }> = [];
+		this.cards.forEach(i => {
+			ACTIVATE.push(...i.activatable.get(COMMAND.ACTIVATE)!);
+			SUMMON.push(...i.activatable.get(COMMAND.SUMMON)!);
+			SPSUMMON.push(...i.activatable.get(COMMAND.SPSUMMON)!);
+			SSET.push(...i.activatable.get(COMMAND.SSET)!);
+			MSET.push(...i.activatable.get(COMMAND.MSET)!);
+			REPOS.push(...i.activatable.get(COMMAND.REPOS)!);
+			ATTACK.push(...i.activatable.get(COMMAND.ATTACK)!);
+		});
 		const elements : Array<[HTMLDivElement, number]> = [];
 		const is_pendulum = (c.location & LOCATION.SZONE) && [0, 4].includes(c.seq) && c.type & TYPE.PENDULUM;
 
@@ -145,22 +158,18 @@ class Activate {
 		elements.push([this.btn.get(KEYS.MSET)!, Number(!!MSET.length)]);
 		elements.push([this.btn.get(KEYS.FLIP)!, Number(!!REPOS.length)]);
 		elements.push([this.btn.get(KEYS.ATTACK)!, Number(!!ATTACK.length)]);
-		elements.forEach(i => {
-			if (this.btnable && i[1])
-				Object.assign(i[0].style, {
-					opacity : '1',
-					display : 'initial'
-				});
-			else
-				Object.assign(i[0].style, {
-					opacity : '0',
-					display : 'none'
-				});
-		});
+		elements.forEach(i => Object.assign(i[0].style, this.btnable && i[1] ? {
+				opacity : '1',
+				display : 'initial'
+			} : {
+				opacity : '0',
+				display : 'none'
+			})
+		);
 	};
 
 	off = () : void => {
-		this.card = undefined;
+		this.cards.length = 0;
 		this.three.position.set(0, 0, - 100);
 		this.btns.style.opacity = '0';
 		this.btn.forEach(i => Object.assign(i.style, {
