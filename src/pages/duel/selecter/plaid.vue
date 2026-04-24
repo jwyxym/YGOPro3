@@ -1,6 +1,6 @@
 <template>
 	<Selecter
-		@confirm = "emit('exit', page.plaid)"
+		@confirm = "emit('exit', toRaw(page.plaid))"
 		@cancel = "emit('exit')"
 		:cancelable = 'cancelable'
 		:confirmable = '!!page.plaid'
@@ -31,7 +31,7 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { reactive, toRaw } from 'vue';
 	
 	import { POS } from '@/pages/duel/ygo-protocol/network';
 	import Plaid from '@/pages/duel/scene/plaid';

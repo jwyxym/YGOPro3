@@ -1,6 +1,6 @@
 <template>
 	<Selecter
-		@confirm = "emit('exit', page.cards)"
+		@confirm = "emit('exit', Array.isArray(page.cards) ? page.cards.map(i => toRaw(i)) : toRaw(page.cards))"
 		@cancel = "emit('exit')"
 		:cancelable = 'cancelable'
 		:confirmable = 'page.confirmable'
@@ -10,13 +10,15 @@
 		</template>
 		<template #body>
 			<var-checkbox-group
-				v-if = 'min > 1'
+				v-if = 'Array.isArray(page.cards)'
 				:max = 'max'
 				v-model = '(page.cards as Array<Client_Card>)'
 				class = 'group'
 			>
 				<div v-for = 'i in cards'>
-					<div @click = 'page.select(i)'>
+					<div @click = 'page.select(i)'
+						:class = "{ 'select' : selected.includes(i) }"
+					>
 						<img :src = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
@@ -29,18 +31,24 @@
 				class = 'group'
 			>
 				<div v-for = 'i in cards'>
-					<div @click.stop = "page.select(i); emit('click', i);">
+					<div @click.stop = "page.select(i); emit('click', i);"
+						:class = "{ 'select' : selected.includes(i) }"
+					>
 						<img :src = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
-					<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
+					<var-radio
+						:checked-value = 'i'
+						@click = 'page.select(i)'
+						:readonly = 'true'
+					/>
 				</div>
 			</var-radio-group>
 		</template>
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { computed, reactive } from 'vue';
+	import { computed, onBeforeMount, reactive, toRaw } from 'vue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -70,11 +78,16 @@
 		[LOCATION.SZONE, I18N_KEYS.DUEL_LOCATION_SZONE]
 	]);
 
+	onBeforeMount(() => {
+		if (props.selected.length > 0)
+			page.cards = props.selected.slice();
+		else if (props.min > 1)
+			page.cards = [];
+	});
+
 	const page = reactive({
 		show : false,
-		cards : props.min > 1 || props.selected.length > 0
-			? props.selected ?? []
-			: undefined as Array<Client_Card> | Client_Card | undefined,
+		cards : undefined as Array<Client_Card> | Client_Card | undefined,
 		select : (card : Client_Card) => {
 			if (Array.isArray(page.cards)) {
 				if (props.selected.includes(card))
@@ -143,6 +156,14 @@
 					flex-direction: column;
 					> img {
 						height: calc(100% - 40px);
+					}
+				}
+				.select {
+					img {
+						border: 2px solid yellow;
+					}
+					span {
+						color: yellow;
 					}
 				}
 				.var-radio {

@@ -482,8 +482,8 @@ jobs:
           python write_version.py ${{ github.ref_name }}
           cd ../build
           sh ../.ci/rename.sh
-          find . -type f -exec python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} {} \;
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} ../.ci/version.txt
+          find . -type f -exec python ../.ci/upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} {} \;
+          python ../.ci/upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} ../.ci/version.txt
 
       - name: Stop Proxy
         if: always()

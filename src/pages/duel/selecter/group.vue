@@ -1,6 +1,6 @@
 <template>
 	<Selecter
-		@confirm = "emit('exit', page.cards)"
+		@confirm = "emit('exit', toRaw(page.cards))"
 		@cancel = "emit('exit')"
 		:cancelable = 'cancelable'
 		:confirmable = '!!page.cards'
@@ -15,9 +15,9 @@
 			>
 				<TransitionGroup tag = 'div' name = 'scale'>
 					<div v-for = 'i in select' :key = '`${i.location}${i.seq}${i.owner}`'>
-						<div @click.stop = "page.select(i); emit('click', i);">
-							<img :src = 'mainGame.get.card(i.id).pic' class = 'select'/>
-							<span class = 'select'>{{ page.loc(i) }}</span>
+						<div @click.stop = "page.select(i); emit('click', i);" class = 'select'>
+							<img :src = 'mainGame.get.card(i.id).pic'/>
+							<span>{{ page.loc(i) }}</span>
 						</div>
 						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 					</div>
@@ -34,7 +34,7 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { reactive, toRaw } from 'vue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -121,10 +121,12 @@
 						> img {
 							height: calc(100% - 40px);
 						}
-						img.select {
+					}
+					.select {
+						img {
 							border: 2px solid yellow;
 						}
-						span.select {
+						span {
 							color: yellow;
 						}
 					}
