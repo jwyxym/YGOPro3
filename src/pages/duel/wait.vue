@@ -65,6 +65,7 @@
 					name = 'deck'
 					v-model = 'page.deck'
 					:rules = 'page.rule'
+					:clearable = 'true'
 				/>
 			</var-loading>
 			<div>
@@ -140,7 +141,7 @@
 				emit('chk');
 				return res[0];
 			} else {
-				emit('deck', deck);
+				emit('deck');
 				return true;
 			}
 		},
