@@ -278,6 +278,7 @@ const connect = reactive({
 				connect.state = 3;
 				connect.duel.player[0] = new Player();
 				connect.duel.player[1] = new Player();
+				connect.duel.chain.length = 0;
 				
 				connect.duel.select.cards.show = false;
 				Object.values(connect.duel.select).forEach(i => {

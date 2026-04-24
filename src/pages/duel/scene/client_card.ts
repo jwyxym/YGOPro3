@@ -675,9 +675,13 @@ class Client_Card {
 			return tl;
 		};
 		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
-			this.get.el.info().style.opacity = '1';
 			if (this.location & LOCATION.MZONE)
 				this.get.el.atk().style.opacity = '1';
+			if ((this.location & LOCATION.MZONE)
+				|| ((this.location & (LOCATION.SZONE | LOCATION.PZONE))
+					&& (this.type & TYPE.PENDULUM))
+			)
+				this.get.el.info().style.opacity = '1';
 			this.get.el.counter().style.opacity = '1';
 		} else {
 			this.get.el.info().style.opacity = '0';

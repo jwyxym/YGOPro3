@@ -16,6 +16,15 @@
 			</div>
 		</div>
 		<transition name = 'opacity'>
+			<div v-show = 'page.show_hint'>
+				<span
+					v-for = 'i in page.card.hint'
+				>
+					*&nbsp;{{ i }}
+				</span>
+			</div>
+		</transition>
+		<transition name = 'opacity'>
 			<div v-show = 'page.show'>
 				<div v-show = 'page.show'>
 					<span>{{ mainGame.get.text(I18N_KEYS.CARD_INFO_TYPE) }}&nbsp;:&nbsp;</span>
@@ -67,10 +76,12 @@
 	import Card, { TYPE } from '@/script/card';
 	import Button from '@/pages/ui/button.vue';
 	import Client_Card from '@/pages/duel/scene/client_card';
+	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
 	const emit = defineEmits<{ 'update:modelValue' : []; }>();
 	const page = reactive({
 		show : false,
+		show_hint : false,
 		card : {
 			orgin : '1',
 			pic : mainGame.unknown.pic,
@@ -85,11 +96,13 @@
 			setcode : '',
 			scale : '',
 			atk : '',
-			def : ''
+			def : '',
+			hint : [] as Array<string>,
 		},
 		clear : () : void => {
 			emit('update:modelValue');
 			page.show = false;
+			page.show_hint = false;
 		}
 	})
 
@@ -114,21 +127,34 @@
 			setcode : '',
 			scale : '',
 			atk : '',
-			def : ''
+			def : '',
+			hint : []
 		}
-		if (!n)
-			return page.show = false;
+		if (!n) {
+			page.show = false;
+			page.show_hint = false;
+			return;
+		}
 		if (n instanceof Client_Card) {
 			if (n.id) {
 				const [card, orgin] = Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
 					: [mainGame.get.card(n.alias), mainGame.get.card(n.id)];
 				page.card.orgin = orgin?.name ?? '';
-				page.show = true;
 				page.card.id = card.id;
 				page.card.pic = card.pic;
 				page.card.name = card.name;
 				page.card.description = card.desc;
 				page.card.type = mainGame.get.strings.type(n.type);
+				if (n.location & LOCATION.ONFIELD && n.hint_msg)
+					page.card.hint.push(n.hint_msg);
+				n.desc.forEach((i, v) => {
+					if (v > 0)
+						page.card.hint.push(mainGame.get.desc(i));
+				});
+				n.counter.forEach((i, v) => {
+					if (v > 0)
+						page.card.hint.push(`${mainGame.get.strings.counter(i)} : ${v}`);
+				});
 				if (n.type & TYPE.MONSTER) {
 					page.card.attribute = mainGame.get.strings.attribute(n.attribute);
 					page.card.race = mainGame.get.strings.race(n.race);
@@ -138,11 +164,12 @@
 						page.card.def = n.def >= 0 ? n.def.toString() : '?';
 					page.card.scale =  n.type & TYPE.PENDULUM ? n.scale.toString() : '';
 				}
+				page.show = true;
+				page.show_hint = true;
 			}
 			return;
 		}
 		const card : Card = n instanceof Card ? n : mainGame.get.card(n);
-		page.show = true;
 		page.card.id = card.id;
 		page.card.pic = card.pic;
 		page.card.name = card.name;
@@ -157,6 +184,8 @@
 				page.card.def = card.def >= 0 ? card.def.toString() : '?';
 			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
 		}
+		page.show = true;
+		page.show_hint = false;
 	}, { immediate : true });
 </script>
 <style lang = 'scss' scoped>
@@ -205,15 +234,20 @@
 				}
 			}
 			+ div {
+				color: #FFA500;
 				display: flex;
-				flex-wrap: wrap;
-				font-size: 16px;
-				> div {
-					min-width: 50%;
+				flex-direction: column;
+				+ div {
 					display: flex;
-					flex-direction: column;
-					> span:first-child {
-						color: $color-sub;
+					flex-wrap: wrap;
+					font-size: 16px;
+					> div {
+						min-width: 50%;
+						display: flex;
+						flex-direction: column;
+						> span:first-child {
+							color: $color-sub;
+						}
 					}
 				}
 			}
