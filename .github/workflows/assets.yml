@@ -52,7 +52,8 @@ jobs:
 
         wget -O lflist.conf https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
 
-        7z a -tzip -mx=9 assets.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ lflist.conf
+        7z a -tzip -mx=9 a.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ lflist.conf
+        python zip.py ${{ github.ref_name }} a.zip assets.zip
     
     - name: Upload File
       uses: actions/upload-artifact@v4

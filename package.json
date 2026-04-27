@@ -4,8 +4,8 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
-		"copy:cmd": "xcopy src-tauri\\android-custom\\ src-tauri\\gen\\android\\app\\src\\main /s /Y /e /I",
-		"copy:sh": "cp -r src-tauri/android-custom/* src-tauri/gen/android/app/src/main/",
+		"copy:cmd": "xcopy kotlin\\ src-tauri\\gen\\android\\app\\src\\main /s /Y /e /I",
+		"copy:sh": "cp -r kotlin/* src-tauri/gen/android/app/src/main/",
 		"json:build": "node .ci/tauri.conf.json.cjs build",
 		"json:dev": "node .ci/tauri.conf.json.cjs dev",
 		"icon": "npm run tauri icon -p src-tauri/icons/icon.jpg",
