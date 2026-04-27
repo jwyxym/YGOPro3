@@ -136,12 +136,9 @@ class Invoke {
 		get_font : async () : Promise<Array<[string, string]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_font');
-				const fonts : Array<[string, Array<number>]> = bincode.decode(
-					bincode.Collection(bincode.Tuple(bincode.String, bincode.Collection(bincode.u8))), result
-				).value as Array<[string, Array<number>]>;
-				return fonts.map(i =>[i[0], URL.createObjectURL(new Blob([new Uint8Array(i[1])], {
-					type : 'application/x-font-ttf'
-				}))]);
+				return bincode.decode(
+					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
+				).value as Array<[string, string]>;
 			} catch (error) {
 				this.log.write(error);
 				return [];

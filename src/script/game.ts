@@ -23,13 +23,7 @@ class Game {
 	cards : Map<number, Card> = new Map;
 	bgm : Array<[string, string]> = reactive(new Array());
 	avatars : Array<string> = new Array();
-	font : {
-		dom : HTMLStyleElement,
-		url : Array<string>
-	} = {
-		dom : document.createElement('style'),
-		url : []
-	};
+	font : HTMLStyleElement = document.createElement('style');
 	version = 0x1362;
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
@@ -37,7 +31,7 @@ class Game {
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 
 	constructor () {
-		document.head.appendChild(this.font.dom);
+		document.head.appendChild(this.font);
 	};
 
 	init = async () : Promise<boolean> => {
@@ -91,15 +85,15 @@ class Game {
 			this.bgm.push(...sounds);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
-			this.font.url = fonts.map(([_, url]) => url);
-			this.font.dom.textContent = fonts.map(([name, url]) =>
-				`@font-face {
-					font-family: '${name}';
-					src: url('${url}');
-					font-weight: normal;
-					font-style: normal;
-				}`
-			).join('\n');
+			if (!this.font.textContent)
+				this.font.textContent = fonts.map(([name, url]) =>
+					`@font-face {
+						font-family: '${name}';
+						src: url('${url}');
+						font-weight: normal;
+						font-style: normal;
+					}`
+				).join('\n');
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
 				.set.readonly();
@@ -257,9 +251,6 @@ class Game {
 
 	clear = () : void => {
 		this.cards.forEach(i => i.clear());
-		this.font.url.forEach(i => URL.revokeObjectURL(i));
-		this.font.url.length = 0;
-		this.font.dom.textContent = '';
 		this.bgm.forEach((i) => URL.revokeObjectURL(i[1]));
 		this.bgm.length = 0;
 	};
