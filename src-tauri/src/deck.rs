@@ -2,7 +2,7 @@ use crate::game::{PATH, File};
 
 use anyhow::{Error, Result, anyhow};
 use std::{
-	fs::{exists, write, rename, remove_file}, path::PathBuf
+	fs::{exists, write, rename, remove_file, create_dir_all}, path::PathBuf
 };
 use walkdir::WalkDir;
 use futures::{StreamExt, stream::FuturesUnordered};
@@ -15,8 +15,10 @@ pub struct Deck;
 impl Deck {
 	pub async fn write (name: String, deck: String) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path
+			.join("deck");
+		let _ = create_dir_all(&path);
 		write(path
-			.join("deck")
 			.join(name), 
 			deck
 		)?;

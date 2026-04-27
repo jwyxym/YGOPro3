@@ -4,14 +4,15 @@ import { fetch } from '@tauri-apps/plugin-http';
 
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
+import { toast } from '@/pages/toast/toast';
 
 import * as CONSTANT from './constant';
 import Card from './card';
 import LFList from './lflist';
+import invoke from './invoke';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import YGOPRO_STR from './language/string';
-import invoke from './invoke';
 
 class Game {
 	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
@@ -329,7 +330,11 @@ class Game {
 	};
 
 	log = {
-		write : invoke.log.write
+		write : async (line : string) => {
+			toast.error(line);
+			console.error(line);
+			await invoke.log.write(line);
+		}
 	};
 
 	exit = async () : Promise<void> => {

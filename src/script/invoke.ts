@@ -411,7 +411,6 @@ class Invoke {
 	log = {
 		write : async (line : string) : Promise<boolean> => {
 			try {
-				console.error(line);
 				await invoke<void>('write_log', { line : line });
 				return true;
 			} catch (error) {
