@@ -22,6 +22,7 @@ class _Phase {
 		this.element.style.width = '1000px';
 		await mainGame.sleep(250);
 		this.element.style.width = '0';
+		await mainGame.sleep(150);
 	};
 };
 

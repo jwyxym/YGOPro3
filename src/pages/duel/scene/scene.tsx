@@ -466,6 +466,7 @@ class _Duel {
 
 	remove = {
 		card : (card : Client_Card) : Client_Card => {
+			this.cards.find(i => i.equip === card)?.equip === undefined;
 			this.cards.splice(this.cards.indexOf(card), 1);
 			this.scene.remove(card.three);
 			return card;
@@ -525,6 +526,28 @@ class _Duel {
 								}
 							})
 					);
+				for (let seq = 0; seq < 7; seq ++) {
+					const arr = lodash.sortBy(cards.filter(i =>
+							(i.location & LOCATION.OVERLAY)
+							&& i.seq === seq
+						),
+						i => i.overlay
+					);
+					arr
+						.forEach((i, v) => i
+							.set.overlay(v)
+							.set.pos(POS.FACEUP_ATTACK)
+						);
+					const c = cards.find(i =>
+						i.location === LOCATION.MZONE
+						&& i.seq === seq
+					);
+					c
+						?.set.overlay(arr.length)
+						.clear.equip();
+					if (c?.equip && c.equip.location & LOCATION.OVERLAY)
+						c.clear.equip();
+				}
 			}
 				
 			await Promise
@@ -585,7 +608,6 @@ class _Duel {
 						connect.duel.card = undefined;
 					else
 						connect.duel.card = card;
-
 				} else {
 					const cards = this.cards.filter(i => i.owner === card.owner
 						&& (i.location & card.location)

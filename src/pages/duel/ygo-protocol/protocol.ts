@@ -191,7 +191,7 @@ class Protocol {
 				msg.index ++;
 				if (loc === undefined || seq === undefined) return result;
 				const c = this.get.card(tp, loc, seq);
-				if  (c)
+				if (c)
 					card.set.equip(c);
 			}
 			if (flag & QUERY.TARGET_CARD) {
@@ -203,10 +203,9 @@ class Protocol {
 				if (ct === undefined) return result;
 				card.set.overlay(ct);
 				const cards = duel.get.cards()
-					.filter(i => (i.location & card.location)
+					.filter(i => (i.location & (LOCATION.MZONE | LOCATION.OVERLAY))
 						&& i.owner === card.owner
 						&& i.seq === card.seq
-						&& i !== card
 					);
 				for (let i = 0; i < ct; i ++) {
 					const c = cards[i];
@@ -1476,7 +1475,7 @@ class Protocol {
 				return;
 			await Promise.all([
 				phase.on(connect.duel.turn, p),
-				duel.btn?.phase(p)
+				duel.btn?.phase(p) ?? Promise.resolve()
 			]);
 			history.push(HISTORY.PHASE, {
 				self : true,
@@ -1518,15 +1517,42 @@ class Protocol {
 			} else {
 				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
 					?? this.get.card(from.tp, from.loc!, from.seq!);
+				card = c;
 				if (c) {
 					c.hint_msg = '';
-					card = c;
-					card
-						.set.id(code)
-						.set.owner(to.tp)
-						.set.location(to.loc!)
-						.set.seq(to.seq!)
-						.set.pos(to.pos!);
+					if (to.loc & LOCATION.OVERLAY) {
+						const ocard = this.get.card(to.tp, to.loc& 0x7f, to.seq!);
+						if (ocard) {
+							if (ocard.location & LOCATION.MZONE)
+								c
+									.set.id(code)
+									.set.owner(to.tp)
+									.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
+									.set.seq(to.seq!)
+									.set.overlay(ocard.overlay)
+									.clear.equip();
+							else
+								ocard.overlays.push(c);
+						}
+					} else {
+						if (from.loc !== to.loc)
+							c.clear.equip();
+						c
+							.set.id(code)
+							.set.owner(to.tp)
+							.set.location(to.loc!)
+							.set.seq(to.seq!)
+							.set.pos(to.pos!)
+							.set.overlay(c.overlays.length);
+
+						c.overlays.forEach((i, v) => i
+							.set.owner(to.tp)
+							.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
+							.set.seq(to.seq!)
+							.set.overlay(v)
+						);
+						c.overlays.length = 0;
+					}
 				}
 			}
 			if (card)

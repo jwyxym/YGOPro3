@@ -31,6 +31,7 @@ class Client_Card {
 	def : number;
 	scale : number;
 	overlay : number;
+	overlays : Array<Client_Card>;
 	status : number;
 	equip ?: Client_Card;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
@@ -66,6 +67,7 @@ class Client_Card {
 		this.def = 0;
 		this.scale = 0;
 		this.overlay = 0;
+		this.overlays = [];
 		this.status = 0;
 		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
@@ -359,7 +361,7 @@ class Client_Card {
 		overlay : (overlay : number) : Client_Card => {
 			if (!this.need_change.type)
 				this.need_change.type = this.overlay !== overlay;
-			this.rank = overlay;
+			this.overlay = overlay;
 			return this;
 		},
 		attribute : (attribute : number) : Client_Card => {
