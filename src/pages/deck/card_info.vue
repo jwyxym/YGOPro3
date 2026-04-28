@@ -61,6 +61,14 @@
 			</div>
 		</transition>
 		<transition name = 'opacity'>
+			<div v-show = 'page.card.setcode.length'>
+				<span>{{ mainGame.get.text(I18N_KEYS.CARD_INFO_SETCODE) }}&nbsp;:&nbsp;</span>
+				<div v-for = 'i in page.card.setcode'>
+					<span>{{ i }}</span>
+				</div>
+			</div>
+		</transition>
+		<transition name = 'opacity'>
 			<p v-show = 'page.show'>
 				<span v-show = 'page.show'>{{ mainGame.get.text(I18N_KEYS.CARD_INFO_DESC) }}&nbsp;:</span>
 				<br/>
@@ -93,10 +101,10 @@
 			attribute : '',
 			race : '',
 			description : '',
-			setcode : '',
 			scale : '',
 			atk : '',
 			def : '',
+			setcode : [] as Array<string>,
 			hint : [] as Array<string>,
 		},
 		clear : () : void => {
@@ -124,10 +132,10 @@
 			attribute : '',
 			race : '',
 			description : '',
-			setcode : '',
 			scale : '',
 			atk : '',
 			def : '',
+			setcode : [],
 			hint : []
 		}
 		if (!n) {
@@ -144,6 +152,9 @@
 				page.card.pic = card.pic;
 				page.card.name = card.name;
 				page.card.description = card.desc;
+				page.card.setcode = card.setcode
+					.filter(i => i)
+					.map(i  => mainGame.get.strings.setcode(i));
 				page.card.type = mainGame.get.strings.type(n.type);
 				if (n.location & LOCATION.ONFIELD && n.hint_msg)
 					page.card.hint.push(n.hint_msg);
@@ -174,6 +185,9 @@
 		page.card.pic = card.pic;
 		page.card.name = card.name;
 		page.card.description = card.desc;
+		page.card.setcode = card.setcode
+			.filter(i => i)
+			.map(i  => mainGame.get.strings.setcode(i));
 		page.card.type = mainGame.get.strings.type(card.type);
 		if (card.is_monster()) {
 			page.card.attribute = mainGame.get.strings.attribute(card.attribute);
@@ -233,23 +247,31 @@
 					font-size: 16px;
 				}
 			}
-			+ div {
-				color: #FFA500;
+		}
+		> div:nth-child(2) {
+			color: #FFA500;
+			display: flex;
+			flex-direction: column;
+		}
+		> div:nth-child(3) {
+			display: flex;
+			flex-wrap: wrap;
+			font-size: 16px;
+			> div {
+				min-width: 50%;
 				display: flex;
 				flex-direction: column;
-				+ div {
-					display: flex;
-					flex-wrap: wrap;
-					font-size: 16px;
-					> div {
-						min-width: 50%;
-						display: flex;
-						flex-direction: column;
-						> span:first-child {
-							color: $color-sub;
-						}
-					}
+				> span:first-child {
+					color: $color-sub;
 				}
+			}
+		}
+		> div:nth-child(4) {
+			display: flex;
+			flex-direction: column;
+			> div {
+				display: flex;
+				gap: 5px;
 			}
 		}
 		> p {
@@ -263,8 +285,7 @@
 	}
 
 	.opacity {
-		&-enter-active,
-		&-leave-active {
+		&-enter-active {
 			transition: opacity 0.1s ease;
 		}
 
