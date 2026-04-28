@@ -64,7 +64,7 @@ class Search {
 				|| (this.atk && this.atk.length && this.atk.findIndex(i => compare(i.replace('?', '-1'), card.atk)) === -1)
 				|| (this.def && this.def.length && this.def.findIndex(i => compare(i.replace('?', '-1'), card.def)) === -1)
 				|| (this.type && this.type.length === 4 && ((this.type[0] && this.type[0].length && this.type[0].findIndex(i => card.type & i) === -1)
-					|| (this.type[1] && this.type[1].length && (card.is_monster() || (this.type[1].includes(TYPE.NORMAL | TYPE.SPELL) ? this.type[2].findIndex(i => i === (TYPE.NORMAL | TYPE.SPELL) ? card.type === TYPE.SPELL || card.type === TYPE.TRAP : card.type & i) === -1
+					|| (this.type[1] && this.type[1].length && (card.is_monster() || (this.type[1].includes(TYPE.NORMAL) ? this.type[1].findIndex(i => i === TYPE.NORMAL ? card.type === TYPE.SPELL || card.type === TYPE.TRAP : card.type & i) === -1
 						: this.type[1].findIndex(i => card.type & i) === -1)))
 					|| (this.type[2] && this.type[2].length && (!card.is_monster() || and_or(this.and_or.type, this.type[2].filter(i => card.type & i).length, this.type[2].length)))
 					|| (this.type[3] && this.type[3].length && this.type[3].findIndex(i => card.type & i) > -1))

@@ -72,10 +72,10 @@
 				class = 'select'
 				v-for = "j in [
 					{ span : I18N_KEYS.CARD_INFO_OT, results : search.info.ot, cards : search.list.ot, key : KEYS.OT, strings : mainGame.get.strings.ot, class : 'ot' },
-					{ span : I18N_KEYS.CARD_INFO_TYPE, results : search.info.type[0], cards : search.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i - ((i & 0x3) === i ? 0 : (i & 0x3)) },
-					{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : search.info.type[1], cards : search.list.spell, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i - ((i & 0x3) === i ? 0 : (i & 0x3)) },
-					{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : search.info.type[2], cards : search.list.monster, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i - ((i & 0x3) === i ? 0 : (i & 0x3)), switchs : 'type' },
-					{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : search.info.type[3], cards : search.list.except, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i - ((i & 0x3) === i ? 0 : (i & 0x3)) },
+					{ span : I18N_KEYS.CARD_INFO_TYPE, results : search.info.type[0], cards : search.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type },
+					{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : search.info.type[1], cards : search.list.spell, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
+					{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : search.info.type[2], cards : search.list.monster, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3, switchs : 'type' },
+					{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : search.info.type[3], cards : search.list.except, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
 					{ span : I18N_KEYS.CARD_INFO_ATTRIBUTE, results : search.info.attribute, cards : search.list.attribute, key : KEYS.ATTRIBUTE, strings : mainGame.get.strings.attribute },
 					{ span : I18N_KEYS.CARD_INFO_RACE, results : search.info.race, cards : search.list.race, key : KEYS.RACE, strings : mainGame.get.strings.race },
 					{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : search.info.category, cards : search.list.category, key : KEYS.CATEGORY, strings : mainGame.get.strings.category, switchs : 'category' },
@@ -94,7 +94,7 @@
 						@click = 'search.select(j.results, j.value ? j.value(i) : i)'
 					>
 						<img :src = '(mainGame.get.textures(j.key, i) as string)'/>
-						<span>{{ j.strings(j.value ? j.value(i) : i)}}</span>
+						<span>{{ j.strings(j.value ? j.value(i) : i) }}</span>
 					</div>
 				</div>
 			</div>
@@ -600,8 +600,8 @@
 						}
 					}
 					> .selected {
-						border: 2px solid #2196f3;
-						box-shadow: 0 0 10px white;
+						border: 2px solid yellow;
+						box-shadow: 0 0 10px yellow;
 					}
 					> .ot {
 						width: 60px;
