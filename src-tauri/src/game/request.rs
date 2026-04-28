@@ -3,7 +3,7 @@ use anyhow::{Result, Error, anyhow};
 use content_disposition::parse_content_disposition;
 use uuid::Uuid;
 use serde::Serialize;
-use std::{path::Path, io::Read, sync::OnceLock};
+use std::{path::Path, io::Read, sync::OnceLock, fs::create_dir_all};
 use trust_dns_resolver::{config::{ResolverConfig, ResolverOpts}, Resolver, lookup::SrvLookup, proto::rr::rdata::SRV};
 use tokio::{
 	fs::File,
@@ -45,6 +45,7 @@ impl Request {
 		
 	}
     pub async fn download<P: AsRef<Path>> (app: &AppHandle, path: P, url: &str, name: &str) -> Result<String, Error> {
+		create_dir_all(&path)?;
         let response: Response<Body> = get(url).call()?;
 		if response.status().is_success() {
 			let headers: &HeaderMap = response.headers();
