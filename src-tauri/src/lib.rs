@@ -59,9 +59,11 @@ pub fn run() {
 			match type_() {
 				OsType::Android => {
 					let path: PathBuf = app.path().resolve("./", BaseDirectory::Public)?;
-					let path: PathBuf = path.to_path_buf();
-					let _ = log::init(&path);
-					let _ = PATH.set(path);
+					if let Some(path) = path.parent() {
+						let path: PathBuf = path.to_path_buf();
+						let _ = log::init(&path);
+						let _ = PATH.set(path);
+					}
 				}
 				_ => {
 					let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;

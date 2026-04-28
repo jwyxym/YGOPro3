@@ -31,7 +31,7 @@ tauri_config = {
 			"assetProtocol" : {
 				"enable" : True,
 				"scope" : {
-					"allow" : ["$PUBLIC/**", "$RESOURCE/**"]
+					"allow" : ["$HOME/**", "$RESOURCE/**"]
 				}
 			}
 		}

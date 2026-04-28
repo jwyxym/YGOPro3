@@ -1,12 +1,4 @@
 import * as fs from '@tauri-apps/plugin-fs';
-import * as path from '@tauri-apps/api/path';
-import { platform } from '@tauri-apps/plugin-os';
-
-const SYSTEM = platform();
-
-const BASE_DIR = SYSTEM == 'android' ? fs.BaseDirectory.Public : fs.BaseDirectory.Resource;
-const BASE_PATH = SYSTEM == 'android' ? path.publicDir : path.resourceDir;
-const LINE_FEED = SYSTEM == 'windows' ? '\r\n' : '\n';
 
 const REG = {
 	NAME : /[<>:"/\\|?*\x00-\x1F]|^[\s.]|[\s.]$|\.$/g,
@@ -106,4 +98,4 @@ const KEYS = {
 	SETTING_SELECT_VOICE : 'SELECT_VOICE'
 };
 
-export { REG, LANGUAGE, URL, KEYS, BASE_DIR, BASE_PATH, LINE_FEED, SYSTEM };
+export { REG, LANGUAGE, URL, KEYS };

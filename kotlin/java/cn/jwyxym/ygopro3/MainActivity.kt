@@ -18,7 +18,7 @@ class MainActivity : TauriActivity() {
 
 	private fun copyAssets() {
 
-		val targetDir = getExternalFilesDir(Environment.DIRECTORY_DCIM) ?: return
+		val targetDir = getExternalFilesDir(null) ?: return
 		val targetFile = File(targetDir, "assets")
 
 		val localVersion = readVersion(targetFile)
