@@ -8,7 +8,7 @@
 				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
 				v-model = 'search.info.desc'
 				@enter = 'search.search'
-				@clear = "search.search('')"
+				@clear = "search.search"
 			/>
 			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
 		</div>
@@ -400,7 +400,7 @@
 				return true;
 			}
 		},
-		search : async (desc ?: string) : Promise<void> => {
+		search : async () : Promise<void> => {
 			page.list.length = 0;
 			page.finished = false;
 			const searcher = new Search()
@@ -417,7 +417,7 @@
 				.set.scale(search.info.scale)
 				.set.atk(search.info.atk)
 				.set.def(search.info.def)
-				.set.desc(desc ?? search.info.desc)
+				.set.desc(search.info.desc ?? '')
 				.set.and_or(search.switchs);
 			page.result = searcher.search().map(i => {
 				return {
