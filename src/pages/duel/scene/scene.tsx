@@ -609,10 +609,11 @@ class _Duel {
 					else
 						connect.duel.card = card;
 				} else {
-					const cards = this.cards.filter(i => i.owner === card.owner
-						&& (i.location & card.location)
-						&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
-					)
+					const cards = this.cards
+						.filter(i => i.owner === card.owner
+							&& (i.location & card.location)
+							&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
+						);
 					const c = lodash.maxBy(cards, i => i.location & LOCATION.MZONE ? i.overlay : i.seq);
 					if (toRaw(connect.duel.card) === c && c?.clicked)
 						connect.duel.card = undefined;

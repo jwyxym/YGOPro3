@@ -912,7 +912,8 @@ class Protocol {
 		}],
 		[MSG.SELECT_UNSELECT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
-			const cancelable = !!msg.read.uint8() || !!msg.read.uint8();
+			const finishable = !!msg.read.uint8();
+			const cancelable = !!msg.read.uint8();
 			const min = msg.read.uint8();
 			const max = msg.read.uint8();
 			if (min === undefined || max === undefined)
@@ -956,7 +957,7 @@ class Protocol {
 			await this.update.codes(codesI.concat(codesII));
 			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(560);
-			connect.duel.select.group.cancelable = cancelable;
+			connect.duel.select.group.cancelable = finishable || cancelable;
 			connect.duel.select.group.unselect = codesI.map(i => i[0]);
 			connect.duel.select.group.select = codesII.map(i => i[0]);
 			connect.duel.select.group.min = min;

@@ -49,6 +49,7 @@
 		transform: translate(calc(var(--left) / var(--scale) - 10px), -50%);
 		overflow-y: auto;
 		scroll-behavior: smooth;
+		pointer-events: none;
 		> div {
 			width: 100%;
 			height: 130px;
@@ -58,6 +59,7 @@
 			> img {
 				align-self: center;
 				width: 70px;
+				pointer-events: initial;
 			}
 		}
 	}

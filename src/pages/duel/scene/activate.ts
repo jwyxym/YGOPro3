@@ -126,7 +126,7 @@ class Activate {
 	};
 
 	on = (c : Client_Card, cards : Array<Client_Card>) : void => {
-		this.cards = cards.concat([c]);
+		this.cards = cards.length ? cards.slice() : [c];
 		const axis = Axis.computed.card(c);
 		this.three.position.set(axis.x, axis.y + (c.location & LOCATION.HAND ? 80 : 5), 100);
 		this.btns.style.opacity = '1';
