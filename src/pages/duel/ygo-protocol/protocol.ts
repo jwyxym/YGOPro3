@@ -1706,7 +1706,7 @@ class Protocol {
 		[MSG.CHAINED, async () => {
 			this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
 		}],
-		[MSG.CHAIN_SOLVING, async (msg : Msg) => {
+		[MSG.CHAIN_SOLVED, async (msg : Msg) => {
 			const ct = msg.read.uint8();
 			if (!ct) return;
 			connect.duel.chain.splice(ct - 1, 1);
@@ -1716,7 +1716,7 @@ class Protocol {
 		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
 			const ct = msg.read.uint8();
 			if (!ct) return;
-			await connect.duel.chain[ct].hint.negative();
+			await connect.duel.chain[ct]?.hint.negative();
 		}],
 		[MSG.RANDOM_SELECTED, async (msg : Msg) => {
 			msg.index ++;
@@ -1737,7 +1737,6 @@ class Protocol {
 			}
 		}],
 		[MSG.BECOME_TARGET, async (msg : Msg) => {
-			msg.index ++;
 			const ct = msg.read.uint8() ?? 0;
 			for (let i = 0; i < ct; i ++) {
 				const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1748,6 +1747,7 @@ class Protocol {
 					|| seq === undefined)
 					return;
 				const card = this.get.card(tp, loc, seq);
+				console.log(card)
 				if (card) {
 					await card.hint.selected();
 					this.event = mainGame.get.strings.system(1610, mainGame.get.name(card.id));

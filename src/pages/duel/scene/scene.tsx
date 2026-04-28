@@ -613,7 +613,7 @@ class _Duel {
 						&& (i.location & card.location)
 						&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
 					)
-					const c = lodash.maxBy(cards, i => i.seq);
+					const c = lodash.maxBy(cards, i => i.location & LOCATION.MZONE ? i.overlay : i.seq);
 					if (toRaw(connect.duel.card) === c && c?.clicked)
 						connect.duel.card = undefined;
 					else
@@ -640,16 +640,18 @@ class _Duel {
 watch(() => connect.duel.card, (n, o) => {
 	const get_equip = (c : Client_Card) => duel.get.cards()
 		.filter(i => i === c || i.equip === c || (c?.equip && (i.equip === c.equip || i === c.equip)));
-	if (o instanceof Client_Card) {
-		const cards = get_equip(toRaw(o));
+	const o_card = toRaw(o);
+	if (o_card instanceof Client_Card) {
+		const cards = get_equip(o_card);
 		if (cards.length > 1)
 			cards.forEach(i => i.hint.equip());
 	}
-	if (n instanceof Client_Card) {
-		const cards = get_equip(toRaw(n));
+	const n_card = toRaw(n);
+	if (n_card instanceof Client_Card) {
+		const cards = get_equip(n_card);
 		if (cards.length > 1)
 			cards.forEach(i => i.hint.equip(true));
-		duel.activate?.on(n, n.location & LOCATION.ONFIELD ? [] : connect.duel.cards);
+		duel.activate?.on(n_card, n_card.location & LOCATION.ONFIELD ? [] : connect.duel.cards);
 	} else duel.activate?.off();
 })
 

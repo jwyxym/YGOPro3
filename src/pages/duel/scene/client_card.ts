@@ -293,6 +293,7 @@ class Client_Card {
 		},
 		pos : (pos : number) : Client_Card => {
 			if (!pos) pos = POS.FACEDOWN_ATTACK;
+			if (pos & POS.ATTACK & POS.DEFENSE) pos &= ~ POS.DEFENSE;
 			if (!this.need_change.pos)
 				this.need_change.pos = this.pos !== pos;
 			this.pos = pos;
@@ -556,18 +557,18 @@ class Client_Card {
 			else if ((this.pos & POS.FACEUP) && is_back)
 				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
 			const z = parseInt(gsap.getProperty(img, 'rotationZ').toString());
-			if (this.location & LOCATION.MZONE)
+			if (this.location & LOCATION.MZONE) {
 				if ((this.pos & POS.ATTACK) && z)
 					tl.to(img, {
 						rotationZ : 0,
 						duration : 0.1,
-					}, 0);
+					}, 0)
 				else if ((this.pos & POS.DEFENSE) && !z)
 					tl.to(img, {
 						rotationZ : - 90,
 						duration : 0.1,
 					}, 0);
-			else if (z)
+			} else if (z)
 				tl.to(img, {
 					rotationZ : 0,
 					duration : 0.1,
