@@ -99,7 +99,7 @@ class Axis {
 		]],
 		[LOCATION.SZONE | (5 << 16), [
 			new Axis(- 3, - 1),
-			new Axis(2, 2)
+			new Axis(3, 1)
 		]],
 		[LOCATION.SZONE | (6 << 16), [
 			new Axis(- 2, - 2),
