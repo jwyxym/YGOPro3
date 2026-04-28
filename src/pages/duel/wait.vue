@@ -71,7 +71,7 @@
 			<div>
 				<Button
 					v-if = 'self.is_host'
-					:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
+					:content = 'mainGame.get.text(I18N_KEYS.SERVER_START_DUEL)'
 					@click = "emit('connect')"
 				/>
 			</div>

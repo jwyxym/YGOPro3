@@ -11,7 +11,11 @@
 			<var-switch v-model = 'page.show'/>
 			<slot name = 'title'/>
 		</div>
-		<div :style = "{ height : `${page.show ? 220 : 0}px`}">
+		<div
+			:style = "{ height : `${page.show ? 220 : 0}px`}"
+			@wheel = 'page.wheel'
+			:ref = '((el) => page.el = el as HTMLElement | null)'
+		>
 			<slot name = 'body'/>
 		</div>
 		<div
@@ -38,14 +42,27 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { onBeforeMount, onUnmounted, reactive } from 'vue';
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
 	import GLOBAL from '@/script/scale';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Button from '@/pages/ui/button.vue';
 	const page = reactive({
-		show : true
+		show : true,
+		el : null as HTMLElement | null,
+		wheel : (e : WheelEvent) => {
+			const el = page.el?.children[0];
+			if (el && el.scrollWidth > el.clientWidth) {
+				e.preventDefault();
+				el.scrollLeft += e.deltaY / 4;
+			}
+		},
+		click : (e : PointerEvent) => {
+			e.preventDefault();
+			if (e.pointerType === 'mouse' && props.cancelable)
+				emit('cancel');
+		}
 	});
 	const props = defineProps<{
 		cancelable : boolean;
@@ -57,6 +74,8 @@
 		confirm : [];
 		cancel : [];
 	}>();
+	onBeforeMount(() => window.addEventListener('contextmenu', page.click))
+	onUnmounted(() => window.removeEventListener('contextmenu', page.click))
 </script>
 <style scoped lang = 'scss'>
 	.selecter {
@@ -80,16 +99,15 @@
 			> * {
 				width: 100%;
 				height: 100%;
-				:deep(div) {
-					&::-webkit-scrollbar {
-						opacity: 0;
-						height: 10px;
-					}
-					&::-webkit-scrollbar-thumb {
-						background: transparent;
-						border: 2px solid gray;
-						border-radius: 8px;
-		}
+				overflow-x: auto;
+				&::-webkit-scrollbar {
+					opacity: 0;
+					height: 10px;
+				}
+				&::-webkit-scrollbar-thumb {
+					background: transparent;
+					border: 2px solid gray;
+					border-radius: 8px;
 				}
 			}
 		}

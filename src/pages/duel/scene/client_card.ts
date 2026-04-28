@@ -656,31 +656,31 @@ class Client_Card {
 					if (gsap.getProperty(i, 'opacity'))
 						tl.to(i, {
 							opacity : 0,
-							duration : 0.1
+							duration : 0.05
 						}, 0);
 					tl.set(i, {
 						x : elements.indexOf(i as HTMLDivElement) * 30,
-					}, 0.1);
+					}, 0.05);
 					tl.to(i, {
 						opacity : 1,
-						duration : 0.1
-					}, 0.1);
+						duration : 0.05
+					}, 0.05);
 				} else {
 					tl.to(i, {
 						opacity : 0,
-						duration : 0.1
+						duration : 0.05
 					});
 					tl.set(i, {
 						x : 0,
-					}, 0.1);
+					}, 0.05);
 				}
 			});
 			return tl;
 		};
 		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
-			if (this.location & LOCATION.MZONE)
+			if (this.location === LOCATION.MZONE)
 				this.get.el.atk().style.opacity = '1';
-			if ((this.location & LOCATION.MZONE)
+			if (this.location === LOCATION.MZONE
 				|| ((this.location & (LOCATION.SZONE | LOCATION.PZONE))
 					&& (this.type & TYPE.PENDULUM))
 			)

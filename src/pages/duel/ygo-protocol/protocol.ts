@@ -32,6 +32,7 @@ class Protocol {
 	turn_player : number;
 	attack_code : number;
 	match_kill : number;
+	need_update : boolean;
 	constructor () {
 		this.event = '';
 		this.current_msg = 0;
@@ -41,6 +42,7 @@ class Protocol {
 		this.turn_player = 0;
 		this.attack_code = 0;
 		this.match_kill = 0;
+		this.need_update = false;
 		
 		this.msg.set(MSG.SELECT_DISFIELD, this.msg.get(MSG.SELECT_PLACE)!);
 		this.msg.set(MSG.CHAIN_DISABLED, this.msg.get(MSG.CHAIN_NEGATED)!);
@@ -276,6 +278,12 @@ class Protocol {
 				})())
 
 			this.current_msg = protocol;
+			if (protocol === MSG.UPDATE_DATA)
+				this.need_update = true;
+			else if (this.need_update)  {
+				await duel.update()
+				this.need_update = false;
+			}
 			await this.msg.get(protocol)?.(msg, send);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
@@ -635,7 +643,6 @@ class Protocol {
 				}
 			}
 			await this.update.codes(codes);
-			// await duel.update(cards);
 		}],
 		[MSG.UPDATE_CARD, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -648,7 +655,7 @@ class Protocol {
 			if (card && len > 8) {
 				const codes = this.update.card(msg, card);
 				await this.update.codes(codes);
-				// await card.update();
+				await card.update();
 			}
 		}],
 		[MSG.SELECT_BATTLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
@@ -1716,7 +1723,7 @@ class Protocol {
 		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
 			const ct = msg.read.uint8();
 			if (!ct) return;
-			await connect.duel.chain[ct]?.hint.negative();
+			await connect.duel.chain[ct - 1]?.hint.negative();
 		}],
 		[MSG.RANDOM_SELECTED, async (msg : Msg) => {
 			msg.index ++;
@@ -1747,7 +1754,6 @@ class Protocol {
 					|| seq === undefined)
 					return;
 				const card = this.get.card(tp, loc, seq);
-				console.log(card)
 				if (card) {
 					await card.hint.selected();
 					this.event = mainGame.get.strings.system(1610, mainGame.get.name(card.id));

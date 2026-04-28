@@ -74,11 +74,11 @@
 		}
 	}
 	.group {
+		height: 100%;
 		> :deep(div) {
 			height: 100%;
 			display: flex;
 			flex-wrap: nowrap;
-			overflow-x: auto;
 			> div {
 				flex-shrink: 0;
 				position: relative;
