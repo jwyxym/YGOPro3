@@ -510,7 +510,7 @@
 		color: white;
 		> div {
 			position: relative;
-			width: calc(100% - 20px);
+			width: calc(100% - 8px);
 			height: 100%;
 			.box {
 				height: var(--box_height);

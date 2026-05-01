@@ -16,7 +16,7 @@ import Plaid from '@/pages/duel/scene/plaid';
 import { voice } from '@/pages/voice/voice';
 
 import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC } from './network';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE } from './network';
 
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -26,7 +26,7 @@ type Protocol_Func = (msg : Msg, send : (msg : Msg) => Promise<void>) => Promise
 class Protocol {
 	event : string;
 	current_msg : number;
-	select_hint : number;
+	select_hint ?: number;
 	last_select_hint : number;
 	chain_code : number;
 	turn_player : number;
@@ -36,7 +36,6 @@ class Protocol {
 	constructor () {
 		this.event = '';
 		this.current_msg = 0;
-		this.select_hint = 0;
 		this.last_select_hint = 0;
 		this.chain_code = 0;
 		this.turn_player = 0;
@@ -584,7 +583,7 @@ class Protocol {
 			connect.duel.player[0].index = 0;
 			connect.duel.player[1].index = players.length - 1;
 			const decks = [[msg.read.uint16() ?? 0, msg.read.uint16() ?? 0], [msg.read.uint16() ?? 0, msg.read.uint16() ?? 0]];
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			this.last_select_hint = 0;
 			const loc = [LOCATION.DECK, LOCATION.EXTRA];
 			decks.forEach((i, tp) => {
@@ -794,7 +793,7 @@ class Protocol {
 				connect.duel.select.cards.title = title;
 				connect.duel.select.cards.selected.length = 0;
 				connect.duel.select.cards.confirm = undefined;
-				this.select_hint = 0;
+				this.select_hint = undefined;
 				connect.response = async (i ?: Client_Card) => {
 					connect.duel.select.cards.show = false;
 					await send(new Msg()
@@ -835,6 +834,12 @@ class Protocol {
 			msg.index ++;
 			const ct = msg.read.uint8();
 			if (ct === undefined) return;
+			const options : Array<string> = [];
+			for (let i = 0; i < ct; i ++) {
+				const option = msg.read.int32();
+				if (option === undefined) return;
+				options.push(mainGame.get.desc(option));
+			}
 			connect.response = async (i : number) => {
 				connect.duel.select.option.show = false;
 				await send(new Msg()
@@ -842,13 +847,11 @@ class Protocol {
 					.write.uint32(i)
 				);
 			};
-			connect.duel.select.option.array = new Array(ct)
-				.map(() => msg.read.uint32())
-				.map(i => mainGame.get.desc(i ?? - 1));
+			connect.duel.select.option.array = options;
 			connect.duel.select.option.title = mainGame.get.strings.system(this.select_hint ?? 555);
 			connect.duel.select.option.confirm = undefined;
 			connect.duel.select.option.show = true;
-			this.select_hint = 0;
+			this.select_hint = undefined;
 		}],
 		[MSG.SELECT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
@@ -889,7 +892,7 @@ class Protocol {
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected.length = 0;
 			connect.duel.select.cards.confirm = undefined;
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
 				const msg = new Msg()
@@ -964,7 +967,7 @@ class Protocol {
 			connect.duel.select.group.max = max;
 			connect.duel.select.group.title = title;
 			connect.duel.select.group.confirm = undefined;
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i ?: Client_Card) => {
 				connect.duel.select.group.show = false;
 				const msg = new Msg()
@@ -1027,7 +1030,7 @@ class Protocol {
 				connect.duel.select.cards.max = 1;
 				connect.duel.select.cards.title = this.event + mainGame.get.strings.system(203);
 				connect.duel.select.cards.selected.length = 0;
-				this.select_hint = 0;
+				this.select_hint = undefined;
 				const option = (effect : Array<{ desc ?: number; index : number; }>) => {
 					const array = effect
 						.map(i => mainGame.get.desc(i.desc ?? - 1));
@@ -1075,7 +1078,7 @@ class Protocol {
 				.sort((x, y) => x.owner - y.owner || x.seq - y.seq);
 			const title = !!this.select_hint ? mainGame.get.strings.system(569, mainGame.get.name(this.select_hint))
 				: mainGame.get.strings.system(560);
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.duel.select.plaid.title = title;
 			connect.duel.select.plaid.plaids = plaids
 			connect.duel.select.plaid.cards = plaids.map(i => this.get.card(i.owner, i.location, i.seq));
@@ -1166,7 +1169,7 @@ class Protocol {
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected.length = 0;
 			connect.duel.select.cards.confirm = undefined;
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i ?: Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
 				const msg = new Msg()
@@ -1276,7 +1279,7 @@ class Protocol {
 			connect.duel.select.cards.title = title;
 			connect.duel.select.cards.selected = selected;
 			connect.duel.select.cards.confirm = undefined;
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i : Array<Client_Card> | Client_Card) => {
 				connect.duel.select.cards.show = false;
 				const msg = new Msg()
@@ -1956,7 +1959,7 @@ class Protocol {
 			connect.duel.select.race.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(563);
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i : number) => {
 				connect.duel.select.race.show = false;
 				await send(new Msg()
@@ -1978,7 +1981,7 @@ class Protocol {
 			connect.duel.select.attribute.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(563);
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i : number) => {
 				connect.duel.select.attribute.show = false;
 				await send(new Msg()
@@ -1999,12 +2002,99 @@ class Protocol {
 				codes.push(code);
 			}
 			await mainGame.load.pic(codes);
-			connect.duel.select.code.codes = codes;
+			console.log(codes.map(i => i >= OPCODE.ADD ? i.toString(16) : i))
+			const check_setcode = (setcode : number, value : number) => {
+				const settype = value & 0x0fff;
+				const setsubtype = value & 0xf000;
+				return setcode && (setcode & 0x0fff) == settype && (setcode & setsubtype) == setsubtype;
+			};
+			connect.duel.select.code.codes = mainGame.get.codes((i) => {
+				if (i.alias || (i.type & TYPE.TOKEN))
+					return false;
+
+				const stack : Array<number> = [];
+
+				for (const code of codes) {
+					switch (code) {
+						case OPCODE.ADD:
+							if (stack.length >= 2)
+								stack.push(stack.pop()! + stack.pop()!);
+							break;
+						case OPCODE.SUB:
+							if (stack.length >= 2)
+								stack.push(- stack.pop()! + stack.pop()!);
+							break;
+						case OPCODE.MUL:
+							if (stack.length >= 2)
+								stack.push(stack.pop()! * stack.pop()!);
+							break;
+						case OPCODE.DIV:
+							if (stack.length >= 2) {
+								const rhs = stack.pop()!;
+								const lhs = stack.pop()!;
+								stack.push(rhs ? Math.trunc(lhs / rhs) : 0);
+							}
+							break;
+						case OPCODE.AND:
+							if (stack.length >= 2) {
+								stack.push(Number(!!(stack.pop()! && stack.pop()!)));
+							}
+							break;
+						case OPCODE.OR:
+							if (stack.length >= 2)
+								stack.push(Number(!!(stack.pop()! || stack.pop()!)));
+							break;
+						case OPCODE.NEG:
+							if (stack.length >= 1)
+								stack.push(- stack.pop()!);
+							break;
+						case OPCODE.NOT:
+							if (stack.length >= 1)
+								stack.push(Number(!stack.pop()));
+							break;
+						case OPCODE.ISCODE:
+							if (stack.length >= 1)
+								stack.push(Number(i.id === stack.pop()));
+							break;
+						case OPCODE.ISSETCARD:
+							if (stack.length >= 1) {
+								const setcode = stack.pop()!;
+								let res = false;
+
+								for (const x of i.setcode)
+									if (check_setcode(x, setcode)) {
+										res = true;
+										break;
+									}
+
+								stack.push(Number(res));
+							}
+							break;
+						case OPCODE.ISTYPE:
+							if (stack.length >= 1)
+								stack.push(Number(!!(i.type & stack.pop()!)));
+							break;
+						case OPCODE.ISRACE:
+							if (stack.length >= 1)
+								stack.push(Number(!!(i.race & stack.pop()!)));
+							break;
+						case OPCODE.ISATTRIBUTE:
+							if (stack.length >= 1)
+								stack.push(Number(!!(i.attribute & stack.pop()!)));
+							break;
+						default:
+							stack.push(code);
+							break;
+					}
+				}
+				return stack.length === 1 && !!stack[0];
+			});
+			console.log(connect.duel.select.code.codes)
 			connect.duel.select.code.confirm = undefined;
 			connect.duel.select.code.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(564);
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i : number) => {
 				connect.duel.select.code.show = false;
 				await send(new Msg()
@@ -2029,7 +2119,7 @@ class Protocol {
 			connect.duel.select.number.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(565);
-			this.select_hint = 0;
+			this.select_hint = undefined;
 			connect.response = async (i : number) => {
 				connect.duel.select.number.show = false;
 				await send(new Msg()

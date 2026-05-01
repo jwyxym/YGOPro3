@@ -159,6 +159,12 @@ class Game {
 			key = typeof key == 'string' ? parseInt(key) : key;
 			return this.cards.get(key) ?? this.unknown;
 		},
+		cards : (filter ?: (i : Card) => boolean) : Array<Card> => {
+			const cards = Array.from(this.cards.values());
+			return filter ? cards
+				.filter(filter) : cards;
+		},
+		codes : (filter ?: (i : Card) => boolean) => this.get.cards(filter).map(i => i.id),
 		strings : {
 			system : (key : number, replace : Array<string | number> | string | number = []) : string => {
 				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
