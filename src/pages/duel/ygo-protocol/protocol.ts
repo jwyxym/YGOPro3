@@ -2001,8 +2001,6 @@ class Protocol {
 					return;
 				codes.push(code);
 			}
-			await mainGame.load.pic(codes);
-			console.log(codes.map(i => i >= OPCODE.ADD ? i.toString(16) : i))
 			const check_setcode = (setcode : number, value : number) => {
 				const settype = value & 0x0fff;
 				const setsubtype = value & 0xf000;
@@ -2089,7 +2087,6 @@ class Protocol {
 				}
 				return stack.length === 1 && !!stack[0];
 			});
-			console.log(connect.duel.select.code.codes)
 			connect.duel.select.code.confirm = undefined;
 			connect.duel.select.code.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)

@@ -74,8 +74,8 @@
 		confirm : [];
 		cancel : [];
 	}>();
-	onBeforeMount(() => window.addEventListener('contextmenu', page.click))
-	onUnmounted(() => window.removeEventListener('contextmenu', page.click))
+	onBeforeMount(() => window.addEventListener('contextmenu', page.click));
+	onUnmounted(() => window.removeEventListener('contextmenu', page.click));
 </script>
 <style scoped lang = 'scss'>
 	.selecter {

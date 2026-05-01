@@ -1,9 +1,9 @@
 <template>
 	<Selecter
-		@confirm = "emit('exit', page.cards)"
+		@confirm = "emit('exit', page.card)"
 		@cancel = "emit('exit')"
 		:cancelable = 'false'
-		:confirmable = '!!page.cards'
+		:confirmable = '!!page.card'
 	>
 		<template #title>
 			<div class = 'title'>
@@ -13,17 +13,21 @@
 					variant = 'outlined'
 					v-model = 'page.input'
 				/>
+				<var-pagination
+					:current = 'page.ct'
+					@update:current = 'page.update'
+					:total = 'page.cards.length / 100'
+					:show-size-changer = 'false'
+				/>
 			</div>
 		</template>
 		<template #body>
 			<var-radio-group
-				v-model = 'page.cards'
+				v-model = 'page.card'
 				class = 'group'
 			>
-				<div v-for = 'i in cards
-					.filter(i => page.input
-						? i.toString().includes(page.input) || mainGame.get.card(i).name.includes(page.input)
-						: true)'
+				<div v-for = 'i in page.cards
+					.slice((page.ct - 1) * 100, page.ct * 100)'
 				>
 					<div @click.stop = "page.select(i); emit('click', i);">
 						<img :src = 'mainGame.get.card(i).pic'/>
@@ -36,7 +40,8 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { computed, reactive, watch } from 'vue';
+	import PQueue from 'p-queue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -45,16 +50,34 @@
 
 	import Selecter from './selecter.vue';
 
+	const queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
+
 	const props = defineProps<{
 		cards : Array<number>;
 		title : string;
 	}>();
 	const page = reactive({
+		ct : 1,
 		input : '',
 		show : false,
-		cards : 0,
-		select : (card : number) => page.cards = page.cards === card ? 0 : card
+		card : 0,
+		select : (card : number) => page.card = page.card === card ? 0 : card,
+		cards : computed(() : Array<number> => props.cards
+			.filter(i => page.input
+				? i.toString().includes(page.input)
+					|| mainGame.get.card(i).name.includes(page.input)
+				: true)
+		),
+		update : (ct : number) => queue.add(async () => {
+			await mainGame.load.pic(page.cards.slice((ct - 1) * 100, ct * 100))
+			page.ct = ct;
+		})
 	});
+
+	watch(() => page.input, () => page.ct = 1);
 
 	const emit = defineEmits<{
 		exit : [card ?: number];
@@ -71,6 +94,12 @@
 		.var-input {
 			transform: translateY(-20px);
 			width: 40%;
+		}
+		.var-pagination {
+			position: absolute;
+			right: 0;
+			--pagination-text-color: white !important;
+			width: 20%;
 		}
 	}
 	.group {
