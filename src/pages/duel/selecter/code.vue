@@ -62,22 +62,28 @@
 	const page = reactive({
 		ct : 1,
 		input : '',
-		show : false,
+		rel_input : '',
 		card : 0,
 		select : (card : number) => page.card = page.card === card ? 0 : card,
 		cards : computed(() : Array<number> => props.cards
-			.filter(i => page.input
-				? i.toString().includes(page.input)
-					|| mainGame.get.card(i).name.includes(page.input)
+			.filter(i => page.rel_input
+				? i.toString().includes(page.rel_input)
+					|| mainGame.get.card(i).name.includes(page.rel_input)
 				: true)
 		),
-		update : (ct : number) => queue.add(async () => {
-			await mainGame.load.pic(page.cards.slice((ct - 1) * 100, ct * 100))
+		update : (ct : number, input : string = page.input) => queue.add(async () => {
+			await mainGame.load.pic(props.cards
+				.filter(i => input
+					? i.toString().includes(input)
+						|| mainGame.get.card(i).name.includes(input)
+					: true)
+				.slice((ct - 1) * 100, ct * 100));
 			page.ct = ct;
+			page.rel_input = input;
 		})
 	});
 
-	watch(() => page.input, () => page.ct = 1);
+	watch(() => page.input, (n) => page.update(1, n));
 
 	const emit = defineEmits<{
 		exit : [card ?: number];

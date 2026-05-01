@@ -2087,6 +2087,7 @@ class Protocol {
 				}
 				return stack.length === 1 && !!stack[0];
 			});
+			await mainGame.load.pic(connect.duel.select.code.codes.slice(0, 100));
 			connect.duel.select.code.confirm = undefined;
 			connect.duel.select.code.title = !!this.select_hint
 				? mainGame.get.desc(this.select_hint)
