@@ -16,7 +16,7 @@
 				<var-pagination
 					:current = 'page.ct'
 					@update:current = 'page.update'
-					:total = 'page.cards.length / 100'
+					:total = 'page.cards.length / page.size'
 					:show-size-changer = 'false'
 				/>
 			</div>
@@ -27,7 +27,7 @@
 				class = 'group'
 			>
 				<div v-for = 'i in page.cards
-					.slice((page.ct - 1) * 100, page.ct * 100)'
+					.slice((page.ct - 1) * page.size, page.ct * page.size)'
 				>
 					<div @click.stop = "page.select(i); emit('click', i);">
 						<img :src = 'mainGame.get.card(i).pic'/>
@@ -60,6 +60,7 @@
 		title : string;
 	}>();
 	const page = reactive({
+		size : 40,
 		ct : 1,
 		input : '',
 		rel_input : '',
@@ -77,7 +78,7 @@
 					? i.toString().includes(input)
 						|| mainGame.get.card(i).name.includes(input)
 					: true)
-				.slice((ct - 1) * 100, ct * 100));
+				.slice((ct - 1) * page.size, ct * page.size));
 			page.ct = ct;
 			page.rel_input = input;
 		})
