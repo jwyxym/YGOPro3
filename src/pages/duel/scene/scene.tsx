@@ -619,7 +619,9 @@ class _Duel {
 						connect.duel.card = undefined;
 					else
 						connect.duel.card = c;
-					if (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
+					if (!(card.location & LOCATION.DECK)
+						&& (cards.length > 1 || !(card.location & LOCATION.ONFIELD))
+					)
 						connect.duel.cards = cards;
 				}
 
