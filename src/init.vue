@@ -158,7 +158,8 @@
 		color: white !important;
 		border: 1px solid white;
 	}
-	.var-divider {
+	.var-divider,
+	.var-input__input {
 		color: white !important;
 	}
 	.var-back-top {
@@ -209,7 +210,6 @@
 	.var-menu__menu, .dialog {
 		transform: scale(var(--scale));
 	}
-
 	:root {
 		--picker-mask-background-image: transparent !important;
 		--picker-background: transparent !important;
@@ -241,6 +241,9 @@
 		--picker-option-text-color: white !important;
 		--picker-title-text-color: white !important;
 		--picker-cancel-button-text-color: white !important;
+		--pagination-text-color: white !important;
+		--pagination-active-color: white !important;
+		--pagination-disabled-color: white !important;
 		--picker-picked-border:	5px solid white;
 		--cell-padding: 1vh 20px !important;
 		--field-decorator-line-size: 0.5px !important;

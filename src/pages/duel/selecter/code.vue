@@ -101,12 +101,20 @@
 		.var-input {
 			transform: translateY(-20px);
 			width: 40%;
+			:deep(.var-field-decorator) {
+				background-color: rgba(0, 0, 0, 0.2);
+				border-radius: 5px;
+			}
 		}
 		.var-pagination {
 			position: absolute;
 			right: 0;
-			--pagination-text-color: white !important;
 			width: 20%;
+			border: 1px solid white;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			background-color: rgba(0, 0, 0, 0.5);
 		}
 	}
 	.group {
