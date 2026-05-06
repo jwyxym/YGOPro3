@@ -555,7 +555,7 @@ class Client_Card {
 			else if ((this.pos & POS.FACEDOWN) && !is_back)
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
-				turn(img, mainGame.get.card(this.id).pic ?? mainGame.unknown.pic);
+				turn(img, pic);
 			const z = parseInt(gsap.getProperty(img, 'rotationZ').toString());
 			if (this.location & LOCATION.MZONE) {
 				if ((this.pos & POS.ATTACK) && z)
@@ -736,7 +736,7 @@ class Client_Card {
 			this.status = 0;
 			this.need_change.type = true;
 			if ((this.location & LOCATION.HAND) && this.owner)
-				this.pos = POS.FACEDOWN_ATTACK;
+				this.set.pos(POS.FACEDOWN_ATTACK);
 			this.activatable = new Map([
 				[COMMAND.ACTIVATE, []],
 				[COMMAND.SUMMON, []],

@@ -1772,7 +1772,7 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1611 + tp, ct);
 			const codes : Array<number> = [];
 			for (let i = 0; i < ct; i ++)
-				codes.push(msg.read.uint32() ?? 0);
+				codes.push((msg.read.uint32() ?? 0) & 0x7fffffff);
 			await mainGame.load.pic(codes);
 			history.push(HISTORY.DRAW, {
 				self : !tp,
