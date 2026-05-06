@@ -25,6 +25,7 @@ const dialog = async (option : DialogOptions, need_confirm : boolean | number | 
 			option.onConfirm = chk ? cancel : confirm;
 			option.onCancel = chk ? confirm : cancel;
 		}
+		option.onClose = () => resolve?.(false);
 		const promise = new Promise<boolean>((r) => resolve = r);
 		await Dialog(option);
 		return promise;
