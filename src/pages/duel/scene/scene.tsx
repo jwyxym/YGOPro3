@@ -647,11 +647,11 @@ class _Duel {
 		});
 	};
 
-	win = (title : string, message : string) : void => dialog({
+	win = (title : string, message : string) : Promise<boolean> => dialog({
 			title : title,
 			message : message,
 			cancelButton : false
-		}, true) as any;
+		}, true);
 };
 
 watch(() => connect.duel.card, (n, o) => {

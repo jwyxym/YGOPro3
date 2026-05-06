@@ -20,9 +20,10 @@ class Tcp {
 		on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 	}) : Promise<boolean> => {
 		try {
+			this.cache = new Msg([]);
+			this.address = address;
 			this.on_message = call_back.on_message;
 			this.on_disconnect = call_back.on_disconnect;
-			this.address = address;
 			await tcp.connect(this.cid, this.address);
 			await call_back.on_connect?.(this.send);
 		} catch (e) {
@@ -34,9 +35,9 @@ class Tcp {
 	listen = async () : Promise<void> => {
 		await tcp.listen((x) => {
 			if (x.payload.id === this.cid && this.address) {
-				if (x.payload.event.disconnect === this.address) {
+				if (x.payload.event.disconnect === this.address)
 					this.clear();
-				} else if (x.payload.event.message) {
+				else if (x.payload.event.message) {
 					const msg = this.cache.concat(x.payload.event.message.data);
 					while (true) {
 						const len = msg.read.uint16();
@@ -57,16 +58,15 @@ class Tcp {
 	};
 	send = async (msg : Msg) => await tcp.send(this.cid, msg.buffer());
 	disconnect = async () : Promise<void> => {
-		await tcp.disconnect(this.cid);
-		this.clear();
+		try {
+			await tcp.disconnect(this.cid);
+		} catch {};
+		await this.on_disconnect?.(this.send);
+		this.queue.clear();
 	};
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;
 		this.queue.add(async () => await on_disconnect?.(this.send));
-		this.address = '';
-		this.cache = new Msg([]);
-		this.on_message = undefined;
-		this.on_disconnect = undefined;
 	};
 };
 

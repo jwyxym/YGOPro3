@@ -68,11 +68,11 @@
 			/>
 			<Side
 				:ref = '(el) => (side.el = el as InstanceType<typeof Side> | null)'
-				v-if = 'connect.state >= 3 && side.show'
+				v-if = 'connect.state === 3 && side.show'
 				:height = 'side.height'
 				:width = 'side.width'
 				:count = 'side.count'
-				:deck = 'connect.wait.deck.current!'
+				:deck = 'connect.wait.deck.current'
 				:del = 'false'
 				@card = '(card : number) => connect.duel.card = card'
 			/>
@@ -328,7 +328,7 @@
 		if (await dialog({
 			title : mainGame.get.text(I18N_KEYS.DECK_EXIT),
 		}, mainGame.get.system(KEYS.SETTING_CHK_EXIT_SERVER)))
-			connect.close()
+			connect.close();
 	})() : emit('exit');
 
 	const update_side = async () : Promise<void> => {

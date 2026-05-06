@@ -134,6 +134,7 @@ class Duel {
 	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
 	shuffle = false;
+	reverse = false;
 	select = {
 		cards : new Selecter.Cards(),
 		group : new Selecter.Group(),
@@ -304,7 +305,12 @@ const connect = reactive({
 		}
 		connect.debouncing = false;
 	},
-	close : async () => await connect.protocol?.disconnect(),
+	close : async () => {
+		connect.protocol?.disconnect()
+			.then()
+			.catch();
+		connect.clear();
+	},
 	clear : async () => {
 		connect.chat.off();
 		history.clear();

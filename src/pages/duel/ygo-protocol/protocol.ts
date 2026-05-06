@@ -274,7 +274,7 @@ class Protocol {
 							return key;
 					}
 					return undefined;
-				})())
+				})());
 
 			this.current_msg = protocol;
 			if (protocol === MSG.UPDATE_DATA)
@@ -373,7 +373,7 @@ class Protocol {
 			connect.on();
 		}],
 		[STOC.WAITING_SIDE, async () => {
-			connect.state = 4;
+			connect.state = 2;
 		}],
 		[STOC.DECK_COUNT, async (msg : Msg) => {
 			const self_main = msg.read.uint16() ?? 0;
@@ -558,7 +558,7 @@ class Protocol {
 			msg.index ++;
 			connect.duel.is_first = (playertype & 0xf) === 0;
 			const players = (() => {
-				const p = connect.wait.self.position;
+				const p = connect.wait.self.position > 3 ? 0 : connect.wait.self.position;
 				if (connect.wait.info.mode & 2) {
 					const i = [
 						[[2, 1], [0, 3]],
@@ -603,7 +603,7 @@ class Protocol {
 			const key = player === 2 ? I18N_KEYS.DUEL_GAME : this.to.player(player) === 0 ? I18N_KEYS.DUEL_WIN : I18N_KEYS.DUEL_LOSE;
 			const message = this.match_kill ? mainGame.get.strings.victory(0xffff, mainGame.get.name(this.match_kill))
 				: mainGame.get.strings.victory(type);
-			duel.win(mainGame.get.text(key), message);
+			await duel.win(mainGame.get.text(key), message);
 		}],
 		[MSG.UPDATE_DATA, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

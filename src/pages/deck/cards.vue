@@ -389,14 +389,16 @@
 	});
 
 	onMounted(async () => {
-		await mainGame.load.pic(props.deck);
-		for (let i = 0; i < props.deck.main.length; i++)
-			page.deck.main.push({ code : props.deck.main[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
-		for (let i = 0; i < props.deck.extra.length; i++)
-			page.deck.extra.push({ code : props.deck.extra[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
-		for (let i = 0; i < props.deck.side.length; i++)
-			page.deck.side.push({ code : props.deck.side[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
-		
+		if (props.deck) {
+			await mainGame.load.pic(props.deck);
+			for (let i = 0; i < props.deck.main.length; i++)
+				page.deck.main.push({ code : props.deck.main[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
+			for (let i = 0; i < props.deck.extra.length; i++)
+				page.deck.extra.push({ code : props.deck.extra[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
+			for (let i = 0; i < props.deck.side.length; i++)
+				page.deck.side.push({ code : props.deck.side[i], index : i, y : 0, loc : 0, key : props.deck.main[i].toString() + i + Math.random()});
+		}
+
 		page.title.main = mainGame.get.text(I18N_KEYS.DECK_MAIN);
 		page.title.extra = mainGame.get.text(I18N_KEYS.DECK_EXTRA);
 		page.title.side = mainGame.get.text(I18N_KEYS.DECK_SIDE);
@@ -427,7 +429,7 @@
 		width : number;
 		height : number;
 		count : number;
-		deck : Deck;
+		deck ?: Deck;
 		del : boolean;
 		lflist ?: LFList;
 	}>();
