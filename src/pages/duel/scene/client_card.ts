@@ -616,13 +616,13 @@ class Client_Card {
 				const tl = gsap.timeline();
 				tl.to(atk, {
 					opacity : 0,
-					duration : 0.1,
+					duration : 0.05,
 					onComplete : () => atk.innerText = text as unknown as any
 				}, 0);
 				tl.to(atk, {
 					opacity : 1,
-					duration : 0.1
-				}, 0.1);
+					duration : 0.05
+				}, 0.05);
 				return tl;
 			} else
 				atk.innerText = text;
