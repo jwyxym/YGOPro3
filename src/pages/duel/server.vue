@@ -186,6 +186,9 @@
 					left: 0;
 					top: 0;
 					overflow-wrap: break-word;
+					b {
+						user-select: all;
+					}
 				}
 				> div:last-child {
 					width: 20%;

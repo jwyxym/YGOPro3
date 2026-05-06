@@ -159,14 +159,16 @@ class Duel {
 			connect.duel.select.attribute.show,
 			connect.duel.select.pos.show,
 			connect.duel.select.counter.show,
-			connect.duel.select.sort.show
+			connect.duel.select.sort.show,
+			connect.duel.rps.show,
 		].includes(true)
 	};
 	rps = {
 		show : false,
+		head : CTOS.HAND_RESULT,
 		send : async (v : number) : Promise<void> => await connect.send?.(
 			new Msg()
-				.write.uint8(CTOS.HAND_RESULT)
+				.write.uint8(connect.duel.rps.head)
 				.write.uint8(v)
 		)
 	};

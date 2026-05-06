@@ -331,6 +331,7 @@ class Protocol {
 			}
 		}],
 		[STOC.SELECT_HAND, async () => {
+			connect.duel.rps.head = CTOS.HAND_RESULT;
 			connect.duel.rps.show = true;
 		}],
 		[STOC.SELECT_TP, async (_, send : (msg : Msg) => Promise<void>) => {
@@ -1301,8 +1302,9 @@ class Protocol {
 			connect.duel.select.cards.show = true;
 		}],
 		[MSG.SORT_CARD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
-			const codes : Array<[Client_Card, number]> = [];
+			msg.index ++;
 			const ct = msg.read.uint8() ?? 0;
+			const codes : Array<[Client_Card, number]> = [];
 			for (let i = 0; i < ct; i ++) {
 				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1327,6 +1329,23 @@ class Protocol {
 				await send(msg);
 			};
 			connect.duel.select.sort.show = true;
+		}],
+		[MSG.CONFIRM_DECKTOP, async (msg : Msg) => {
+			const tp = this.to.player(msg.read.uint8() ?? 0);
+			const ct = msg.read.uint8() ?? 0;
+			const deck = duel.get.cards()
+				.filter(i => (i.location & LOCATION.DECK) && i.owner === tp);
+			const codes : Array<[Client_Card, number]> = [];
+			for (let i = 0; i < ct; i ++) {
+				const code = msg.read.int32();
+				if (code === undefined)
+					return;
+				msg.index += 3;
+				const card = deck[deck.length - 1 - i];
+				codes.push([card, code]);
+			}
+			await this.update.codes(codes);
+			await duel.confrim.decktop(codes.map(i => i[0]));
 		}],
 		[MSG.CONFIRM_CARDS, async (msg : Msg) => {
 			msg.index += 2;
@@ -1420,9 +1439,7 @@ class Protocol {
 			await duel.update();
 		}],
 		[MSG.REVERSE_DECK, async () => {
-			duel.cards.filter(i => i.location & LOCATION.DECK)
-				.forEach(i => i.set.pos(POS.FACEUP_ATTACK))
-			await duel.update();
+			connect.duel.reverse = !connect.duel.reverse;
 		}],
 		[MSG.DECK_TOP, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1433,8 +1450,8 @@ class Protocol {
 			const cards = duel.get.cards()
 				.filter(i => i.owner === tp && i.location & LOCATION.DECK);
 			const card = cards[cards.length - 1 - seq];
-			this.update.codes([[card, code & 0x7fffffff]]);
-			await duel.confrim.decktop(card);
+			await this.update.codes([[card, code & 0x7fffffff]]);
+			await duel.update(duel.get.cards().filter(i => i.owner === tp));
 		}],
 		[MSG.SHUFFLE_SET_CARD, async (msg : Msg) => {
 			const loc = msg.read.uint8() === LOCATION.MZONE ? LOCATION.MZONE : LOCATION.SZONE;
@@ -1922,6 +1939,7 @@ class Protocol {
 			this.hint(str);
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {
+			connect.duel.rps.head = CTOS.RESPONSE;
 			connect.duel.rps.show = true;
 		}],
 		[MSG.HAND_RES, async (msg : Msg) => {
@@ -1938,11 +1956,10 @@ class Protocol {
 			if (res[0] === res[1])
 				key = I18N_KEYS.SERVER_RPS_BYE;
 			else {
-				if (res[0] === res[1] + 1 || res[0] === res[1] - 2) {
-					key = I18N_KEYS.SERVER_RPS_WIN;
-					await (this.stoc.get(STOC.SELECT_TP) as () => Promise<void> | undefined)?.();
-				} else
-					key = I18N_KEYS.SERVER_RPS_LOSE;
+				key = res[0] === res[1] + 1 || res[0] === res[1] - 2
+					? I18N_KEYS.SERVER_RPS_WIN
+					: I18N_KEYS.SERVER_RPS_LOSE;
+
 				connect.duel.rps.show = false;
 			}
 			this.hint(mainGame.get.text(key));

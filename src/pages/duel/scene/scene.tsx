@@ -133,48 +133,62 @@ class _Duel {
 			tls.then(() => resolve?.());
 			await promise;
 		},
-		decktop : async (card : Client_Card) : Promise<void> => {
-			const tl = gsap.timeline();
-			const img = card.get.el.img();
-			const pic = mainGame.get.card(card.id).pic
-				?? mainGame.unknown.pic;
-			const back = mainGame.back.pic;
-			tl.to(card.three.position, {
-				x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
-				duration : 0.1
-			}, 0);
-			tl.to(img, {
-				rotationY : 90,
-				duration : 0.05,
-				onComplete : () => (img.src = pic ?? '') as unknown as void
-			}, 0.1);
-			tl.set(img, {
-				rotationY : -90
-			}, 0.15);
-			tl.to(img, {
-				rotationY : 0,
-				duration : 0.05
-			}, 0.2);
-			tl.to(img, {
-				rotationY : 90,
-				duration : 0.05,
-				onComplete : () => (img.src = back) as unknown as void
-			}, 0.45);
-			tl.set(img, {
-				rotationY : -90
-			}, 0.5);
-			tl.to(img, {
-				rotationY : 0,
-				duration : 0.05
-			}, 0.55);
-			tl.to(card.three.position, {
-				x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
-				duration : 0.1
-			}, 0.6);
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
-			tl.then(() => resolve?.());
-			await promise;
+		decktop : async (cards : Array<Client_Card>) : Promise<void> => {
+			for (const card of cards) {
+				const tl = gsap.timeline();
+				const img = card.get.el.img();
+				const pic = mainGame.get.card(card.id).pic
+					?? mainGame.unknown.pic;
+				const back = mainGame.back.pic;
+				if (card.pos & POS.FACEDOWN) {
+					tl.to(card.three.position, {
+						x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						duration : 0.1
+					}, 0);
+					tl.to(img, {
+						rotationY : 90,
+						duration : 0.05,
+						onComplete : () => (img.src = pic) as unknown as void
+					}, 0.1);
+					tl.set(img, {
+						rotationY : -90
+					}, 0.15);
+					tl.to(img, {
+						rotationY : 0,
+						duration : 0.05
+					}, 0.2);
+					tl.to(img, {
+						rotationY : 90,
+						duration : 0.05,
+						onComplete : () => (img.src = back) as unknown as void
+					}, 0.45);
+					tl.set(img, {
+						rotationY : -90
+					}, 0.5);
+					tl.to(img, {
+						rotationY : 0,
+						duration : 0.05
+					}, 0.55);
+					tl.to(card.three.position, {
+						x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						duration : 0.1
+					}, 0.6);
+				} else {
+					img.src = pic;
+					tl.to(card.three.position, {
+						x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						duration : 0.1
+					}, 0);
+					tl.to(card.three.position, {
+						x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						duration : 0.1
+					}, 0.2);
+				}
+				let resolve = undefined as (() => void) | undefined;
+				const promise = new Promise<void>((r) => resolve = r);
+				tl.then(() => resolve?.());
+				await promise;
+			}
 		} 
 	};
 
@@ -522,7 +536,7 @@ class _Duel {
 									if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY)))
 										i.set.pos(POS.FACEUP_ATTACK);
 									else if (loc & LOCATION.DECK)
-										i.set.pos(POS.FACEDOWN_ATTACK);
+										i.set.pos(connect.duel.reverse ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK);
 								}
 							})
 					);

@@ -292,8 +292,10 @@ class Client_Card {
 			return this;
 		},
 		pos : (pos : number) : Client_Card => {
-			if (!pos) pos = POS.FACEDOWN_ATTACK;
-			if (pos & POS.ATTACK & POS.DEFENSE) pos &= ~ POS.DEFENSE;
+			if ((pos & POS.ATTACK) && (pos & POS.DEFENSE))
+				pos &= ~ POS.DEFENSE;
+			else if (!pos)
+				pos = POS.FACEDOWN_ATTACK;
 			if (!this.need_change.pos)
 				this.need_change.pos = this.pos !== pos;
 			this.pos = pos;
@@ -313,7 +315,7 @@ class Client_Card {
 		},
 		id : (id : number) : Client_Card => {
 			if (!id)
-				this.clear.self();
+				return this.clear.self();
 			this.id = id;
 			return this;
 		},
@@ -526,7 +528,11 @@ class Client_Card {
 			});
 		};
 		const position = () : gsap.core.Timeline | void => {
-			if (!this.need_change.pos) return;
+			if (!this.need_change.pos) {
+				if (this.pos & POS.FACEUP)
+					this.get.el.img().src = mainGame.get.card(this.id).pic;
+				return;
+			}
 			this.need_change.pos = false;
 			const tl = gsap.timeline();
 			const turn = (el : HTMLImageElement, pic : string) => {
@@ -720,7 +726,7 @@ class Client_Card {
 	};
 
 	clear = {
-		self : () : void => {
+		self : () : Client_Card => {
 			this.id = 0;
 			this.card = undefined;
 			this.alias = 0;
@@ -746,6 +752,7 @@ class Client_Card {
 				[COMMAND.REPOS, []],
 				[COMMAND.ATTACK, []]
 			]);
+			return this;
 		},
 		activate : () : Client_Card => {
 			this.need_change.activate = true;

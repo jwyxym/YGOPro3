@@ -247,9 +247,9 @@
 		--picker-picked-border:	5px solid white;
 		--cell-padding: 1vh 20px !important;
 		--field-decorator-line-size: 0.5px !important;
-		user-select: none;
 	}
 	body {
 		overflow: hidden;
+		user-select: none;
 	}
 </style>
