@@ -566,6 +566,12 @@ class _Duel {
 				
 			await Promise
 				.all(this.cards.map(i => i.update()));
+			if (connect.duel.card instanceof Client_Card)
+				duel.activate?.on(
+					connect.duel.card,
+					connect.duel.card.location & LOCATION.ONFIELD
+						? [] : connect.duel.cards
+				);
 		}
 	};
 
