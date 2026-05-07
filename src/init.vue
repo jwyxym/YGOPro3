@@ -207,8 +207,11 @@
 			cursor: pointer;
 		}
 	}
-	.var-menu__menu, .dialog {
+	.var-popup__content, .var-menu__menu {
 		transform: scale(var(--scale));
+	}
+	.var-popup__content {
+		background-color: rgba(0, 0, 0, 0.5) !important;
 	}
 	:root {
 		--picker-mask-background-image: transparent !important;
