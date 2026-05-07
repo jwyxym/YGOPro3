@@ -33,14 +33,7 @@
 				emit('dragging', ratio);
 			}
 		},
-		end : (x : number) => {
-			if (page.on) {
-				const ratio = page.clamp(page.computed(x));
-				page.x = page.width * ratio;
-				emit('dragging', ratio);
-				page.on = false;
-			}
-		},
+		end : () => page.on = false,
 		touchstart : (e : TouchEvent) => {
 			const target = e.target as HTMLElement;
 			if (!page.left)
@@ -48,7 +41,6 @@
 			page.start(e.touches[0].clientX);
 		},
 		touchmove : (e : TouchEvent) => page.move(e.touches[0].clientX),
-		touchend : (e : TouchEvent) => page.end(e.touches[0].clientX),
 		mousedown : (e : MouseEvent) => {
 			const target = e.target as HTMLElement;
 			if (!page.left)
@@ -56,23 +48,22 @@
 			if (e.button !== 2)
 				page.start(e.clientX);
 		},
-		mousemove : (e : MouseEvent) => page.move( e.clientX),
-		mouseup : (e : MouseEvent) => page.end(e.clientX)
+		mousemove : (e : MouseEvent) => page.move( e.clientX)
 	});
 
 	onBeforeMount(async () => {
 		page.x = props.x * page.width;
 		window.addEventListener('mousemove', page.mousemove);
-		window.addEventListener('mouseup', page.mouseup);
 		window.addEventListener('touchmove', page.touchmove);
-		window.addEventListener('touchend', page.touchend);
+		window.addEventListener('mouseup', page.end);
+		window.addEventListener('touchend', page.end);
 	});
 
 	onUnmounted(() => {
 		window.removeEventListener('mousemove', page.mousemove);
-		window.removeEventListener('mouseup', page.mouseup);
 		window.removeEventListener('touchmove', page.touchmove);
-		window.removeEventListener('touchend', page.touchend);
+		window.removeEventListener('mouseup', page.end);
+		window.removeEventListener('touchend', page.end);
 	});
 
 	const props = defineProps<{
