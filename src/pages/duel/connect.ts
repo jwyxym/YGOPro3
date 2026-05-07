@@ -161,7 +161,7 @@ class Duel {
 			connect.duel.select.pos.show,
 			connect.duel.select.counter.show,
 			connect.duel.select.sort.show,
-			connect.duel.rps.show,
+			connect.duel.rps.show
 		].includes(true)
 	};
 	rps = {
