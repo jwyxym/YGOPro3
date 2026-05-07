@@ -780,7 +780,8 @@ class Protocol {
 				|| desc === undefined)
 				return;
 			const card = this.get.card(player, loc, seq);
-			await this.update.codes([[card, code]]);
+			if (card && card.id !== code)
+				await this.update.codes([[card, code]]);
 			const title = desc === 0
 				? this.event + mainGame.get.strings.system(200, [mainGame.get.location(loc), mainGame.get.name(code)])
 				: desc === 221 ? this.event + mainGame.get.strings.system(221, [mainGame.get.location(loc), mainGame.get.name(code)])
@@ -862,6 +863,7 @@ class Protocol {
 			if (cancelable === undefined || min === undefined || max === undefined)
 				return;
 			const codes : Array<[Client_Card, number]> = [];
+			const cards : Array<Client_Card> = [];
 			const count = msg.read.uint8() ?? 0;
 			for (let i = 0; i < count; i ++) {
 				const code = msg.read.int32();
@@ -880,14 +882,17 @@ class Protocol {
 						?? this.get.card(tp, loc, seq)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
-				if (card)
-					codes.push([card, code]);
+				if (card) {
+					cards.push(card);
+					if (code && card.id !== code)
+						codes.push([card, code]);
+				}
 			}
 			await this.update.codes(codes);
 			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(560);
 			connect.duel.select.cards.cancelable = !!cancelable;
-			connect.duel.select.cards.cards = codes.map(i => i[0]);
+			connect.duel.select.cards.cards = cards;
 			connect.duel.select.cards.min = min;
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
@@ -923,6 +928,7 @@ class Protocol {
 			if (min === undefined || max === undefined)
 				return;
 			const codesI : Array<[Client_Card, number]> = [];
+			const cardsI : Array<Client_Card> = [];
 			let count = msg.read.uint8() ?? 0;
 			for (let i = 0; i < count; i ++) {
 				const code = msg.read.int32();
@@ -937,10 +943,14 @@ class Protocol {
 						?? this.get.card(tp, loc, seq)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
-				if (card)
-					codesI.push([card, code]);
+				if (card) {
+					cardsI.push(card);
+					if (code && card.id !== code)
+						codesI.push([card, code]);
+				}
 			}
 			const codesII : Array<[Client_Card, number]> = [];
+			const cardsII : Array<Client_Card> = [];
 			count = msg.read.uint8() ?? 0;
 			for (let i = 0; i < count; i ++) {
 				const code = msg.read.int32();
@@ -955,15 +965,18 @@ class Protocol {
 						?? this.get.card(tp, loc, seq)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
-				if (card)
-					codesII.push([card, code]);
+				if (card) {
+					cardsII.push(card);
+					if (code && card.id !== code)
+						codesII.push([card, code]);
+				}
 			}
 			await this.update.codes(codesI.concat(codesII));
 			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(560);
 			connect.duel.select.group.cancelable = finishable || cancelable;
-			connect.duel.select.group.unselect = codesI.map(i => i[0]);
-			connect.duel.select.group.select = codesII.map(i => i[0]);
+			connect.duel.select.group.unselect = cardsI;
+			connect.duel.select.group.select = cardsII;
 			connect.duel.select.group.min = min;
 			connect.duel.select.group.max = max;
 			connect.duel.select.group.title = title;
@@ -1143,6 +1156,7 @@ class Protocol {
 			if (cancelable === undefined || min === undefined || max === undefined)
 				return;
 			const codes : Array<[Client_Card, number]> = [];
+			const cards : Array<Client_Card> = [];
 			const count = msg.read.uint8() ?? 0;
 			for (let i = 0; i < count; i ++) {
 				const code = msg.read.int32();
@@ -1157,14 +1171,17 @@ class Protocol {
 						?? this.get.card(tp, loc, seq)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
-				if (card)
-					codes.push([card, code]);
+				if (card)  {
+					cards.push(card);
+					if (code && card.id !== code)
+						codes.push([card, code]);
+				}
 			}
 			await this.update.codes(codes);
 			const title = !!this.select_hint ? mainGame.get.desc(this.select_hint)
 				: mainGame.get.strings.system(531);
 			connect.duel.select.cards.cancelable = !!cancelable;
-			connect.duel.select.cards.cards = codes.map(i => i[0]);
+			connect.duel.select.cards.cards = cards;
 			connect.duel.select.cards.min = min;
 			connect.duel.select.cards.max = max;
 			connect.duel.select.cards.title = title;
@@ -1251,7 +1268,8 @@ class Protocol {
 					return;
 				const card = this.get.card(tp, loc, seq);
 				if (card) {
-					codes.push([card, code]);
+					if (code && card.id !== code)
+						codes.push([card, code]);
 					selected.push(card);
 				}
 			}
@@ -1266,7 +1284,8 @@ class Protocol {
 					return;
 				const card = this.get.card(tp, loc, seq);
 				if (card) {
-					codes.push([card, code]);
+					if (code && card.id !== code)
+						codes.push([card, code]);
 					cards.push(card);
 				}
 			}
@@ -1305,6 +1324,7 @@ class Protocol {
 			msg.index ++;
 			const ct = msg.read.uint8() ?? 0;
 			const codes : Array<[Client_Card, number]> = [];
+			const cards : Array<Client_Card> = [];
 			for (let i = 0; i < ct; i ++) {
 				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1313,8 +1333,11 @@ class Protocol {
 				if (code === undefined || loc === undefined || seq === undefined)
 					return;
 				const card = this.get.card(tp, loc, seq);
-				if (card)
-					codes.push([card, code]);
+				if (card) {
+					cards.push(card)
+					if (code && card.id !== code)
+						codes.push([card, code]);
+				}
 			}
 			await this.update.codes(codes);
 			connect.duel.select.sort.cards = codes.map(i => i[0]);
@@ -1532,7 +1555,6 @@ class Protocol {
 				|| Object.values(to).includes(undefined)
 			)
 				return;
-			await mainGame.load.pic([code]);
 
 			let card : Client_Card | undefined = undefined;
 			if (!from.loc) {
@@ -1553,7 +1575,6 @@ class Protocol {
 						if (ocard) {
 							if (ocard.location & LOCATION.MZONE)
 								c
-									.set.id(code)
 									.set.owner(to.tp)
 									.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
 									.set.seq(to.seq!)
@@ -1566,7 +1587,6 @@ class Protocol {
 						if (from.loc !== to.loc)
 							c.clear.equip();
 						c
-							.set.id(code)
 							.set.owner(to.tp)
 							.set.location(to.loc!)
 							.set.seq(to.seq!)
@@ -1583,7 +1603,11 @@ class Protocol {
 					}
 				}
 			}
-			if (card)
+			if (card) {
+				if (code && card.id !== code) {
+					await mainGame.load.pic([code]);
+					card.set.id(code);
+				}
 				history.push(HISTORY.MOVE, {
 					self : true,
 					cards : [{
@@ -1593,6 +1617,7 @@ class Protocol {
 					from : mainGame.get.location(from.loc!),
 					to : mainGame.get.location(to.loc!)
 				});
+			}
 			await duel.update();
 		}],
 		[MSG.POS_CHANGE, async (msg : Msg) => {
@@ -1613,7 +1638,7 @@ class Protocol {
 			if (card) {
 				if ((per_pos & POS.FACEUP) && (pos & POS.FACEDOWN))
 					card.clear.counter();
-				if (code)
+				if (code && card.id !== code)
 					await this.update.codes([[card, code]]);
 				card.set.pos(pos);
 				this.event = mainGame.get.strings.system(1600);
