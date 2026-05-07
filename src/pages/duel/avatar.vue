@@ -39,10 +39,15 @@
 				</div>
 			</div>
 		</div>
-		<strong :class = "{
-			'damage__show' : lp.show,
-			'damage__move' : lp.move 
-		}">
+		<strong
+			:class = "{
+				'damage__show' : lp.show,
+				'damage__move' : lp.move
+			}"
+			:style = "{
+				'--color' : lp.damage.startsWith('-') ? 'red' : 'rgb(4, 255, 4)'
+			}"
+		>
 			{{ lp.damage }}
 		</strong>
 		<transition name = 'opacity'>
@@ -153,6 +158,7 @@
 			left: 0;
 			top: 0;
 			opacity: 0;
+			color: var(--color);
 			transition: all 0.15s ease;
 		}
 		> div:last-child {
@@ -189,6 +195,9 @@
 		}
 		.damage__move {
 			transform: translate(100px, 60px) !important;
+		}
+		> div:nth-child(2) {
+			flex-direction: row-reverse;
 		}
 		> div:last-child {
 			top: calc(100% + 10px);
