@@ -3,6 +3,7 @@ mod game;
 mod deck;
 mod log;
 mod ypk;
+mod file;
 
 use game::PATH;
 use std::path::PathBuf;

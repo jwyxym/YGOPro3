@@ -1,4 +1,4 @@
-use super::Cdb;
+use crate::game::Cdb;
 
 use std::path::Path;
 use serde::Serialize;

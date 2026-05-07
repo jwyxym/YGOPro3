@@ -11,11 +11,9 @@ mod card_info;
 mod lflist;
 mod model;
 mod request;
-mod file;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
-	file::{File, FileContent},
 	font::Font,
 	lflist::LFList,
 	pic::{Pic, PicContent},
@@ -28,6 +26,7 @@ pub use self::{
 	request::{Request, Srv},
 	zip::Zip
 };
+use crate::file::{File, FileContent};
 
 use serde::Serialize;
 use anyhow::{Error, Result, anyhow};
@@ -411,26 +410,6 @@ impl Game {
 			pack.on = false;
 		}
 		Ok(())
-	}
-
-	pub async fn get_zip () -> Result<Vec<String>, Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let path: PathBuf = path.join("expansions");
-		Ok(WalkDir::new(path)
-			.max_depth(1)
-			.into_iter()
-			.filter_map(|i| {
-				if let Ok(i) = i {
-					if let Some(file) = File::new(i.path()) {
-						if ["ypk", "zip"].contains(&file.ext()) {
-							return Some(String::from(file.name()));
-						}
-					}
-				}
-				None
-			})
-			.collect()
-		)
 	}
 
 	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {

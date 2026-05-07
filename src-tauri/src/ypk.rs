@@ -1,5 +1,7 @@
 use crate::game::PATH;
+use crate::file::File;
 
+use walkdir::WalkDir;
 use anyhow::{Error, Result, anyhow};
 use std::{
 	fs::{exists, remove_file}, path::PathBuf
@@ -11,7 +13,7 @@ impl Ypk {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 
 		let file_path: PathBuf = path
-			.join("expnasions")
+			.join("expansions")
 			.join(&name);
 
 		if !exists(&file_path)? {
@@ -25,9 +27,29 @@ impl Ypk {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 
 		let file_path: PathBuf = path
-			.join("expnasions")
+			.join("expansions")
 			.join(&name);
 
 		Ok(exists(&file_path)?)
+	}
+	
+	pub async fn get () -> Result<Vec<String>, Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path.join("expansions");
+		Ok(WalkDir::new(path)
+			.max_depth(1)
+			.into_iter()
+			.filter_map(|i| {
+				if let Ok(i) = i {
+					if let Some(file) = File::new(i.path()) {
+						if ["ypk", "zip"].contains(&file.ext()) {
+							return Some(String::from(file.name()));
+						}
+					}
+				}
+				None
+			})
+			.collect()
+		)
 	}
 }

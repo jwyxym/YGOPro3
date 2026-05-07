@@ -26,7 +26,7 @@ pub async fn download (app: AppHandle, url: String, name: String) -> Result<Stri
 
 #[tauri::command]
 pub async fn get_ypk () -> Response {
-	Game::get_zip().await
+	Ypk::get().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)

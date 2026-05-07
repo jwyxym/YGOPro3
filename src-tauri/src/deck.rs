@@ -1,4 +1,5 @@
-use crate::game::{PATH, File};
+use crate::game::PATH;
+use crate::file::File;
 
 use anyhow::{Error, Result, anyhow};
 use std::{
