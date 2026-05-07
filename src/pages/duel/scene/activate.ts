@@ -96,7 +96,7 @@ class Activate {
 			{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS },
 			{ key : KEYS.FLIP, command : COMMAND.REPOS },
 			{ key : KEYS.SUMMON, command : COMMAND.SUMMON },
-			{ key : KEYS.PSUMMON, command : COMMAND.PSUMMON },
+			{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
 			{ key : KEYS.SPSUMMON, command : COMMAND.SPSUMMON },
 			{ key : KEYS.SCALE, command : COMMAND.ACTIVATE }
 		])
