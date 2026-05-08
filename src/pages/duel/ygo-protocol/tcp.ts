@@ -71,6 +71,6 @@ class Tcp {
 };
 
 const _Tcp = new Tcp();
-_Tcp.listen();
+await _Tcp.listen();
 export default _Tcp;
 export { Tcp };
