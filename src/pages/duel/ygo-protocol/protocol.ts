@@ -1577,7 +1577,7 @@ class Protocol {
 				if (c) {
 					c.hint_msg = '';
 					if (to.loc & LOCATION.OVERLAY) {
-						const ocard = this.get.card(to.tp, to.loc& 0x7f, to.seq!);
+						const ocard = this.get.card(to.tp, to.loc & 0x7f, to.seq!);
 						if (ocard) {
 							if (ocard.location & LOCATION.MZONE)
 								c
@@ -1610,7 +1610,7 @@ class Protocol {
 				}
 			}
 			if (card) {
-				if (code && card.id !== code) {
+				if ((code || (to.loc! & LOCATION.EXTRA)) && card.id !== code) {
 					await mainGame.load.pic([code]);
 					card.set.id(code);
 				}
