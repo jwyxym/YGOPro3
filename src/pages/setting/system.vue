@@ -2,18 +2,19 @@
 	<div class = 'system no-scrollbar' v-if = '!page.i18n.changing'>
 		<var-list>
 			<var-cell
-				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
 				:border = 'true'
 			>
-			<Select
-				name = 'i18n'
-				:clearable = 'false'
-				v-model = 'page.i18n.value'
-				@change = 'page.i18n.change'
-				/>
+				<template #default>
+					{{ mainGame.get.text(I18N_KEYS.SETTING_I18N) }}
+					<Select
+						name = 'i18n'
+						:clearable = 'false'
+						v-model = 'page.i18n.value'
+						@change = 'page.i18n.change'
+					/>
+				</template>
 			</var-cell>
 			<var-cell
-				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
 				:border = 'true'
 			>
 				<template #default>

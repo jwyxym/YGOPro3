@@ -1,5 +1,5 @@
 <template>
-	<div class = 'setting'>
+	<div class = 'setting' :class = "{ 'larger' : GLOBAL.SCALE < 0.4 }">
 		<var-tabs v-model:active = 'page.select'>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
@@ -22,6 +22,7 @@
 	import { reactive } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import GLOBAL from '@/script/scale';
 
 	import Expansions from './expansions.vue';
 	import System from './system.vue';
@@ -63,6 +64,36 @@
 			flex-direction: row-reverse;
 			align-items: center;
 			height: 50px;
+			> * {
+				margin-right: 20px;
+			}
+		}
+		* {
+			transition: 
+				font-size 0.3s ease,
+				transform 0.3s ease;
+		}
+	}
+	.larger {
+		--tab-font-size: 24px;
+		--tab-active-font-size: 24px;
+		--cell-font-size: 24px;
+		--input-input-font-size: 24px;
+		--field-decorator-placeholder-size: 24px;
+		--select-label-font-size: 24px;
+		--option-font-size: 24px;
+
+		:deep(.var-icon), :deep(.var-badge) {
+			transform: scale(150%);
+		}
+		:deep(.setting__loading), :deep(.var-counter) {
+			transform: scale(120%);
+		}
+		:deep(.var-button) {
+			transform: scale(160%);
+		}
+		:deep(.var-cell) {
+			height: 100px;
 		}
 	}
 

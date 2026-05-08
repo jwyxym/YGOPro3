@@ -11,7 +11,7 @@
 		>
 			<template #extra>
 				<var-icon name = 'information-outline' v-if = 'i.loading === undefined' @click = 'i.chk'/>
-				<var-loading color = 'white' v-else-if = "i.loading === 'loading'"/>
+				<var-loading color = 'white' v-else-if = "i.loading === 'loading'" class = 'setting__loading'/>
 				<div
 					class = 'result'
 					v-show = "typeof i.loading === 'boolean'"
@@ -29,7 +29,7 @@
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
-				<var-loading color = 'white' v-if = 'loading'/>
+				<var-loading color = 'white' v-if = 'loading' class = 'setting__loading'/>
 				<var-icon
 					v-else
 					name = 'refresh'
@@ -55,7 +55,7 @@
 				</div>
 			</template>
 			<template #extra>
-				<var-loading color = 'white' v-if = 'loading'/>
+				<var-loading color = 'white' v-if = 'loading' class = 'setting__loading'/>
 				<var-icon
 					v-else
 					name = 'arrow-down'
