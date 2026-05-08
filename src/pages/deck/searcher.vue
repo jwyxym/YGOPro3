@@ -157,6 +157,20 @@
 					/>
 				</div>
 			</div>
+			<div>
+				<div>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_ON)'
+						@click = 'search.search'
+					/>
+				</div>
+				<div>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_CLEAR)'
+						@click = 'search.clear'
+					/>
+				</div>
+			</div>
 		</div>
 		<div class = 'setting no-scrollbar'
 			:style = "{ '--y' : setting.y }"
@@ -399,6 +413,21 @@
 					return mainGame.get.text(I18N_KEYS.DECK_RULE_SEARCH_ATK);
 				return true;
 			}
+		},
+		clear : () => {
+			search.info.ot.length = 0;
+			search.info.race.length = 0;
+			search.info.attribute.length = 0;
+			search.info.category.length = 0;
+			search.info.link.length = 0;
+			search.info.type.forEach(i => i.length = 0);
+			search.info.lflist = '';
+			search.info.forbidden = '';
+			search.info.lv = '';
+			search.info.atk = '';
+			search.info.def = '';
+			search.info.scale = '';
+			search.info.desc = '';
 		},
 		search : async () : Promise<void> => {
 			page.list.length = 0;
@@ -650,6 +679,16 @@
 						width: 40px;
 						height: 40px;
 					}
+				}
+			}
+			> div:last-child {
+				display: flex;
+				align-items: center;
+				> div {
+					width: 50%;
+					display: flex;
+					justify-content: center;
+					align-items: center;
 				}
 			}
 		}

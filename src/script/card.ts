@@ -50,19 +50,19 @@ class Card {
 	constructor (row : Array<string | number>) {
 		this.readonly = false;
 		this.pic = '';
-		this.id = row[0] as number;
-		this.ot = row[1] as number;
-		this.alias = row[2] as number;
+		this.id = Number(row[0]);
+		this.ot = Number(row[1]);
+		this.alias = Number(row[2]);
 		this.setcode = row[3].toString(16).padStart(16, '0').match(/.{1,4}/g)!.map(str => parseInt(str, 16));
-		this.type = row[4] as number;
-		this.atk = row[5] as number;
-		this.def = row[6] as number;
+		this.type = Number(row[4]);
+		this.atk = Number(row[5]);
+		this.def = Number(row[6]);
 		const level = row[7].toString(16).padStart(7, '0')
 		this.level = parseInt(level.slice(-4), 16) | 0;
 		this.scale = parseInt(level.slice(-6, -4), 16) | 0;
-		this.race = row[8] as number;
-		this.attribute = row[9] as number;
-		this.category = row[10] as number;
+		this.race = Number(row[8]);
+		this.attribute = Number(row[9]);
+		this.category = Number(row[10]);
 		this.name = row[12] as string;
 		this.desc = row[13] as string;
 		this.hint = row.slice(14, 31) as Array<string>;
