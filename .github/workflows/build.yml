@@ -104,6 +104,7 @@ jobs:
 
     - name: Android build
       run: |
+        rm -r ./src-tauri/target/release/bundle
         npm run tauri:android:build:sh
 
     - name: Decode Keystore File
@@ -174,6 +175,7 @@ jobs:
 
     - name: Windows build
       run: |
+        rd /s /q src-tauri\target\release\bundle
         npm run tauri:build
     
     - name: Copy
@@ -262,6 +264,7 @@ jobs:
 
     - name: Macos build
       run: |
+        rm -r ./src-tauri/target/release/bundle
         npm run tauri:build
 
     - name: Zip .app
@@ -357,6 +360,7 @@ jobs:
 
     - name: Build
       run: |
+        rm -r ./src-tauri/target/release/bundle
         npm run tauri:build
 
     - name: Copy
