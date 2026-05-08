@@ -168,7 +168,7 @@ class Game {
 		strings : {
 			system : (key : number, replace : Array<string | number> | string | number = []) : string => {
 				const value = this.strings.get(CONSTANT.KEYS.SYSTEM)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
-				return this.replace(value, replace);
+				return this.replace(value, replace) + ' ';
 			},
 			victory : (key : number, replace : Array<string | number> | string | number = []) : string => {
 				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);

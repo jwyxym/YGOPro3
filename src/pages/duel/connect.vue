@@ -347,12 +347,14 @@
 			dialog({
 				title : connect.duel.select.confirm.title,
 				message : connect.duel.select.confirm.message,
-				closeOnClickOverlay : false
+				closeOnKeyEscape : false,
+				lockScroll : false,
+				overlay : false
 			}, connect.duel.select.confirm.chk)
 				.then(async (i : boolean) => await (
 					connect.duel.select.confirm.confirm?.(i)
 						?? connect.response?.(i)
-				))
+				));
 		else close();
 	});
 </script>

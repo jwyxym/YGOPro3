@@ -1004,7 +1004,8 @@ class Protocol {
 		[MSG.SELECT_CHAIN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
 			const count = msg.read.uint8() ?? 0;
-			msg.index += 9;
+			const specount = msg.read.uint8() ?? 0;
+			msg.index += 8;
 			const codes : Array<[Client_Card, number]> = [];
 			let cancelable = true;
 			for (let i = 0; i < count; i ++) {
@@ -1037,19 +1038,24 @@ class Protocol {
 				}
 			}
 			if (codes.length) {
+				const title = this.event + (specount === 0x7f
+					? mainGame.get.strings.system(222)
+						+ mainGame.get.strings.system(223)
+					: mainGame.get.strings.system(203)
+				);
 				await this.update.codes(codes);
 				connect.duel.select.cards.cancelable = cancelable;
 				connect.duel.select.cards.cards = codes.map(i => i[0]);
 				connect.duel.select.cards.min = 1;
 				connect.duel.select.cards.max = 1;
-				connect.duel.select.cards.title = this.event + mainGame.get.strings.system(203);
+				connect.duel.select.cards.title = title;
 				connect.duel.select.cards.selected.length = 0;
 				this.select_hint = undefined;
 				const option = (effect : Array<{ desc ?: number; index : number; }>) => {
 					const array = effect
 						.map(i => mainGame.get.desc(i.desc ?? - 1));
 					connect.duel.select.option.cancelable = true;
-					connect.duel.select.option.title = this.event + mainGame.get.strings.system(203);
+					connect.duel.select.option.title = title;
 					connect.duel.select.option.array = array;
 					connect.duel.select.option.show = true;
 					connect.duel.select.option.confirm = async (i ?: number) => {
@@ -1645,6 +1651,9 @@ class Protocol {
 				await card.update();
 			}
 		}],
+		[MSG.SET, async () => {
+			this.event = mainGame.get.strings.system(1601);
+		}],
 		[MSG.SWAP, async (msg : Msg) => {
 			msg.index += 4;
 			const card_I = {
@@ -1800,10 +1809,8 @@ class Protocol {
 					|| seq === undefined)
 					return;
 				const card = this.get.card(tp, loc, seq);
-				if (card) {
+				if (card)
 					await card.hint.selected();
-					this.event = mainGame.get.strings.system(1610, mainGame.get.name(card.id));
-				}
 			}
 		}],
 		[MSG.DRAW, async (msg : Msg) => {
@@ -1941,6 +1948,9 @@ class Protocol {
 			if (cards[0] === undefined)
 				return;
 			this.attack_code = cards[0].id;
+			this.event = cards[1]
+				? mainGame.get.strings.system(1619, [mainGame.get.name(this.attack_code), mainGame.get.name(cards[1].id)])
+				: mainGame.get.strings.system(1620, mainGame.get.name(this.attack_code));
 			await duel.attack(...(cards as [Client_Card, Client_Card | undefined]));
 		}],
 		[MSG.ATTACK_DISABLED, async () => {
