@@ -35,7 +35,6 @@
 		"@tauri-apps/plugin-process": "^2.3.0",
 		"@tauri-apps/plugin-websocket": "^2.4.2",
 		"@three-ts/orbit-controls": "^1.4.7",
-		"@tweenjs/tween.js": "^25.0.0",
 		"@varlet/ui": "^3.11.3",
 		"bincode-ts": "^1.0.0",
 		"buffer": "^6.0.3",
