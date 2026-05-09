@@ -39,9 +39,15 @@ class _Duel {
 	btn ?: Btn;
 	activate ?: Activate;
 	animation_id : number = 0;
+	time : number = 0;
+	interval : number = 0;
 
-	animate = () => {
+	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);
+		
+		if (time - this.time < this.interval) return
+
+		this.time = time;
 		this.renderer.render(this.scene, this.camera);
 	};
 
@@ -67,7 +73,8 @@ class _Duel {
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
-		this.animate();
+		this.interval = 1000 / 24;
+		requestAnimationFrame(this.animate);
 		this.renderer.domElement.style.opacity = '1';
 		window.addEventListener('click', duel.click);
 	};
@@ -501,6 +508,7 @@ class _Duel {
 			this.cards.length = 0;
 			this.plaids.length = 0;
 			this.animation_id = 0;
+			this.time = 0;
 			this.back = undefined;
 			this.btn = undefined;
 			window.removeEventListener('click', duel.click);
