@@ -25,7 +25,8 @@ type Protocol_Func = (msg : Msg, send : (msg : Msg) => Promise<void>) => Promise
 
 class Protocol {
 	event : string;
-	current_msg : number;
+	current_msg ?: Msg;
+	current_protocol : number;
 	select_hint ?: number;
 	last_select_hint : number;
 	chain_code : number;
@@ -35,7 +36,7 @@ class Protocol {
 	need_update : boolean;
 	constructor () {
 		this.event = '';
-		this.current_msg = 0;
+		this.current_protocol = 0;
 		this.last_select_hint = 0;
 		this.chain_code = 0;
 		this.turn_player = 0;
@@ -112,10 +113,10 @@ class Protocol {
 				case COMMAND.SSET:
 					return (i << 16) + 4;
 				case COMMAND.ACTIVATE:
-					return (i << 16) + (this.current_msg === MSG.SELECT_BATTLECMD ? 0 : 5);
+					return (i << 16) + (this.current_protocol === MSG.SELECT_BATTLECMD ? 0 : 5);
 				case COMMAND.PHASE:
 					const map : Map<number, number> = new Map([
-						[I18N_KEYS.DUEL_PHASE_END, 3 + (this.current_msg - 10) * 4],
+						[I18N_KEYS.DUEL_PHASE_END, 3 + (this.current_protocol - 10) * 4],
 						[I18N_KEYS.DUEL_PHASE_MAIN2, 2],
 						[I18N_KEYS.DUEL_PHASE_BATTLE, 6],
 					]);
@@ -276,7 +277,10 @@ class Protocol {
 					return undefined;
 				})());
 
-			this.current_msg = protocol;
+			if (protocol !== MSG.RETRY) {
+				this.current_protocol = protocol;
+				this.current_msg = msg.to_end();
+			}
 			if (protocol === MSG.UPDATE_DATA)
 				this.need_update = true;
 			else if (this.need_update)  {
@@ -508,6 +512,45 @@ class Protocol {
 		}]
 	]);
 	msg = new Map<number, Protocol_Func>([
+		[MSG.RETRY, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			if (!this.current_msg) return;
+			const last_msg = msg.read.uint8();
+			const desc = (() => {
+				switch (last_msg) {
+					case MSG.ANNOUNCE_CARD:
+						return 1422;
+					case MSG.ANNOUNCE_ATTRIB:
+						return 1423;
+					case MSG.ANNOUNCE_RACE:
+						return 1424;
+					case MSG.ANNOUNCE_NUMBER:
+						return 1425;
+					case MSG.SELECT_EFFECTYN:
+					case MSG.SELECT_YESNO:
+					case MSG.SELECT_OPTION:
+						return 1426;
+					case MSG.SELECT_CARD:
+					case MSG.SELECT_UNSELECT_CARD:
+					case MSG.SELECT_TRIBUTE:
+					case MSG.SELECT_SUM:
+					case MSG.SORT_CARD:
+						return 1427;
+					case MSG.SELECT_CHAIN:
+						return 1428;
+					case MSG.SELECT_PLACE:
+					case MSG.SELECT_DISFIELD:
+						return 1429;
+					case MSG.SELECT_POSITION:
+						return 1430;
+					case MSG.SELECT_COUNTER:
+						return 1431;
+					default:
+						return 1421;
+				}
+			})();
+			this.hint(mainGame.get.desc(desc));
+			await this.msg.get(this.current_protocol)?.(this.current_msg, send);
+		}],
 		[MSG.HINT, async (msg : Msg) => {
 			const type = msg.read.uint8();
 			const player = this.to.player(msg.read.uint8() ?? 0);
