@@ -5,7 +5,7 @@ mod log;
 mod ypk;
 mod file;
 
-use game::PATH;
+use game::{PATH, RESOURCE_PATH};
 use std::path::PathBuf;
 use tauri_plugin_os::{OsType, type_};
 use tauri::{
@@ -68,8 +68,14 @@ pub fn run() {
 				}
 				_ => {
 					let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;
-					let _ = log::init(&path);
-					let _ = PATH.set(path);
+					let _ = RESOURCE_PATH.set(path.clone());
+					if let Ok(_) = log::init(&path) {
+						let _ = PATH.set(path);
+					} else {
+						let path: PathBuf = app.path().resolve("./", BaseDirectory::AppLocalData)?;
+						let _ = log::init(&path);
+						let _ = PATH.set(path);
+					}
 				}
 			};
 			Ok(())

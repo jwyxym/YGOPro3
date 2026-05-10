@@ -51,6 +51,7 @@ use std::{
 use tauri::{AppHandle, Emitter};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
+pub static RESOURCE_PATH: OnceLock<PathBuf> = OnceLock::new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
 const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
@@ -99,8 +100,10 @@ pub struct GamePack {
 impl Game {
 	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		metadata(path.join("assets")).await?;
-		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, overwrite).await?;
+		let resource_path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
+		let assets: PathBuf = resource_path.join("assets");
+		metadata(&assets).await?;
+		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, &assets, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
 		}
