@@ -158,7 +158,7 @@
 				page.card.type = mainGame.get.strings.type(n.type);
 				if (n.location & LOCATION.ONFIELD && n.hint_msg)
 					page.card.hint.push(n.hint_msg);
-				n.desc.forEach((i, v) => {
+				n.desc.forEach((v, i) => {
 					if (v > 0)
 						page.card.hint.push(mainGame.get.desc(i));
 				});
