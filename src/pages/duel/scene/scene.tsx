@@ -73,7 +73,7 @@ class _Duel {
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
-		this.interval = 1000 / 24;
+		this.interval = 1000 / (mainGame.get.system(KEYS.SETTING_FRAME) as number);
 		requestAnimationFrame(this.animate);
 		this.renderer.domElement.style.opacity = '1';
 		window.addEventListener('click', duel.click);

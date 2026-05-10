@@ -13,6 +13,16 @@
 			</var-cell>
 			<var-cell>
 				<template #default>
+					<Select
+						name = 'frame'
+						:clearable = 'false'
+						v-model = 'page.frame.value'
+						@change = 'page.frame.change'
+					/>
+				</template>
+			</var-cell>
+			<var-cell>
+				<template #default>
 					{{ `${mainGame.get.text(I18N_KEYS.SETTING_VOICE)} : ${page.sound.ct.toFixed(2)}` }}
 					<Slider
 						:x = 'page.sound.ct'
@@ -69,6 +79,14 @@
 				await mainGame.set.system(KEYS.I18N, i);
 				await mainGame.reload();
 				page.i18n.changing = false;
+			}
+		},
+		frame : {
+			value : mainGame.get.system(KEYS.SETTING_FRAME) as number,
+			change : async (i : number) : Promise<void> => {
+				if (i === mainGame.get.system(KEYS.SETTING_FRAME))
+					return;
+				await mainGame.set.system(KEYS.SETTING_FRAME, i);
 			}
 		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,

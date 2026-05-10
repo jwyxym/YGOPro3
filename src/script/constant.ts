@@ -12,6 +12,15 @@ const LANGUAGE = {
 	Zh_CN : 'zh-CN'
 };
 
+const FRAME = [
+	24,
+	25,
+	29.97,
+	30,
+	50,
+	60
+];
+
 const URL = {
 	DECK_SHARE : 'http://deck.ourygo.top',
 	SUPER_PRE : 'https://cdn02.moecube.com:444/ygopro-super-pre/archive/ygopro-super-pre.ypk',
@@ -88,6 +97,7 @@ const KEYS = {
 	SETTING_AVATAR_OPPO : 'CT_AVATAR_OPPO',
 	SETTING_AVATAR_SERVER : 'CT_AVATAR_SERVER',
 	SETTING_VOICE : 'CT_VOICE',
+	SETTING_FRAME : 'CT_FRAME',
 	SETTING_LOADING_EXPANSION : 'LOADING_EXPANSION',
 	SETTING_SERVER_ADDRESS : 'SERVER_ADDRESS',
 	SETTING_SERVER_PLAYER_NAME : 'SERVER_PLAYER_NAME',
@@ -98,4 +108,4 @@ const KEYS = {
 	SETTING_SELECT_VOICE : 'SELECT_VOICE'
 };
 
-export { REG, LANGUAGE, URL, KEYS };
+export { REG, LANGUAGE, URL, KEYS, FRAME };

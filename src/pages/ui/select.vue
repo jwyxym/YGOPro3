@@ -24,9 +24,9 @@
 	import { reactive, onBeforeMount } from 'vue'
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import { LANGUAGE } from '@/script/constant';
+	import { LANGUAGE, FRAME } from '@/script/constant';
 	const props = defineProps<{
-		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'protocol' | 'custom';
+		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'frame' | 'protocol' | 'custom';
 		array ?: Array<[any, any]>;
 		variant ?: 'outlined' | 'standard';
 		clearable ?: boolean; 
@@ -62,6 +62,10 @@
 			case 'i18n':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_I18N);
 				select.array = Object.entries(LANGUAGE) ?? new Array;
+				break;
+			case 'frame':
+				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_FRAME);
+				select.array = FRAME.map(i => [i, i]);
 				break;
 			case 'protocol':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_PROTOCOL);

@@ -39,6 +39,10 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(true);
 			});
+			
+		system.number
+			.entry(String::from("CT_FRAME"))
+			.or_insert(60.0);
 		system.number
 			.entry(String::from("CT_VOICE"))
 			.or_insert(0.2);
