@@ -1,5 +1,5 @@
 <template>
-	<main class = 'font-menu'>
+	<main class = 'font-menu ygopro3__menu'>
 		<div>
 			<div>
 				<span>
