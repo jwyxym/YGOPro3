@@ -86,6 +86,9 @@
 				.setting {
 					transform: scale(140%) translate(-50%, var(--y));
 					transform-origin: left top;
+					.var-button, .var-input {
+						transform: initial;
+					}
 				}
 				.search {
 					font-size: 24px;
