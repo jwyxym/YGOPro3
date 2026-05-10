@@ -1,9 +1,9 @@
 <template>
 	<div
 		:style = "{
-			height : `${page.show ? 300 : 30}px`,
-			width : `${width ?? GLOBAL.WIDTH * 0.7}px`,
-			left : `${left ?? GLOBAL.WIDTH * 0.15}px`
+			'--height' : `${page.show ? 300 : 30}px`,
+			'--width' : `${width ?? GLOBAL.WIDTH * 0.7}px`,
+			'--left' : `${left ?? GLOBAL.WIDTH * 0.15}px`
 		}"
 		class = 'selecter'
 	>
@@ -21,7 +21,7 @@
 		<div
 			:style = "{
 				flexDirection : mainGame.get.system(KEYS.SETTING_CHK_SWAP_BUTTON) ? 'initial' : 'row-reverse',
-				height : page.show ? '50px' : '0'
+				'--height' : page.show ? '50px' : '0'
 			}"
 		>
 			<div>
@@ -84,12 +84,16 @@
 		transform: translateY(calc(var(--top) / var(--scale)));
 		color: white;
 		transition: all 0.1s ease;
+		height: var(--height);
+		width: var(--width);
+		left: var(--left);
 		> div {
 			width: 100%;
 		}
 		> div:first-child {
 			height: 30px;
 			display: flex;
+			align-items: center;
 			gap: 5px;
 		}
 		> div:nth-child(2) {
@@ -114,6 +118,7 @@
 		> div:last-child {
 			display: flex;
 			overflow: hidden;
+			height: var(--height);
 			> div {
 				flex-grow: 1;
 				display: flex;

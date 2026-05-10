@@ -1,21 +1,17 @@
 <template>
 	<div class = 'system no-scrollbar' v-if = '!page.i18n.changing'>
 		<var-list>
-			<var-cell
-				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
-				:border = 'true'
-			>
-			<Select
-				name = 'i18n'
-				:clearable = 'false'
-				v-model = 'page.i18n.value'
-				@change = 'page.i18n.change'
-				/>
+			<var-cell>
+				<template #default>
+					<Select
+						name = 'i18n'
+						:clearable = 'false'
+						v-model = 'page.i18n.value'
+						@change = 'page.i18n.change'
+					/>
+				</template>
 			</var-cell>
-			<var-cell
-				:title = 'mainGame.get.text(I18N_KEYS.SETTING_VOICE)'
-				:border = 'true'
-			>
+			<var-cell>
 				<template #default>
 					{{ `${mainGame.get.text(I18N_KEYS.SETTING_VOICE)} : ${page.sound.ct.toFixed(2)}` }}
 					<Slider
@@ -29,7 +25,6 @@
 				v-for = 'i in page.bool'
 				:key = 'i.key'
 				:title = 'mainGame.get.text(i.i18n)'
-				:border = 'true'
 			>
 				<template #extra>
 					<var-switch
@@ -41,7 +36,6 @@
 				v-for = 'i in page.number'
 				:key = 'i.key'
 				:title = 'mainGame.get.text(i.i18n)'
-				:border = 'true'
 			>
 				<template #extra>
 					<var-counter

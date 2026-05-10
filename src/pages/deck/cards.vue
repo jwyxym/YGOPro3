@@ -3,6 +3,7 @@
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
 	>
 		<div
+			class = 'ygopro3__cards'
 			:style = "{
 				'--height' : `${
 					(
@@ -284,7 +285,8 @@
 							top -= height;
 						if (y > side_top)
 							top -= height;
-						const pic_y = Math.trunc((top - pos.top + deck.value!.scrollTop) / (page.size.height * GLOBAL.SCALE));
+						const pic_y = Math.trunc((top - pos.top + (deck.value!.scrollTop * GLOBAL.SCALE)) / (page.size.height * GLOBAL.SCALE));
+						console.log(pic_y)
 						if (page.move.index.x === pic_x && page.move.index.y === pic_y)
 							return page.move.moving = false;
 						page.move.index.x = pic_x;

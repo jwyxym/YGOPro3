@@ -168,8 +168,6 @@
 		}
 	}
 	.avatar__self {
-		bottom: 10px;
-		left: 10px;
 		background: linear-gradient(to right, blue, transparent);
 		> strong {
 			transform: translate(160px, 0);
@@ -182,8 +180,6 @@
 		}
 	}
 	.avatar__oppo {
-		top: 10px;
-		right: 10px;
 		background: linear-gradient(to left, red, transparent);
 		flex-direction: row-reverse;
 		.text{

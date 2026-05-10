@@ -6,10 +6,11 @@
 			v-model = 'page.card'
 		/>
 		<Deck_Box
+			v-if = 'page.ct'
 			:ref = '(el) => (page.el = el as InstanceType<typeof Deck_Box> | null)'
 			:height = 'page.height'
 			:width = 'page.width[1]'
-			:count = '10'
+			:count = 'page.ct'
 			:deck = 'this_deck'
 			:lflist = 'page.lflist'
 			:del = 'true'
@@ -36,7 +37,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { reactive, watch } from 'vue';
 
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
@@ -58,6 +59,7 @@
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
 		card : 0,
+		ct : 0,
 		move : {
 			x : 0,
 			y : 0,
@@ -99,6 +101,8 @@
 				page.el?.clear();
 		}
 	});
+
+	watch(() => GLOBAL.SCALE, (n) => page.ct = n < 0.6 ? 6 : 10, { immediate : true });
 
 	const props = defineProps<{
 		this_deck : Deck;

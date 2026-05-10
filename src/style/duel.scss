@@ -1,0 +1,72 @@
+.mobile {
+	.ygopro3__duel {
+		--tab-font-size: 24px;
+		--tab-active-font-size: 24px;
+		> div:first-child {
+			.server, .wait {
+				transform: scale(140%) translate(-50%, -50%);
+				transform-origin: left top;
+			}
+			.avatar {
+				transform-origin: left top;
+			}
+			.avatar__first {
+				transform:
+					scale(140%)
+					translate(calc(50px - var(--left) / var(--scale)), calc(var(--top) - 200px));
+			}
+			.avatar__last {
+				transform:
+					scale(140%)
+					translate(calc(var(--left) / var(--scale) + 200px), 0);
+			}
+		}
+		> div:nth-child(2) {
+			gap: 25px;
+			.var-button {
+				transform: scale(160%);
+			}
+		}
+		> div:nth-child(3) {
+			.selecter {
+				height: calc(var(--height) + 20px);
+				> div:first-child {
+					gap: 20px;
+					font-size: 24px;
+					.var-switch {
+						transform: scale(140%);
+						transform-origin: left center;
+					}
+				}
+				> div:last-child {
+					height: calc(var(--height) + 10px);
+					align-items: center;
+					.var-button {
+						transform: scale(160%);
+					}
+				}
+			}
+		}
+		.log {
+			> div:first-child {
+				> div:first-child {
+					transform: scale(150%) translateY(-50%);
+					transform-origin: left top;
+				}
+			}
+			> div:nth-child(2) {
+				> div:last-child {
+					.var-input {
+						width: 50%;
+						transform: scale(140%) translate(-20%, 10%);
+						transform-origin: left top;
+					}
+					.var-button {
+						transform: scale(140%) translate(20%, 35%);
+						transform-origin: left top;
+					}
+				}
+			}
+		}
+	}
+}

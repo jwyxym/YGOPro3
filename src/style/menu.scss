@@ -1,0 +1,12 @@
+.mobile {
+	.ygopro3__menu {
+		font-size: 64px;
+		> div:nth-child(2) {
+			.select {
+				&::after {
+					transform: translateX(20px);
+				}
+			}
+		}
+	}
+}

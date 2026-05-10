@@ -33,7 +33,11 @@
 				emit('dragging', ratio);
 			}
 		},
-		end : () => page.on = false,
+		end : () => {
+			if (page.on)
+				emit('drag_end', page.x / page.width);
+			page.on = false;
+		},
 		touchstart : (e : TouchEvent) => {
 			const target = e.target as HTMLElement;
 			if (!page.left)
@@ -48,7 +52,7 @@
 			if (e.button !== 2)
 				page.start(e.clientX);
 		},
-		mousemove : (e : MouseEvent) => page.move( e.clientX)
+		mousemove : (e : MouseEvent) => page.move(e.clientX)
 	});
 
 	onBeforeMount(async () => {

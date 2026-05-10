@@ -1,17 +1,16 @@
 <template>
 	<div
-		class = 'expansions'
+		class = 'expansions no-scrollbar'
 		:style = "{ '--ct' : (page.versions.length + page.reload.length + 1).toString()}"
 		v-if = '!i18n'
 	>
 		<var-cell
 			v-for = "i in page.versions"
-			:border = 'true'
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
 				<var-icon name = 'information-outline' v-if = 'i.loading === undefined' @click = 'i.chk'/>
-				<var-loading color = 'white' v-else-if = "i.loading === 'loading'"/>
+				<var-loading color = 'white' v-else-if = "i.loading === 'loading'" class = 'setting__loading'/>
 				<div
 					class = 'result'
 					v-show = "typeof i.loading === 'boolean'"
@@ -25,11 +24,10 @@
 		</var-cell>
 		<var-cell
 			v-for = "i in page.reload"
-			:border = 'true'
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
-				<var-loading color = 'white' v-if = 'loading'/>
+				<var-loading color = 'white' v-if = 'loading' class = 'setting__loading'/>
 				<var-icon
 					v-else
 					name = 'refresh'
@@ -37,9 +35,7 @@
 				/>
 			</template>
 		</var-cell>
-		<var-cell
-			:border = 'true'
-		>
+		<var-cell>
 			<template #default>
 				<div class = 'downloading'>
 					<Input
@@ -55,7 +51,7 @@
 				</div>
 			</template>
 			<template #extra>
-				<var-loading color = 'white' v-if = 'loading'/>
+				<var-loading color = 'white' v-if = 'loading' class = 'setting__loading'/>
 				<var-icon
 					v-else
 					name = 'arrow-down'
@@ -75,7 +71,6 @@
 						v-for = '(i, v) in page.expansion'
 						:key = 'i'
 						:title = 'i'
-						:border = 'true'
 						@dblclick = 'page.delete(v)'
 					>
 						<template #extra>
@@ -232,6 +227,7 @@
 	.expansions {
 		height: 100%;
 		width: 100%;
+		overflow-y: auto;
 		.var-cell {
 			.downloading {
 				height: 80px;

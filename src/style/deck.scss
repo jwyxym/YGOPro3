@@ -1,0 +1,181 @@
+.mobile {
+	.ygopro3__deck {
+		--tab-font-size: 24px;
+		--tab-active-font-size: 24px;
+		--cell-font-size: 24px;
+		.var-icon {
+			transform: scale(150%) !important;
+		}
+		.var-button {
+			transform: scale(160%);
+		}
+		.var-select, .var-input, .var-switch {
+			transform: scale(140%);
+			transform-origin: left center;
+		}
+		.var-divider {
+			height: 24px;
+			.var-divider__text {
+				font-size: 24px;
+			}
+		}
+		.var-cell {
+			height: 100px;
+		}
+		.var-counter {
+			transform: scale(120%);
+		}
+		.var-icon, .var-badge {
+			transform: scale(150%);
+		}
+		> main:first-child {
+			> div:first-child {
+				gap: 40px;
+				.input {
+					gap: 40px;
+				}
+				> div:last-child {
+					height: calc(100% - 150px);
+					h2 {
+						font-size: 24px;
+					}
+				}
+			}
+			> div:nth-child(2) {
+				span {
+					font-size: 64px;
+				}
+			}
+			> div:last-child {
+				gap: 25px;
+			}
+		}
+		> .deck {
+			> main:last-child {
+				> div:first-child {
+					gap: 125px;
+					.var-input {
+						width: 55%;
+					}
+				}
+				.list {
+					> div {
+						height: 100px;
+						border-bottom: 1px solid white;
+						> div:first-child {
+							transform: scale(140%);
+							transform-origin: left top;
+						}
+						> div:last-child {
+							transform: translateX(20px);
+							span {
+								font-size: 24px;
+							}
+						}
+					}
+				}
+				> div:nth-child(3) {
+					gap: 50px;
+					.var-button {
+						transform-origin: left center;
+					}
+					> p {
+						transform: scale(140%) translateY(-10px);
+					}
+				}
+				.setting {
+					transform: scale(140%) translate(-50%, var(--y));
+					transform-origin: left top;
+					.var-button, .var-input {
+						transform: initial;
+					}
+				}
+				.search {
+					font-size: 24px;
+					.lflist {
+						height: 150px;
+						gap: 20px;
+					}
+					.select, .link {
+						> div:first-child {
+							gap: 20px;
+							> span {
+								font-size: 24px;
+								height: 40px;
+							}
+						}
+					}
+					.select {
+						> div:first-child {
+							> span:first-child {
+								height: 40px;
+							}
+						}
+						> div:last-child {
+							gap: 20px;
+							> div {
+								width: 75px;
+								height: 90px;
+								border-radius: 11.2px;
+								img {
+									width: 56px;
+									height: 56px;
+								}
+								span {
+									font-size: 18px;
+								}
+							}
+							> .ot {
+								width: 90px;
+								img {
+									width: 70px;
+									height: 56px;
+								}
+							}
+						}
+					}
+					.link {
+						height: 220px;
+						> div:last-child {
+							transform: scale(140%);
+							transform-origin: left top;
+						}
+						> div:nth-child(2) {
+							transform: scale(140%) translate(calc(-50% + 17px), calc(-50% + 4px));
+							transform-origin: left top;
+						}
+					}
+					.input {
+						height: 270px;
+						gap: 20px;
+						> div:last-child {
+							flex-direction: column;
+							gap: 20px;
+						}
+					}
+					> div:last-child {
+						height: 70px;
+					}
+				}
+			}
+		}
+	}
+	.ygopro3__cards {
+		> span {
+			font-size: 24px;
+		}
+	}
+	.ygopro3__card__info {
+		font-size: 24px;
+		> div:first-child {
+			> div:first-child {
+				width: 40%;
+			}
+			> div:last-child {
+				> span:first-child {
+					font-size: 32px;
+				}
+			}
+		}
+	}
+}

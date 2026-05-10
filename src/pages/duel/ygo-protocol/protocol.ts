@@ -1768,10 +1768,8 @@ class Protocol {
 		[MSG.CHAINED, async () => {
 			this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
 		}],
-		[MSG.CHAIN_SOLVED, async (msg : Msg) => {
-			const ct = msg.read.uint8();
-			if (!ct) return;
-			connect.duel.chain.splice(ct - 1, 1);
+		[MSG.CHAIN_SOLVED, async () => {
+			connect.duel.chain.pop();
 			if (!connect.duel.chain.length)
 				this.chain_code = 0;
 		}],

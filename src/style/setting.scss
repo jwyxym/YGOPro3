@@ -1,0 +1,36 @@
+.mobile {
+	.ygopro3__setting {
+		--tab-font-size: 24px;
+		--tab-active-font-size: 24px;
+		--cell-font-size: 24px;
+		.var-button {
+			transform: scale(160%);
+		}
+		.var-select, .var-input, .var-switch {
+			transform: scale(140%);
+			transform-origin: left center;
+		}
+		.var-select {
+			width: 60%;
+		}
+		.var-divider {
+			height: 24px;
+			.var-divider__text {
+				font-size: 24px;
+			}
+		}
+		.var-cell {
+			height: 100px;
+		}
+		.var-counter {
+			transform: scale(120%);
+		}
+		.var-icon, .var-badge {
+			transform: scale(150%);
+		}
+		.setting__loading,
+		.downloading {
+			gap: 150px !important;
+		}
+	}
+}

@@ -103,7 +103,7 @@ const toast = new _Toast();
 const Toast = defineComponent({
 	setup () {
 		return () =>
-			<div class = 'toast'>
+			<div class = 'toast ygopro3__toast'>
 				{toast.list.map((i, v) =>
 					<div
 						class = {[i.type, i.status]}

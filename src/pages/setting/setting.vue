@@ -1,13 +1,13 @@
 <template>
-	<div class = 'setting'>
+	<div class = 'ygopro3__setting'>
 		<var-tabs v-model:active = 'page.select'>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
 		</var-tabs>
 		<TransitionGroup tag = 'div' name = 'opacity'>
-			<Expansions v-show = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
-			<System v-show = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
+			<Expansions v-if = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
+			<System v-if = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -36,7 +36,7 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
-	.setting {
+	.ygopro3__setting {
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
 		color: white;
@@ -63,6 +63,12 @@
 			flex-direction: row-reverse;
 			align-items: center;
 			height: 50px;
+			> * {
+				margin-right: 20px;
+			}
+		}
+		:deep(.var-cell) {
+			border-bottom: 1px solid white;
 		}
 	}
 
