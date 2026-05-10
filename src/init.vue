@@ -149,6 +149,7 @@
 </style>
 <style lang = 'scss'>
 	@use '@/pages/toast/toast.scss';
+	@use '@/style/init.scss';
 	.var-icon, .cursor {
 		&:hover {
 			cursor: pointer;
@@ -209,6 +210,7 @@
 	}
 	.var-popup__content, .var-menu__menu {
 		transform: scale(var(--scale));
+		transform-origin: center top !important;
 	}
 	.var-popup__content {
 		background-color: rgba(0, 0, 0, 0.5) !important;

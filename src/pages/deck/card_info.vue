@@ -1,6 +1,6 @@
 <template>
 	<div
-		class = 'no-scrollbar info'
+		class = 'no-scrollbar info ygopro3__card__info'
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? '#FFA500' : 'white' }"
 	>
 		<div>
@@ -243,9 +243,6 @@
 					font-weight: bold;
 					font-size: 20px;
 				}
-				> span:last-child {
-					font-size: 16px;
-				}
 			}
 		}
 		> div:nth-child(2) {
@@ -256,7 +253,6 @@
 		> div:nth-child(3) {
 			display: flex;
 			flex-wrap: wrap;
-			font-size: 16px;
 			> div {
 				min-width: 50%;
 				display: flex;
@@ -277,7 +273,6 @@
 		> p {
 			color: var(--color);
 			white-space: pre-line;
-			font-size: 16px;
 			> span:first-child {
 				color: $color-sub;
 			}

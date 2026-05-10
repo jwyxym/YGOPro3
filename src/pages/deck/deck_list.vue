@@ -1,5 +1,5 @@
 <template>
-	<div>
+	<div class = 'ygopro3__deck'>
 		<transition name = 'opacity'>
 			<main v-show = 'page.list'>
 				<div>
@@ -208,86 +208,95 @@
 
 </script>
 <style scoped lang = 'scss'>
-	main {
-		position: relative;
-		height: calc(var(--height) * 0.9);
-		width: calc(var(--width) * 0.9);
-		display: flex;
-		color: white;
-		> div:first-child {
-			width: 40%;
-			height: 100%;
-			overflow-x: hidden;
+	.ygopro3__deck {
+		height: 100%;
+		width: 100%;
+		> * {
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+		> main {
+			position: relative;
+			height: calc(var(--height) * 0.9);
+			width: calc(var(--width) * 0.9);
 			display: flex;
-			flex-direction: column;
-			.input {
-				margin-top: 10px;
-				width: 50%;
-				height: 100px;
+			color: white;
+			> div:first-child {
+				width: 40%;
+				height: 100%;
+				overflow-x: hidden;
 				display: flex;
 				flex-direction: column;
-				gap: 10px;
-				> div {
-					width: 100%;
+				.input {
+					margin-top: 10px;
+					width: 50%;
+					height: 100px;
 					display: flex;
-					justify-content: center;
-					gap: 30%;
-				}
-			}
-			> div:last-child {
-				height: calc(100% - 110px);
-				overflow-y: auto;
-				h2 {
-					font-size: 18px;
-					transition: all 0.2s ease;
-				}
-				.selected {
-					text-shadow:
-						0 0 5px aqua,
-						0 0 10px aqua,
-						0 0 20px aqua,
-						0 0 40px aqua;
-					transform: translateX(10px);
-				}
-			}
-		}
-		> div:nth-child(2) {
-			width: 60%;
-			height: 100%;
-			position: relative;
-			.deck {
-				width: 100%;
-				overflow: hidden;
-				mask: radial-gradient(circle, white 0%, white 20%, transparent 100%);
-				-webkit-mask: radial-gradient(circle, white 0%, white 20%, transparent 100%);
-				display: grid;
-				height: 100%;
-				width: 100%;
-				span {
-					justify-self: center;
-					font-size: 48px;
-					z-index: 1;
-				}
-				.card {
-					width: 55px;
-					aspect-ratio: 1 / 1.45;
-					display: inline-block;
-					img {
+					flex-direction: column;
+					gap: 10px;
+					> div {
 						width: 100%;
-						height: 100%;
+						display: flex;
+						justify-content: center;
+						gap: 30%;
+					}
+				}
+				> div:last-child {
+					height: calc(100% - 110px);
+					overflow-y: auto;
+					h2 {
+						font-size: 18px;
+						transition: all 0.2s ease;
+					}
+					.selected {
+						text-shadow:
+							0 0 5px aqua,
+							0 0 10px aqua,
+							0 0 20px aqua,
+							0 0 40px aqua;
+						transform: translateX(10px);
 					}
 				}
 			}
-		}
-		> div:last-child {
-			position: absolute;
-			right: 0;
-			bottom: 0;
-			display: flex;
-			flex-direction: column;
-			gap: 5px;
-			.var-button {
-				width: 90px !important;
+			> div:nth-child(2) {
+				width: 60%;
+				height: 100%;
+				position: relative;
+				.deck {
+					width: 100%;
+					overflow: hidden;
+					mask: radial-gradient(circle, white 0%, white 20%, transparent 100%);
+					-webkit-mask: radial-gradient(circle, white 0%, white 20%, transparent 100%);
+					display: grid;
+					height: 100%;
+					width: 100%;
+					span {
+						justify-self: center;
+						font-size: 48px;
+						z-index: 1;
+					}
+					.card {
+						width: 55px;
+						aspect-ratio: 1 / 1.45;
+						display: inline-block;
+						img {
+							width: 100%;
+							height: 100%;
+						}
+					}
+				}
+			}
+			> div:last-child {
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+				.var-button {
+					width: 90px !important;
+				}
 			}
 		}
 	}

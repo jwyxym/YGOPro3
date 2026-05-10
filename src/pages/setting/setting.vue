@@ -1,13 +1,13 @@
 <template>
-	<div class = 'setting' :class = "{ 'larger' : GLOBAL.SCALE < 0.4 }">
+	<div class = 'ygopro3__setting'>
 		<var-tabs v-model:active = 'page.select'>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
 		</var-tabs>
 		<TransitionGroup tag = 'div' name = 'opacity'>
-			<Expansions v-show = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
-			<System v-show = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
+			<Expansions v-if = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
+			<System v-if = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -22,7 +22,6 @@
 	import { reactive } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import GLOBAL from '@/script/scale';
 
 	import Expansions from './expansions.vue';
 	import System from './system.vue';
@@ -37,7 +36,7 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
-	.setting {
+	.ygopro3__setting {
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
 		color: white;
@@ -68,32 +67,8 @@
 				margin-right: 20px;
 			}
 		}
-		* {
-			transition: 
-				font-size 0.3s ease,
-				transform 0.3s ease;
-		}
-	}
-	.larger {
-		--tab-font-size: 24px;
-		--tab-active-font-size: 24px;
-		--cell-font-size: 24px;
-		--input-input-font-size: 24px;
-		--field-decorator-placeholder-size: 24px;
-		--select-label-font-size: 24px;
-		--option-font-size: 24px;
-
-		:deep(.var-icon), :deep(.var-badge) {
-			transform: scale(150%);
-		}
-		:deep(.setting__loading), :deep(.var-counter) {
-			transform: scale(120%);
-		}
-		:deep(.var-button) {
-			transform: scale(160%);
-		}
 		:deep(.var-cell) {
-			height: 100px;
+			border-bottom: 1px solid white;
 		}
 	}
 

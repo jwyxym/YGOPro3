@@ -1,12 +1,11 @@
 <template>
 	<div
-		class = 'expansions'
+		class = 'expansions no-scrollbar'
 		:style = "{ '--ct' : (page.versions.length + page.reload.length + 1).toString()}"
 		v-if = '!i18n'
 	>
 		<var-cell
 			v-for = "i in page.versions"
-			:border = 'true'
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
@@ -25,7 +24,6 @@
 		</var-cell>
 		<var-cell
 			v-for = "i in page.reload"
-			:border = 'true'
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
@@ -37,9 +35,7 @@
 				/>
 			</template>
 		</var-cell>
-		<var-cell
-			:border = 'true'
-		>
+		<var-cell>
 			<template #default>
 				<div class = 'downloading'>
 					<Input
@@ -75,7 +71,6 @@
 						v-for = '(i, v) in page.expansion'
 						:key = 'i'
 						:title = 'i'
-						:border = 'true'
 						@dblclick = 'page.delete(v)'
 					>
 						<template #extra>
@@ -232,6 +227,7 @@
 	.expansions {
 		height: 100%;
 		width: 100%;
+		overflow-y: auto;
 		.var-cell {
 			.downloading {
 				height: 80px;

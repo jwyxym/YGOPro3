@@ -483,6 +483,7 @@
 		window.addEventListener('mousedown', page.mousedown);
 		window.addEventListener('touchstart', page.touchstart);
 		window.addEventListener('mouseup', page.end);
+		window.addEventListener('touchend', page.end);
 		await search.search();
 	});
 
@@ -490,6 +491,7 @@
 		window.removeEventListener('mousedown', page.mousedown);
 		window.removeEventListener('touchstart', page.touchstart);
 		window.removeEventListener('mouseup', page.end);
+		window.removeEventListener('touchend', page.touchstart);
 	});
 
 	watch(() => props.deck.name, (n) => setting.name = n ?? '', { immediate : true });
@@ -535,7 +537,7 @@
 						position: absolute;
 						top: 0;
 						left: var(--width);
-						width: calc(100% - var(--width));
+						width: calc(100% - var(--width) - 20px);
 						white-space: nowrap;
 						overflow: hidden;
 						text-overflow: ellipsis;
@@ -569,6 +571,7 @@
 			}
 		}
 		.search {
+			z-index: 999;
 			position: fixed;
 			top: 50%;
 			left: 50%;
@@ -596,7 +599,7 @@
 			}
 			.select, .link {
 				> div:first-child {
-					width: calc(var(--width) / 2);
+					width: var(--width);
 					display: flex;
 					align-items: center;
 					gap: 5px;

@@ -1,5 +1,5 @@
 <template>
-	<main>
+	<main class = 'ygopro3__duel'>
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Server
 				v-if = '!connect.state'

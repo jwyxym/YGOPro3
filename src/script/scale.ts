@@ -12,6 +12,10 @@ const resize = () => {
 	document.documentElement.style.setProperty('--width', `${GLOBAL.WIDTH}px`);
 	document.documentElement.style.setProperty('--left', `${GLOBAL.LEFT}px`);
 	document.documentElement.style.setProperty('--top', `${GLOBAL.TOP}px`);
+	const body = document.body;
+	GLOBAL.SCALE < 0.6
+		? body.classList.add('mobile')
+		: body.classList.remove('mobile');
 };
 
 const GLOBAL = reactive({

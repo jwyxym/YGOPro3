@@ -60,6 +60,7 @@
 				select.map = mainGame.model ?? new Map;
 				break;
 			case 'i18n':
+				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_I18N);
 				select.array = Object.entries(LANGUAGE) ?? new Array;
 				break;
 			case 'protocol':
