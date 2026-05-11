@@ -621,8 +621,13 @@ class _Duel {
 					}
 					return;
 				}
-				if (this.activate?.contains(target))
+				if (this.activate?.contains(target)) {
+					connect.duel.card = undefined;
+					this.cards
+						.filter(i => i.clicked)
+						.forEach(i => i.click.img());
 					return this.activate.click(target);
+				}
 				const card = this.cards.find(i => i.contains(target));
 				if (!card) {
 					connect.duel.card = undefined;
