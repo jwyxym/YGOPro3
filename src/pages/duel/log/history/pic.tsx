@@ -24,7 +24,7 @@ const Pic  = defineComponent({
 			'justify-content' : 'center'
 		}}>
 			<img
-				src = {mainGame.get.card(props.id).pic}
+				src = {props.id ?  mainGame.get.card(props.id).pic : mainGame.back.pic}
 				style = {{
 					'height' : '80%',
 					'transform' : props.pos & POS.DEFENSE ? 'rotate(-90deg)' : 'initial'

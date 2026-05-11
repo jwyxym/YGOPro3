@@ -23,7 +23,7 @@ const Cards  = defineComponent({
 				const width = 50 / 1.45;
 				const gap = props.width / props.cards.length;
 				return <img
-					src = {mainGame.get.card(i).pic}
+					src = {i ?  mainGame.get.card(i).pic : mainGame.back.pic}
 					style = {{
 						'position' : 'absolute',
 						'height' : 'calc(100% - 30px)',
