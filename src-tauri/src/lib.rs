@@ -63,6 +63,7 @@ pub fn run() {
 					if let Some(path) = path.parent() {
 						let path: PathBuf = path.to_path_buf();
 						let _ = log::init(&path);
+						let _ = RESOURCE_PATH.set(path.clone());
 						let _ = PATH.set(path);
 					}
 				}
