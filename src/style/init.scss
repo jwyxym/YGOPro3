@@ -3,6 +3,7 @@
 @use '@/style/duel.scss';
 @use '@/style/menu.scss';
 @use '@/style/toast.scss';
+@use '@/style/loading.scss';
 .mobile {
 	.var-popup__content {
 		transform: scale(70%);

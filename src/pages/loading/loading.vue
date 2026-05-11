@@ -1,5 +1,5 @@
 <template>
-	<div class = 'loading' :class = "{ 'show' : page.show }">
+	<div class = 'loading ygopro3__loading' :class = "{ 'show' : page.show }">
 		<var-loading/>
 		<span v-show = 'page.all > 0'>{{ Math.min((page.now / page.all) * 100, 99.99).toFixed(2) }}%</span>
 	</div>
