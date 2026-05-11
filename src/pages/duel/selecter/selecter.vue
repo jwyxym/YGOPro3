@@ -124,6 +124,9 @@
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				.var-button {
+					width: 25%;
+				}
 			}
 		}
 	}
