@@ -201,109 +201,117 @@ const connect = reactive({
 		if (connect.debouncing)
 			return;
 		connect.debouncing = true;
-		switch (connect.state) {
-			case 0:
-				const para = i as {
-					name : string;
-					pass : string;
-					address : string;
-					protocal : 0 | 1 | 2;
-				};
-				if (!para?.name || !para?.address) return;
-				const protocol = new Protocol();
-				const p = {
-					on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
-						connect.send = send;
-						connect.state = 1;
-						await send(new Msg()
-							.write.uint8(CTOS.EXTERNAL_ADDRESS)
-							.write.uint32(0)
-							.write.str(para!.address));
-						await send(new Msg()
-							.write.uint8(CTOS.PLAYER_INFO)
-							.write.str(para!.name, 40));
-						await send(new Msg()
-							.write.uint8(CTOS.JOIN_GAME)
-							.write.uint16(mainGame.version)
-							.write.uint16(0)
-							.write.uint32(0)
-							.write.str(para!.pass, 40));
-					},
-					on_message : protocol.read,
-					on_disconnect : async () : Promise<void> => {
-						connect.clear();
-						connect.state = 0;
-						voice.play(KEYS.BACK_BGM);
+		try {
+			switch (connect.state) {
+				case 0:
+					const para = i as {
+						name : string;
+						pass : string;
+						address : string;
+						protocal : 0 | 1 | 2;
+					};
+					if (!para?.name)
+						throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
+					else if (!para?.address)
+						throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
+					const protocol = new Protocol();
+					const p = {
+						on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
+							connect.send = send;
+							connect.state = 1;
+							await send(new Msg()
+								.write.uint8(CTOS.EXTERNAL_ADDRESS)
+								.write.uint32(0)
+								.write.str(para!.address));
+							await send(new Msg()
+								.write.uint8(CTOS.PLAYER_INFO)
+								.write.str(para!.name, 40));
+							await send(new Msg()
+								.write.uint8(CTOS.JOIN_GAME)
+								.write.uint16(mainGame.version)
+								.write.uint16(0)
+								.write.uint32(0)
+								.write.str(para!.pass, 40));
+						},
+						on_message : protocol.read,
+						on_disconnect : async () : Promise<void> => {
+							connect.clear();
+							connect.state = 0;
+							voice.play(KEYS.BACK_BGM);
+						}
+					};
+					const get_srv = async () => {
+						const address = para!.address;
+						if (!address.includes(':') && !para!.protocal)
+							para!.address = connect.srv_cache.get(address) ??
+								await (async () : Promise<string> => {
+									const url = await invoke.game.get_srv(address)
+									connect.srv_cache.set(address, url);
+									return url;
+								})();
+					};
+					switch (para!.protocal) {
+						case 0:
+							connect.protocol = tcp;
+							break;
+						case 1:
+							para!.address = `ws://${para!.address}`;
+							connect.protocol = ws;
+							break;
+						case 2:
+							para!.address = `wss://${para!.address}`;
+							connect.protocol = ws;
+							break;
 					}
-				};
-				const get_srv = async () => {
-					const address = para!.address;
-					if (!address.includes(':') && !para!.protocal)
-						para!.address = connect.srv_cache.get(address) ??
-							await (async () : Promise<string> => {
-								const url = await invoke.game.get_srv(address)
-								connect.srv_cache.set(address, url);
-								return url;
-							})();
-				};
-				switch (para!.protocal) {
-					case 0:
-						connect.protocol = tcp;
-						break;
-					case 1:
-						para!.address = `ws://${para!.address}`;
-						connect.protocol = ws;
-						break;
-					case 2:
-						para!.address = `wss://${para!.address}`;
-						connect.protocol = ws;
-						break;
-				}
-				await Promise.all([
-					mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para!.name, false),
-					mainGame.set.system(KEYS.SETTING_SERVER_PASS, para!.pass, false),
-					get_srv()
-				]);
-				await Promise.all([
-					mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para!.address),
-					connect.protocol.connect(para!.address, p)
-				]);
-				break;
-			case 1:
-				connect.wait.players.filter(i => i.status).length < (connect.wait.info.mode & 0x2 ? 4 : 2)
-					? toast.info(mainGame.get.text(I18N_KEYS.SERVER_PLAYER_ERROR))
-					: await connect.wait.start();
-				break;
-			case 2:
-				history.clear();
-				chat.clear();
-				connect.chat.off();
-				connect.state = 3;
-				connect.duel.player[0] = new Player();
-				connect.duel.player[1] = new Player();
-				connect.duel.chain.length = 0;
-				
-				connect.duel.select.cards.show = false;
-				Object.values(connect.duel.select).forEach(i => {
-					if ('show' in i)
-						i.show = false;
-				});
-				break;
-			case 3:
-				const deck = i as Deck;  
-				const msg = new Msg()
-					.write.uint8(CTOS.UPDATE_DECK)
-					.write.uint32(deck.main.length + deck.extra.length)
-					.write.uint32(deck.side.length);
-				for (const i of deck.main
-					.concat(deck.extra)
-					.concat(deck.side)
-				)
-					msg.write.uint32(i);
-				await connect.send?.(msg);
-				break;
+					await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para!.name, false),
+						mainGame.set.system(KEYS.SETTING_SERVER_PASS, para!.pass, false),
+						get_srv()
+					]);
+					await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para!.address),
+						connect.protocol.connect(para!.address, p)
+					]);
+					break;
+				case 1:
+					connect.wait.players.filter(i => i.status).length < (connect.wait.info.mode & 0x2 ? 4 : 2)
+						? toast.info(mainGame.get.text(I18N_KEYS.SERVER_PLAYER_ERROR))
+						: await connect.wait.start();
+					break;
+				case 2:
+					history.clear();
+					chat.clear();
+					connect.chat.off();
+					connect.state = 3;
+					connect.duel.player[0] = new Player();
+					connect.duel.player[1] = new Player();
+					connect.duel.chain.length = 0;
+					
+					connect.duel.select.cards.show = false;
+					Object.values(connect.duel.select).forEach(i => {
+						if ('show' in i)
+							i.show = false;
+					});
+					break;
+				case 3:
+					const deck = i as Deck;  
+					const msg = new Msg()
+						.write.uint8(CTOS.UPDATE_DECK)
+						.write.uint32(deck.main.length + deck.extra.length)
+						.write.uint32(deck.side.length);
+					for (const i of deck.main
+						.concat(deck.extra)
+						.concat(deck.side)
+					)
+						msg.write.uint32(i);
+					await connect.send?.(msg);
+					break;
+			}
+		} catch (e) {
+			toast.error(e);
+		} finally {
+			connect.debouncing = false;
 		}
-		connect.debouncing = false;
 	},
 	close : async () => {
 		connect.protocol?.disconnect()
