@@ -1578,9 +1578,9 @@ class Protocol {
 				duel.btn?.phase(p) ?? Promise.resolve()
 			]);
 			history.push(HISTORY.PHASE, {
-				self : true,
+				self : !connect.duel.turn,
 				cards : [],
-				avatar : mainGame.get.avatar(0),
+				avatar : mainGame.get.avatar(connect.duel.turn),
 				number : p
 			});
 		}],
@@ -1658,7 +1658,7 @@ class Protocol {
 					card.set.id(code);
 				}
 				history.push(HISTORY.MOVE, {
-					self : true,
+					self : !from.tp,
 					cards : [{
 						id : card.id,
 						pos : card.id ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK
@@ -1795,7 +1795,7 @@ class Protocol {
 				this.chain_code = code;
 				connect.duel.chain.push(card);
 				history.push(HISTORY.CHAINING, {
-					self : true,
+					self : !tp,
 					cards : [{
 						id : card.id,
 						pos : POS.FACEUP_ATTACK
@@ -2399,7 +2399,7 @@ class Protocol {
 					const cards = codes.map(i => i[0]);
 					cards.forEach((i, v) => {
 						history.push(HISTORY.CHAINING, {
-							self : true,
+							self : !i.owner,
 							cards : [{
 								id : i.id,
 								pos : POS.FACEUP_ATTACK
