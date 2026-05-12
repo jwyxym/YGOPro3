@@ -10,7 +10,6 @@ mod sound;
 mod card_info;
 mod lflist;
 mod model;
-mod request;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -23,10 +22,10 @@ pub use self::{
 	strings::Strings,
 	system::System,
 	model::Model,
-	request::{Request, Srv},
 	zip::Zip
 };
 use crate::file::{File, FileContent};
+use crate::request::Request;
 
 use serde::Serialize;
 use anyhow::{Error, Result, anyhow};

@@ -4,6 +4,7 @@ mod deck;
 mod log;
 mod ypk;
 mod file;
+mod request;
 
 use game::{PATH, RESOURCE_PATH};
 use std::path::PathBuf;

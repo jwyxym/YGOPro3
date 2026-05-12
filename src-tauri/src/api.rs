@@ -1,6 +1,7 @@
 
-use crate::game::{self, Game, Srv};
+use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
+use crate::request::{Request, Srv};
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -55,7 +56,7 @@ pub async fn chk_version () -> Result<bool, String> {
 
 #[tauri::command]
 pub fn get_srv (url: String) -> Result<Srv, String> {
-	game::Request::srv(url).map_err(|e| e.to_string())
+	Request::srv(url).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
