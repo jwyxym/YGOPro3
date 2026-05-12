@@ -10,11 +10,11 @@ class Ws {
 		concurrency: 1,
 		autoStart: true
 	});
-	on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
+	on_disconnect ?: () => Promise<void>
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
-		on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
+		on_disconnect ?: () => Promise<void>
 	}) : Promise<boolean> => {
 		try {
 			if (this.ws)
@@ -41,7 +41,7 @@ class Ws {
 						break;
 					case 'Close': 
 						this.queue.add(
-							async () => await this.on_disconnect?.(this.send)
+							async () => await this.on_disconnect?.()
 						);
 				};
 			});
@@ -56,7 +56,7 @@ class Ws {
 		try {
 			await this.ws?.disconnect();
 		} catch {};
-		this.on_disconnect?.(this.send);
+		await this.on_disconnect?.();
 		this.queue.clear();
 		this.ws = undefined;
 	};

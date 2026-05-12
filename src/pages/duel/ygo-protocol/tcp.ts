@@ -11,13 +11,13 @@ class Tcp {
 		autoStart: true
 	});
 	on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>;
-	on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>;
+	on_disconnect ?: () => Promise<void>;
 	cache : Msg = new Msg([]);
 
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
-		on_disconnect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
+		on_disconnect ?: () => Promise<void>
 	}) : Promise<boolean> => {
 		try {
 			this.cache = new Msg([]);
@@ -61,12 +61,12 @@ class Tcp {
 		try {
 			await tcp.disconnect(this.cid);
 		} catch {};
-		await this.on_disconnect?.(this.send);
+		await this.on_disconnect?.();
 		this.queue.clear();
 	};
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;
-		this.queue.add(async () => await on_disconnect?.(this.send));
+		this.queue.add(async () => await on_disconnect?.());
 	};
 };
 
