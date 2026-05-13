@@ -49,11 +49,16 @@ const tauriConfig = {
 	}
 };
 
-
-if (os !== 'dev')
-	tauriConfig.bundle.resources = [
-		"assets"
-	];
+if (os === 'dev')
+	tauriConfig.bundle.resources = [];
+else if (os === 'macos')
+	tauriConfig.bundle.resources = ["assets", "libygoserver.dylib"];
+else if (os === 'linux')
+	tauriConfig.bundle.resources = ["assets", "libygoserver.so"];
+else if (os === 'windows')
+	tauriConfig.bundle.resources = ["assets", "ygoserver.dll"];
+else 
+	tauriConfig.bundle.resources = ["assets"];
 
 const configPath = path.join(__dirname, '../src-tauri/tauri.conf.json');
 fs.writeFileSync(configPath, JSON.stringify(tauriConfig, null, 4), 'utf-8');

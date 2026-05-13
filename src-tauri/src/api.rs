@@ -2,6 +2,7 @@
 use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
 use crate::request::{Request, Srv};
+use crate::ygoserver::YgoServer;
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -200,4 +201,14 @@ pub async fn del_ypk (name: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn exists_ypk (name: String) -> Result<bool, String> {
 	Ypk::exists(name).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn ygoserver_start (args: String) -> Result<(), String> {
+	YgoServer::start(args).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn ygoserver_stop () -> Result<(), String> {
+	YgoServer::stop().map_err(|e| e.to_string())
 }
