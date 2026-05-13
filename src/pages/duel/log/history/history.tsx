@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, reactive } from 'vue';
+import { defineComponent, nextTick, reactive } from 'vue';
 import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
@@ -61,9 +61,10 @@ class _History {
 		async () => {
 			const msg = type instanceof HistoryMsg ? type as HistoryMsg : new HistoryMsg(type, content!);
 			this.msg.push(msg);
+			await nextTick();
 			if (!this.element) return;
 			const { scrollTop, scrollHeight, clientHeight } = this.element;
-			if (scrollTop + clientHeight > scrollHeight - 80)
+			if (scrollTop + clientHeight > scrollHeight - 180)
 				this.element.scrollTop = scrollHeight;
 			await mainGame.sleep(100);
 		}
@@ -89,14 +90,10 @@ const History  = defineComponent({
 		click : (_ : number | string) => true
 	},
 	setup (_, { emit }) {
-		onMounted(() => {
-			const el = history.element;
-			if (el) {
-				el.scrollTop = el.scrollHeight;
-				el.style.scrollBehavior = 'smooth';
-			}
-		});
-		return () => <div class = 'history no-scrollbar' ref = {(el) => history.element = el as HTMLDivElement | null}>
+		return () => <div
+			class = 'history no-scrollbar'
+			ref = {(el) => history.element = el as HTMLDivElement | null}
+		>
 			{history.msg.map(i => {
 				switch (i.type) {
 					case HISTORY.MOVE:

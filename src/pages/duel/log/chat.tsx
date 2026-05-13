@@ -1,4 +1,4 @@
-import { defineComponent, onMounted, reactive } from 'vue';
+import { defineComponent, nextTick, onMounted, reactive } from 'vue';
 import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 
@@ -26,9 +26,10 @@ class _Chat {
 	push = (msg : ChatMsg) => this.queue.add(
 		async () => {
 			this.msg.push(msg);
+			await nextTick();
 			if (!this.element) return;
 			const { scrollTop, scrollHeight, clientHeight } = this.element;
-			if (scrollTop + clientHeight > scrollHeight - 10) {
+			if (scrollTop + clientHeight > scrollHeight - 100) {
 				await mainGame.sleep(100);
 				this.element.scrollTop = scrollHeight;
 			}
@@ -43,8 +44,9 @@ const chat = new _Chat ();
 const Chat  = defineComponent({
 	name : 'chat',
 	setup () {
-		onMounted(() => {
+		onMounted(async () => {
 			const el = chat.element;
+			await nextTick();
 			if (el) {
 				el.scrollTop = el.scrollHeight;
 				el.style.scrollBehavior = 'smooth';

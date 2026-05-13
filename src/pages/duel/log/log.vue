@@ -33,7 +33,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive} from 'vue';
+	import { nextTick, reactive, watch} from 'vue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -45,7 +45,7 @@
 	import { CTOS } from '@/pages/duel/ygo-protocol/network';
 
 	import Chat, { chat } from './chat';
-	import History from './history/history';
+	import History, { history } from './history/history';
 
 
 	const page = reactive({
@@ -67,6 +67,15 @@
 		exit : [];
 		click : [card : string | number];
 	}>();
+
+	watch(() => page.select, async (n) => {
+		const el = n ? history.element : chat.element;
+		await nextTick();
+		if (el) {
+			el.scrollTop = el.scrollHeight;
+			el.style.scrollBehavior = 'smooth';
+		}
+	})
 </script>
 <style scoped lang = 'scss'>
 	@use './history/history.scss';
