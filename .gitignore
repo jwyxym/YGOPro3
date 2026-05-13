@@ -33,5 +33,9 @@ dist-ssr
 .ci/*.conf
 .ci/__pycache__
 src-tauri/tauri.conf.json
-/src-tauri/assets
-/src-tauri/gen
+src-tauri/assets
+src-tauri/*.so
+src-tauri/*.dll
+src-tauri/*.dylib
+src-tauri/gen
+kotlin/jniLibs

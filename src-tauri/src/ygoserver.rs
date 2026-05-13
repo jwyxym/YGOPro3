@@ -1,14 +1,19 @@
 use libloading::{Library, Symbol};
+use anyhow::{Error, Result, anyhow};
+use tokio::sync::OnceCell;
 use std::{
+	os::raw::c_char,
 	sync::{Arc, Mutex},
 	path::Path,
+	ffi::CString,
 	thread::{self, JoinHandle}
 };
-use tokio::sync::OnceCell;
-use anyhow::{Error, Result, anyhow};
 
+static SERVER: OnceCell<YgoServer> = OnceCell::const_new();
 
-pub static SERVER: OnceCell<YgoServer> = OnceCell::const_new();
+pub fn init<P: AsRef<Path>> (path: P) -> Result<(), Error> {
+	YgoServer::init(path)
+}
 
 pub struct YgoServer {
 	lib: Arc<Library>,
@@ -24,15 +29,22 @@ impl YgoServer {
 	}
 	pub fn new<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
 		let path: &Path = path.as_ref();
+
 		unsafe {
 			#[cfg(target_os = "windows")]
-			let lib = Library::new(path.join("ygoserver.dll"))?;
+			let lib: Library = Library::new(path.join("ygoserver.dll"))?;
 
 			#[cfg(target_os = "linux")]
 			let lib = Library::new(path.join("libygoserver.so"))?;
 
 			#[cfg(target_os = "macos")]
 			let lib = Library::new(path.join("libygoserver.dylib"))?;
+			
+			#[cfg(target_os = "android")]
+			let lib = {
+				let _ = path;
+				Library::new("libygoserver.so")
+			}?;
 
 			Ok(Self {
 				lib: Arc::new(lib),
@@ -42,26 +54,26 @@ impl YgoServer {
 	}
 
 	pub fn start (args: String) -> Result<(), Error> {
-		let server: &YgoServer = SERVER.get().ok_or(anyhow!("get server error"))?;
+		let server: &YgoServer = SERVER.get().ok_or(anyhow!("start server error"))?;
 		server.start_server(args);
 		Ok(())
 	}
 
 	pub fn stop () -> Result<(), Error> {
-		let server: &YgoServer = SERVER.get().ok_or(anyhow!("get server error"))?;
+		let server: &YgoServer = SERVER.get().ok_or(anyhow!("stop server error"))?;
 		server.stop_server();
 		Ok(())
 	}
 
 	fn start_server (&self, args: String) {
-		let lib = self.lib.clone();
+		let lib: Arc<Library> = self.lib.clone();
 
-		let handle = thread::spawn(move || {
+		let handle: JoinHandle<()> = thread::spawn(move || {
 			unsafe {
-				let start: Symbol<unsafe extern "C" fn(*const i8) -> i32> =
+				let start: Symbol<unsafe extern "C" fn(*const c_char) -> i32> =
 					lib.get(b"start_server").unwrap();
 
-				let c_args = std::ffi::CString::new(args).unwrap();
+				let c_args: CString = CString::new(args).unwrap();
 				start(c_args.as_ptr());
 			}
 		});

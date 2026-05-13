@@ -5,11 +5,9 @@ mod log;
 mod ypk;
 mod file;
 mod request;
-#[cfg(not(target_os = "android"))]
 mod ygoserver;
 
 use game::{PATH, RESOURCE_PATH};
-use ygoserver::YgoServer;
 use tauri::{
 	Builder,
 	generate_handler,
@@ -70,6 +68,7 @@ pub fn run() {
 					RESOURCE_PATH.set(path.clone()).ok();
 					PATH.set(path).ok();
 				}
+				ygoserver::init(path)?;
 			}
 			#[cfg(not(target_os = "android"))]
 			{
@@ -85,7 +84,7 @@ pub fn run() {
 					PATH.set(path.clone()).ok();
 					path
 				};
-				YgoServer::init(path)?;
+				ygoserver::init(path)?;
 			}
 			Ok(())
 		})

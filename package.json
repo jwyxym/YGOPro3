@@ -6,7 +6,7 @@
 	"scripts": {
 		"copy:cmd": "xcopy kotlin\\ src-tauri\\gen\\android\\app\\src\\main /s /Y /e /I",
 		"copy:sh": "cp -r kotlin/* src-tauri/gen/android/app/src/main/",
-		"json:build": "node .ci/tauri.conf.json.cjs build",
+		"json:build": "node .ci/tauri.conf.json.cjs",
 		"json:dev": "node .ci/tauri.conf.json.cjs dev",
 		"icon": "npm run tauri icon -p src-tauri/icons/icon.jpg",
 		"dev": "vite",
@@ -21,6 +21,8 @@
 		"tauri:android:build:cmd": "npm run copy:cmd&&npm run tauri:android:build",
 		"tauri:android:build:sh": "npm run copy:sh&&npm run tauri:android:build",
 		"tauri:android:init": "tauri android init&&npm run icon",
+		"tauri:android:init:cmd": "tauri:android:init&&mkdir kotlin\\jniLibs",
+		"tauri:android:init:sh": "tauri:android:init&&mkdir kotlin/jniLibs",
 		"tauri": "tauri"
 	},
 	"dependencies": {
