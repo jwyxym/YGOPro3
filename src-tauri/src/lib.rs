@@ -5,10 +5,11 @@ mod log;
 mod ypk;
 mod file;
 mod request;
+#[cfg(not(target_os = "android"))]
+mod ygoserver;
 
 use game::{PATH, RESOURCE_PATH};
-use std::path::PathBuf;
-use tauri_plugin_os::{OsType, type_};
+use ygoserver::YgoServer;
 use tauri::{
 	Builder,
 	generate_handler,
@@ -56,30 +57,36 @@ pub fn run() {
 			api::write_log,
 			api::del_ypk,
 			api::exists_ypk,
+			api::ygoserver_start,
+			api::ygoserver_stop,
 		])
 		.setup(|app| {
-			match type_() {
-				OsType::Android => {
-					let path: PathBuf = app.path().resolve("./", BaseDirectory::Public)?;
-					if let Some(path) = path.parent() {
-						let path: PathBuf = path.to_path_buf();
-						let _ = log::init(&path);
-						let _ = RESOURCE_PATH.set(path.clone());
-						let _ = PATH.set(path);
-					}
+			#[cfg(target_os = "android")]
+			{
+				let path = app.path().resolve("./", BaseDirectory::Public)?;
+				if let Some(parent) = path.parent() {
+					let path = parent.to_path_buf();
+					log::init(&path)?;
+					RESOURCE_PATH.set(path.clone()).ok();
+					PATH.set(path).ok();
 				}
-				_ => {
-					let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;
-					let _ = RESOURCE_PATH.set(path.clone());
-					if let Ok(_) = log::init(&path) {
-						let _ = PATH.set(path);
-					} else {
-						let path: PathBuf = app.path().resolve("./", BaseDirectory::AppLocalData)?;
-						let _ = log::init(&path);
-						let _ = PATH.set(path);
-					}
-				}
-			};
+			}
+			#[cfg(not(target_os = "android"))]
+			{
+				let path = app.path().resolve("./", BaseDirectory::Resource)?;
+				RESOURCE_PATH.set(path.clone()).ok();
+
+				let path = if log::init(&path).is_err() {
+					let path = app.path().resolve("./", BaseDirectory::AppLocalData)?;
+					log::init(&path)?;
+					PATH.set(path.clone()).ok();
+					path
+				} else {
+					PATH.set(path.clone()).ok();
+					path
+				};
+				YgoServer::init(path)?;
+			}
 			Ok(())
 		})
 		.run(tauri::generate_context!())
