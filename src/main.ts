@@ -7,12 +7,13 @@ import '@varlet/ui/es/style.mjs';
 import { FakeQQUI } from 'fake-qq-ui';
 import 'fake-qq-ui/styles/fake-qq-ui.css';
 import 'fake-qq-ui/styles/light.scss';
+import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 const ygopro = createApp(YGO);
 
 ygopro.use(Vue3StarrySky);
 ygopro.use(Varlet);
-ygopro.use(FakeQQUI)
+ygopro.use(FakeQQUI);
 
 ygopro.mount('#ygopro');
 

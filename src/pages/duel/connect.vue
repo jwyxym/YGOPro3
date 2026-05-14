@@ -264,7 +264,7 @@
 				key = '1'
 			/>
 			<Log
-				v-if = 'connect.chat.show'
+				v-show = 'connect.chat.show'
 				@exit = 'connect.chat.off'
 				key = '2'
 			/>

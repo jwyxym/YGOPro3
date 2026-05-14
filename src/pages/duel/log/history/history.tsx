@@ -1,4 +1,5 @@
-import { defineComponent, nextTick, reactive } from 'vue';
+import { defineComponent, nextTick, reactive, ComponentPublicInstance } from 'vue';
+import { RecycleScroller } from 'vue-virtual-scroller';
 import PQueue from 'p-queue';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
@@ -43,10 +44,12 @@ interface HistoryContent {
 
 class HistoryMsg {
 	type : number;
+	index : number;
 	content : HistoryContent;
-	constructor(type : number, content :  HistoryContent) {
+	constructor(type : number, content :  HistoryContent, index : number = 0) {
 		this.type = type;
 		this.content = content;
+		this.index = index;
 	}
 };
 
@@ -59,7 +62,7 @@ class _History {
 	});
 	push = (type : HistoryMsg | number, content ?: HistoryContent) => this.queue.add(
 		async () => {
-			const msg = type instanceof HistoryMsg ? type as HistoryMsg : new HistoryMsg(type, content!);
+			const msg = type instanceof HistoryMsg ? type as HistoryMsg : new HistoryMsg(type, content!, this.msg.length);
 			this.msg.push(msg);
 			await nextTick();
 			if (!this.element) return;
@@ -90,188 +93,192 @@ const History  = defineComponent({
 		click : (_ : number | string) => true
 	},
 	setup (_, { emit }) {
-		return () => <div
+		return () => <RecycleScroller
 			class = 'history no-scrollbar'
-			ref = {(el) => history.element = el as HTMLDivElement | null}
-		>
-			{history.msg.map(i => {
-				switch (i.type) {
-					case HISTORY.MOVE:
-						return <div class = {['history__card__move',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-							<Desc
-								position = {true}
-								desc = {i.content.from + ' → ' + i.content.to}
-							/>
-						</div>
-					case HISTORY.BATTEL:
-						return <div class = {['history__card__battel',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-							<Desc
-								desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
-							/>
-							<Pic
-								id = {i.content.cards[1].id}
-								pos = {i.content.cards[1].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-						</div>
-					case HISTORY.ANNOUNCE:
-						let content
-						{
-							if (i.content.cards.length)
-								content = <Pic
-									id = {i.content.cards[0].id}
+			ref = {(el) => history.element = (el as ComponentPublicInstance | null)?.$el as HTMLDivElement ?? null}
+			keyField = 'index'
+			items = {history.msg}
+			item-size = {80}
+			v-slots={{
+				default : ({ item } : { item : HistoryMsg }) => {
+					switch (item.type) {
+						case HISTORY.MOVE:
+							return <div class = {['history__card__move',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
 									onClick = {(v : number | string) => emit('click', v)}
 								/>
-							else if (i.content.number !== undefined)
-								content = <Num
-									number = {i.content.number}
-								/>
-						}
-						return <div class = {['history__announce',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<div>
 								<Desc
-									desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_ANNOUNCE) + ' →'}
+									position = {true}
+									desc = {item.content.from + ' → ' + item.content.to}
 								/>
-								{content}
-							</div>
-						</div>
-					case HISTORY.LP:
-						return <div class = {['history__lp',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<Num
-								number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_LP) + ' : ' + i.content.number!}
-							/>
-						</div>
-					case HISTORY.DRAW:
-						return <div class = {['history__draw',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<Cards
-								cards = {i.content.cards.map(i => i.id)}
-								width = {300}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-						</div>
-					case HISTORY.POS_CHANGE:
-						return <div class = {['history__pos',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-							<Desc
-								desc = ' →'
-							/>
-							<Pic
-								id = {i.content.cards[1].id}
-								pos = {i.content.cards[1].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-						</div>
-					case HISTORY.DECK_COUNT:
-						return <div class = {['history__deck__count',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Cover/>
-							<Desc
-								desc = {String(i.content.number!)}
-								position = {true}
-							/>
-						</div>
-					case HISTORY.CHAINING:
-						return <div class = {['history__chaining',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAINING, i.content.number!)} />
-						</div>
-					case HISTORY.CHAIN_SOLVED:
-						return <div class = {['history__chain_sloved',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-							<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED, i.content.number!)} />
-						</div>
-					case HISTORY.CONFIRM:
-						return <div class = {['history__confirm',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<Pic
-								id = {i.content.cards[0].id}
-								pos = {i.content.cards[0].pos}
-								onClick = {(v : number | string) => emit('click', v)}
-							/>
-						</div>
-					case HISTORY.PHASE:
-						return <div class = {['history__phase',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<Num
-								number = {Phase.get(i.content.number as number)!}
-							/>
-						</div>
-					case HISTORY.TURN:
-						return <div class = {['history__phase',
-								i.content.self ? 'history__self' : 'history__oppo'
-							]}>
-							<Avatar
-								avatar = {i.content.avatar!}
-								self = {i.content.self}
-							/>
-							<Num
-								number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_TURN, i.content.number!)}
-							/>
-						</div>
+							</div>;
+						case HISTORY.BATTEL:
+							return <div class = {['history__card__battel',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+								<Desc
+									desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
+								/>
+								<Pic
+									id = {item.content.cards[1].id}
+									pos = {item.content.cards[1].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+							</div>;
+						case HISTORY.ANNOUNCE:
+							let content
+							{
+								if (item.content.cards.length)
+									content = <Pic
+										id = {item.content.cards[0].id}
+										onClick = {(v : number | string) => emit('click', v)}
+									/>
+								else if (item.content.number !== undefined)
+									content = <Num
+										number = {item.content.number}
+									/>
+							}
+							return <div class = {['history__announce',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<div>
+									<Desc
+										desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_ANNOUNCE) + ' →'}
+									/>
+									{content}
+								</div>;
+							</div>;
+						case HISTORY.LP:
+							return <div class = {['history__lp',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<Num
+									number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_LP) + ' : ' + item.content.number!}
+								/>
+							</div>;
+						case HISTORY.DRAW:
+							return <div class = {['history__draw',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<Cards
+									cards = {item.content.cards.map(i => i.id)}
+									width = {300}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+							</div>;
+						case HISTORY.POS_CHANGE:
+							return <div class = {['history__pos',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+								<Desc
+									desc = ' →'
+								/>
+								<Pic
+									id = {item.content.cards[1].id}
+									pos = {item.content.cards[1].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+							</div>;
+						case HISTORY.DECK_COUNT:
+							return <div class = {['history__deck__count',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Cover/>
+								<Desc
+									desc = {String(item.content.number!)}
+									position = {true}
+								/>
+							</div>;
+						case HISTORY.CHAINING:
+							return <div class = {['history__chaining',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+								<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAINING, item.content.number!)} />
+							</div>;
+						case HISTORY.CHAIN_SOLVED:
+							return <div class = {['history__chain_sloved',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+								<Desc desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED, item.content.number!)} />
+							</div>;
+						case HISTORY.CONFIRM:
+							return <div class = {['history__confirm',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<Pic
+									id = {item.content.cards[0].id}
+									pos = {item.content.cards[0].pos}
+									onClick = {(v : number | string) => emit('click', v)}
+								/>
+							</div>;
+						case HISTORY.PHASE:
+							return <div class = {['history__phase',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<Num
+									number = {Phase.get(item.content.number as number)!}
+								/>
+							</div>;
+						case HISTORY.TURN:
+							return <div class = {['history__phase',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<Num
+									number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_TURN, item.content.number!)}
+								/>
+							</div>;
+					}
 				}
-			})}
-		</div>;
+			}}
+		/>;
 	},
 });
 

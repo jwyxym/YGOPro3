@@ -3,13 +3,13 @@
 	display: flex;
 	flex-direction: column;
 	gap: 1px;
-	> * {
-		display: flex;
-		height: 80px;
+	:deep(.vue-recycle-scroller__item-view) {
 		width: 100%;
 		border-bottom: 1px solid white;
 		> div {
-			height: 100%;
+			display: flex;
+			height: 80px;
+			width: 100%;
 		}
 	}
 	:deep(.history__deck__count),
