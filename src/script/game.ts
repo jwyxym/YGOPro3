@@ -83,7 +83,7 @@ class Game {
 			this.lflist = new Map(lflist);
 			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(model);
-			this.bgm.push(...sounds);
+			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
 			if (!this.font.textContent)
@@ -258,8 +258,6 @@ class Game {
 
 	clear = () : void => {
 		this.cards.forEach(i => i.clear());
-		this.bgm.forEach((i) => URL.revokeObjectURL(i[1]));
-		this.bgm.length = 0;
 	};
 
 	load = {

@@ -113,14 +113,11 @@ impl Game {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		Self::unzip(app, overwrite).await?;
 
-		let mut sound: Sound = Sound::new();
-
 		let (system, resource, lflist, servers, model) = Self::load_config(path).await;
 
-		let (mut pack, (card_info, db, strings), _) = join!(
+		let (mut pack, (card_info, db, strings)) = join!(
 			Self::load_expansion(app, path, &system),
-			Self::load_i18n(path, system.i18n()),
-			sound.read_dir(path.join("sound"), resource.sound())
+			Self::load_i18n(path, system.i18n())
 		);
 		pack.insert(String::from("./"), GamePack {
 			on: true,
@@ -137,8 +134,8 @@ impl Game {
 			system: system,
 			font: Font::new()
 				.read_dir(path.join("font"), resource.font()),
+			sound: Sound::new().read_dir(path.join("sound"), resource.sound()),
 			resource: resource,
-			sound: sound,
 			pack: pack
 		})
 	}
@@ -500,7 +497,7 @@ impl Game {
 		Ok(game.font.to_array())
 	}
 
-	pub async fn get_sound () -> Result<Vec<(String, Vec<u8>)>, Error> {
+	pub async fn get_sound () -> Result<Vec<(String, String)>, Error> {
 		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Game> = game.read().await;
 		Ok(game.sound.to_array())
