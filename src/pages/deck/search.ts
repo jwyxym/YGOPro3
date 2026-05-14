@@ -71,16 +71,16 @@ class Search {
 				)
 			)
 			&& (!(this.lflist && this.lflist.length && this.forbidden && this.forbidden.length)
-				|| this.lflist && this.lflist.length && this.forbidden && this.forbidden.length && (() => {
+				|| (this.lflist && this.lflist.length && this.forbidden && this.forbidden.length && (() => {
 				const lflist = mainGame.get.lflist(this.lflist);
 				if (lflist.genesys) {
 					const ct = lflist.get.glist(card.id);
-					if (ct !== 0 && this.forbidden.findIndex(i => compare(i, ct)) > -1)
+					if (this.forbidden.findIndex(i => compare(i, ct)) > -1)
 						return true;
 				}
 				const ct = lflist?.get.lflist(card.id);
 				return this.forbidden.findIndex(i => compare(i, ct, lflist.genesys ? 3 : undefined)) > -1;
-			})())
+			})()))
 		);
 	}
 };
