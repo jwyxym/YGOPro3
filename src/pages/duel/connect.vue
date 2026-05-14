@@ -1,8 +1,13 @@
 <template>
 	<main class = 'ygopro3__duel'>
 		<TransitionGroup tag = 'div' name = 'opacity'>
+			<Single
+				v-if = '!connect.state && !model'
+				@connect = 'connect.on'
+				key = '0'
+			/>
 			<Server
-				v-if = '!connect.state'
+				v-if = '!connect.state && model === 1'
 				@connect = 'connect.on'
 				key = '0'
 			/>
@@ -75,6 +80,7 @@
 				:deck = 'connect.wait.deck.current'
 				:del = 'false'
 				@card = '(card : number) => connect.duel.card = card'
+				key = '8'
 			/>
 		</TransitionGroup>
 		<div>
@@ -284,6 +290,7 @@
 	import connect from './connect';
 	import RPS from './rps.vue';
 	import Avatar from './avatar.vue';
+	import Single from './single.vue';
 
 	import Log from './log/log.vue';
 
@@ -357,6 +364,15 @@
 				));
 		else close();
 	});
+	
+	const props = defineProps<{
+		/*
+			0: single;
+			1: server;
+			2: replay;
+		*/
+		model : 0 | 1 | 2
+	}>();
 </script>
 <style scoped lang = 'scss'>
 	main {

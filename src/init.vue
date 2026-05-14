@@ -12,7 +12,13 @@
 				@exit = 'page.select.menu'
 			/>
 			<Duel
+				v-if = 'page.show.single'
+				:model = '0'
+				@exit = 'page.select.menu'
+			/>
+			<Duel
 				v-if = 'page.show.server'
+				:model = '1'
 				@exit = 'page.select.menu'
 			/>
 			<Setting
@@ -51,6 +57,7 @@
 			dialog : false,
 			menu : false,
 			server : false,
+			single : false,
 			deck : false,
 			setting : false
 		},

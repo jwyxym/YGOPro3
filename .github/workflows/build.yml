@@ -73,7 +73,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: 1.88.0
+        toolchain: 1.95.0
 
     - name: Rust cache
       uses: swatinem/rust-cache@v2
@@ -161,7 +161,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: 1.88.0
+        toolchain: 1.95.0
 
     - name: Rust cache
       uses: swatinem/rust-cache@v2
@@ -254,7 +254,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: 1.88.0
+        toolchain: 1.95.0
         target: ${{ matrix.target }}-apple-darwin
 
     - name: Rust cache
@@ -338,7 +338,7 @@ jobs:
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: 1.88.0
+        toolchain: 1.95.0
 
     - name: Rust cache
       uses: swatinem/rust-cache@v2
