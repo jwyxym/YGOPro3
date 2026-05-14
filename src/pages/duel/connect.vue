@@ -269,6 +269,9 @@
 				key = '2'
 			/>
 		</TransitionGroup>
+		<PicHint
+			:pic = 'connect.duel.hint_pic'
+		/>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -288,12 +291,13 @@
 	import Server from './server.vue';
 	import Wait from './wait.vue';
 	import connect from './connect';
-	import RPS from './rps.vue';
-	import Avatar from './avatar.vue';
 	import Single from './single.vue';
 
 	import Log from './log/log.vue';
 
+	import PicHint from './scene/pic_hint.vue';
+	import Avatar from './scene/avatar.vue';
+	import RPS from './scene/rps.vue';
 	import Scene, { duel } from './scene/scene';
 	import Phase from './scene/phase';
 	import Chain from './scene/chain.vue';

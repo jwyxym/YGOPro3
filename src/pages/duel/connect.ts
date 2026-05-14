@@ -130,6 +130,12 @@ class Duel {
 	cards : Array<Client_Card> = [];
 	player : [Player, Player] = reactive([new Player(), new Player()]);
 	chain : Array<Client_Card> = [];
+	hint_pic = '';
+	hint = async (code : number) : Promise<void> => {
+		connect.duel.hint_pic = mainGame.get.card(code).pic;
+		await mainGame.sleep(400);
+		connect.duel.hint_pic = '';
+	};
 	turn : 0 | 1 = 0;
 	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
@@ -254,37 +260,38 @@ const connect = reactive({
 						else if (!para.address)
 							throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
 						const p = callback(para.name, para.pass, para.address);
-						const get_srv = async () => {
-							const address = para!.address;
+						const get_srv = async () : Promise<string> => {
+							const address = para.address;
 							if (!address.includes(':') && !para.protocal)
-								para!.address = connect.srv_cache.get(address) ??
+								return connect.srv_cache.get(address) ??
 									await (async () : Promise<string> => {
 										const url = await invoke.game.get_srv(address)
 										connect.srv_cache.set(address, url);
 										return url;
 									})();
+							return address;
 						};
-						switch (para!.protocal) {
+						switch (para.protocal) {
 							case 0:
 								connect.protocol = tcp;
 								break;
 							case 1:
-								para!.address = `ws://${para!.address}`;
+								para.address = `ws://${para.address}`;
 								connect.protocol = ws;
 								break;
 							case 2:
-								para!.address = `wss://${para!.address}`;
+								para.address = `wss://${para.address}`;
 								connect.protocol = ws;
 								break;
 						}
-						await Promise.all([
+						const promise = await Promise.all([
 							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
 							mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
 							get_srv()
 						]);
 						await Promise.all([
 							mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
-							connect.protocol.connect(para.address, p)
+							connect.protocol.connect(promise[2], p)
 						]);
 					}
 					break;

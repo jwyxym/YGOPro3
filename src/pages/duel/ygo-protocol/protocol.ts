@@ -581,11 +581,15 @@ class Protocol {
 					break;
 				case HINT.CODE:
 					this.hint(mainGame.get.strings.system(1511, mainGame.get.name(content)), player);
+					await mainGame.load.pic([content]);
+					await connect.duel.hint(content);
 					break;
 				case HINT.NUMBER:
 					this.hint(mainGame.get.strings.system(1512, content), player);
 					break;
 				case HINT.CARD:
+					await mainGame.load.pic([content]);
+					await connect.duel.hint(content);
 					break;
 				case HINT.ZONE:
 					break;
@@ -1792,6 +1796,7 @@ class Protocol {
 			if (card) {
 				await mainGame.load.pic([code]);
 				card.set.id(code);
+				await card.update();
 				this.chain_code = code;
 				connect.duel.chain.push(card);
 				history.push(HISTORY.CHAINING, {
@@ -1803,8 +1808,8 @@ class Protocol {
 					number : connect.duel.chain.length
 				});
 				await Promise.all([
-					duel.update(),
-					card.hint.activate()
+					card.hint.activate(),
+					connect.duel.hint(code)
 				]);
 			}
 		}],
