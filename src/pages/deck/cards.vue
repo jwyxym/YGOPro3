@@ -79,7 +79,7 @@
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import Card from '@/script/card';
+	import Card, { TYPE } from '@/script/card';
 	import GLOBAL from '@/script/scale';
 	import LFList from '@/script/lflist';
 	import Deck from '@/pages/deck/deck';
@@ -443,6 +443,10 @@
 
 	watch(() => GLOBAL.SCALE, page.size.resize);
 
+	const type = {
+		main : TYPE.MONSTER | TYPE.SPELL | TYPE.TRAP,
+		ex : TYPE.LINK | TYPE.XYZ | TYPE.FUSION | TYPE.SYNCHRO
+	};
 	defineExpose<{
 		clear : () => void;
 		sort : () => void;
@@ -457,7 +461,17 @@
 					a : mainGame.get.card(a.code),
 					b : mainGame.get.card(b.code)
 				};
-				return card.a.level === card.b.level ? card.a.id - card.b.id : card.b.level - card.a.level;
+				const type_a = card.a.type & type.main;
+				const type_b = card.b.type & type.main;
+				const type_a_ex = card.a.type & type.ex;
+				const type_b_ex = card.b.type & type.ex;
+				return type_a === type_b
+					? type_a_ex === type_b_ex
+						? card.a.level === card.b.level
+							? card.a.id - card.b.id
+							: card.b.level - card.a.level
+						: type_a_ex - type_b_ex
+					: type_a - type_b;
 			};
 			[page.deck.main, page.deck.extra, page.deck.side]
 				.forEach(deck => {
