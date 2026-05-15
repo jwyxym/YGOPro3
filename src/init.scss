@@ -1,0 +1,14 @@
+@use '@/pages/deck/deck.scss';
+@use '@/pages/setting/setting.scss';
+@use '@/pages/duel/duel.scss';
+@use '@/pages/menu/menu.scss';
+@use '@/pages/toast/toast.scss';
+@use '@/pages/loading/loading.scss';
+.mobile {
+	.var-popup__content {
+		transform: scale(70%);
+	}
+	.var-menu__menu {
+		transform: scale(calc(var(--scale) * 1.4));
+	}
+}

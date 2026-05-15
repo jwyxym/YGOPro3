@@ -155,8 +155,7 @@
 	}
 </style>
 <style lang = 'scss'>
-	@use '@/pages/toast/toast.scss';
-	@use '@/style/init.scss';
+	@use './init.scss';
 	.var-icon, .cursor {
 		&:hover {
 			cursor: pointer;
