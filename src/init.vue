@@ -217,8 +217,6 @@
 	.var-popup__content, .var-menu__menu {
 		transform: scale(var(--scale));
 		transform-origin: center top !important;
-	}
-	.var-popup__content {
 		background-color: rgba(0, 0, 0, 0.5) !important;
 	}
 	:root {

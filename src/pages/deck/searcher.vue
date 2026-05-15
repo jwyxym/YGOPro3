@@ -48,7 +48,6 @@
 		</div>
 		<div>
 			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH)' @click = 'search.on'/>
-			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SETTING)' @click = 'setting.on'/>
 			<Button :content = 'mainGame.get.text(I18N_KEYS.EXIT)' @click = "emit('exit')"/>
 			<p @click = 'page.back' class = 'pointer'><span>&#9650;</span></p>
 		</div>
@@ -172,28 +171,6 @@
 				</div>
 			</div>
 		</div>
-		<div class = 'setting no-scrollbar'
-			:style = "{ '--y' : setting.y }"
-			ref = 'setting_div'
-		>
-			<Input
-				:placeholder = 'mainGame.get.text(I18N_KEYS.DECK_NAME)'
-				:rules = 'setting.name_rule'
-				variant = 'outlined'
-				v-model = 'setting.name'
-			/>
-			<div class = 'btn'>
-				<div
-					v-for = "i in setting.btns"
-				>
-					<Button
-						:icon_name = 'i.icon'
-						:content = 'mainGame.get.text(i.key)'
-						@click = 'i.func'
-					/>
-				</div>
-			</div>
-		</div>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -209,13 +186,11 @@
 
 	import Pic, { CardPic } from '@/pages/deck/pic.vue';
 	import Input from '@/pages/ui/input.vue';
-	import Button, { Icon } from '@/pages/ui/button.vue';
+	import Button from '@/pages/ui/button.vue';
 	import Select from '@/pages/ui/select.vue';
-	import { toast } from '@/pages/toast/toast';
 	import Deck from './deck';
 
 	const search_div = ref<HTMLDivElement | null>(null);
-	const setting_div = ref<HTMLDivElement | null>(null);
 	const list = ref<HTMLDivElement | null>(null);
 
 	const cards = ref<Array<ComponentPublicInstance> | null>(null);
@@ -233,7 +208,6 @@
 		mousedown : (e : MouseEvent) : void => page.start(e.target as HTMLElement),
 		start : (target : HTMLElement) : void => {
 			if (search.off(target)) return;
-			if (setting.off(target)) return;
 			const v : number = cards.value?.findIndex(i => i.$el.contains(target)) ?? -1;
 			if (v < 0) return;
 			cards.value![v].$el.style.transition = 'none';
@@ -272,44 +246,6 @@
 		back : () => {
 			if (list.value)
 				list.value.scrollTop = 0;
-		}
-	});
-
-	const setting = reactive({
-		y : `${200 / GLOBAL.SCALE}vh`,
-		name : '',
-		on : () => setting.y = '-50%',
-		off : (target : HTMLElement) : boolean => {
-			const vh = `${200 / GLOBAL.SCALE}vh`;
-			if (setting.y !== vh
-				&& setting_div.value && !setting_div.value.contains(target)
-			) {
-				setting.y = vh;
-				return true;
-			}
-			return false;
-		},
-		btns : [
-			{ icon : 'save', key : I18N_KEYS.DECK_SETTING_SAVE, func : async () => {
-				const rule = await setting.name_rule(setting.name);
-				typeof rule == 'boolean' ? emit('save', setting.name) : toast.error(rule);
-			} },
-			{ icon : 'share', key : I18N_KEYS.DECK_SETTING_SHARE, func : async () => {
-				const rule = await setting.name_rule(setting.name);
-				typeof rule == 'boolean' ? emit('share', setting.name) : toast.error(rule);
-			} },
-			{ icon : 'sort', key : I18N_KEYS.DECK_SETTING_SORT, func : () => emit('sort') },
-			{ icon : 'disrupt', key : I18N_KEYS.DECK_SETTING_DISRUPT, func : () => emit('disrupt') },
-			{ icon : 'clear', key : I18N_KEYS.DECK_SETTING_CLEAR, func : () => emit('clear') },
-		] as Array<{ icon : Icon; key : number; func : Function; }>,
-		name_rule : async (name ?: string) : Promise<string | boolean> => {
-			if (name === undefined || name.length === 0)
-				return mainGame.get.text(I18N_KEYS.RULE_NAME_LEN);
-			if (name.match(REG.NAME))
-				return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
-			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
-				return mainGame.get.text(I18N_KEYS.RULE_NAME_EXIST);
-			return true;
 		}
 	});
 
@@ -494,7 +430,6 @@
 		window.removeEventListener('touchend', page.touchstart);
 	});
 
-	watch(() => props.deck.name, (n) => setting.name = n ?? '', { immediate : true });
 	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
 </script>
 <style lang = 'scss' scoped>
@@ -575,7 +510,7 @@
 			position: fixed;
 			top: 50%;
 			left: 50%;
-			transform: translate(var(--x), -50%);
+			transform: translate(var(--x), calc(-50% - 10px));
 			width: calc(var(--width) * 2);
 			height: var(--height);
 			background-color: rgba(0, 0, 0, 0.8);
@@ -692,40 +627,6 @@
 					display: flex;
 					justify-content: center;
 					align-items: center;
-				}
-			}
-		}
-		.setting {
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, var(--y));
-			width: 500px;
-			height: 130px;
-			background-color: rgba(0, 0, 0, 0.8);
-			color: white;
-			overflow-y: auto;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			transition: all 0.2s ease;
-			.var-input {
-				margin-top: 15px;
-				width: 90%;
-				height: 70px;
-			}
-			.btn {
-				width: 90%;
-				display: flex;
-				flex-wrap: wrap;
-				gap: 5px;
-				&::-webkit-scrollbar {
-					display: none;
-				}
-				> div {
-					flex: 1;
-					min-width: 85px;
-					height: 30px;
 				}
 			}
 		}

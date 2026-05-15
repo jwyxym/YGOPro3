@@ -51,6 +51,18 @@
 			}
 		}
 		> .deck {
+			> div:nth-child(2) {
+				> div:first-child {
+					gap: 150px;
+					.var-input {
+						transform: scale(140%) translateY(10px);
+						width: 50%;
+					}
+					.var-menu {
+						transform: translateY(10px);
+					}
+				}
+			}
 			> main:last-child {
 				> div:first-child {
 					gap: 125px;
@@ -81,13 +93,6 @@
 					}
 					> p {
 						transform: scale(140%) translateY(-10px);
-					}
-				}
-				.setting {
-					transform: scale(140%) translate(-50%, var(--y));
-					transform-origin: left top;
-					.var-button, .var-input {
-						transform: initial;
 					}
 				}
 				.search {

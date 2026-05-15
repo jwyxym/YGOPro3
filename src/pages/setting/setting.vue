@@ -39,6 +39,7 @@
 	.ygopro3__setting {
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
+		background: rgba(0, 0, 0, 0.5);
 		color: white;
 		border: 1px solid white;
 		border-radius: 10px;

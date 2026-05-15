@@ -5,18 +5,30 @@
 			:width = 'page.width[0]'
 			v-model = 'page.card'
 		/>
-		<Deck_Box
-			v-if = 'page.ct'
-			:ref = '(el) => (page.el = el as InstanceType<typeof Deck_Box> | null)'
-			:height = 'page.height'
-			:width = 'page.width[1]'
-			:count = 'page.ct'
-			:deck = 'this_deck'
-			:lflist = 'page.lflist'
-			:del = 'true'
-			@card = 'page.oncard'
-			@move = 'page.move.on'
-		/>
+		<div>
+			<Deck_Setting
+				:height = '70'
+				:width = 'page.width[1]'
+				:deck = 'this_deck'
+				@save = 'page.save'
+				@sort = 'page.sort'
+				@share = 'page.copy'
+				@disrupt = 'page.disrupt'
+				@clear = 'page.clear'
+			/>
+			<Deck_Box
+				v-if = 'page.ct'
+				:ref = '(el) => (page.el = el as InstanceType<typeof Deck_Box> | null)'
+				:height = 'page.height - 70'
+				:width = 'page.width[1]'
+				:count = 'page.ct'
+				:deck = 'this_deck'
+				:lflist = 'page.lflist'
+				:del = 'true'
+				@card = 'page.oncard'
+				@move = 'page.move.on'
+			/>
+		</div>
 		<Search_Box
 			:height = 'page.height'
 			:width = 'page.width[0]'
@@ -25,11 +37,6 @@
 			:deck = 'this_deck'
 			@card = 'page.oncard'
 			@lflist = '(lflist ?: LFList) => page.lflist = lflist'
-			@save = 'page.save'
-			@sort = 'page.sort'
-			@share = 'page.copy'
-			@disrupt = 'page.disrupt'
-			@clear = 'page.clear'
 			@exit = "emit('exit')"
 			@hover = '(i : [HTMLElement, number]) => page.el?.hover(i[0], i[1])'
 			@add = '(i : number) => page.el?.add(i)'
@@ -43,15 +50,16 @@
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import LFList from '@/script/lflist';
+	import GLOBAL from '@/script/scale';
 
 	import dialog from '@/pages/ui/dialog';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
 	import Search_Box from './searcher.vue';
+	import Deck_Setting from './setting.vue';
 	import Deck_Box from './cards.vue';
 	import Card_Box from './card_info.vue';
-	import GLOBAL from '@/script/scale';
 
 	const page = reactive({
 		el : null as null | InstanceType<typeof Deck_Box>,
@@ -116,9 +124,15 @@
 </script>
 <style scoped lang = 'scss'>
 	main {
+		height: 100%;
 		display: flex;
 		align-self: center;
 		justify-items: flex-start;
 		gap: 5px;
+		> div:nth-child(2) {
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+		}
 	}
 </style>

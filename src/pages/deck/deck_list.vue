@@ -72,9 +72,15 @@
 						key = '4'
 					/>
 					<Button
+						v-if = 'page.button === 1'
+						:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
+						@click = 'list.unselect'
+						key = '5'
+					/>
+					<Button
 						:content = 'mainGame.get.text(I18N_KEYS.EXIT)'
 						@click = "emit('exit')"
-						key = '5'
+						key = '6'
 					/>
 				</TransitionGroup>
 			</main>
@@ -143,12 +149,9 @@
 		decks : [] as Array<Deck>,
 		selected : -1,
 		select : async (n : number) => {
-			if (list.selected === n) {
-				list.selected = -1;
-				page.button = -1;
-				await mainGame.sleep(200);
-				page.button = 0;
-			} else {
+			if (list.selected === n)
+				page.indeck(list.decks[list.selected]);
+			else {
 				list.selected = -1;
 				page.button = -1;
 				input.cancel();
@@ -156,6 +159,12 @@
 				list.selected = n;
 				page.button = 1;
 			}
+		},
+		unselect : async () => {
+			list.selected = -1;
+			page.button = -1;
+			await mainGame.sleep(200);
+			page.button = 0;
 		},
 		load : async (deck ?: Deck) : Promise<void> => {
 			const decks = await mainGame.load.deck();
