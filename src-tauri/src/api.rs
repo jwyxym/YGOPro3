@@ -205,7 +205,11 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 
 #[tauri::command]
 pub async fn ygoserver_start (args: String) -> Result<(), String> {
-	YgoServer::start(args).map_err(|e| e.to_string())
+	let (path, i18n, pack) = Game::get_server_args()
+		.await.map_err(|e| e.to_string())?;
+	let args: String = format!("{} {} {} {}", args, path, i18n, pack);
+	YgoServer::start(args)
+		.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
