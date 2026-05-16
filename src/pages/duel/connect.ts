@@ -203,9 +203,6 @@ const connect = reactive({
 		pass : string;
 		address : string;
 		protocal : 0 | 1 | 2;
-	} | {
-		name : string;
-		args : string;
 	} | Deck) => {
 		if (connect.debouncing)
 			return;
@@ -241,59 +238,50 @@ const connect = reactive({
 							}
 						};
 					};
-					const local_server = i && 'args' in i;
-					if (local_server) {
-						const address = 'localhost:7911';
-						await invoke.server.start(i.args);
-						const p = callback(i.name, '', address);
-						connect.protocol = tcp;
-						await connect.protocol.connect(address, p);
-					} else {
-						const para = i as {
-							name : string;
-							pass : string;
-							address : string;
-							protocal : 0 | 1 | 2;
-						};
-						if (!para.name)
-							throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
-						else if (!para.address)
-							throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
-						const p = callback(para.name, para.pass, para.address);
-						const get_srv = async () : Promise<string> => {
-							const address = para.address;
-							if (!address.includes(':') && !para.protocal)
-								return connect.srv_cache.get(address) ??
-									await (async () : Promise<string> => {
-										const url = await invoke.game.get_srv(address)
-										connect.srv_cache.set(address, url);
-										return url;
-									})();
-							return address;
-						};
-						switch (para.protocal) {
-							case 0:
-								connect.protocol = tcp;
-								break;
-							case 1:
-								para.address = `ws://${para.address}`;
-								connect.protocol = ws;
-								break;
-							case 2:
-								para.address = `wss://${para.address}`;
-								connect.protocol = ws;
-								break;
-						}
-						const promise = await Promise.all([
-							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
-							mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
-							get_srv()
-						]);
-						await Promise.all([
-							mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
-							connect.protocol.connect(promise[2], p)
-						]);
+					const para = i as {
+						name : string;
+						pass : string;
+						address : string;
+						protocal : 0 | 1 | 2;
+					};
+					if (!para.name)
+						throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
+					else if (!para.address)
+						throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
+					const p = callback(para.name, para.pass, para.address);
+					const get_srv = async () : Promise<string> => {
+						const address = para.address;
+						if (!address.includes(':') && !para.protocal)
+							return connect.srv_cache.get(address) ??
+								await (async () : Promise<string> => {
+									const url = await invoke.game.get_srv(address)
+									connect.srv_cache.set(address, url);
+									return url;
+								})();
+						return address;
+					};
+					switch (para.protocal) {
+						case 0:
+							connect.protocol = tcp;
+							break;
+						case 1:
+							para.address = `ws://${para.address}`;
+							connect.protocol = ws;
+							break;
+						case 2:
+							para.address = `wss://${para.address}`;
+							connect.protocol = ws;
+							break;
 					}
+					const promise = await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
+						mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
+						get_srv()
+					]);
+					await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
+						connect.protocol.connect(promise[2], p)
+					]);
 					break;
 				case 1:
 					connect.wait.players.filter(i => i.status).length < (connect.wait.info.mode & 0x2 ? 4 : 2)
