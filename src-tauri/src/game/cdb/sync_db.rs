@@ -1,23 +1,30 @@
 use super::STMT;
 use rusqlite::{Connection, Statement, Row};
 use anyhow::{Result, Error, anyhow};
-use std::{mem, ffi::c_char};
-use libsqlite3_sys::{sqlite3_deserialize, SQLITE_DESERIALIZE_FREEONCLOSE, SQLITE_DESERIALIZE_RESIZEABLE};
+use std::ffi::c_char;
+use libsqlite3_sys::{sqlite3_deserialize, sqlite3_malloc, sqlite3_free, SQLITE_DESERIALIZE_FREEONCLOSE, SQLITE_DESERIALIZE_RESIZEABLE};
 
-pub fn init (mut data: Vec<u8>) -> Result<Vec<(u32, (Vec<i64>, Vec<String>))>, Error> {
+pub fn init (data: Vec<u8>) -> Result<Vec<(u32, (Vec<i64>, Vec<String>))>, Error> {
 	let conn: Connection = Connection::open_in_memory()?;
-	let ptr: *mut u8 = data.as_mut_ptr();
-	let len: i64 = data.len() as i64;
-	data.shrink_to_fit();
-	let capacity: usize = data.capacity();
-	mem::forget(data);
+	let len: usize = data.len();
+	if len > (i32::MAX as usize) {
+		return Err(anyhow!("database buffer too large"));
+	}
+	let len_c_int: i32 = len as i32;
+	let len_i64: i64 = len as i64;
 	unsafe {
+		let buf = sqlite3_malloc(len_c_int) as *mut u8;
+		if buf.is_null() {
+			return Err(anyhow!("sqlite3_malloc failed"));
+		}
+		std::ptr::copy_nonoverlapping(data.as_ptr(), buf, len as usize);
+
 		let rc: i32 = sqlite3_deserialize(
 			conn.handle(),
 			b"main\0".as_ptr() as *const c_char,
-			ptr,
-			len,
-			len,
+			buf as *mut _,
+			len_i64,
+			len_i64,
 			SQLITE_DESERIALIZE_FREEONCLOSE | SQLITE_DESERIALIZE_RESIZEABLE,
 		);
 		match rc {
@@ -38,8 +45,8 @@ pub fn init (mut data: Vec<u8>) -> Result<Vec<(u32, (Vec<i64>, Vec<String>))>, E
 				Ok(iter.filter_map(Result::ok).collect())
 			}
 			_ => {
-				if !ptr.is_null() {
-					let _ = Vec::from_raw_parts(ptr as *mut u8, len as usize, capacity);
+				if !buf.is_null() {
+					sqlite3_free(buf as *mut _);
 				}
 				Err(anyhow!("sqlite error"))
 			}
