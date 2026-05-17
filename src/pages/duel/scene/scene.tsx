@@ -54,11 +54,7 @@ class _Duel {
 	init = () => {
 		if (!this.element)
 			return;
-		Object.assign(this.renderer.domElement.style, {
-			opacity : '0',
-			transition : 'all 0.5s ease',
-			transform : 'translateX(80px)'
-		});
+		this.renderer.domElement.classList.add('ygopro3__duel__scene')
 		this.renderer.setSize(GLOBAL.WIDTH - 600, GLOBAL.HEIGHT);
 		this.camera.position.set(0, -300, 780);
 		this.camera.lookAt(0, -60, 0);
@@ -75,7 +71,7 @@ class _Duel {
 		this.element!.appendChild(this.renderer.domElement);
 		this.interval = 1000 / (mainGame.get.system(KEYS.SETTING_FRAME) as number);
 		requestAnimationFrame(this.animate);
-		this.renderer.domElement.style.opacity = '1';
+		this.renderer.domElement.classList.add('show')
 		window.addEventListener('click', duel.click);
 	};
 
@@ -564,10 +560,11 @@ class _Duel {
 						i.location === LOCATION.MZONE
 						&& i.seq === seq
 					);
-					c
-						?.set.overlay(arr.length)
-						.clear.equip();
-					if (c?.equip && c.equip.location & LOCATION.OVERLAY)
+					c?.set.overlay(arr.length);
+					if (c?.equip && ((c.location & LOCATION.OVERLAY)
+							|| (c.equip.location & LOCATION.OVERLAY)
+						)
+					)
 						c.clear.equip();
 				}
 			}
@@ -698,6 +695,10 @@ const Duel = defineComponent({
 		onMounted(duel.init);
 		onUnmounted(duel.clear.self);
 		return () => <div
+			style = {{
+				'--height' : `${SIZE.HEIGHT}px`,
+				'--width' : `${SIZE.WIDTH}px`
+			}}
 			ref = {(el) => duel.set_element(el as HTMLDivElement | null)}
 		/>;
 	},
