@@ -100,7 +100,7 @@ jobs:
     
     - name: Android Init
       run: |
-        npm run tauri:android:init:sh
+        npm run tauri:android:init
 
     - name: Install wget and unzip
       run: |
