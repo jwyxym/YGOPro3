@@ -327,7 +327,7 @@
 	
 	const side = reactive({
 		show : true,
-		count : 15,
+		count : mainGame.get.system(KEYS.SETTING_CT_SIDE_PRELINE) as number,
 		width : (GLOBAL.WIDTH - 360) * 0.9 / 1.6 + 40,
 		height : GLOBAL.HEIGHT * 0.9,
 		el : null as InstanceType<typeof Side> | null

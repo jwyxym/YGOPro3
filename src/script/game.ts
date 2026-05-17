@@ -55,6 +55,7 @@ class Game {
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
 			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
 			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
+			console.log(this.system)
 
 			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
 			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
