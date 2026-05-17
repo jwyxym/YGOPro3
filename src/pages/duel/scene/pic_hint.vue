@@ -10,8 +10,6 @@
 	const props = defineProps<{
 		pic ?: string;
 	}>();
-
-	console.log(props.pic)
 </script>
 <style scoped lang = 'scss'>
 	.pic {

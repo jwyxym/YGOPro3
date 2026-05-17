@@ -8,6 +8,7 @@
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Expansions v-if = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
 			<System v-if = 'page.select === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
+			<More v-if = 'page.select === 2' key = '1' :i18n = 'page.i18n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -25,6 +26,7 @@
 
 	import Expansions from './expansions.vue';
 	import System from './system.vue';
+	import More from './more.vue';
 	import Button from '@/pages/ui/button.vue';
 	const page = reactive({
 		select : 0,

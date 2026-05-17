@@ -1,5 +1,3 @@
-import * as fs from '@tauri-apps/plugin-fs';
-
 const REG = {
 	NAME : /[<>:"/\\|?*\x00-\x1F]|^[\s.]|[\s.]$|\.$/g,
 	ATK : /^[0-9?\s<>=.]*$/,
@@ -96,6 +94,7 @@ const KEYS = {
 	SETTING_AVATAR_SELF : 'CT_AVATAR_SELF',
 	SETTING_AVATAR_OPPO : 'CT_AVATAR_OPPO',
 	SETTING_AVATAR_SERVER : 'CT_AVATAR_SERVER',
+	SETTING_AVATAR_WATCHER : 'CT_WATCHER_SERVER',
 	SETTING_VOICE : 'CT_VOICE',
 	SETTING_FRAME : 'CT_FRAME',
 	SETTING_LOADING_EXPANSION : 'LOADING_EXPANSION',

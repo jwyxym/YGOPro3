@@ -1,4 +1,4 @@
-import { defineComponent, PropType } from 'vue';
+import { defineComponent } from 'vue';
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 
