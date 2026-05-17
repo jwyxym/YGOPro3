@@ -46,7 +46,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, watch } from 'vue';
+	import { reactive } from 'vue';
 
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
@@ -73,7 +73,7 @@
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
 		card : 0,
-		ct : 0,
+		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
 		move : {
 			x : 0,
@@ -134,8 +134,6 @@
 			return true;
 		}
 	});
-
-	watch(() => GLOBAL.SCALE, (n) => page.ct = n < 0.6 ? 6 : 10, { immediate : true });
 
 	const emit = defineEmits<{
 		update : [name : string];

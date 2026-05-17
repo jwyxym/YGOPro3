@@ -58,6 +58,24 @@ impl System {
 		system.number
 			.entry(String::from("CT_DECK_SIDE"))
 			.or_insert(15.0);
+		#[cfg(not(target_os = "android"))]
+		{
+			system.number
+				.entry(String::from("CT_DECK_PRELINE"))
+				.or_insert(10.0);
+			system.number
+				.entry(String::from("CT_SIDE_PRELINE"))
+				.or_insert(15.0);
+		}
+		#[cfg(target_os = "android")]
+		{
+			system.number
+				.entry(String::from("CT_DECK_PRELINE"))
+				.or_insert(6.0);
+			system.number
+				.entry(String::from("CT_SIDE_PRELINE"))
+				.or_insert(9.0);
+		}
 		[
 			"CT_AVATAR_SELF",
 			"CT_AVATAR_OPPO",
