@@ -3,7 +3,6 @@ import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
-import * as SIZE from './scene-size';
 
 class Plaid {
 	three : CSS.CSS3DObject;
@@ -19,12 +18,7 @@ class Plaid {
 	constructor (x : number, y : number) {
 		const dom = document.createElement('div');
 		const child = document.createElement('div');
-		Object.assign(child.style, {
-			width : `${SIZE.HEIGHT}px`,
-			height : `${SIZE.HEIGHT}px`,
-			border : '2px solid #9ed3ff',
-			transition : 'all 0.2s ease'
-		});
+		child.classList.add('ygopro3__duel__plaid');
 		dom.appendChild(child);
 		this.child = child;
 		this.disable = false;
@@ -100,24 +94,16 @@ class Plaid {
 	set = {
 		disable : async () : Promise<void> => {
 			this.disable = !this.disable;
-			this.child.style.boxShadow = this.disable ? 'inset 0 0 20px rgba(0, 255, 255, 0.6)'
-				: 'initial';
+			this.child.classList.contains('disable')
+				? this.child.classList.remove('disable')
+				: this.child.classList.add('disable');
 			await mainGame.sleep(200);
 		},
 		forbbiden : async () : Promise<void> => {
 			this.forbbiden = !this.forbbiden;
-			Object.assign(this.child.style, this.forbbiden ? {
-					background : `
-						linear-gradient(to top right, transparent calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% + 2px), transparent calc(50% + 2px)),
-						linear-gradient(to bottom right, transparent calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% - 2px), rgba(255, 50, 50, 0.8) calc(50% + 2px), transparent calc(50% + 2px)),
-						rgba(255, 0, 0, 0.15)
-					`,
-					borderColor : 'rgba(255, 50, 50, 0.8)'
-				} : {
-					background : 'initial',
-					borderColor : '#9ed3ff'
-				}
-			);
+			this.child.classList.contains('forbbiden')
+				? this.child.classList.remove('forbbiden')
+				: this.child.classList.add('forbbiden');
 			await mainGame.sleep(200);
 		}
 	};

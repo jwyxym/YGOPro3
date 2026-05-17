@@ -1,0 +1,189 @@
+$boder-color: #9ed3ff;
+.ygopro3__duel {
+	.ygopro3__duel__scene {
+		opacity: 0;
+		transition: all 0.5s ease;
+		transform: translateX(80px);
+		.ygopro3__duel__btn {
+			width: var(--height);
+			height: calc(var(--width) / 3);
+			color : $boder-color;
+			text-shadow:
+				-1px -1px 0 black,
+				1px -1px 0 black,
+				-1px 1px 0 black,
+				1px 1px 0 black;
+			font-size: 20px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			border: 2px solid $boder-color;
+			> span {
+				opacity: 0;
+				transition: all 0.1s ease;
+				&.show {
+					opacity: 1;
+				}
+			}
+		}
+		.ygopro3__duel__plaid {
+			width: var(--height);
+			height: var(--height);
+			border: 2px solid $boder-color;
+			transition: all 0.2s ease;
+			&.disable {
+				box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.6);
+			}
+			&.forbbiden {
+				background:
+					linear-gradient(
+						to top right,
+						transparent calc(50% - 2px),
+						rgba(255, 50, 50, 0.8) calc(50% - 2px),
+						rgba(255, 50, 50, 0.8) calc(50% + 2px),
+						transparent calc(50% + 2px)
+					),
+					linear-gradient(
+						to bottom right,
+						transparent calc(50% - 2px),
+						rgba(255, 50, 50, 0.8) calc(50% - 2px),
+						rgba(255, 50, 50, 0.8) calc(50% + 2px),
+						transparent calc(50% + 2px)
+					),
+					rgba(255, 0, 0, 0.15);
+				border-color: rgba(255, 50, 50, 0.8);
+			}
+		}
+		.ygopro3__duel__card {
+			position: relative;
+			opacity: 0;
+			color: white;
+			transition: opacity 0.2s ease;
+			> .show,
+			&.show {
+				opacity: 1 !important;
+			}
+			.ygopro3__duel__card__border {
+				opacity: 0;
+				box-shadow: 0 0 10px 5px yellow;
+				pointer-events: none;
+			}
+			.ygopro3__duel__card__border,
+			.ygopro3__duel__card__img {
+				position: absolute;
+				transform: translate(calc(var(--width) / -2), calc(var(--height) / -2));
+				width: var(--width);
+				height: var(--height);
+				transition: all 0.2s ease;
+				outline-color: blue;
+			}
+			.ygopro3__duel__card__img {
+				&.forbbiden {
+					filter: grayscale(100%)
+				}
+				&.set {
+					box-shadow: 0 0 8px rgba(119, 166, 255, 1);
+				}
+				&.activate {
+					box-shadow: 0 0 8px yellow;
+				}
+				&.activated {
+					filter: brightness(1.5);
+				}
+				&.disable {
+					filter: grayscale(100%);
+				}
+				&.selected {
+					transform: translate(calc(var(--width) / -2), calc(var(--height) / -2 - 50px)) !important;
+				}
+				&.equip {
+					outline: 2px solid blue;
+				}
+			}
+			.ygopro3__duel__card__atk {
+				background-color: rgba(0, 0, 0, 0.3);
+				position: absolute;
+				opacity: 0;
+				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 16px));
+				width: var(--width);
+				text-shadow:
+					-1px -1px 0 black,
+					1px -1px 0 black,
+					-1px 1px 0 black,
+					1px 1px 0 black;
+				font-size: 20px;
+				display: flex;
+				justify-content: center;
+				transition: opacity 0.2s ease;
+				user-select: none;
+				pointer-events: none;
+			}
+			.ygopro3__duel__card__info {
+				position: absolute;
+				opacity: 0;
+				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 56px));
+				height: 16px;
+				width: var(--height);
+				text-shadow:
+					-1px -1px 0 black,
+					1px -1px 0 black,
+					-1px 1px 0 black,
+					1px 1px 0 black;
+				font-size: 18px;
+				transition: opacity 0.2s ease;
+				user-select: none;
+				pointer-events: none;
+				> div {
+					height: 100%;
+					width: 28px;
+					position: absolute;
+					display: flex;
+					gap: 2px;
+					opacity: 0;
+					transition: opacity 0.2s ease;
+					> img {
+						height: 100%;
+					}
+					> span {
+						transition: opacity 0.1s ease;
+						&.TUNER {
+							color: lightgreen;
+						}
+					}
+				}
+			}
+			.ygopro3__duel__card__counter {
+				position: absolute;
+				opacity: 0;
+				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 36px));
+				height: 16px;
+				width: var(--height);
+				color: white;
+				text-shadow:
+					-1px -1px 0 black,
+					1px -1px 0 black,
+					-1px 1px 0 black,
+					1px 1px 0 black;
+				font-size: 20px;
+				align-items: center;
+				transition: all 0.2s ease;
+				user-select: none;
+				pointer-events: none;
+				> div {
+					position: absolute;
+					opacity: 0;
+					height: 100%;
+					width: 28px;
+					display: flex;
+					> img {
+						height: 100%;
+					}
+				}
+			}
+		}
+	}
+
+	.ygopro3__duel__scene.show {
+		opacity: 1;
+	}
+}

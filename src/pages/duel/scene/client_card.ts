@@ -89,85 +89,35 @@ class Client_Card {
 	init = {
 		on : () : CSS.CSS3DObject => {
 			const dom = document.createElement('div');
-			Object.assign(dom.style, {
-				position : 'relative',
-				opacity : '0',
-				fontFamily : 'ATK',
-				color : 'white',
-				transition : 'opacity 0.2s ease'
-			});
+			dom.classList.add('ygopro3__duel__card', 'font-atk');
 			dom.appendChild(this.init.border());
 			dom.appendChild(this.init.img(mainGame.back.pic));
 			dom.appendChild(this.init.atk());
 			dom.appendChild(this.init.info());
 			dom.appendChild(this.init.counter());
-			dom.appendChild(this.init.equip());
-			setTimeout(() => dom.style.opacity = '1', 0);
+			setTimeout(() => dom.classList.add('show'), 0);
 			return new CSS.CSS3DObject(dom);
 		},
 		border : () : HTMLDivElement => {
 			const child = document.createElement('div');
-			Object.assign(child.style, {
-				position : 'absolute',
-				opacity : '0',
-				left : `${- SIZE.WIDTH / 2}px`,
-				top : `${- SIZE.HEIGHT / 2}px`,
-				width : `${SIZE.WIDTH}px`,
-				height : `${SIZE.HEIGHT}px`,
-				transition : 'all 0.2s ease',
-				boxShadow: '0 0 10px 5px yellow',
-				pointerEvents : 'none'
-			});
+			child.classList.add('ygopro3__duel__card__border');
 			return child;
 		},
 		img : (src : string) : HTMLImageElement => {
 			const child = document.createElement('img');
+			child.classList.add('ygopro3__duel__card__img');
 			child.src = src;
-			Object.assign(child.style, {
-				position : 'absolute',
-				left : `${- SIZE.WIDTH / 2}px`,
-				top : `${- SIZE.HEIGHT / 2}px`,
-				width : `${SIZE.WIDTH}px`,
-				height : `${SIZE.HEIGHT}px`,
-				transition : 'all 0.2s ease',
-			});
 			return child;
 		},
 		atk : () : HTMLDivElement => {
 			const child = document.createElement('div');
+			child.classList.add('ygopro3__duel__card__atk');
 			child.innerText = '';
-			Object.assign(child.style, {
-				backgroundColor : 'rgba(0, 0, 0, 0.3)',
-				opacity : '0',
-				position : 'absolute',
-				left : `-${SIZE.HEIGHT / 2}px`,
-				top : `${SIZE.HEIGHT / 2 - 16}px`,
-				width : `${SIZE.HEIGHT}px`,
-				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-				fontSize : '20px',
-				display : 'flex',
-				justifyContent : 'center',
-				transition : 'all 0.2s ease',
-				userSelect : 'none',
-				pointerEvents : 'none'
-			});
 			return child;
 		},
 		info : () : HTMLDivElement => {
 			const child = document.createElement('div');
-			Object.assign(child.style, {
-				opacity : '1',
-				position : 'absolute',
-				left : `-${SIZE.HEIGHT / 2}px`,
-				top : `${SIZE.HEIGHT / 2 - 56}px`,
-				height : '16px',
-				width : `${SIZE.HEIGHT}px`,
-				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-				fontSize : '18px',
-				transition : 'all 0.2s ease',
-				userSelect : 'none',
-				pointerEvents : 'none'
-			});
+			child.classList.add('ygopro3__duel__card__info');
 			for (const i of [
 				KEYS.LINK,
 				KEYS.RANK,
@@ -178,24 +128,11 @@ class Client_Card {
 			]) {
 				const div = document.createElement('div');
 				div.classList.add(i);
-				Object.assign(div.style, {
-					height : '100%',
-					width : '28px',
-					position : 'absolute',
-					display : 'flex',
-					gap : '2px',
-					opacity : '0',
-					transition : 'all 0.2s ease'
-				});
 				const img = document.createElement('img');
 				img.src = mainGame.get.textures(KEYS.INFO, i) as string;
-				img.style.height = '100%';
 				div.appendChild(img);
 				const span = document.createElement('span');
-				span.style.transition = 'all 0.1s ease';
 				span.innerText = '';
-				if (i === KEYS.TUNER)
-					span.style.color = 'lightgreen';
 				div.appendChild(span);
 				child.appendChild(div);
 			}
@@ -203,37 +140,7 @@ class Client_Card {
 		},
 		counter : () : HTMLDivElement => {
 			const child = document.createElement('div');
-			Object.assign(child.style, {
-				opacity : '1',
-				position : 'absolute',
-				left : `-${SIZE.HEIGHT / 2}px`,
-				top : `${SIZE.HEIGHT / 2 - 36}px`,
-				height : '16px',
-				width : `${SIZE.HEIGHT}px`,
-				color : 'white',
-				textShadow : '-1px -1px 0 black, 1px -1px 0 black, -1px 1px 0 black, 1px 1px 0 black',
-				fontSize : '20px',
-				alignItems: 'center',
-				transition : 'all 0.2s ease',
-				userSelect : 'none',
-				pointerEvents : 'none'
-			});
-			return child;
-		},
-		equip : () : HTMLDivElement => {
-			const child = document.createElement('div');
-			Object.assign(child.style, {
-				position : 'absolute',
-				opacity : '0',
-				left : `-${SIZE.HEIGHT / 2}px`,
-				top : `${- SIZE.HEIGHT / 2}px`,
-				width : `${SIZE.HEIGHT}px`,
-				height : `${SIZE.HEIGHT}px`,
-				transition : 'all 0.2s ease',
-				boxShadow: '0 0 5px 2px blue',
-				userSelect : 'none',
-				pointerEvents : 'none'
-			});
+			child.classList.add('ygopro3__duel__card__counter');
 			return child;
 		}
 	};
@@ -245,8 +152,7 @@ class Client_Card {
 			atk : () : HTMLDivElement => this.three.element.children[2] as HTMLDivElement,
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[3] as HTMLDivElement,
-			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
-			equip : () : HTMLDivElement => this.three.element.children[5] as HTMLDivElement
+			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -405,37 +311,50 @@ class Client_Card {
 			if (!this.need_change.status)
 				return;
 			this.need_change.status = false;
-			const style = this.get.el.img().style;
-			if (!this.status)
-				style.filter = 'initial';
+			const img = this.get.el.img();
+			if (!this.status && img.classList.contains('forbbiden'))
+				img.classList.remove('forbbiden');
 			else if (this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
-				style.filter = 'grayscale(100%)';
+				img.classList.add('forbbiden');
 			await mainGame.sleep(200);
 		}
 		const activate = async () : Promise<void> => {
 			if (!this.need_change.activate)
 				return;
 			this.need_change.activate = false;
-			const style = this.get.el.img().style;
-			style.boxShadow = (() => {
+			const img = this.get.el.img();
+			const result = (() => {
 				const cards = duel.get.cards()
 					.filter(i => i.location & this.location && i.owner === this.owner);
 				const seq = cards.length - 1;
 				if ((this.location & (LOCATION.EXTRA | LOCATION.DECK | LOCATION.GRAVE | LOCATION.REMOVED))
 					&& this.seq !== seq)
-					return 'initial';
+					return 0;
 				const some = this.location & (LOCATION.HAND | LOCATION.ONFIELD) ?
 					(i : number) : boolean => !!this.activatable.get(i)?.length
 					: (i : number) : boolean => !!lodash.sumBy(cards.map(c => c.activatable.get(i)!), i => i.length)
 
 				if ([COMMAND.ACTIVATE, COMMAND.SPSUMMON]
 					.some(some))
-					return '0 0 8px yellow';
+					return 1;
 				else if ([COMMAND.SSET, COMMAND.MSET, COMMAND.REPOS, COMMAND.ATTACK, COMMAND.SUMMON]
 					.some(some))
-					return '0 0 8px rgba(119, 166, 255, 1)';
-				else return 'initial';
+					return 2;
+				else return 0;
 			})();
+			switch (result) {
+				case 0:
+					img.classList.remove('activate', 'set');
+					break;
+				case 1:
+					img.classList.remove('set');
+					img.classList.add('activate');
+					break;
+				case 2:
+					img.classList.remove('activate');
+					img.classList.add('set');
+					break;
+			}
 			await mainGame.sleep(100);
 		};
 		const counter = () : gsap.core.Timeline | void => {
@@ -446,17 +365,9 @@ class Client_Card {
 				const div = document.createElement('div');
 				//为指示物div设置class，class为指示物编号
 				div.classList.add(`COUNTER${counter}`);
-				Object.assign(div.style, {
-					height : '100%',
-					width : '28px',
-					position : 'absolute',
-					display : 'flex',
-					opacity : '0'
-				});
 				//指示物图标
 				const img = document.createElement('img');
 				img.src = mainGame.get.counter(counter);
-				img.style.height = '100%';
 
 				//指示物数量
 				const span = document.createElement('span');
@@ -618,7 +529,7 @@ class Client_Card {
 			const text = this.type & TYPE.LINK ? this.atk.toString() : `${this.atk ?? 0}/${this.def ?? 0}`;
 			if (atk.innerText === text)
 				return;
-			if (gsap.getProperty(atk, 'opacity')) {
+			if (atk.classList.contains('show')) {
 				const tl = gsap.timeline();
 				tl.to(atk, {
 					opacity : 0,
@@ -685,17 +596,17 @@ class Client_Card {
 		};
 		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
 			if (this.location === LOCATION.MZONE)
-				this.get.el.atk().style.opacity = '1';
+				this.get.el.atk().classList.add('show');
 			if (this.location === LOCATION.MZONE
 				|| ((this.location & (LOCATION.SZONE | LOCATION.PZONE))
 					&& (this.type & TYPE.PENDULUM))
 			)
-				this.get.el.info().style.opacity = '1';
-			this.get.el.counter().style.opacity = '1';
+				this.get.el.info().classList.add('show');
+			this.get.el.counter().classList.add('show');
 		} else {
-			this.get.el.info().style.opacity = '0';
-			this.get.el.atk().style.opacity = '0';
-			this.get.el.counter().style.opacity = '0';
+			this.get.el.info().classList.remove('show');
+			this.get.el.atk().classList.remove('show');
+			this.get.el.counter().classList.remove('show');
 		}
 		const run = async () => {
 			const tls = [
@@ -778,20 +689,20 @@ class Client_Card {
 
 	hint = {
 		activate : async () : Promise<void> => {
-			const style = this.get.el.img().style;
-			if (style.filter === 'brightness(1.5)')
+			const img = this.get.el.img();
+			if (img.classList.contains('activated'))
 				return;
-			style.filter = 'brightness(1.5)';
+			img.classList.add('activated');
 			await mainGame.sleep(600);
-			style.filter = 'initial';
+			img.classList.remove('activated');
 		},
 		negative : async () : Promise<void> => {
-			const style = this.get.el.img().style;
-			if (style.filter === 'grayscale(100%)')
+			const img = this.get.el.img();
+			if (img.classList.contains('disable'))
 				return;
-			style.filter = 'grayscale(100%)';
+			img.classList.add('disable');
 			await mainGame.sleep(600);
-			style.filter = 'initial';
+			img.classList.remove('disable');
 		},
 		selected : async () : Promise<void> => {
 			const tl = gsap.timeline();
@@ -832,8 +743,8 @@ class Client_Card {
 		},
 		equip : (show ?: boolean) : void => {
 			if (this.location & LOCATION.ONFIELD) {
-				const i = this.get.el.equip();
-				i.style.opacity = (show ? 1 : 0).toString();
+				const i = this.get.el.img();
+				show ? i.classList.add('equip') : i.classList.remove('equip');
 			}
 		}
 	};
@@ -843,7 +754,10 @@ class Client_Card {
 			if (this.location & LOCATION.HAND) {
 				const z = Axis.computed.card(this).z ?? 0;
 				const img = this.get.el.img();
-				img.style.transform = `translateY(${this.clicked ? 0 : '-50px'})`;
+
+				img.classList.contains('selected')
+					? img.classList.remove('selected')
+					: img.classList.add('selected');
 				this.three.position.z = z + (this.clicked ? 0 : SIZE.GAP.HAND * 2);
 			}
 			this.clicked = !this.clicked;

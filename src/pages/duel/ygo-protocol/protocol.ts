@@ -284,7 +284,7 @@ class Protocol {
 			if (protocol === MSG.UPDATE_DATA)
 				this.need_update = true;
 			else if (this.need_update)  {
-				await duel.update()
+				await duel.update();
 				this.need_update = false;
 			}
 			await this.msg.get(protocol)?.(msg, send);
