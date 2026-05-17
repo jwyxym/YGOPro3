@@ -45,7 +45,7 @@ class _Duel {
 	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);
 		
-		if (time - this.time < this.interval) return
+		if (time - this.time < this.interval) return;
 
 		this.time = time;
 		this.renderer.render(this.scene, this.camera);

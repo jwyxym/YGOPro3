@@ -248,7 +248,8 @@ const connect = reactive({
 						throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
 					else if (!para.address)
 						throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
-					const p = callback(para.name, para.pass, para.address);
+					const pass = para.pass.startsWith('#') && para.pass[1] !== '#' ? para.pass.slice(1) : para.pass;
+					const p = callback(para.name, pass, para.address);
 					const get_srv = async () : Promise<string> => {
 						const address = para.address;
 						if (!address.includes(':') && !para.protocal)
