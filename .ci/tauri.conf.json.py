@@ -49,16 +49,10 @@ tauri_config = {
 	}
 }
 
-if os == 'dev':
-	tauri_config["bundle"]["resources"] = []
-elif os == 'macos':
-	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.dylib"]
-elif os == 'linux':
-	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.so"]
-elif os == 'windows':
-	tauri_config["bundle"]["resources"] = ["assets", "ygoserver.dll"]
-else:
-	tauri_config["bundle"]["resources"] = ["assets"]
+if os != 'dev':
+	tauri_config["bundle"]["resources"] = [
+		"assets"
+	]
 
 path = './src-tauri/tauri.conf.json'
 with open(path, 'w', encoding = 'utf-8') as f :
