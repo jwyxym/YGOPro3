@@ -25,10 +25,10 @@ import { chat } from './log/chat';
 
 class Wait {
 	players = [
-		{ name : '', status : false, avatar : mainGame.get.avatar(0) },
-		{ name : '', status : false, avatar : mainGame.get.avatar(0) },
-		{ name : '', status : false, avatar : mainGame.get.avatar(1) },
-		{ name : '', status : false, avatar : mainGame.get.avatar(1) }
+		{ name : '', status : false, avatar : '' },
+		{ name : '', status : false, avatar : '' },
+		{ name : '', status : false, avatar : '' },
+		{ name : '', status : false, avatar : '' }
 	];
 	self = {
 		is_host : false,

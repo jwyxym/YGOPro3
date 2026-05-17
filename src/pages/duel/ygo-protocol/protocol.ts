@@ -48,7 +48,7 @@ class Protocol {
 		this.msg.set(MSG.CHAIN_DISABLED, this.msg.get(MSG.CHAIN_NEGATED)!);
 		this.msg.set(MSG.PAY_LPCOST, this.msg.get(MSG.DAMAGE)!);
 	};
-	server_msg = (str : string) => new ChatMsg(SERVER, str, '');
+	server_msg = (str : string) => new ChatMsg(SERVER, str, mainGame.get.avatar(2));
 	hint = (msg : ChatMsg | string, player ?: number, players : Array<{
 		name : string;
 		status : boolean;
@@ -415,6 +415,15 @@ class Protocol {
 			connect.wait.info.start_hand = msg.read.uint8() ?? 5;
 			connect.wait.info.draw_count = msg.read.uint8() ?? 1;
 			connect.wait.info.time_limit = msg.read.uint16() ?? 240;
+			if (connect.wait.info.mode & 2) {
+				connect.wait.players[0].avatar = mainGame.get.avatar(0);
+				connect.wait.players[1].avatar = mainGame.get.avatar(0);
+				connect.wait.players[2].avatar = mainGame.get.avatar(1);
+				connect.wait.players[3].avatar = mainGame.get.avatar(1);
+			} else {
+				connect.wait.players[0].avatar = mainGame.get.avatar(0);
+				connect.wait.players[1].avatar = mainGame.get.avatar(1);
+			}
 		}],
 		[STOC.TYPE_CHANGE, async (msg : Msg) => {
 			const type = msg.read.uint8();
@@ -459,7 +468,7 @@ class Protocol {
 			else if (player === 9)
 				this.error(`[Script Error]: ${str}`);
 			else if ((player < 11 || player > 19) && player !== 8)
-				this.hint(new ChatMsg(mainGame.get.text(I18N_KEYS.SERVER_WATCHER), str, ''));
+				this.hint(new ChatMsg(mainGame.get.text(I18N_KEYS.SERVER_WATCHER), str, mainGame.get.avatar(3)));
 			else this.hint(str);
 		}],
 		[STOC.HS_PLAYER_ENTER, async (msg : Msg) => {

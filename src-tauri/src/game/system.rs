@@ -58,15 +58,17 @@ impl System {
 		system.number
 			.entry(String::from("CT_DECK_SIDE"))
 			.or_insert(15.0);
-		system.number
-			.entry(String::from("CT_AVATAR_SELF"))
-			.or_insert(0.0);
-		system.number
-			.entry(String::from("CT_AVATAR_OPPO"))
-			.or_insert(0.0);
-		system.number
-			.entry(String::from("CT_AVATAR_SERVER"))
-			.or_insert(0.0);
+		[
+			"CT_AVATAR_SELF",
+			"CT_AVATAR_OPPO",
+			"CT_AVATAR_SERVER",
+			"CT_AVATAR_WATCHER"
+		]
+			.into_iter().for_each(|i| {
+				system.number
+					.entry(String::from(i))
+					.or_insert(0.0);
+			});
 		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
 			.into_iter().for_each(|i| {
 				system.string

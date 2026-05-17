@@ -48,6 +48,7 @@
 		</div>
 		<div>
 			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH)' @click = 'search.on'/>
+			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_SETTING_SAVE)' @click = "emit('save')"/>
 			<Button :content = 'mainGame.get.text(I18N_KEYS.EXIT)' @click = "emit('exit')"/>
 			<p @click = 'page.back' class = 'pointer'><span>&#9650;</span></p>
 		</div>
@@ -397,11 +398,7 @@
 	const emit = defineEmits<{
 		card : [card : number];
 		lflist : [lflist ?: LFList];
-		save : [name : string];
-		share : [name : string];
-		sort : [];
-		disrupt : [];
-		clear : [];
+		save : [];
 		exit : [];
 		hover : [para : [HTMLElement, number]];
 		add : [code : number];

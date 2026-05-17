@@ -7,6 +7,7 @@
 		/>
 		<div>
 			<Deck_Setting
+				v-model = 'page.deck_name'
 				:height = '70'
 				:width = 'page.width[1]'
 				:deck = 'this_deck'
@@ -35,6 +36,7 @@
 			:count = '10'
 			:move = 'page.move'
 			:deck = 'this_deck'
+			@save = 'page.save'
 			@card = 'page.oncard'
 			@lflist = '(lflist ?: LFList) => page.lflist = lflist'
 			@exit = "emit('exit')"
@@ -61,6 +63,10 @@
 	import Deck_Box from './cards.vue';
 	import Card_Box from './card_info.vue';
 
+	const props = defineProps<{
+		this_deck : Deck;
+	}>();
+
 	const page = reactive({
 		el : null as null | InstanceType<typeof Deck_Box>,
 		lflist : undefined as LFList | undefined,
@@ -68,6 +74,7 @@
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
 		card : 0,
 		ct : 0,
+		deck_name : props.this_deck.name ?? '',
 		move : {
 			x : 0,
 			y : 0,
@@ -80,21 +87,31 @@
 		to_deck : (name : string) : Deck => {
 			return page.el?.to_deck(name) ?? new Deck();
 		},
-		save : async (name : string) => {
-			const deck = page.to_deck(name);
-			const write = await mainGame.deck.write(name, deck.toYdkString());
-			let rename = true;
-			if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
-				rename = await mainGame.deck.rename(props.this_deck.name, name);
-			if (write && rename)
-				toast.info(mainGame.get.text(I18N_KEYS.DECK_SAVE_COMPELETE));
-			if (props.this_deck.new)
-				emit('update', name);
+		save : async () => {
+			const name = page.deck_name;
+			const rule = await page.name_rule(name);
+			const save = async () => {
+				const deck = page.to_deck(name);
+				const write = await mainGame.deck.write(name, deck.toYdkString());
+				let rename = true;
+				if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
+					rename = await mainGame.deck.rename(props.this_deck.name, name);
+				if (write && rename)
+					toast.info(mainGame.get.text(I18N_KEYS.DECK_SAVE_COMPELETE));
+				if (props.this_deck.new)
+					emit('update', name);
+			};
+			typeof rule == 'boolean'
+				? save()
+				: toast.error(rule);
 		},
-		sort : () => {
-			page.el?.sort();
+		sort : () => page.el?.sort(),
+		copy : async () => {
+			const rule = await page.name_rule(page.deck_name);
+			typeof rule == 'boolean'
+				? emit('copy', page.to_deck(page.deck_name))
+				: toast.error(rule);
 		},
-		copy : async (name : string) => emit('copy', page.to_deck(name)),
 		disrupt : async () : Promise<void> => {
 			if (await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DISRUPT),
@@ -106,14 +123,19 @@
 				title : mainGame.get.text(I18N_KEYS.DECK_CLEAR),
 			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK)))
 				page.el?.clear();
+		},
+		name_rule : async (name ?: string) : Promise<string | boolean> => {
+			if (name === undefined || name.length === 0)
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_LEN);
+			if (name.match(CONSTANT.REG.NAME))
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
+			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.this_deck.new || (props.this_deck.name!.length > 0 && props.this_deck.name !== name) ? 0 : 1))
+				return mainGame.get.text(I18N_KEYS.RULE_NAME_EXIST);
+			return true;
 		}
 	});
 
 	watch(() => GLOBAL.SCALE, (n) => page.ct = n < 0.6 ? 6 : 10, { immediate : true });
-
-	const props = defineProps<{
-		this_deck : Deck;
-	}>();
 
 	const emit = defineEmits<{
 		update : [name : string];
