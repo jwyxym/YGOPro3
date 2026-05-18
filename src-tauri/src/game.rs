@@ -659,4 +659,25 @@ impl Game {
 			Ok(String::new())
 		}
 	}
+	pub async fn get_server_args () -> Result<(String, String, String), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: String = path.to_string_lossy().into_owned();
+		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
+		let path: String = path.replace("\\", "/");
+		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let i18n: String = game.system.i18n();
+		let pack: String = game.pack
+			.clone()
+			.into_iter()
+			.filter_map(|i: (String, GamePack)| {
+				if i.1.on && !["./expansions", "./"].contains(&i.0.as_str()) {
+					return Some(i.0.clone())
+				}
+				None
+			})
+			.collect::<Vec<String>>()
+			.join("/");
+		Ok((path, i18n, pack))
+	}
 }

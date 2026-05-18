@@ -178,6 +178,11 @@ jobs:
     - name: Rename assets
       run: move src-tauri\assets.zip src-tauri\assets
 
+    - name: Download so
+      run: |
+        cd src-tauri
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/ygoserver.dll
+
     - name: Write Tauri Config
       shell: cmd
       run: |
@@ -266,6 +271,11 @@ jobs:
         
     - name: Rename assets
       run: mv ./src-tauri/assets.zip ./src-tauri/assets
+
+    - name: Download so
+      run: |
+        cd src-tauri
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver.dylib
 
     - name: Write Tauri Config
       run: |
@@ -361,6 +371,11 @@ jobs:
           pkg-config \
           libgtk-3-dev \
           xdg-utils
+
+    - name: Download so
+      run: |
+        cd src-tauri
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver.so
 
     - name: Write Tauri Config
       run: |
