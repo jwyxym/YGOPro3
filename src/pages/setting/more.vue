@@ -134,7 +134,7 @@
 				width: 100%;
 				height: 100px;
 				.select {
-					border: 4px solid yellow;
+					outline: 2px solid yellow;
 				}
 			}
 		}
