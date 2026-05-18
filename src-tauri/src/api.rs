@@ -205,14 +205,13 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 
 #[tauri::command]
 pub async fn ygoserver_start (args: String) -> Result<(), String> {
-	let (path, i18n, pack) = Game::get_server_args()
+	let (i18n, pack) = Game::get_server_args()
 		.await.map_err(|e| e.to_string())?;
-	let args: String = format!("{} {} {} {}", args, path, i18n, pack);
-	YgoServer::start(args)
-		.map_err(|e| e.to_string())
+	YgoServer::start(args, i18n, pack)
+		.await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
-	YgoServer::stop().map_err(|e| e.to_string())
+	YgoServer::stop().await.map_err(|e| e.to_string())
 }

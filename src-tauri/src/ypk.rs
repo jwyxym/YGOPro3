@@ -1,4 +1,4 @@
-use crate::game::PATH;
+use crate::PATH;
 use crate::file::File;
 
 use walkdir::WalkDir;

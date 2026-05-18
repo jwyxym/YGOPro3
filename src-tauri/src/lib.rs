@@ -7,13 +7,19 @@ mod file;
 mod request;
 mod ygoserver;
 
-use game::{PATH, RESOURCE_PATH};
+use std::{
+	path::PathBuf,
+	sync::OnceLock
+};
 use tauri::{
 	Builder,
 	generate_handler,
 	path::BaseDirectory,
 	Manager
 };
+
+pub static RESOURCE_PATH: OnceLock<PathBuf> = OnceLock::new();
+pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -68,7 +74,6 @@ pub fn run() {
 					RESOURCE_PATH.set(path.clone()).ok();
 					PATH.set(path).ok();
 				}
-				ygoserver::init(path)?;
 			}
 			#[cfg(not(target_os = "android"))]
 			{
@@ -78,13 +83,11 @@ pub fn run() {
 				let path = if log::init(&path).is_err() {
 					let path = app.path().resolve("./", BaseDirectory::AppLocalData)?;
 					log::init(&path)?;
-					PATH.set(path.clone()).ok();
 					path
 				} else {
-					PATH.set(path.clone()).ok();
 					path
 				};
-				ygoserver::init(path)?;
+				PATH.set(path).ok();
 			}
 			Ok(())
 		})

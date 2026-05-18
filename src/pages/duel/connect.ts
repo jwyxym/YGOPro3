@@ -213,6 +213,7 @@ const connect = reactive({
 		try {
 			switch (connect.state) {
 				case 0:
+					const local_server = i && 'args' in i;
 					const callback = (name : string, pass : string, address : string) => {
 						const protocol = new Protocol();
 						return {
@@ -238,10 +239,11 @@ const connect = reactive({
 								connect.clear();
 								connect.state = 0;
 								voice.play(KEYS.BACK_BGM);
+								if (local_server)
+									await invoke.server.stop();
 							}
 						};
 					};
-					const local_server = i && 'args' in i;
 					if (local_server) {
 						const address = 'localhost:7911';
 						await invoke.server.start(i.args);

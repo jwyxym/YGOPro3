@@ -1,29 +1,28 @@
+use crate::PATH;
+
 use libloading::{Library, Symbol};
 use anyhow::{Error, Result, anyhow};
-use tokio::sync::OnceCell;
+use tokio::sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::{
 	os::raw::c_char,
 	sync::{Arc, Mutex},
-	path::Path,
+	path::{Path, PathBuf},
 	ffi::CString,
 	thread::{self, JoinHandle}
 };
 
-static SERVER: OnceCell<YgoServer> = OnceCell::const_new();
+static SERVER: OnceCell<RwLock<Option<YgoServer>>> = OnceCell::const_new();
 
-pub fn init<P: AsRef<Path>> (path: P) -> Result<(), Error> {
-	YgoServer::init(path)
-}
-
+#[derive(Debug)]
 pub struct YgoServer {
 	lib: Arc<Library>,
 	thread: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl YgoServer {
-	pub fn init<P: AsRef<Path>> (path: P) -> Result<(), Error> {
-		if !SERVER.get().is_some() {
-			SERVER.set(Self::new(path)?).ok();
+	pub async fn init<P: AsRef<Path>>(path: P) -> Result<(), Error> {
+		if SERVER.get().is_none() {
+			SERVER.set(RwLock::new(Some(Self::new(path)?)))?;
 		}
 		Ok(())
 	}
@@ -53,15 +52,33 @@ impl YgoServer {
 		}
 	}
 
-	pub fn start (args: String) -> Result<(), Error> {
-		let server: &YgoServer = SERVER.get().ok_or(anyhow!("start server error"))?;
+	pub async fn start (args: String, i18n: String, pack: String) -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		if SERVER.get().is_none() {
+			Self::init(&path).await?;
+		}
+		let server: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
+		let server: RwLockReadGuard<'_, Option<Self>> = server.read().await;
+		let server: &Self = server.as_ref().ok_or(anyhow!("get server erro"))?;
+		let path: String = path.to_string_lossy().into_owned();
+		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
+		let path: String = path.replace("\\", "/");
+		let args: String = format!("{} \"{}\" {} {}", args, path, i18n, pack);
 		server.start_server(args);
 		Ok(())
 	}
 
-	pub fn stop () -> Result<(), Error> {
-		let server: &YgoServer = SERVER.get().ok_or(anyhow!("stop server error"))?;
-		server.stop_server();
+	pub async fn stop () -> Result<(), Error> {
+		let lock: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
+		let mut guard: RwLockWriteGuard<'_, Option<Self>> = lock.write().await;
+
+		if let Some(old) = guard.take() {
+			drop(guard);
+			old.shutdown()?;
+			guard = lock.write().await;
+		}
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		*guard = Some(Self::new(path)?);
 		Ok(())
 	}
 
@@ -81,15 +98,22 @@ impl YgoServer {
 		*self.thread.lock().unwrap() = Some(handle);
 	}
 
-	fn stop_server (&self) {
+	fn shutdown (self) -> Result<(), Error> {
+		let Self { lib, thread } = self;
 		unsafe {
-			if let Ok(stop) = self.lib.get::<Symbol<unsafe extern "C" fn()>>(b"stop_server") {
+			if let Ok(stop) = lib.get::<unsafe extern "C" fn()>(b"stop_server") {
 				stop();
 			}
 		}
 
-		if let Some(handle) = self.thread.lock().unwrap().take() {
+		if let Some(handle) = thread.lock().unwrap().take() {
 			let _ = handle.join();
 		}
+		
+		Arc::try_unwrap(lib)
+			.map(|library| drop(library))
+			.map_err(|_| anyhow!("dll shutdown error"))?;
+
+		Ok(())
 	}
 }

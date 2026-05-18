@@ -26,6 +26,7 @@ pub use self::{
 };
 use crate::file::{File, FileContent};
 use crate::request::Request;
+use crate::{PATH, RESOURCE_PATH};
 
 use serde::Serialize;
 use anyhow::{Error, Result, anyhow};
@@ -44,14 +45,11 @@ use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
 	fs::{exists, write},
-	path::{Path, PathBuf},
-	sync::OnceLock
+	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
-pub static RESOURCE_PATH: OnceLock<PathBuf> = OnceLock::new();
-pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
 const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
 
@@ -68,7 +66,7 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 	Ok(())
 }
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
-	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
 	*game = Game::init(app, overwrite).await?;
 	Ok(())
@@ -401,8 +399,8 @@ impl Game {
 	}
 
 	pub async fn unload_zip (name: String) -> Result<(), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Self> = game.write().await;
 		if let Some((_, pack)) = game.pack
 			.iter_mut()
 			.find(|i| i.0 == &name) {
@@ -412,8 +410,8 @@ impl Game {
 	}
 
 	pub async fn load_zip (app: &AppHandle, name: String) -> Result<(), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Self> = game.write().await;
 		if let Some((_, pack)) = game.pack
 			.iter_mut()
 			.find(|i| i.0 == &name) {
@@ -464,8 +462,8 @@ impl Game {
 	}
 
 	pub async fn get_pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!("get game error"))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut buffer: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
 		let mut path: BTreeMap<u32, String> = BTreeMap::new();
 		game.pack
@@ -492,26 +490,26 @@ impl Game {
 	}
 
 	pub async fn get_font () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game.font.to_array())
 	}
 
 	pub async fn get_sound () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game.sound.to_array())
 	}
 
 	pub async fn get_textures () -> Result<Textures, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game.resource.to_array())
 	}
 
 	pub async fn get_cards () -> Result<Vec<(Vec<i64>, Vec<String>)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut cards: BTreeMap<u32, (Vec<i64>, Vec<String>)> = BTreeMap::new();
 		game.pack
 			.clone()
@@ -526,14 +524,14 @@ impl Game {
 	}
 
 	pub async fn get_system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game.system.to_array())
 	}
 
 	pub async fn get_server () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut servers: BTreeMap<String, String> = BTreeMap::new();
 		game.pack
 			.clone()
@@ -549,8 +547,8 @@ impl Game {
 	}
 
 	pub async fn get_lflist () -> Result<Vec<(String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>))>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut lflist: IndexMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = IndexMap::new();
 		game.pack
 			.clone()
@@ -565,8 +563,8 @@ impl Game {
 	}
 
 	pub async fn get_strings () -> Result<(Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut system: BTreeMap<u32, String> = BTreeMap::new();
 		let mut victory: BTreeMap<u32, String> = BTreeMap::new();
 		let mut counter: BTreeMap<u32, String> = BTreeMap::new();
@@ -606,8 +604,8 @@ impl Game {
 		Vec<(u32, String)>,
 		Vec<(u32, String)>
 	), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let pack: &GamePack = game.pack.get("./").ok_or(anyhow!(""))?;
 		Ok(pack
 			.clone()
@@ -616,16 +614,16 @@ impl Game {
 	}
 
 	pub async fn get_model () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game
 			.model
 			.to_array())
 	}
 
 	pub async fn set_system (key: String, ct: i8, value: String, w: bool) -> Result<(), Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let mut game: RwLockWriteGuard<'_, Self> = game.write().await;
 		game.system.set(key, ct, value)?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		if w {
@@ -638,8 +636,8 @@ impl Game {
 		Ok(())
 	}
 	pub async fn chk_version () -> Result<bool, Error> {
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
@@ -659,13 +657,9 @@ impl Game {
 			Ok(String::new())
 		}
 	}
-	pub async fn get_server_args () -> Result<(String, String, String), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let path: String = path.to_string_lossy().into_owned();
-		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
-		let path: String = path.replace("\\", "/");
-		let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Game> = game.read().await;
+	pub async fn get_server_args () -> Result<(String, String), Error> {
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let i18n: String = game.system.i18n();
 		let pack: String = game.pack
 			.clone()
@@ -678,6 +672,6 @@ impl Game {
 			})
 			.collect::<Vec<String>>()
 			.join("/");
-		Ok((path, i18n, pack))
+		Ok((i18n, pack))
 	}
 }
