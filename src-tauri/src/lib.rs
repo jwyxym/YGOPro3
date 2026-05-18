@@ -5,7 +5,6 @@ mod log;
 mod ypk;
 mod file;
 mod request;
-mod ygoserver;
 
 use game::{PATH, RESOURCE_PATH};
 use tauri::{
@@ -54,9 +53,7 @@ pub fn run() {
 			api::del_deck,
 			api::write_log,
 			api::del_ypk,
-			api::exists_ypk,
-			api::ygoserver_start,
-			api::ygoserver_stop,
+			api::exists_ypk
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]
@@ -68,7 +65,6 @@ pub fn run() {
 					RESOURCE_PATH.set(path.clone()).ok();
 					PATH.set(path).ok();
 				}
-				ygoserver::init(path)?;
 			}
 			#[cfg(not(target_os = "android"))]
 			{
@@ -78,13 +74,11 @@ pub fn run() {
 				let path = if log::init(&path).is_err() {
 					let path = app.path().resolve("./", BaseDirectory::AppLocalData)?;
 					log::init(&path)?;
-					PATH.set(path.clone()).ok();
 					path
 				} else {
-					PATH.set(path.clone()).ok();
 					path
 				};
-				ygoserver::init(path)?;
+				PATH.set(path).ok();
 			}
 			Ok(())
 		})

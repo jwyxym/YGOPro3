@@ -405,26 +405,6 @@ class Invoke {
 			}
 		}
 	};
-	server = {
-		start : async (args : string) : Promise<boolean> => {
-			try {
-				await invoke<void>('ygoserver_start', { args : args });
-				return true;
-			} catch (error) {
-				this.log.write(error);
-				return false;
-			}
-		},
-		stop : async () : Promise<boolean> => {
-			try {
-				await invoke<void>('ygoserver_stop');
-				return true;
-			} catch (error) {
-				this.log.write(error);
-				return false;
-			}
-		}
-	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {
 			try {

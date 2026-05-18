@@ -203,9 +203,6 @@ const connect = reactive({
 		pass : string;
 		address : string;
 		protocal : 0 | 1 | 2;
-	} | {
-		name : string;
-		args : string;
 	} | Deck) => {
 		if (connect.debouncing)
 			return;
@@ -295,6 +292,15 @@ const connect = reactive({
 							connect.protocol.connect(promise[2], p)
 						]);
 					}
+					const promise = await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
+						mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
+						get_srv()
+					]);
+					await Promise.all([
+						mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
+						connect.protocol.connect(promise[2], p)
+					]);
 					break;
 				case 1:
 					connect.wait.players.filter(i => i.status).length < (connect.wait.info.mode & 0x2 ? 4 : 2)
