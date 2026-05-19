@@ -1,7 +1,7 @@
 use super::STMT;
 use rusqlite::{Connection, Statement, Row};
 use anyhow::{Result, Error, anyhow};
-use std::ffi::c_char;
+use std::{ffi::c_char, ptr::copy_nonoverlapping};
 use libsqlite3_sys::{sqlite3_deserialize, sqlite3_malloc, sqlite3_free, SQLITE_DESERIALIZE_FREEONCLOSE, SQLITE_DESERIALIZE_RESIZEABLE};
 
 pub fn init (data: Vec<u8>) -> Result<Vec<(u32, (Vec<i64>, Vec<String>))>, Error> {
@@ -13,11 +13,11 @@ pub fn init (data: Vec<u8>) -> Result<Vec<(u32, (Vec<i64>, Vec<String>))>, Error
 	let len_c_int: i32 = len as i32;
 	let len_i64: i64 = len as i64;
 	unsafe {
-		let buf = sqlite3_malloc(len_c_int) as *mut u8;
+		let buf: *mut u8 = sqlite3_malloc(len_c_int) as *mut u8;
 		if buf.is_null() {
 			return Err(anyhow!("sqlite3_malloc failed"));
 		}
-		std::ptr::copy_nonoverlapping(data.as_ptr(), buf, len as usize);
+		copy_nonoverlapping(data.as_ptr(), buf, len as usize);
 
 		let rc: i32 = sqlite3_deserialize(
 			conn.handle(),
