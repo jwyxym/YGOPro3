@@ -47,19 +47,17 @@ impl YgoServer {
 
 			Ok(Self {
 				lib: Arc::new(lib),
-				thread: Mutex::new(None),
+				thread: Mutex::new(None)
 			})
 		}
 	}
 
 	pub async fn start (args: String, i18n: String, pack: String) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		if SERVER.get().is_none() {
-			Self::init(&path).await?;
-		}
+		Self::init(&path).await?;
 		let server: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
 		let server: RwLockReadGuard<'_, Option<Self>> = server.read().await;
-		let server: &Self = server.as_ref().ok_or(anyhow!("get server erro"))?;
+		let server: &Self = server.as_ref().ok_or(anyhow!("get server error"))?;
 		let path: String = path.to_string_lossy().into_owned();
 		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
 		let path: String = path.replace("\\", "/");
@@ -76,9 +74,9 @@ impl YgoServer {
 			drop(guard);
 			old.shutdown()?;
 			guard = lock.write().await;
+			let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+			*guard = Some(Self::new(path)?);
 		}
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		*guard = Some(Self::new(path)?);
 		Ok(())
 	}
 
@@ -87,15 +85,17 @@ impl YgoServer {
 
 		let handle: JoinHandle<()> = thread::spawn(move || {
 			unsafe {
-				let start: Symbol<unsafe extern "C" fn(*const c_char) -> i32> =
-					lib.get(b"start_server").unwrap();
-
-				let c_args: CString = CString::new(args).unwrap();
-				start(c_args.as_ptr());
+				if let Ok(start) = lib.get::<Symbol<unsafe extern "C" fn(*const c_char) -> i32>>(b"start_server") {
+					if let Ok(c_args) = CString::new(args) {
+						start(c_args.as_ptr());
+					}
+				}
 			}
 		});
 
-		*self.thread.lock().unwrap() = Some(handle);
+		if let Ok(mut lock) = self.thread.lock() {
+			*lock = Some(handle);
+		}
 	}
 
 	fn shutdown (self) -> Result<(), Error> {
@@ -106,8 +106,10 @@ impl YgoServer {
 			}
 		}
 
-		if let Some(handle) = thread.lock().unwrap().take() {
-			let _ = handle.join();
+		if let Ok(mut lock) = thread.lock() {
+			if let Some(handle) = lock.take() {
+				let _ = handle.join();
+			}
 		}
 		
 		Arc::try_unwrap(lib)

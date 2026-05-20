@@ -29,6 +29,7 @@
 			<YGOMenu
 				v-if = 'page.show.menu'
 				@deck = 'page.select.deck'
+				@single = 'page.select.single'
 				@server = 'page.select.server'
 				@setting = 'page.select.setting'
 			/>
@@ -63,6 +64,7 @@
 		},
 		select : {
 			menu : () : void => {
+				page.show.single = false;
 				page.show.server = false;
 				page.show.deck = false;
 				page.show.setting = false;
@@ -70,6 +72,15 @@
 					setTimeout(() => {
 						page.show.menu = true;
 					}, 600);
+			},
+			single : () : void => {
+				if (page.loading) {
+					return;
+				}
+				page.show.menu = false;
+				setTimeout(() => {
+					page.show.single = true;
+				}, 600);
 			},
 			server : () : void => {
 				if (page.loading) {

@@ -2,7 +2,6 @@ import { reactive } from 'vue';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
-import invoke from '@/script/invoke';
 import Card from '@/script/card';
 import { I18N_KEYS } from '@/script/language/i18n';
 
@@ -205,7 +204,7 @@ const connect = reactive({
 		protocal : 0 | 1 | 2;
 	} | {
 		name : string;
-		args : string;
+		args : [string, string];
 	} | Deck) => {
 		if (connect.debouncing)
 			return;
@@ -239,17 +238,25 @@ const connect = reactive({
 								connect.clear();
 								connect.state = 0;
 								voice.play(KEYS.BACK_BGM);
-								if (local_server)
-									await invoke.server.stop();
+								if (local_server) {
+									await Promise.all([
+										mainGame.server.stop(),
+										mainGame.bot.stop()
+									]);
+
+								}
 							}
 						};
 					};
 					if (local_server) {
 						const address = 'localhost:7911';
-						await invoke.server.start(i.args);
+						await mainGame.server.start(i.args[0]);
 						const p = callback(i.name, '', address);
 						connect.protocol = tcp;
-						await connect.protocol.connect(address, p);
+						await Promise.all([
+							mainGame.bot.start(i.args[1]),
+							connect.protocol.connect(address, p)
+						]);
 					} else {
 						const para = i as {
 							name : string;
@@ -268,7 +275,7 @@ const connect = reactive({
 							if (!address.includes(':') && !para.protocal)
 								return connect.srv_cache.get(address) ??
 									await (async () : Promise<string> => {
-										const url = await invoke.game.get_srv(address)
+										const url = await mainGame.get.srv(address)
 										connect.srv_cache.set(address, url);
 										return url;
 									})();

@@ -408,7 +408,7 @@ class Invoke {
 	server = {
 		start : async (args : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('ygoserver_start', { args : args });
+				await invoke<void>('ygoserver_start', { args : args});
 				return true;
 			} catch (error) {
 				this.log.write(error);
@@ -422,6 +422,37 @@ class Invoke {
 			} catch (error) {
 				this.log.write(error);
 				return false;
+			}
+		}
+	};
+	bot = {
+		start : async (args : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('windbot_start', { args : args});
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		},
+		stop : async () : Promise<boolean> => {
+			try {
+				await invoke<void>('windbot_stop');
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		},
+		list : async () : Promise<Array<string>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('windbot_list');
+				return bincode.decode(
+					bincode.Collection(bincode.String), result
+				).value as Array<string>;
+			} catch (error) {
+				this.log.write(error);
+				return [];
 			}
 		}
 	};

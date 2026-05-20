@@ -52,11 +52,11 @@ const tauriConfig = {
 if (os === 'dev')
 	tauriConfig.bundle.resources = [];
 else if (os === 'macos')
-	tauriConfig.bundle.resources = ["assets", "libygoserver.dylib"];
+	tauriConfig.bundle.resources = ["assets", "libygoserver.dylib", "WindBot.dylib", "libe_sqlite3.dylib"];
 else if (os === 'linux')
-	tauriConfig.bundle.resources = ["assets", "libygoserver.so"];
+	tauriConfig.bundle.resources = ["assets", "libygoserver.so", "WindBot.so", "libe_sqlite3.so"];
 else if (os === 'windows')
-	tauriConfig.bundle.resources = ["assets", "ygoserver.dll"];
+	tauriConfig.bundle.resources = ["assets", "ygoserver.dll", "WindBot.dll", "e_sqlite3.dll"];
 else 
 	tauriConfig.bundle.resources = ["assets"];
 

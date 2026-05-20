@@ -6,6 +6,8 @@ mod ypk;
 mod file;
 mod request;
 mod ygoserver;
+#[cfg(not(target_arch = "x86"))]
+mod windbot;
 
 use std::{
 	path::PathBuf,
@@ -63,6 +65,9 @@ pub fn run() {
 			api::exists_ypk,
 			api::ygoserver_start,
 			api::ygoserver_stop,
+			api::windbot_start,
+			api::windbot_stop,
+			api::windbot_list
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]

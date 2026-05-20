@@ -52,11 +52,11 @@ tauri_config = {
 if os == 'dev':
 	tauri_config["bundle"]["resources"] = []
 elif os == 'macos':
-	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.dylib"]
+	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.dylib", "WindBot.dylib", "libe_sqlite3.dylib"]
 elif os == 'linux':
-	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.so"]
+	tauri_config["bundle"]["resources"] = ["assets", "libygoserver.so", "WindBot.so", "libe_sqlite3.so"]
 elif os == 'windows':
-	tauri_config["bundle"]["resources"] = ["assets", "ygoserver.dll"]
+	tauri_config["bundle"]["resources"] = ["assets", "ygoserver.dll", "WindBot.dll", "e_sqlite3.dll"]
 else:
 	tauri_config["bundle"]["resources"] = ["assets"]
 

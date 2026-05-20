@@ -62,6 +62,7 @@
 		to : async () : Promise<void> => {
 			switch (page.select) {
 				case 0:
+					emit('single');
 					break;
 				case 1:
 					emit('server');
@@ -120,6 +121,7 @@
 	});
 
 	const emit = defineEmits<{
+		single : [];
 		server : [];
 		deck : [];
 		setting : [];

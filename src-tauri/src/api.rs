@@ -3,6 +3,7 @@ use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
 use crate::request::{Request, Srv};
 use crate::ygoserver::YgoServer;
+use crate::windbot::WindBot;
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
@@ -206,12 +207,46 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 #[tauri::command]
 pub async fn ygoserver_start (args: String) -> Result<(), String> {
 	let (i18n, pack) = Game::get_server_args()
-		.await.map_err(|e| e.to_string())?;
+		.await
+		.map_err(|e| e.to_string())?;
 	YgoServer::start(args, i18n, pack)
-		.await.map_err(|e| e.to_string())
+		.await
+		.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
 	YgoServer::stop().await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn windbot_start (args: String) -> Result<(), String> {
+	println!("{}", args);
+	#[cfg(not(target_arch = "x86"))]
+	if args.is_empty() {
+		WindBot::init().await
+	} else {
+		WindBot::start(args).await
+	}
+		.map_err(|e| e.to_string())?;
+	#[cfg(target_arch = "x86")]
+	let _ = args;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn windbot_stop () -> Result<(), String> {
+	#[cfg(not(target_arch = "x86"))]
+	WindBot::stop().await.map_err(|e| e.to_string())?;
+	Ok(())
+}
+
+#[tauri::command]
+pub async fn windbot_list () -> Response {
+	#[cfg(not(target_arch = "x86"))]
+	WindBot::list().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(|| Response::new(Vec::new()))
 }

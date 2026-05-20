@@ -55,7 +55,6 @@ class Game {
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
 			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
 			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
-			console.log(this.system)
 
 			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
 			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
@@ -254,7 +253,8 @@ class Game {
 		counter : (counter : number) : string => {
 			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
 				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;
-		}
+		},
+		srv : invoke.game.get_srv
 	};
 
 	clear = () : void => {
@@ -288,7 +288,7 @@ class Game {
 			]);
 			return i[0] && i[1];
 		}
-	}
+	};
 
 	chk = {
 		result : {
@@ -355,6 +355,8 @@ class Game {
 	]) as any;
 
 	download = invoke.game.download;
+	server = invoke.server;
+	bot = invoke.bot;
 };
 
 const mainGame = new Game();
