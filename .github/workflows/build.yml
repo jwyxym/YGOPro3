@@ -204,8 +204,8 @@ jobs:
       if: matrix.target == 'aarch64'
       run: |
         cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
-        unzip windbot-linux-arm64.zip
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-arm64.zip
+        unzip windbot-win-arm64.zip
 
     - name: Download Windbot
       if: matrix.target == 'x86_64'
