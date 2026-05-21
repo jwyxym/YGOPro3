@@ -460,7 +460,7 @@ class Invoke {
 		write : async (line : string) : Promise<boolean> => {
 			try {
 				toast.error(line);
-				await invoke<void>('write_log', { line : line });
+				await invoke<void>('write_log', { line : line.toString() });
 				return true;
 			} catch (error) {
 				toast.error(error.toString());

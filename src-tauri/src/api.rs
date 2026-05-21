@@ -13,6 +13,10 @@ use tauri::{
 
 static CONFIG : Configuration = standard();
 
+fn default_response () -> Response {
+	Response::new(encode_to_vec(Vec::<u8>::new(), CONFIG).unwrap())
+}
+
 #[tauri::command]
 pub async fn init (app: AppHandle) -> Result<(), String> {
 	game::init(&app).await.map_err(|e| e.to_string())
@@ -34,7 +38,7 @@ pub async fn get_ypk () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -68,7 +72,7 @@ pub async fn get_pic (deck: Vec<u32>) -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -77,7 +81,7 @@ pub async fn get_font () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -86,7 +90,7 @@ pub async fn get_sound () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -95,7 +99,7 @@ pub async fn get_textures () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -104,7 +108,7 @@ pub async fn get_cards () -> Response {
 		.ok()
 		.and_then(|cards| encode_to_vec(cards, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -113,7 +117,7 @@ pub async fn get_system () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -122,7 +126,7 @@ pub async fn get_server () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -131,7 +135,7 @@ pub async fn get_lflist () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -140,7 +144,7 @@ pub async fn get_strings () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -149,7 +153,7 @@ pub async fn get_info () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -158,7 +162,7 @@ pub async fn get_model () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -187,7 +191,7 @@ pub async fn get_deck () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(default_response)
 }
 
 #[tauri::command]
@@ -251,7 +255,7 @@ pub async fn windbot_list () -> Response {
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()));
+		.unwrap_or_else(default_response);
 	#[cfg(target_arch = "x86")]
-	Response::new(Vec::new())
+	default_response()
 }
