@@ -3,6 +3,7 @@ use crate::PATH;
 use libloading::{Library, Symbol};
 use anyhow::{Error, Result, anyhow};
 use tokio::sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use serde_json::from_str;
 use std::{
 	os::raw::c_char,
 	sync::{Arc, Mutex},
@@ -76,16 +77,13 @@ impl WindBot {
 		Ok(())
 	}
 
-	pub async fn list () -> Result<Vec<String>, Error> {
+	pub async fn list () -> Result<Vec<[String; 3]>, Error> {
 		Self::init().await?;
 		let bot: &RwLock<Option<Self>> = BOT.get().ok_or(anyhow!("get bot error"))?;
 		let bot: RwLockReadGuard<'_, Option<Self>> = bot.read().await;
 		let bot: &Self = bot.as_ref().ok_or(anyhow!("get bot error"))?;
 		let list: String = bot.get_list();
-		let list: Vec<String> = list
-			.split(" ")
-			.map(|i: &str| String::from(i))
-			.collect();
+		let list: Vec<[String; 3]> = from_str(&list)?;
 		Ok(list)
 	}
 

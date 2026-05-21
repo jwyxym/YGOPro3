@@ -444,12 +444,12 @@ class Invoke {
 				return false;
 			}
 		},
-		list : async () : Promise<Array<string>> => {
+		list : async () : Promise<Array<[string, string, string]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('windbot_list');
 				return bincode.decode(
-					bincode.Collection(bincode.String), result
-				).value as Array<string>;
+					bincode.Collection(bincode.Tuple(bincode.String, bincode.String, bincode.String)), result
+				).value as any;
 			} catch (error) {
 				this.log.write(error);
 				return [];
