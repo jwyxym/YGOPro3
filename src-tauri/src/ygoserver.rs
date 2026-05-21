@@ -20,9 +20,16 @@ pub struct YgoServer {
 }
 
 impl YgoServer {
-	pub async fn init<P: AsRef<Path>>(path: P) -> Result<(), Error> {
+	pub async fn init() -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		if SERVER.get().is_none() {
 			SERVER.set(RwLock::new(Some(Self::new(path)?)))?;
+		} else {
+			let lock: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
+			let mut guard: RwLockWriteGuard<'_, Option<Self>> = lock.write().await;
+			if guard.is_none() {
+				*guard = Some(Self::new(path)?);
+			}
 		}
 		Ok(())
 	}
@@ -53,11 +60,11 @@ impl YgoServer {
 	}
 
 	pub async fn start (args: String, i18n: String, pack: String) -> Result<(), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Self::init(&path).await?;
+		Self::init().await?;
 		let server: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
 		let server: RwLockReadGuard<'_, Option<Self>> = server.read().await;
 		let server: &Self = server.as_ref().ok_or(anyhow!("get server error"))?;
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let path: String = path.to_string_lossy().into_owned();
 		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
 		let path: String = path.replace("\\", "/");
@@ -74,8 +81,7 @@ impl YgoServer {
 			drop(guard);
 			old.shutdown()?;
 			guard = lock.write().await;
-			let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-			*guard = Some(Self::new(path)?);
+			*guard = None;
 		}
 		Ok(())
 	}
@@ -110,6 +116,11 @@ impl YgoServer {
 			if let Some(handle) = lock.take() {
 				let _ = handle.join();
 			}
+		}
+
+		let cnt: usize = Arc::strong_count(&lib);
+		if cnt != 1 {
+			return Err(anyhow!("dll shutdown error {}", cnt));
 		}
 		
 		Arc::try_unwrap(lib)

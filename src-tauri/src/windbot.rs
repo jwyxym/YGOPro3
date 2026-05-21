@@ -2,7 +2,7 @@ use crate::PATH;
 
 use libloading::{Library, Symbol};
 use anyhow::{Error, Result, anyhow};
-use tokio::sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use tokio::sync::OnceCell;
 use serde_json::from_str;
 use std::{
 	os::raw::c_char,
@@ -12,7 +12,7 @@ use std::{
 	thread::{self, JoinHandle}
 };
 
-static BOT: OnceCell<RwLock<Option<WindBot>>> = OnceCell::const_new();
+static BOT: OnceCell<WindBot> = OnceCell::const_new();
 
 #[derive(Debug)]
 pub struct WindBot {
@@ -22,9 +22,9 @@ pub struct WindBot {
 
 impl WindBot {
 	pub async fn init () -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		if BOT.get().is_none() {
-			let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-			BOT.set(RwLock::new(Some(Self::new(path)?)))?;
+			BOT.set(Self::new(path)?)?;
 		}
 		Ok(())
 	}
@@ -56,9 +56,7 @@ impl WindBot {
 
 	pub async fn start (args: String, i18n: String) -> Result<(), Error> {
 		Self::init().await?;
-		let bot: &RwLock<Option<Self>> = BOT.get().ok_or(anyhow!("get bot error"))?;
-		let bot: RwLockReadGuard<'_, Option<Self>> = bot.read().await;
-		let bot: &Self = bot.as_ref().ok_or(anyhow!("get bot error"))?;
+		let bot: &Self = BOT.get().ok_or(anyhow!("get bot error"))?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let path: PathBuf = path
 			.join("cdb")
@@ -71,24 +69,13 @@ impl WindBot {
 	}
 
 	pub async fn stop () -> Result<(), Error> {
-		let lock: &RwLock<Option<Self>> = BOT.get().ok_or(anyhow!("get bot error"))?;
-		let mut guard: RwLockWriteGuard<'_, Option<Self>> = lock.write().await;
-
-		if let Some(old) = guard.take() {
-			drop(guard);
-			old.shutdown()?;
-			guard = lock.write().await;
-			let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-			*guard = Some(Self::new(path)?);
-		}
-		Ok(())
+		let bot: &Self = BOT.get().ok_or(anyhow!("get bot error"))?;
+		bot.shutdown()
 	}
 
 	pub async fn list () -> Result<Vec<[String; 3]>, Error> {
 		Self::init().await?;
-		let bot: &RwLock<Option<Self>> = BOT.get().ok_or(anyhow!("get bot error"))?;
-		let bot: RwLockReadGuard<'_, Option<Self>> = bot.read().await;
-		let bot: &Self = bot.as_ref().ok_or(anyhow!("get bot error"))?;
+		let bot: &Self = BOT.get().ok_or(anyhow!("get bot error"))?;
 		let list: String = bot.get_list();
 		let list: Vec<[String; 3]> = from_str(&list)?;
 		Ok(list)
@@ -133,18 +120,12 @@ impl WindBot {
 		}
 	}
 
-	fn shutdown (self) -> Result<(), Error> {
-		let Self { lib, thread } = self;
-
-		if let Ok(mut lock) = thread.lock() {
+	fn shutdown (&self) -> Result<(), Error> {
+		if let Ok(mut lock) = self.thread.lock() {
 			if let Some(handle) = lock.take() {
 				let _ = handle.join();
 			}
 		}
-		
-		Arc::try_unwrap(lib)
-			.map(|library| drop(library))
-			.map_err(|_| anyhow!("dll shutdown error"))?;
 
 		Ok(())
 	}
