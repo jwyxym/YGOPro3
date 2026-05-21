@@ -3,6 +3,7 @@ use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
 use crate::request::{Request, Srv};
 use crate::ygoserver::YgoServer;
+#[cfg(not(target_arch = "x86"))]
 use crate::windbot::WindBot;
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
