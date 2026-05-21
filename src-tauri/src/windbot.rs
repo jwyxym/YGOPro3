@@ -54,11 +54,18 @@ impl WindBot {
 		}
 	}
 
-	pub async fn start (args: String) -> Result<(), Error> {
+	pub async fn start (args: String, i18n: String) -> Result<(), Error> {
 		Self::init().await?;
 		let bot: &RwLock<Option<Self>> = BOT.get().ok_or(anyhow!("get bot error"))?;
 		let bot: RwLockReadGuard<'_, Option<Self>> = bot.read().await;
 		let bot: &Self = bot.as_ref().ok_or(anyhow!("get bot error"))?;
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path
+			.join("cdb")
+			.join(format!("cards-{}.cdb", i18n));
+		let path: String = path.to_string_lossy().into_owned();
+		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
+		let args: String = format!("DbPath={} {}", path, args);
 		bot.start_bot(args);
 		Ok(())
 	}

@@ -221,12 +221,14 @@ pub async fn ygoserver_stop () -> Result<(), String> {
 
 #[tauri::command]
 pub async fn windbot_start (args: String) -> Result<(), String> {
-	println!("{}", args);
 	#[cfg(not(target_arch = "x86"))]
 	if args.is_empty() {
 		WindBot::init().await
 	} else {
-		WindBot::start(args).await
+		let (i18n, _) = Game::get_server_args()
+			.await
+			.map_err(|e| e.to_string())?;
+		WindBot::start(args, i18n).await
 	}
 		.map_err(|e| e.to_string())?;
 	#[cfg(target_arch = "x86")]
@@ -244,9 +246,11 @@ pub async fn windbot_stop () -> Result<(), String> {
 #[tauri::command]
 pub async fn windbot_list () -> Response {
 	#[cfg(not(target_arch = "x86"))]
-	WindBot::list().await
+	return WindBot::list().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(|| Response::new(Vec::new()))
+		.unwrap_or_else(|| Response::new(Vec::new()));
+	#[cfg(target_arch = "x86")]
+	Response::new(Vec::new())
 }
