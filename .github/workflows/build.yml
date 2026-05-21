@@ -218,8 +218,6 @@ jobs:
       run: |
         cd src-tauri
         wget https://github.com/MDPro2/ygopro/releases/download/release-latest/ygoserver.dll
-        if ${{ matrix.target == 'aarch64' }}
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
 
     - name: Write Tauri Config
       shell: cmd
