@@ -110,11 +110,30 @@ jobs:
     - name: Download so
       run: |
         cd kotlin/jniLibs
-        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/x86.zip
-        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/x86_64.zip
-        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/arm64-v8a.zip
-        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/armeabi-v7a.zip
-        unzip *.zip
+        mkdir x86
+        mkdir x86_64
+        mkdir arm64-v8a
+        mkdir armeabi-v7a
+
+        cd x86
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver-x86.so -O libygoserver.so
+
+        cd ../x86_64
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver-x86_64.so -O libygoserver.so
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-x86_64.zip
+        unzip windbot-android-x86_64.zip
+        rm -r *.zip
+
+        cd ../arm64-v8a
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver-arm64-v8a.so -O libygoserver.so
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-arm64-v8a.zip
+        unzip windbot-android-arm64-v8a.zip
+        rm -r *.zip
+
+        cd ../armeabi-v7a
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver-armeabi-v7a.so -O libygoserver.so
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-armeabi-v7a.zip
+        unzip windbot-android-armeabi-v7a.zip
         rm -r *.zip
 
     - name: Android build
@@ -178,10 +197,29 @@ jobs:
     - name: Rename assets
       run: move src-tauri\assets.zip src-tauri\assets
 
+    - name: Install unzip
+      run: choco install unzip -y
+
+    - name: Download Windbot
+      if: matrix.target == 'aarch64'
+      run: |
+        cd src-tauri
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
+        unzip windbot-linux-arm64.zip
+
+    - name: Download Windbot
+      if: matrix.target == 'x86_64'
+      run: |
+        cd src-tauri
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
+        unzip windbot-win-x64.zip
+
     - name: Download so
       run: |
         cd src-tauri
         wget https://github.com/MDPro2/ygopro/releases/download/release-latest/ygoserver.dll
+        if ${{ matrix.target == 'aarch64' }}
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
 
     - name: Write Tauri Config
       shell: cmd
@@ -271,6 +309,17 @@ jobs:
         
     - name: Rename assets
       run: mv ./src-tauri/assets.zip ./src-tauri/assets
+
+    - name: Install unzip
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y unzip
+
+    - name: Download Windbot
+      run: |
+        cd src-tauri
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-macos-universal.zip
+        unzip windbot-macos-universal.zip
 
     - name: Download so
       run: |
@@ -370,7 +419,22 @@ jobs:
           libssl-dev \
           pkg-config \
           libgtk-3-dev \
-          xdg-utils
+          xdg-utils \
+          unzip
+
+    - name: Download Windbot
+      if: matrix.target == 'aarch64'
+      run: |
+        cd src-tauri
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
+        unzip windbot-linux-arm64.zip
+
+    - name: Download Windbot
+      if: matrix.target == 'x86_64'
+      run: |
+        cd src-tauri
+        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-x64.zip
+        unzip windbot-linux-x64.zip
 
     - name: Download so
       run: |
