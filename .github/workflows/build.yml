@@ -197,8 +197,8 @@ jobs:
     - name: Rename assets
       run: move src-tauri\assets.zip src-tauri\assets
 
-    - name: Install unzip
-      run: choco install unzip -y
+    - name: Install wget and unzip
+      run: choco install wget unzip -y
 
     - name: Download Windbot
       if: matrix.target == 'aarch64'
@@ -310,11 +310,6 @@ jobs:
     - name: Rename assets
       run: mv ./src-tauri/assets.zip ./src-tauri/assets
 
-    - name: Install unzip
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y unzip
-
     - name: Download Windbot
       run: |
         cd src-tauri
@@ -419,8 +414,7 @@ jobs:
           libssl-dev \
           pkg-config \
           libgtk-3-dev \
-          xdg-utils \
-          unzip
+          xdg-utils
 
     - name: Download Windbot
       if: matrix.target == 'aarch64'

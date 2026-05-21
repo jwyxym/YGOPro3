@@ -96,7 +96,7 @@ impl WindBot {
 				let windbot_list: Symbol<unsafe extern "C" fn() -> *const c_char> = self.lib.get(b"windbot_list")?;
 				let windbot_free: Symbol<unsafe extern "C" fn(*const c_char)> = self.lib.get(b"windbot_free")?;
 
-				let ptr: *const i8 = windbot_list();
+				let ptr = windbot_list();
 
 				if !ptr.is_null() {
 					let s: &CStr = CStr::from_ptr(ptr);
