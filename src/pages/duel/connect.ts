@@ -220,6 +220,8 @@ const connect = reactive({
 							on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 								connect.send = send;
 								connect.state = 1;
+								if (local_server)
+									await mainGame.bot.start(i.args[1], i.deck);
 								await send(new Msg()
 									.write.uint8(CTOS.EXTERNAL_ADDRESS)
 									.write.uint32(0)
@@ -255,9 +257,8 @@ const connect = reactive({
 						const p = callback(i.name, '', address);
 						connect.protocol = tcp;
 						await Promise.all([
-							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name),
-							mainGame.bot.start(i.args[1], i.deck),
-							connect.protocol.connect(address, p)
+							connect.protocol.connect(address, p),
+							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
 						]);
 					} else {
 						const para = i as {
