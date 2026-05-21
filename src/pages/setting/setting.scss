@@ -22,8 +22,11 @@
 		.var-cell {
 			height: 100px;
 		}
-		.var-counter {
-			transform: scale(120%);
+		.var-counter{
+			transform: scale(140%);
+		}
+		.var-checkbox {
+			transform: scale(120%) translateX(-20px);
 		}
 		.var-icon, .var-badge {
 			transform: scale(150%);

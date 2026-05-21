@@ -220,7 +220,7 @@ pub async fn ygoserver_stop () -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn windbot_start (args: String) -> Result<(), String> {
+pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 	#[cfg(not(target_arch = "x86"))]
 	if args.is_empty() {
 		WindBot::init().await
@@ -228,7 +228,7 @@ pub async fn windbot_start (args: String) -> Result<(), String> {
 		let (i18n, _) = Game::get_server_args()
 			.await
 			.map_err(|e| e.to_string())?;
-		WindBot::start(args, i18n).await
+		WindBot::start(args, i18n, deck).await
 	}
 		.map_err(|e| e.to_string())?;
 	#[cfg(target_arch = "x86")]

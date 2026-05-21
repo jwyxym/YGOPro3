@@ -4,6 +4,38 @@
 		--tab-font-size: 24px;
 		--tab-active-font-size: 24px;
 		> div:first-child {
+			.single {
+				--cell-font-size: 24px;
+				.var-input {
+					transform: scale(140%) translateX(-20px);
+					transform-origin: left center;
+				}
+				.var-select {
+					transform: scale(140%);
+				}
+				.var-cell {
+					height: 80px;
+				}
+				.var-counter, .var-checkbox {
+					transform: scale(140%);
+				}
+				h2 {
+					font-size: 24px;
+				}
+				.select {
+					.var-select {
+						width: 60%;
+					}
+				}
+				> form {
+					> div:last-child {
+						height: 100px;
+						.var-button {
+							transform: scale(140%);
+						}
+					}
+				}
+			}
 			.server, .wait {
 				transform: scale(140%) translate(-50%, -50%);
 				transform-origin: left top;

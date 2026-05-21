@@ -426,9 +426,9 @@ class Invoke {
 		}
 	};
 	bot = {
-		start : async (args : string) : Promise<boolean> => {
+		start : async (args : string, deck : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('windbot_start', { args : args});
+				await invoke<void>('windbot_start', { args : args, deck : deck});
 				return true;
 			} catch (error) {
 				this.log.write(error);

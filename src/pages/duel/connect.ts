@@ -205,6 +205,7 @@ const connect = reactive({
 	} | {
 		name : string;
 		args : [string, string];
+		deck : string;
 	} | Deck) => {
 		if (connect.debouncing)
 			return;
@@ -254,7 +255,8 @@ const connect = reactive({
 						const p = callback(i.name, '', address);
 						connect.protocol = tcp;
 						await Promise.all([
-							mainGame.bot.start(i.args[1]),
+							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name),
+							mainGame.bot.start(i.args[1], i.deck),
 							connect.protocol.connect(address, p)
 						]);
 					} else {

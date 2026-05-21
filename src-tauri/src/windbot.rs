@@ -54,16 +54,25 @@ impl WindBot {
 		}
 	}
 
-	pub async fn start (args: String, i18n: String) -> Result<(), Error> {
+	pub async fn start (args: String, i18n: String, deck: String) -> Result<(), Error> {
 		Self::init().await?;
 		let bot: &Self = BOT.get().ok_or(anyhow!("get bot error"))?;
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let path: PathBuf = path
+		let db_path: PathBuf = path
 			.join("cdb")
 			.join(format!("cards-{}.cdb", i18n));
-		let path: String = path.to_string_lossy().into_owned();
-		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
-		let args: String = format!("DbPath={} {}", path, args);
+		let db_path: String = db_path.to_string_lossy().into_owned();
+		let db_path: &str = db_path.strip_prefix(r"\\?\").unwrap_or(&db_path);
+		let args: String = if deck.is_empty() {
+			format!("DbPath={} {}", db_path, args)
+		} else {
+			let deck_path: PathBuf = path
+				.join("deck")
+				.join(deck);
+			let deck_path: String = deck_path.to_string_lossy().into_owned();
+			let deck_path: &str = deck_path.strip_prefix(r"\\?\").unwrap_or(&deck_path);
+			format!("DbPath={} {} DeckFile={}", db_path, args, deck_path)
+		};
 		bot.start_bot(args);
 		Ok(())
 	}
