@@ -205,6 +205,7 @@ jobs:
       run: |
         cd src-tauri
         wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-arm64.zip
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/ygoserver-arm64.dll
         unzip windbot-win-arm64.zip
 
     - name: Download Windbot
@@ -212,12 +213,8 @@ jobs:
       run: |
         cd src-tauri
         wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
-        unzip windbot-win-x64.zip
-
-    - name: Download so
-      run: |
-        cd src-tauri
         wget https://github.com/MDPro2/ygopro/releases/download/release-latest/ygoserver.dll
+        unzip windbot-win-x64.zip
 
     - name: Write Tauri Config
       shell: cmd
@@ -419,6 +416,7 @@ jobs:
       run: |
         cd src-tauri
         wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
+        wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver-linux-arm64.so
         unzip windbot-linux-arm64.zip
 
     - name: Download Windbot
@@ -426,12 +424,8 @@ jobs:
       run: |
         cd src-tauri
         wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-x64.zip
-        unzip windbot-linux-x64.zip
-
-    - name: Download so
-      run: |
-        cd src-tauri
         wget https://github.com/MDPro2/ygopro/releases/download/release-latest/libygoserver.so
+        unzip windbot-linux-x64.zip
 
     - name: Write Tauri Config
       run: |
