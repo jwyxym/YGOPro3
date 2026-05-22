@@ -67,7 +67,10 @@ impl YgoServer {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let path: String = path.to_string_lossy().into_owned();
 		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
-		let path: String = path.replace("\\", "/");
+		let mut path: String = path.replace("\\", "/");
+		if !path.ends_with('/') {
+			path.push('/');
+		}
 		let args: String = format!("{} \"{}\" {} {}", args, path, i18n, pack);
 		server.start_server(args);
 		Ok(())

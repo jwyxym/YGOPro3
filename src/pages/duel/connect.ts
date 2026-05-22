@@ -246,7 +246,6 @@ const connect = reactive({
 										mainGame.server.stop(),
 										mainGame.bot.stop()
 									]);
-
 								}
 							}
 						};
