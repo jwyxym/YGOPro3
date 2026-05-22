@@ -23,6 +23,20 @@ jobs:
       with:
         python-version: '3.13'
 
+    - name: Git Config
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@github.com"
+
+    - name: Set SSH Key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
+
     - name: Download Assets
       run: |
         cd .ci
@@ -42,17 +56,16 @@ jobs:
         cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
-        wget https://github.com/ifvlaboratory/ygom-site/raw/refs/heads/main/site/index.html
-        pip install BeautifulSoup4
-        python pics.py
-        7z x YGOMobile.apk -ir!assets/data/pics.zip
-        cp assets/data/pics.zip pics.zip
-        unzip pics.zip
-        rm -r ./pics/field
+        git clone https://github.com/jwyxym/pics.git --depth 1
+        git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
+        find ./pics -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+        find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+        find ./pics -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
+        find ./script -type f ! \( -name "*.jpg" -o -name "*.lua" \) -delete
 
         wget -O lflist.conf https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
 
-        7z a -tzip -mx=9 a.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ lflist.conf
+        7z a -tzip -mx=9 a.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ script/ lflist.conf
         python zip.py ${{ github.ref_name }} a.zip assets.zip
     
     - name: Upload File
