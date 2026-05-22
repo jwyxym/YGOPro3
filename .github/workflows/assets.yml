@@ -56,7 +56,7 @@ jobs:
         cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
-        git clone https://github.com/jwyxym/pics.git --depth 1
+        git clone ${{ github.pic_url }} --depth 1
         git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
         find ./pics -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
         find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
