@@ -95,14 +95,27 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
+	pub async fn unzip (app: &AppHandle, mut overwrite: bool) -> Result<(), Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let resource_path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		let assets: PathBuf = resource_path.join("assets");
 		metadata(&assets).await?;
+		let version: String = app.package_info().version.to_string();
+		if !overwrite {
+			let cache: String = read_to_string(path.join("cache"))
+				.await
+				.unwrap_or(String::new());
+			overwrite = version != cache;
+		}
 		let tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, &assets, overwrite).await?;
 		for task in tasks {
 			let _ = task.await;
+		}
+		if overwrite {
+			write(path
+				.join("cache"), 
+				version
+			)?;
 		}
 		Ok(())
 	}
