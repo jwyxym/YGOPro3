@@ -306,12 +306,11 @@ class Game {
 				});
 				if (time.ok) {
 					const date = new Date(Number((await time.text()).trim()) * 1000);
-					if (await invoke.ypk.exists('expansions/ygopro-super-pre.ypk')) {
+					if (await invoke.ypk.exists('ygopro-super-pre.ypk')) {
 						const local = await invoke.game.time(['expansions', 'ygopro-super-pre.ypk']);
 						if (local)
 							return local >= date;
 					}
-					return true;
 				}
 				return false;
 			},

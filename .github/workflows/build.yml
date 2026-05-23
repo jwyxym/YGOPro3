@@ -480,14 +480,37 @@ jobs:
         with:
           path: build
 
-      - name: Ensure release exists
+      - name: Delete old tag
         run: |
-          gh release view release-latest || \
-          gh release create release-latest --title "release-latest" --notes "Auto build"
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git fetch --tags
+          git tag -d release-latest || true
+          git push origin :refs/tags/release-latest || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload assets
+      - name: Create tag
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git tag release-latest
+          git push origin release-latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-latest
+          release_name: release-latest
+          draft: false
+          prerelease: false
+
+      - name: Upload release
         run: |
           cd build
           sh ../.ci/rename.sh
