@@ -41,6 +41,8 @@ class _Duel {
 	animation_id : number = 0;
 	time : number = 0;
 	interval : number = 0;
+	resolve : (() => void) | undefined = undefined;
+	await = new Promise<void>((r) => this.resolve = r);
 
 	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);
@@ -73,6 +75,7 @@ class _Duel {
 		requestAnimationFrame(this.animate);
 		this.renderer.domElement.classList.add('show')
 		window.addEventListener('click', duel.click);
+		this.resolve?.();
 	};
 
 	confrim = {
@@ -100,35 +103,42 @@ class _Duel {
 			for (const card of cards) {
 				const img = card.get.el.img();
 				const back = mainGame.back.pic;
-				const tl = gsap.timeline();
 				const chk = img.src === back;
-				if (chk)
-					tl.add(turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic));
+				const tl = gsap.timeline();
+				if (card.owner) {
+					if (chk)
+						tl.add(turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic));
 
-				tl.to(img, {
-					rotationZ : - 180,
-					duration : 0.1,
-				}, '+=0');
-				const x = card.three.position.x;
-				const y = card.three.position.y;
-				tl.to(card.three.position, {
-					x : 0,
-					y : - 200,
-					z : '+=250',
-					duration : 0.2,
-				}, '+=0.2');
-				tl.to(card.three.position, {
-					x : x,
-					y : y,
-					z : '-=250',
-					duration : 0.2,
-				}, '+=0.5');
-				tl.to(img, {
-					rotationZ : 0,
-					duration : 0.1,
-				}, '+=0.2');
-				if (chk)
+					tl.to(img, {
+						rotationZ : - 180,
+						duration : 0.1,
+					}, '+=0');
+					const x = card.three.position.x;
+					const y = card.three.position.y;
+					tl.to(card.three.position, {
+						x : 0,
+						y : - 200,
+						z : '+=250',
+						duration : 0.2,
+					}, '+=0.2');
+					tl.to(card.three.position, {
+						x : x,
+						y : y,
+						z : '-=250',
+						duration : 0.2,
+					}, '+=0.5');
+					tl.to(img, {
+						rotationZ : 0,
+						duration : 0.1,
+					}, '+=0.2');
+					if (chk)
+						tl.add(turn(img, back), '+=0.1');
+				} else if (connect.wait.self.position > 3 && chk) {
+					tl.add(
+						turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic)
+					);
 					tl.add(turn(img, back), '+=0.1');
+				}
 				tls.add(tl, '>');
 			}
 			let resolve = undefined as (() => void) | undefined;

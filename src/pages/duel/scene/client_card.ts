@@ -48,6 +48,7 @@ class Client_Card {
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
+	activated : boolean;
 
 	constructor () {
 		this.owner = 0;
@@ -84,6 +85,7 @@ class Client_Card {
 		this.hint_msg = '';
 		this.counter = new Map();
 		this.clicked = false;
+		this.activated = false;
 	};
 
 	init = {
@@ -435,6 +437,8 @@ class Client_Card {
 				return;
 			}
 			this.need_change.pos = false;
+			if (!(this.location & LOCATION.HAND))
+				this.activated = false;
 			const tl = gsap.timeline();
 			const turn = (el : HTMLImageElement, pic : string) => {
 				tl.set(el, {
@@ -485,6 +489,10 @@ class Client_Card {
 		const location = () : gsap.core.Timeline | void => {
 			if (!this.need_change.loc) return;
 			this.need_change.loc = false;
+			if (!(this.location & LOCATION.HAND))
+				this.activated = false;
+			if (this.clicked)
+				this.click.img();
 			const axis = Axis.computed.card(this);
 			const tl = gsap.timeline();
 			if (this.three.position.x === axis.x
@@ -685,11 +693,71 @@ class Client_Card {
 			this.equip = undefined;
 			return this;
 		},
+		activate_hint : async () : Promise<void> => {
+			const img = this.get.el.img();
+			const turn = (el : HTMLImageElement, pic : string) : gsap.core.Timeline => {
+				const tl = gsap.timeline();
+				tl.set(el, {
+					rotationY : 0
+				});
+				tl.to(el, {
+					rotationY : 90,
+					duration : 0.1,
+					onComplete : () => (el.src = pic ?? '') as unknown as void
+				});
+				tl.set(el, {
+					rotationY : -90
+				}, 0.2);
+				tl.to(el, {
+					rotationY : 0,
+					duration : 0.1
+				}, 0.25);
+				return tl;
+			};
+			if (this.activated) {
+				if (this.location & LOCATION.HAND) {
+					let resolve = undefined as (() => void) | undefined;
+					const promise = new Promise<void>((r) => resolve = r);
+					turn(img, mainGame.back.pic)
+						.then(() => resolve?.());
+					await promise;
+				} else
+					this.activated = false;
+			}
+		}
 	}
 
 	hint = {
 		activate : async () : Promise<void> => {
 			const img = this.get.el.img();
+			const turn = (el : HTMLImageElement, pic : string) : gsap.core.Timeline => {
+				const tl = gsap.timeline();
+				tl.set(el, {
+					rotationY : 0
+				});
+				tl.to(el, {
+					rotationY : 90,
+					duration : 0.1,
+					onComplete : () => (el.src = pic ?? '') as unknown as void
+				});
+				tl.set(el, {
+					rotationY : -90
+				}, 0.2);
+				tl.to(el, {
+					rotationY : 0,
+					duration : 0.1
+				}, 0.25);
+				return tl;
+			};
+			if (img.src === mainGame.back.pic && (this.location & LOCATION.HAND)) {
+				let resolve = undefined as (() => void) | undefined;
+				const promise = new Promise<void>((r) => resolve = r);
+				turn(img, mainGame.get.card(this.id).pic)
+					.then(() => resolve?.());
+				this.activated = true;
+				await promise;
+			}
+
 			if (img.classList.contains('activated'))
 				return;
 			img.classList.add('activated');

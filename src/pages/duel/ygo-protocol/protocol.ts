@@ -246,6 +246,15 @@ class Protocol {
 		const protocol = msg.read.uint8()!;
 		if (protocol === undefined)
 			return;
+		if (import.meta.env.DEV)
+			console.log((() => {
+				for (const key in STOC) {
+					if (Object.prototype.hasOwnProperty.call(STOC, key)
+						&& STOC[key as keyof typeof STOC] === protocol)
+						return key;
+				}
+				return undefined;
+			})());
 		await this.stoc.get(protocol)?.(msg, send);
 	};
 	stoc = new Map<number, Protocol_Func>([
@@ -361,10 +370,11 @@ class Protocol {
 			this.hint(mainGame.get.text(key));
 		}],
 		[STOC.CHANGE_SIDE, async () => {
-			connect.on();
+			connect.state = 3;
 		}],
 		[STOC.WAITING_SIDE, async () => {
-			connect.state = 2;
+			if (connect.state === 2)
+				connect.state = 4;
 		}],
 		[STOC.DECK_COUNT, async (msg : Msg) => {
 			const self_main = msg.read.uint16() ?? 0;
@@ -416,7 +426,7 @@ class Protocol {
 			const type = msg.read.uint8();
 			if (type === undefined) return;
 			connect.wait.self.is_host = !!((type >> 4) & 0xf);
-			connect.wait.self.position = (type & 0xf) as 0 | 1 | 2 | 3;
+			connect.wait.self.position = type & 0xf;
 		}],
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
@@ -595,6 +605,10 @@ class Protocol {
 			}
 		}],
 		[MSG.START, async (msg : Msg) => {
+			if (connect.state !== 2) {
+				connect.state = 2;
+				await duel.await;
+			}
 			const playertype = msg.read.uint8();
 			if (playertype === undefined)
 				return;
@@ -646,6 +660,8 @@ class Protocol {
 			const key = player === 2 ? I18N_KEYS.DUEL_GAME : this.to.player(player) === 0 ? I18N_KEYS.DUEL_WIN : I18N_KEYS.DUEL_LOSE;
 			const message = this.match_kill ? mainGame.get.strings.victory(0xffff, mainGame.get.name(this.match_kill))
 				: mainGame.get.strings.victory(type);
+			connect.on();
+			connect.state = 4;
 			await duel.win(mainGame.get.text(key), message);
 		}],
 		[MSG.UPDATE_DATA, async (msg : Msg) => {
@@ -1444,6 +1460,7 @@ class Protocol {
 					cards : codes_self.map(i => { return { id : i[1], pos : POS.FACEUP_ATTACK }; }),
 					avatar : mainGame.get.avatar(0)
 				});
+			await duel.confrim.hand(codes_self.map(i => i[0]));
 			await duel.confrim.hand(codes_oppo.map(i => i[0]));
 		}],
 		[MSG.SHUFFLE_DECK, async (msg : Msg) => {
@@ -1856,6 +1873,12 @@ class Protocol {
 			connect.duel.chain.pop();
 			if (!connect.duel.chain.length)
 				this.chain_code = 0;
+		}],
+		[MSG.CHAIN_END, async () => {
+			connect.duel.chain.length = 0;
+			this.chain_code = 0;
+			await Promise.all(duel.get.cards()
+				.map(i => i.clear.activate_hint()));
 		}],
 		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
 			const ct = msg.read.uint8();

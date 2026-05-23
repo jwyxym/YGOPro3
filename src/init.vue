@@ -12,13 +12,8 @@
 				@exit = 'page.select.menu'
 			/>
 			<Duel
-				v-if = 'page.show.single'
-				:model = '0'
-				@exit = 'page.select.menu'
-			/>
-			<Duel
-				v-if = 'page.show.server'
-				:model = '1'
+				v-if = 'page.show.duel'
+				:model = 'page.duel.model'
 				@exit = 'page.select.menu'
 			/>
 			<Setting
@@ -53,19 +48,20 @@
 
 	const page = reactive({
 		loading : false,
+		duel : {
+			model : 0 as 0 | 1 | 2
+		},
 		show : {
 			voice : false,
 			dialog : false,
 			menu : false,
-			server : false,
-			single : false,
+			duel : false,
 			deck : false,
 			setting : false
 		},
 		select : {
 			menu : () : void => {
-				page.show.single = false;
-				page.show.server = false;
+				page.show.duel = false;
 				page.show.deck = false;
 				page.show.setting = false;
 				if (!page.show.menu)
@@ -79,7 +75,8 @@
 				}
 				page.show.menu = false;
 				setTimeout(() => {
-					page.show.single = true;
+					page.duel.model = 0;
+					page.show.duel = true;
 				}, 600);
 			},
 			server : () : void => {
@@ -88,7 +85,8 @@
 				}
 				page.show.menu = false;
 				setTimeout(() => {
-					page.show.server = true;
+					page.duel.model = 1;
+					page.show.duel = true;
 				}, 600);
 			},
 			deck : () : void => {

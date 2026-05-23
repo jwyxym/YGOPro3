@@ -94,7 +94,7 @@
 		}>;
 		self : {
 			is_host : boolean;
-			position : 0 | 1 | 2 | 3;
+			position : number;
 		};
 		info : {
 			room_name : string;

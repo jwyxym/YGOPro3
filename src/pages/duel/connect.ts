@@ -31,7 +31,7 @@ class Wait {
 	];
 	self = {
 		is_host : false,
-		position : 0 as 0 | 1 | 2 | 3,
+		position : 0,
 	};
 	info = {
 		room_name : '',
@@ -55,26 +55,28 @@ class Wait {
 	deck = {
 		current : undefined as undefined | Deck,
 		send : async (deck ?: Deck) : Promise<void> => {
-			if (deck) {
-				this.deck.current = deck;
-				if (this.players[this.self.position].status)
+			const player = this.players[this.self.position];
+			if (player)
+				if (deck) {
+					this.deck.current = deck;
+					if (player.status)
+						await connect.send?.(new Msg()
+							.write.uint8(CTOS.HS_NOTREADY));
+					const msg = new Msg()
+						.write.uint8(CTOS.UPDATE_DECK)
+						.write.uint32(deck.main.length + deck.extra.length)
+						.write.uint32(deck.side.length);
+					for (const i of deck.main
+						.concat(deck.extra)
+						.concat(deck.side)
+					)
+						msg.write.uint32(i);
+					await connect.send?.(msg);
+					await connect.send?.(new Msg()
+						.write.uint8(CTOS.HS_READY));
+				} else
 					await connect.send?.(new Msg()
 						.write.uint8(CTOS.HS_NOTREADY));
-				const msg = new Msg()
-					.write.uint8(CTOS.UPDATE_DECK)
-					.write.uint32(deck.main.length + deck.extra.length)
-					.write.uint32(deck.side.length);
-				for (const i of deck.main
-					.concat(deck.extra)
-					.concat(deck.side)
-				)
-					msg.write.uint32(i);
-				await connect.send?.(msg);
-				await connect.send?.(new Msg()
-					.write.uint8(CTOS.HS_READY));
-			} else
-				await connect.send?.(new Msg()
-					.write.uint8(CTOS.HS_NOTREADY));
 		},
 		chk : async (
 			result ?: (value : string | true | PromiseLike<string | true>) => void
@@ -314,9 +316,6 @@ const connect = reactive({
 					break;
 				case 2:
 					history.clear();
-					chat.clear();
-					connect.chat.off();
-					connect.state = 3;
 					connect.duel.player[0] = new Player();
 					connect.duel.player[1] = new Player();
 					connect.duel.chain.length = 0;
