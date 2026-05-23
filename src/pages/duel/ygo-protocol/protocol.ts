@@ -76,28 +76,16 @@ class Protocol {
 		}
 	};
 	get = {
-		card : (tp : number, loc : number, seq : number) : Client_Card | undefined => {
+		card : (tp : number, loc : number, seq : number, ct : number = 0) : Client_Card | undefined => {
 			const cards = duel.get.cards()
-				.filter(i =>
+				.find(i =>
 					(i.owner === tp || tp === 2)
-					&& (i.location & loc)
+					&& i.location === (loc & 0x7f)
 					&& i.seq === seq
 				);
-			return cards.length > 1 ? lodash.maxBy(cards, i => i.overlay) : cards[0];
-		},
-		overlay : (tp : number, loc : number, seq : number, ct : number) : Client_Card | undefined => {
-			if (!(loc & LOCATION.OVERLAY))
-				return;
-			const cards = lodash.orderBy(
-				duel.get.cards()
-					.filter(i =>
-						(i.owner === tp || tp === 2)
-						&& (i.location & loc)
-						&& i.seq === seq
-					),
-				i => i.overlay
-			);
-			return cards.length > ct ? cards[ct] : cards[0];
+			return loc & LOCATION.OVERLAY ?
+				cards?.overlays?.[ct]
+				: cards;
 		},
 		response : (i : number, command : number) : number => {
 			switch (command) {
@@ -204,15 +192,14 @@ class Protocol {
 				const ct = msg.read.int32();
 				if (ct === undefined) return result;
 				card.set.overlay(ct);
-				const cards = duel.get.cards()
-					.filter(i => (i.location & (LOCATION.MZONE | LOCATION.OVERLAY))
-						&& i.owner === card.owner
-						&& i.seq === card.seq
-					);
+				const cards = card.overlays;
 				for (let i = 0; i < ct; i ++) {
+					if (i >= cards.length)
+						cards.push(new Client_Card()
+							.set.pos(POS.FACEUP_ATTACK));
 					const c = cards[i];
 					const code = msg.read.int32();
-					if (!c || code === undefined) return result;
+					if (code === undefined) return result;
 					result.push([c, code]);
 					c.set.overlay(ct - (i + 1));
 				}
@@ -934,8 +921,7 @@ class Protocol {
 				)
 					return;
 				const card = loc
-					? this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq)
+					? this.get.card(tp, loc, seq, ct)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
 				if (card) {
@@ -995,8 +981,7 @@ class Protocol {
 				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
 					return;
 				const card = loc
-					? this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq)
+					? this.get.card(tp, loc, seq, ct)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
 				if (card) {
@@ -1017,8 +1002,7 @@ class Protocol {
 				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
 					return;
 				const card = loc
-					? this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq)
+					? this.get.card(tp, loc, seq, ct)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
 				if (card) {
@@ -1083,8 +1067,7 @@ class Protocol {
 					return;
 				flag |= forced << 8;
 				const card = loc
-					? this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq)
+					? this.get.card(tp, loc, seq, ct)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
 				if (card) {
@@ -1229,8 +1212,7 @@ class Protocol {
 				if (code === undefined || loc === undefined || seq === undefined || ct === undefined)
 					return;
 				const card = loc
-					? this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq)
+					? this.get.card(tp, loc, seq, ct)
 					: new Client_Card()
 						.set.pos(POS.FACEUP_ATTACK);
 				if (card)  {
@@ -1620,56 +1602,102 @@ class Protocol {
 
 			let card : Client_Card | undefined = undefined;
 			if (!from.loc) {
-				card = duel.add.card(to.tp, to.loc!, to.seq!, to.pos, code);
-			} else if (!to.loc) {
-				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
-					?? this.get.card(from.tp, from.loc!, from.seq!);
-				if (c)
-					duel.remove.card(c);
+				await mainGame.load.pic([code]);
+				card = duel.add
+					.card(to.tp, to.loc!, to.seq!, to.pos, code)
+					.set
+					.id(code);
+			}
+			else if (!to.loc) {
+				card = this.get.card(from.tp, from.loc!, from.seq!, from.ct!);
+				if (card) {
+					if (code && card.id !== code) {
+						await mainGame.load.pic([code]);
+						card.set.id(code);
+					}
+					duel.remove.card(card);
+				}
 			} else {
-				const c = this.get.overlay(from.tp, from.loc!, from.seq!, from.ct!)
-					?? this.get.card(from.tp, from.loc!, from.seq!);
-				card = c;
-				if (c) {
-					c.hint_msg = '';
-					if (to.loc & LOCATION.OVERLAY) {
-						const ocard = this.get.card(to.tp, to.loc & 0x7f, to.seq!);
-						if (ocard) {
-							if (ocard.location & LOCATION.MZONE)
-								c
+				if ((to.loc & LOCATION.OVERLAY) && (from.loc & LOCATION.OVERLAY)) {
+					const ocard = [
+						this.get.card(from.tp, from.loc & 0x7f, from.seq!),
+						this.get.card(to.tp, to.loc & 0x7f, to.seq!)
+					];
+					if (ocard[0] && ocard[1]) {
+						card = ocard[0].overlays[from.ct!];
+						if (card) {
+							const ct = ocard[0].overlays.indexOf(card);
+							ocard[0].overlays.splice(ct, 1);
+							ocard[1].overlays.push(card);
+							if (ocard[1].location & LOCATION.ONFIELD)
+								card
 									.set.owner(to.tp)
-									.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
-									.set.seq(to.seq!)
-									.set.overlay(ocard.overlay)
-									.clear.equip();
-							else
-								ocard.overlays.push(c);
+									.set.location(ocard[1].location | LOCATION.OVERLAY)
+									.set.seq(ocard[1].seq)
+									.set.pos(POS.FACEUP_ATTACK);
 						}
-					} else {
-						if (from.loc !== to.loc)
-							c.clear.equip();
-						c
+					}
+				} else if (to.loc & LOCATION.OVERLAY) {
+					card = this.get.card(from.tp, from.loc, from.seq!);
+					const ocard = this.get.card(to.tp, to.loc & 0x7f, to.seq!);
+					if (ocard && card) {
+						if (code && card.id !== code) {
+							await mainGame.load.pic([code]);
+							card.set.id(code);
+						}
+						card.clear.equip();
+						ocard.overlays.push(card);
+						ocard.overlays.push(...card.overlays);
+						card.overlays.length = 0;
+						if (ocard.location & LOCATION.ONFIELD)
+							card
+								.set.owner(to.tp)
+								.set.location(ocard.location | LOCATION.OVERLAY)
+								.set.seq(ocard.seq)
+								.set.pos(POS.FACEUP_ATTACK);
+					}
+				} else if (from.loc & LOCATION.OVERLAY) {
+					const ocard = this.get.card(from.tp, from.loc & 0x7f, from.seq!);
+					card = ocard?.overlays[from.ct!];
+					if (ocard && card) {
+						const ct = ocard.overlays.indexOf(card);
+						ocard.overlays.splice(ct, 1);
+						card
 							.set.owner(to.tp)
 							.set.location(to.loc!)
 							.set.seq(to.seq!)
-							.set.pos(to.pos!)
-							.set.overlay(c.overlays.length);
-
-						c.overlays.forEach((i, v) => i
+							.set.pos(to.pos!);
+					}
+				} else {
+					card = this.get.card(from.tp, from.loc, from.seq!);
+					if (card) {
+						if ((code || to.loc !== LOCATION.EXTRA) && card.id !== code) {
+							await mainGame.load.pic([code]);
+							card.set.id(code);
+						}
+						card.hint_msg = '';
+						if (from.loc !== to.loc) {
+							card.clear.equip();
+							if (from.loc & LOCATION.ONFIELD)
+								card.clear.counter();
+						}
+						card
 							.set.owner(to.tp)
-							.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
+							.set.location(to.loc!)
 							.set.seq(to.seq!)
-							.set.overlay(v)
-						);
-						c.overlays.length = 0;
+							.set.pos(to.pos!);
+						
+						if (to.loc & LOCATION.ONFIELD)
+							for (const i of card.overlays)
+								i
+									.set.owner(to.tp)
+									.set.location(card.location | LOCATION.OVERLAY)
+									.set.seq(card.seq)
+									.set.pos(POS.FACEUP_ATTACK);
 					}
 				}
 			}
 			if (card) {
-				if ((code || (to.loc! & LOCATION.EXTRA)) && card.id !== code) {
-					await mainGame.load.pic([code]);
-					card.set.id(code);
-				}
 				history.push(HISTORY.MOVE, {
 					self : !from.tp,
 					cards : [{
@@ -1800,8 +1828,7 @@ class Protocol {
 				|| ct === undefined
 			)
 				return;
-			const card = this.get.overlay(tp, loc, seq, ct)
-				?? this.get.card(tp, loc, seq);
+			const card = this.get.card(tp, loc, seq, ct);
 			if (card) {
 				await mainGame.load.pic([code]);
 				card.set.id(code);
@@ -1847,8 +1874,7 @@ class Protocol {
 					|| seq === undefined
 					|| ct === undefined)
 					return;
-				const card = this.get.overlay(tp, loc, seq, ct)
-					?? this.get.card(tp, loc, seq);
+				const card = this.get.card(tp, loc, seq, ct);
 				if (card)
 					await card.hint.selected();
 			}
@@ -2362,11 +2388,20 @@ class Protocol {
 					if (bool) {
 						const pos = msg.read.uint8();
 						const overlay = msg.read.uint8() ?? 0;
-						duel.add.card(tp, LOCATION.MZONE, seq, pos)
-							.set.overlay(overlay);
-						for (let ov = 0; ov < overlay; ov ++)
-							duel.add.card(tp, LOCATION.MZONE | LOCATION.OVERLAY, seq, POS.FACEUP_ATTACK)
-								.set.overlay(ov);
+						const ocard = duel.add.card(tp, LOCATION.MZONE, seq, pos);
+						for (let ov = 0; ov < overlay; ov ++) {
+							const xcard = duel
+								.add
+								.card(
+									tp,
+									LOCATION.MZONE | LOCATION.OVERLAY,
+									seq,
+									POS.FACEUP_ATTACK
+								)
+								.set
+								.overlay(ov);
+							ocard.overlays.push(xcard);
+						}
 					}
 				}
 				for (let seq = 0; seq < 8; seq ++) {
@@ -2401,8 +2436,7 @@ class Protocol {
 					)
 						return;
 					msg.index += 7;
-					const card = this.get.overlay(tp, loc, seq, ct)
-						?? this.get.card(tp, loc, seq);
+					const card = this.get.card(tp, loc, seq, ct);
 					if (card)
 						codes.push([card, code]);
 				}

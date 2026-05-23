@@ -545,26 +545,23 @@ class _Duel {
 							})
 					);
 				for (let seq = 0; seq < 7; seq ++) {
-					const arr = lodash.sortBy(cards.filter(i =>
-							(i.location & LOCATION.OVERLAY)
-							&& i.seq === seq
-						),
-						i => i.overlay
-					);
-					arr
-						.forEach((i, v) => i
-							.set.overlay(v)
-							.set.pos(POS.FACEUP_ATTACK)
-						);
 					const c = cards.find(i =>
 						i.location === LOCATION.MZONE
 						&& i.seq === seq
 					);
-					c?.set.overlay(arr.length);
-					if (c?.equip && ((c.location & LOCATION.OVERLAY)
-							|| (c.equip.location & LOCATION.OVERLAY)
-						)
-					)
+					if (!c) continue;
+					c
+						.set
+						.overlay(c.overlays.length)
+						.overlays
+						.forEach((i, v) => {
+							i
+								.set.location(LOCATION.MZONE | LOCATION.OVERLAY)
+								.set.overlay(v)
+								.set.pos(POS.FACEUP_ATTACK)
+						});
+
+					if (c.equip && c.equip.location & LOCATION.OVERLAY)
 						c.clear.equip();
 				}
 			}
@@ -644,7 +641,7 @@ class _Duel {
 							&& (i.location & card.location)
 							&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
 						);
-					const c = lodash.maxBy(cards, i => i.location & LOCATION.MZONE ? i.overlay : i.seq);
+					const c = lodash.maxBy(cards, card.location & LOCATION.MZONE ? i => i.overlay : i => i.seq);
 					if (toRaw(connect.duel.card) === c && c?.clicked)
 						connect.duel.card = undefined;
 					else

@@ -192,8 +192,7 @@ class Client_Card {
 
 	set = {
 		owner : (owner : number) : Client_Card => {
-			if (!this.need_change.z)
-				this.need_change.z = this.owner !== owner;
+			this.need_change.z = this.need_change.z || this.owner !== owner;
 			this.owner = owner;
 			return this;
 		},
@@ -202,20 +201,17 @@ class Client_Card {
 				pos &= ~ POS.DEFENSE;
 			else if (!pos)
 				pos = POS.FACEDOWN_ATTACK;
-			if (!this.need_change.pos)
-				this.need_change.pos = this.pos !== pos;
+			this.need_change.pos = this.need_change.pos || this.pos !== pos;
 			this.pos = pos;
 			return this;
 		},
 		location : (location : number) : Client_Card => {
-			if (!this.need_change.loc)
-				this.need_change.loc = this.location !== location;
+			this.need_change.loc = this.need_change.loc || this.location !== location;
 			this.location = location;
 			return this;
 		},
 		seq : (seq : number) : Client_Card => {
-			if (!this.need_change.loc)
-				this.need_change.loc = this.seq !== seq;
+			this.need_change.loc = this.need_change.loc || this.seq !== seq;
 			this.seq = seq;
 			return this;
 		},
@@ -238,38 +234,33 @@ class Client_Card {
 			return this;
 		},
 		type : (type : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.type !== type;
+			this.need_change.type = this.need_change.type || this.type !== type;
 			this.type = type;
 			return this;
 		},
 		level : (level : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.level !== level;
+			this.need_change.type = this.need_change.type || this.level !== level;
 			this.level = level;
 			return this;
 		},
 		rank : (rank : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.rank !== rank;
+			this.need_change.type = this.need_change.type || this.rank !== rank;
 			this.rank = rank;
 			return this;
 		},
 		scale : (scale : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.scale !== scale;
+			this.need_change.type = this.need_change.type || this.scale !== scale;
 			this.scale = scale;
 			return this;
 		},
 		link : (link : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.link !== link;
+			this.need_change.type = this.need_change.type || this.link !== link;
 			this.link = link;
 			return this;
 		},
 		overlay : (overlay : number) : Client_Card => {
-			if (!this.need_change.type)
-				this.need_change.type = this.overlay !== overlay;
+			this.need_change.type = this.need_change.type || this.overlay !== overlay;
+			this.need_change.loc = this.need_change.loc || this.overlay !== overlay;
 			this.overlay = overlay;
 			return this;
 		},
@@ -295,8 +286,7 @@ class Client_Card {
 			return this;
 		},
 		status : (status : number) : Client_Card => {
-			if (!this.need_change.status)
-				this.need_change.status = this.status !== status;
+			this.need_change.status = this.need_change.status || this.status !== status;
 			this.status = status;
 			return this;
 		},
@@ -526,7 +516,11 @@ class Client_Card {
 		};
 		const atk = () : gsap.core.Timeline | void => {
 			const atk = this.get.el.atk();
-			const text = this.type & TYPE.LINK ? this.atk.toString() : `${this.atk ?? 0}/${this.def ?? 0}`;
+			const obj = {
+				atk : Math.max(this.atk, 0),
+				def : Math.max(this.def, 0)
+			};
+			const text = this.type & TYPE.LINK ? obj.atk.toString() : `${obj.atk}/${obj.def}`;
 			if (atk.innerText === text)
 				return;
 			if (atk.classList.contains('show')) {
@@ -540,6 +534,9 @@ class Client_Card {
 					opacity : 1,
 					duration : 0.05
 				}, 0.05);
+				tl.set(atk, {
+					clearProps : 'opacity'
+				}, 0.1);
 				return tl;
 			} else
 				atk.innerText = text;
@@ -594,7 +591,10 @@ class Client_Card {
 			});
 			return tl;
 		};
-		if (!(this.pos & POS.FACEDOWN) && (this.location & LOCATION.ONFIELD)) {
+		if (this.pos & POS.FACEUP
+			&& (this.location & LOCATION.ONFIELD)
+			&& !(this.location & LOCATION.OVERLAY)
+		) {
 			if (this.location === LOCATION.MZONE)
 				this.get.el.atk().classList.add('show');
 			if (this.location === LOCATION.MZONE
