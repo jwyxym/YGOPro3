@@ -35,6 +35,8 @@ class _Duel {
 	camera : THREE.PerspectiveCamera = new THREE.PerspectiveCamera();
 	plaids : Array<Plaid> = [];
 	cards : Array<Client_Card> = [];
+	card_elements : WeakMap<HTMLElement, Client_Card> = new WeakMap();
+	clicked_card ?: Client_Card;
 	back ?: CSS.CSS3DObject;
 	btn ?: Btn;
 	activate ?: Activate;
@@ -487,6 +489,7 @@ class _Duel {
 				.set(...Axis.computed.card(card).get.xyz());
 			this.scene.add(card.three);
 			this.cards.push(card);
+			this.card_elements.set(card.three.element, card);
 			return card;
 		}
 	};
@@ -495,6 +498,9 @@ class _Duel {
 		card : (card : Client_Card) : Client_Card => {
 			this.cards.find(i => i.equip === card)?.equip === undefined;
 			this.cards.splice(this.cards.indexOf(card), 1);
+			this.card_elements.delete(card.three.element);
+			if (this.clicked_card === card)
+				this.clicked_card = undefined;
 			this.scene.remove(card.three);
 			return card;
 		}
@@ -513,6 +519,8 @@ class _Duel {
 			this.camera = new THREE.PerspectiveCamera();
 			this.cards.length = 0;
 			this.plaids.length = 0;
+			this.card_elements = new WeakMap();
+			this.clicked_card = undefined;
 			this.animation_id = 0;
 			this.time = 0;
 			this.back = undefined;
@@ -594,22 +602,38 @@ class _Duel {
 				duel.activate?.off();
 		}
 	};
+
+	clear_clicked = (except ?: Client_Card) : void => {
+		if (this.clicked_card
+			&& this.clicked_card !== except
+			&& this.clicked_card.clicked
+		)
+			this.clicked_card.click.img();
+		this.clicked_card = except;
+	};
+
+	get_card = (target : HTMLElement) : Client_Card | undefined => {
+		const element = target.closest('.ygopro3__duel__card') as HTMLElement | null;
+		return element ? this.card_elements.get(element) : undefined;
+	};
 	
 	click = (event : Event | Client_Card | number) : void => {
 		if (!this.element) return;
 		this.queue.add(async () => {
 			if (event instanceof Client_Card || typeof event === 'number') {
 				connect.duel.card = event;
-				this.cards
-					.filter(i => i.clicked)
-					.forEach(i => i.click.img());
+				this.clear_clicked();
 			} else {
 				if (connect.duel.cards.length) {
 					connect.duel.cards.length = 0;
 					await mainGame.sleep(100);
 				}
-				const target = event.target as HTMLElement;
+				const target = event.target;
+				if (!(target instanceof HTMLElement))
+					return;
 				if (this.btn?.contains(target)) {
+					this.clear_clicked();
+					connect.duel.card = undefined;
 					if (this.btn.enable.length > 0 && !connect.duel.select.chk()) {
 						const array = this.btn.enable
 							.map(i => mainGame.get.text(i));
@@ -627,17 +651,13 @@ class _Duel {
 				}
 				if (this.activate?.contains(target)) {
 					connect.duel.card = undefined;
-					this.cards
-						.filter(i => i.clicked)
-						.forEach(i => i.click.img());
+					this.clear_clicked();
 					return this.activate.click(target);
 				}
-				const card = this.cards.find(i => i.contains(target));
+				const card = this.get_card(target);
 				if (!card) {
 					connect.duel.card = undefined;
-					this.cards
-						.filter(i => i.clicked)
-						.forEach(i => i.click.img());
+					this.clear_clicked();
 					return;
 				}
 				if (card.location & LOCATION.HAND) {
@@ -646,12 +666,23 @@ class _Duel {
 					else
 						connect.duel.card = card;
 				} else {
-					const cards = this.cards
-						.filter(i => i.owner === card.owner
-							&& (i.location & card.location)
-							&& (i.seq === card.seq || !(i.location & LOCATION.ONFIELD))
-						);
-					const c = lodash.maxBy(cards, card.location & LOCATION.MZONE ? i => i.overlay : i => i.seq);
+					const cards : Array<Client_Card> = [];
+					let c : Client_Card | undefined = undefined;
+					let max = - Infinity;
+					const is_mzone = !!(card.location & LOCATION.MZONE);
+					for (const i of this.cards) {
+						if (i.owner !== card.owner
+							|| !(i.location & card.location)
+							|| (i.seq !== card.seq && (i.location & LOCATION.ONFIELD))
+						)
+							continue;
+						cards.push(i);
+						const value = is_mzone ? i.overlay : i.seq;
+						if (!c || value > max) {
+							c = i;
+							max = value;
+						}
+					}
 					if (toRaw(connect.duel.card) === c && c?.clicked)
 						connect.duel.card = undefined;
 					else
@@ -662,10 +693,14 @@ class _Duel {
 						connect.duel.cards = cards;
 				}
 
-				this.cards
-					.filter(i => i.clicked && i !== connect.duel.card)
-					.forEach(i => i.click.img());
-				connect.duel.card?.click.img();
+				const selected = toRaw(connect.duel.card);
+				if (selected instanceof Client_Card) {
+					this.clear_clicked(selected);
+					if (!selected.clicked)
+						selected.click.img();
+					this.clicked_card = selected;
+				} else
+					this.clear_clicked();
 			}
 		});
 	};
