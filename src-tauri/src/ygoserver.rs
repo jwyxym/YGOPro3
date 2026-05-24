@@ -1,4 +1,4 @@
-use crate::PATH;
+use crate::RESOURCE_PATH;
 
 use libloading::{Library, Symbol};
 use anyhow::{Error, Result, anyhow};
@@ -21,7 +21,7 @@ pub struct YgoServer {
 
 impl YgoServer {
 	pub async fn init() -> Result<(), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		if SERVER.get().is_none() {
 			SERVER.set(RwLock::new(Some(Self::new(path)?)))?;
 		} else {
@@ -64,7 +64,7 @@ impl YgoServer {
 		let server: &RwLock<Option<Self>> = SERVER.get().ok_or(anyhow!("get server error"))?;
 		let server: RwLockReadGuard<'_, Option<Self>> = server.read().await;
 		let server: &Self = server.as_ref().ok_or(anyhow!("get server error"))?;
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		let path: String = path.to_string_lossy().into_owned();
 		let path: &str = path.strip_prefix(r"\\?\").unwrap_or(&path);
 		let mut path: String = path.replace("\\", "/");
@@ -123,12 +123,12 @@ impl YgoServer {
 
 		let cnt: usize = Arc::strong_count(&lib);
 		if cnt != 1 {
-			return Err(anyhow!("dll shutdown error {}", cnt));
+			return Err(anyhow!("ygoserver shutdown error {}", cnt));
 		}
 		
 		Arc::try_unwrap(lib)
 			.map(|library| drop(library))
-			.map_err(|_| anyhow!("dll shutdown error"))?;
+			.map_err(|_| anyhow!("ygoserver shutdown error"))?;
 
 		Ok(())
 	}

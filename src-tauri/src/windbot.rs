@@ -1,4 +1,4 @@
-use crate::PATH;
+use crate::RESOURCE_PATH;
 
 use libloading::{Library, Symbol};
 use anyhow::{Error, Result, anyhow};
@@ -22,7 +22,7 @@ pub struct WindBot {
 
 impl WindBot {
 	pub async fn init () -> Result<(), Error> {
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		if BOT.get().is_none() {
 			BOT.set(Self::new(path)?)?;
 		}
@@ -57,7 +57,7 @@ impl WindBot {
 	pub async fn start (args: String, i18n: String, deck: String) -> Result<(), Error> {
 		Self::init().await?;
 		let bot: &Self = BOT.get().ok_or(anyhow!("get bot error"))?;
-		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		let db_path: PathBuf = path
 			.join("cdb")
 			.join(format!("cards-{}.cdb", i18n));
