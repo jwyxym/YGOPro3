@@ -31,7 +31,7 @@ const tauriConfig = {
 			assetProtocol: {
 				enable: true,
 				scope: {
-					allow: ["$HOME/**", "$RESOURCE/**"]
+					allow: ["$HOME/**", "$RESOURCE/**", "$APPLOCALDATA/**"]
 				}
 			}
 		}
