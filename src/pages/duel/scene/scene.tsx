@@ -497,11 +497,25 @@ class _Duel {
 	remove = {
 		card : (card : Client_Card) : Client_Card => {
 			this.cards.find(i => i.equip === card)?.equip === undefined;
-			this.cards.splice(this.cards.indexOf(card), 1);
+			const ct = this.cards.indexOf(card);
+			if (ct > - 1)
+				this.cards.splice(ct, 1);
 			this.card_elements.delete(card.three.element);
 			if (this.clicked_card === card)
 				this.clicked_card = undefined;
 			this.scene.remove(card.three);
+			if (card.location & LOCATION.OVERLAY) {
+				const loc = card.location & ~ LOCATION.OVERLAY;
+				const ocard = this.get.cards().find(i =>
+					(i.location & loc)
+					&& i.seq === card.seq
+				);
+				if (ocard) {
+					const ct = ocard.overlays.indexOf(card);
+					if (ct > - 1)
+						ocard.overlays.splice(ct, 1);
+				}
+			}
 			return card;
 		}
 	}
