@@ -104,9 +104,8 @@ impl Game {
 		let cache: String = read_to_string(path.join("cache"))
 			.await
 			.unwrap_or(String::new());
-		let overwrite_assets: bool = version != cache;
-		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, &assets, overwrite, overwrite_assets).await?;
-		if overwrite_assets {
+		if version != cache || overwrite {
+			let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, &assets).await?;
 			tasks.push(spawn(async {
 				write(path
 					.join("cache"), 
@@ -114,9 +113,9 @@ impl Game {
 				)?;
 				Ok(())
 			}));
-		}
-		for task in tasks {
-			let _ = task.await;
+			for task in tasks {
+				let _ = task.await;
+			}
 		}
 		Ok(())
 	}

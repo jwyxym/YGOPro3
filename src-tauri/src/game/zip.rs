@@ -150,7 +150,7 @@ impl Zip {
 			servers: servers
 		})
 	}
-	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P, overwrite: bool, overwrite_assets: bool) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
@@ -159,7 +159,7 @@ impl Zip {
 		let _ = Self::read(&assets, |name, mut file| {
 			app.emit("progress", 1)?;
 			let path: PathBuf = path.join(&name);
-			if !file.is_dir() && ((overwrite || !exists(&path)?) || (overwrite_assets && !name.starts_with("config"))) {
+			if !file.is_dir() && (!name.starts_with("config") || !exists(&path)?) {
 				let mut content: Vec<u8> = Vec::new();
 				if file.read_to_end(&mut content).is_ok() {
 					tasks.push(spawn_blocking(move || {
