@@ -125,7 +125,7 @@ impl Game {
 
 	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		
+
 		let config: Vec<(String, String)> = Self::unzip(app, overwrite).await?;
 
 		let (system, resource, lflist, servers, model, mut tasks) = Self::load_config(path, &config).await;
@@ -231,7 +231,6 @@ impl Game {
 				}
 			}
 		}
-		let system: System = system.unwrap_or_else(|| { System::default() });
 		let mut resources: Resource = resources.unwrap_or_else(|| { Resource::default() });
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		if let Some((_, text)) = config
@@ -273,6 +272,20 @@ impl Game {
 				}));
 			}
 		}
+		let system: System = match system {
+			Some(system) => system,
+			None => {
+				let system: System = System::default();
+				let p: PathBuf = config_path
+					.join("system.toml");
+				let text: String = system.to_string();
+				tasks.push(spawn(async move {
+					write(p, text)?;
+					Ok(())
+				}));
+				system
+			}
+		};
 		(system, resources, lflist, servers, model, tasks)
 	}
 
