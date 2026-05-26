@@ -1,8 +1,9 @@
 use super::File;
 use serde::{Serialize, Deserialize};
-use basic_toml::from_str;
+use basic_toml::{from_str, to_string};
 use std::path::{Path, PathBuf};
-use indexmap::IndexMap;
+use indexmap::{IndexMap, map::Entry};
+use anyhow::{Error, Result};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct Resource {
@@ -97,6 +98,33 @@ impl Resource {
 			other: IndexMap::new()
 		}
 	}
+	pub fn merge (&mut self, text: &str, path: &Path) -> bool {
+		let resource: Self = Self::new(String::from(text), path);
+		let mut result: bool = false;
+		fn merge (target: &mut IndexMap<String, String>, source: IndexMap<String, String>) -> bool {
+			let mut result: bool = false;
+			for (key, value) in source {
+				match target.entry(key) {
+					Entry::Occupied(_) => (),
+					Entry::Vacant(entry) => {
+						entry.insert(value);
+						result = true;
+					}
+				};
+			}
+			result
+		}
+
+		result = result || merge(&mut self.ot, resource.ot);
+		result = result || merge(&mut self.attribute, resource.attribute);
+		result = result || merge(&mut self.category, resource.category);
+		result = result || merge(&mut self.race, resource.race);
+		result = result || merge(&mut self.types, resource.types);
+		result = result || merge(&mut self.info, resource.info);
+		result = result || merge(&mut self.counter, resource.counter);
+		result = result || merge(&mut self.other, resource.other);
+		result
+	}
 	pub fn to_array (&self) -> Textures {
 		(
 			self.ot.clone().into_iter()
@@ -180,5 +208,8 @@ impl Resource {
 	}
 	pub fn font (&self) -> Vec<(String, String)> {
 		self.font.clone().into_iter().collect()
+	}
+	pub fn to_string (&self) -> Result<String, Error> {
+		Ok(to_string(&self)?)
 	}
 }

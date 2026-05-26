@@ -150,25 +150,34 @@ impl Zip {
 			servers: servers
 		})
 	}
-	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P) -> Result<Vec<JoinHandle<Result<(), Error>>>, Error> {
-		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
+	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P) -> Result<Vec<JoinHandle<Result<Option<(String, String)>, Error>>>, Error> {
+		let mut tasks: Vec<JoinHandle<Result<Option<(String, String)>, Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
 		let zip: ZipArchive<File> = ZipArchive::new(File::open(&assets)?)?;
 		app.emit("started", zip.len())?;
-		let _ = Self::read(&assets, |name, mut file| {
+		let _ = Self::read(&assets, |name: String, mut file: ZipFile<'_>| {
 			app.emit("progress", 1)?;
 			let path: PathBuf = path.join(&name);
-			if !file.is_dir() && (!name.starts_with("config") || !exists(&path)?) {
-				let mut content: Vec<u8> = Vec::new();
-				if file.read_to_end(&mut content).is_ok() {
-					tasks.push(spawn_blocking(move || {
-						if let Some(parent) = path.parent() {
-							let _ = create_dir_all(parent);
-						}
-						write(path, content)?;
-						Ok(())
-					}));
+			if !file.is_dir() {
+				if name.starts_with("config") {
+					let mut content: String = String::new();
+					if file.read_to_string(&mut content).is_ok() {
+						tasks.push(spawn_blocking(|| {
+							Ok(Some((name, content)))
+						}));
+					}
+				} else if !exists(&path)? {
+					let mut content: Vec<u8> = Vec::new();
+					if file.read_to_end(&mut content).is_ok() {
+						tasks.push(spawn_blocking(move || {
+							if let Some(parent) = path.parent() {
+								let _ = create_dir_all(parent);
+							}
+							write(path, content)?;
+							Ok(None)
+						}));
+					}
 				}
 			}
 			Ok(())

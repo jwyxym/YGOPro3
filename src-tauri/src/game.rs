@@ -95,7 +95,7 @@ pub struct GamePack {
 }
 
 impl Game {
-	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
+	pub async fn unzip (app: &AppHandle, overwrite: bool) -> Result<Vec<(String, String)>, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let resource_path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		let assets: PathBuf = resource_path.join("assets");
@@ -104,32 +104,46 @@ impl Game {
 		let cache: String = read_to_string(path.join("cache"))
 			.await
 			.unwrap_or(String::new());
+		let mut result: Vec<(String, String)> = Vec::new();
 		if version != cache || overwrite {
-			let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Zip::unzip(app, path, &assets).await?;
+			let mut tasks: Vec<JoinHandle<Result<Option<(String, String)>, Error>>> = Zip::unzip(app, path, &assets).await?;
 			tasks.push(spawn(async {
 				write(path
 					.join("cache"), 
 					version
 				)?;
-				Ok(())
+				Ok(None)
 			}));
 			for task in tasks {
-				let _ = task.await;
+				if let Some(i) = task.await?? {
+					result.push(i)
+				}
 			}
 		}
-		Ok(())
+		Ok(result)
 	}
 
 	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Self::unzip(app, overwrite).await?;
+		
+		let config: Vec<(String, String)> = Self::unzip(app, overwrite).await?;
 
-		let (system, resource, lflist, servers, model) = Self::load_config(path).await;
-
-		let (mut pack, (card_info, db, strings)) = join!(
+		let (system, resource, lflist, servers, model, mut tasks) = Self::load_config(path, &config).await;
+		
+		let (mut pack, (card_info, db, strings, task)) = join!(
 			Self::load_expansion(app, path, &system),
-			Self::load_i18n(path, system.i18n())
+			Self::load_i18n(path, system.i18n(), &config)
 		);
+
+		tasks.push(task);
+		for task in tasks {
+			let _ = task.await;
+		}
+
+		let pics: Pic = Pic::new().read_dir(path.join("pics"));
+		let font: Font = Font::new().read_dir(path.join("font"), resource.font());
+		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
+		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
 			card_info: card_info,
@@ -137,23 +151,25 @@ impl Game {
 			db: db,
 			server: servers,
 			lflist: lflist,
-			pics: Pic::new().read_dir(path.join("pics"))
+			pics: pics
 		});
 		Ok(Self {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
 			system: system,
-			font: Font::new()
-				.read_dir(path.join("font"), resource.font()),
-			sound: Sound::new().read_dir(path.join("sound"), resource.sound()),
+			font: font,
+			sound: sound,
 			resource: resource,
 			pack: pack
 		})
 	}
 
-	async fn load_config (path: &Path) -> (System, Resource, LFList, Server, Model) {
+	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, Vec<JoinHandle<Result<(), Error>>>) {
+		
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
-		WalkDir::new(path.join("config"))
+		let config_path: PathBuf = path
+			.join("config");
+		WalkDir::new(&config_path)
 			.max_depth(1)
 			.into_iter()
 			.for_each(|i| {
@@ -216,20 +232,62 @@ impl Game {
 			}
 		}
 		let system: System = system.unwrap_or_else(|| { System::default() });
-		let resources: Resource = resources.unwrap_or_else(|| { Resource::default() });
-		(system, resources, lflist, servers, model)
+		let mut resources: Resource = resources.unwrap_or_else(|| { Resource::default() });
+		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
+		if let Some((_, text)) = config
+			.iter()
+			.find(|i| i.0.ends_with("resource.toml"))
+			&& resources.merge(text, path) {
+			let p: PathBuf = config_path
+				.join("resource.toml");
+			if let Ok(text) = resources.to_string() {
+				tasks.push(spawn(async move {
+					write(p, text)?;
+					Ok(())
+				}));
+			}
+		}
+		if let Some((_, text)) = config
+			.iter()
+			.find(|i| i.0.ends_with("servers.toml"))
+			&& servers.merge(text) {
+			let p: PathBuf = config_path
+				.join("servers.toml");
+			if let Ok(text) = servers.to_string() {
+				tasks.push(spawn(async move {
+					write(p, text)?;
+					Ok(())
+				}));
+			}
+		}
+		if let Some((_, text)) = config
+			.iter()
+			.find(|i| i.0.ends_with("room_model.toml"))
+			&& model.merge(text) {
+			let p: PathBuf = config_path
+				.join("room_model.toml");
+			if let Ok(text) = model.to_string() {
+				tasks.push(spawn(async move {
+					write(p, text)?;
+					Ok(())
+				}));
+			}
+		}
+		(system, resources, lflist, servers, model, tasks)
 	}
 
-	async fn load_i18n (path: &Path, i18n: String) -> (CardInfo, Cdb, Strings) {
+	async fn load_i18n (path: &Path, i18n: String, config: &Vec<(String, String)>) -> (CardInfo, Cdb, Strings, JoinHandle<Result<(), Error>>) {
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
+		let info_name: String = format!("cardinfo-{}.toml", i18n);
 		let p: PathBuf = path.join("strings").join(format!("strings-{}.conf", i18n));
 		tasks.push(spawn(async move {
 			let text: String = read_to_string(p).await?;
 			Ok(FileContent::Strings(text))
 		}));
-		let p: PathBuf = path.join("config").join(format!("cardinfo-{}.toml", i18n));
+		let info: PathBuf = path.join("config").join(&info_name);
+		let info_path: PathBuf = info.clone();
 		tasks.push(spawn(async move {
-			let text: String = read_to_string(p).await?;
+			let text: String = read_to_string(info_path).await?;
 			Ok(FileContent::CardInfo(text))
 		}));
 		let p: PathBuf = path.join("cdb").join(format!("cards-{}.cdb", i18n));
@@ -260,9 +318,24 @@ impl Game {
 				}
 			}
 		}
-		let card_info: CardInfo = card_info.unwrap_or_else(|| { CardInfo::default() });
+		let mut card_info: CardInfo = card_info.unwrap_or_else(|| { CardInfo::default() });
 		let db: Cdb = db.unwrap_or_else(|| { Cdb::new() });
-		(card_info, db, strings)
+		if let Some((_, text)) = config
+			.iter()
+			.find(|i| i.0.ends_with(&info_name)) {
+			card_info.merge(text);
+		}
+
+		if let Ok(text) = card_info.to_string() {
+			(card_info, db, strings, spawn(async move {
+				write(info, text)?;
+				Ok(())
+			}))
+		} else {
+			(card_info, db, strings, spawn(async {
+				Ok(())
+			}))
+		}
 	}
 
 	async fn load_expansion (app: &AppHandle, path: &Path, system: &System) -> IndexMap<String, GamePack> {

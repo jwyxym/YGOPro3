@@ -1,6 +1,7 @@
-use basic_toml::from_str;
-use indexmap::IndexMap;
+use basic_toml::{from_str, to_string};
+use indexmap::{IndexMap, map::Entry};
 use serde::{Serialize, Deserialize};
+use anyhow::{Error, Result};
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Server {
@@ -19,6 +20,22 @@ impl Server {
 				self.servers.insert(String::from(k), String::from(v));
 			});
 		}
+	}
+	pub fn merge (&mut self, text: &str) -> bool {
+		if let Ok(servers) = from_str::<Self>(text) {
+			let mut result: bool = false;
+			for (key, value) in servers.servers {
+				match self.servers.entry(key) {
+					Entry::Occupied(_) => (),
+					Entry::Vacant(entry) => {
+						entry.insert(value);
+						result = true;
+					}
+				};
+			}
+			return result;
+		}
+		false
 	}
 	pub fn init_by_conf(&mut self, text: String) -> () {
 		text
@@ -57,5 +74,8 @@ impl Server {
 	}
 	pub fn content (&self) -> &IndexMap<String, String> {
 		&self.servers
+	}
+	pub fn to_string (&self) -> Result<String, Error> {
+		Ok(to_string(&self)?)
 	}
 }
