@@ -25,11 +25,12 @@ impl Pic {
 
 	pub fn read_dir<P: AsRef<Path>> (mut self, path: P) -> Self {
 		WalkDir::new(path)
+			.max_depth(1)
 			.into_iter()
 			.filter_map(|i| {
 				if let Ok(i) = i {
 					let file: File = File::new(i.path())?;
-					if ["jpg", "jpeg", "png"].contains(&file.ext()) {
+					if ["jpg", "jpeg", "png", "gif"].contains(&file.ext()) {
 						let code: u32 = file.stem().parse::<u32>().unwrap_or(0);
 						if code > 0 {
 							return Some((code, file.url()));

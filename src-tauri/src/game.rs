@@ -357,14 +357,14 @@ impl Game {
 				}
 			},
 			async {
+				let mut strings: Strings = Strings::new();
+				let mut server: Server = Server::new();
+				let mut lflist: LFList = LFList::new();
+				let mut db: Cdb = Cdb::new();
 				while let Some(task) = tasks.next().await {
 					let _ = app.emit("progress", 1);
 					if let Ok(task) = task {
 						if let Ok(file) = task {
-							let mut strings: Strings = Strings::new();
-							let mut server: Server = Server::new();
-							let mut lflist: LFList = LFList::new();
-							let mut db: Cdb = Cdb::new();
 							match file {
 								FileContent::Strings(text) => {
 									strings.init(text);
@@ -383,25 +383,16 @@ impl Game {
 								}
 								_ => ()
 							}
-							return GamePack {
-								on: true,
-								card_info: CardInfo::default(),
-								strings: strings,
-								db: db,
-								server: server,
-								lflist: lflist,
-								pics: Pic::new().read_dir(path.join("expansions").join("pics"))
-							};
 						}
 					}
 				}
 				GamePack {
 					on: true,
 					card_info: CardInfo::default(),
-					strings: Strings::new(),
-					db: Cdb::new(),
-					server: Server::new(),
-					lflist: LFList::new(),
+					strings: strings,
+					db: db,
+					server: server,
+					lflist: lflist,
 					pics: Pic::new().read_dir(path.join("expansions").join("pics"))
 				}
 			}

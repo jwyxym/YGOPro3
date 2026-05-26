@@ -26,6 +26,22 @@ $boder-color: #9ed3ff;
 				}
 			}
 		}
+		.ygopro3__duel__back {
+			width: calc(var(--width) * 12);
+			> img {
+				display: block;
+				width: 100%;
+				height: calc(var(--height) * 4);
+				opacity: 0;
+				transition: all 0.2s ease;
+				&.show {
+					opacity: 1;
+				}
+			}
+			> .ygopro3__duel__back_oppo {
+				transform: scaleY(-1);
+			}
+		}
 		.ygopro3__duel__plaid {
 			width: var(--height);
 			height: var(--height);
@@ -56,6 +72,8 @@ $boder-color: #9ed3ff;
 		}
 		.ygopro3__duel__card {
 			position: relative;
+			width: var(--width);
+			height: var(--height);
 			opacity: 0;
 			color: white;
 			transition: opacity 0.2s ease;
@@ -71,7 +89,6 @@ $boder-color: #9ed3ff;
 			.ygopro3__duel__card__border,
 			.ygopro3__duel__card__img {
 				position: absolute;
-				transform: translate(calc(var(--width) / -2), calc(var(--height) / -2));
 				width: var(--width);
 				height: var(--height);
 				transition: all 0.2s ease;
@@ -94,7 +111,7 @@ $boder-color: #9ed3ff;
 					filter: grayscale(100%);
 				}
 				&.selected {
-					transform: translate(calc(var(--width) / -2), calc(var(--height) / -2 - 50px)) !important;
+					transform: translateY(calc(var(--height) / -2)) !important;
 				}
 				&.equip {
 					outline: 2px solid blue;
@@ -104,7 +121,7 @@ $boder-color: #9ed3ff;
 				background-color: rgba(0, 0, 0, 0.3);
 				position: absolute;
 				opacity: 0;
-				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 16px));
+				transform: translateY(calc(var(--height) - 16px));
 				width: var(--width);
 				text-shadow:
 					-1px -1px 0 black,
@@ -121,7 +138,7 @@ $boder-color: #9ed3ff;
 			.ygopro3__duel__card__info {
 				position: absolute;
 				opacity: 0;
-				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 56px));
+				transform: translateY(calc(var(--height) / 2));
 				height: 16px;
 				width: var(--height);
 				text-shadow:
@@ -155,7 +172,7 @@ $boder-color: #9ed3ff;
 			.ygopro3__duel__card__counter {
 				position: absolute;
 				opacity: 0;
-				transform: translate(calc(var(--width) / -2), calc(var(--height) / 2 - 36px));
+				transform: translateY(calc(var(--height) / 2 - 20px));
 				height: 16px;
 				width: var(--height);
 				color: white;

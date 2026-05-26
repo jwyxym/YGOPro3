@@ -24,7 +24,7 @@ impl Sound {
 			.filter_map(|i| {
 				if let Ok(i) = i {
 					let file: File = File::new(i.path())?;
-					if file.ext() == "mp3"
+					if ["wav", "mp3", "ogg"].contains(&file.ext())
 						&& let Some(i) = sounds
 							.iter()
 							.find(|i| i.1 == String::from(file.name())) {

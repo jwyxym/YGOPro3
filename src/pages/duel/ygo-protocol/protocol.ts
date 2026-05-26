@@ -16,7 +16,7 @@ import Plaid from '@/pages/duel/scene/plaid';
 import { voice } from '@/pages/voice/voice';
 
 import Msg from './msg';
-import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE } from './network';
+import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
 
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -195,8 +195,10 @@ class Protocol {
 				const cards = card.overlays;
 				for (let i = 0; i < ct; i ++) {
 					if (i >= cards.length)
-						cards.push(new Client_Card()
-							.set.pos(POS.FACEUP_ATTACK));
+						cards.push(duel.add.card(card.owner,
+							card.location & LOCATION.OVERLAY,
+							card.seq,
+							POS.FACEUP_ATTACK));
 					const c = cards[i];
 					const code = msg.read.int32();
 					if (code === undefined) return result;
@@ -213,11 +215,8 @@ class Protocol {
 					card.set.counter(ctype, ccount, false);
 				}
 			}
-			if (flag & QUERY.OWNER) {
-				const tp = msg.read.int32();
-				if (tp === undefined) return result;
-				card.set.owner(tp);
-			}
+			if (flag & QUERY.OWNER)
+				msg.index += 4;
 			if (flag & QUERY.STATUS) {
 				const status = msg.read.int32();
 				if (status === undefined) return result;
@@ -473,9 +472,14 @@ class Protocol {
 			const player = msg.read.uint8();
 			if (player === undefined || name === undefined)
 				return;
-			connect.wait.players[player].name = mainGame.get.system(KEYS.SETTING_CHK_HIDDEN_NAME)
-				&& connect.wait.self.position !== player ? mainGame.get.text(I18N_KEYS.HIDDEN_NAME)
-				: name;
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
+				(async () => {
+					connect.wait.players[player].name = mainGame.get.system(KEYS.SETTING_CHK_HIDDEN_NAME)
+						&& connect.wait.self.position !== player ? mainGame.get.text(I18N_KEYS.HIDDEN_NAME)
+						: name;
+				})()
+			]);
 		}],
 		[STOC.HS_PLAYER_CHANGE, async (msg : Msg) => {
 			const ct = msg.read.uint8();
@@ -500,12 +504,17 @@ class Protocol {
 					connect.wait.players[player].status = false;
 					break;
 				default:
-					if (state < 4) {
-						connect.wait.players[state].name = connect.wait.players[player].name;
-						connect.wait.players[state].status = connect.wait.players[player].status;
-						connect.wait.players[player].name = '';
-						connect.wait.players[player].status = false;
-					}
+					await Promise.all([
+						voice.play_sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
+						(async () => {
+							if (state < 4) {
+								connect.wait.players[state].name = connect.wait.players[player].name;
+								connect.wait.players[state].status = connect.wait.players[player].status;
+								connect.wait.players[player].name = '';
+								connect.wait.players[player].status = false;
+							}
+						})()
+					]);
 					break;
 			}
 		}],
@@ -613,7 +622,7 @@ class Protocol {
 			if (playertype === undefined)
 				return;
 			msg.index ++;
-			connect.duel.is_first = (playertype & 0xf) === 0;
+			connect.duel.is_first = !(playertype & 0xf);
 			const players = (() => {
 				const p = connect.wait.self.position > 3 ? 0 : connect.wait.self.position;
 				if (connect.wait.info.mode & 2) {
@@ -650,7 +659,7 @@ class Protocol {
 						duel.add.card(tp, loc[v], seq);
 			});
 			await duel.update();
-			voice.play(KEYS.BATTLE_BGM);
+			await voice.play(KEYS.BATTLE_BGM);
 		}],
 		[MSG.WIN, async (msg : Msg) => {
 			const player = msg.read.uint8();
@@ -1465,7 +1474,10 @@ class Protocol {
 		}],
 		[MSG.SHUFFLE_DECK, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
-			await duel.sort.deck(tp);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE),
+				duel.sort.deck(tp)
+			]);
 		}],
 		[MSG.SHUFFLE_HAND, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1478,7 +1490,10 @@ class Protocol {
 				if (code === undefined) return;
 				codes.push(code);
 			}
-			await duel.sort.hand(tp, codes);
+			await Promise.all([
+				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				duel.sort.hand(tp, codes)
+			]);
 		}],
 		[MSG.SHUFFLE_EXTRA, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1491,7 +1506,10 @@ class Protocol {
 				if (code === undefined) return;
 				codes.push(code);
 			}
-			await duel.sort.ex_deck(tp);
+			await Promise.all([
+				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				duel.sort.ex_deck(tp)
+			]);
 		}],
 		[MSG.SWAP_GRAVE_DECK, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -1568,11 +1586,15 @@ class Protocol {
 					.filter(i => i.owner === tp && (i.location & loc) && i.seq === seq)
 					.forEach(i => i.seq = ps);
 			}
-			await duel.update();
+			await Promise.all([
+				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				duel.update()
+			]);
 		}],
 		[MSG.NEW_TURN, async (msg : Msg) => {
 			const tp = this.to.player((msg.read.uint8() ?? 0) & 0x1);
 			connect.duel.turn = tp;
+			await voice.play_sound_effect(KEYS.SOUND_EFFECT_NEXTTURN);
 			connect.duel.turns[tp] ++;
 			history.push(HISTORY.TURN, {
 				self : !tp,
@@ -1586,6 +1608,7 @@ class Protocol {
 			if (p === undefined)
 				return;
 			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_PHASE),
 				phase.on(connect.duel.turn, p),
 				duel.btn?.phase(p) ?? Promise.resolve()
 			]);
@@ -1725,7 +1748,12 @@ class Protocol {
 					to : mainGame.get.location(to.loc!)
 				});
 			}
-			await duel.update();
+			await Promise.all([
+				to.loc === from.loc && (reason & REASON.DESTROY)
+					? voice.play_sound_effect(KEYS.SOUND_EFFECT_DESTROYED)
+					: Promise.resolve(),
+				duel.update()
+			]);
 		}],
 		[MSG.POS_CHANGE, async (msg : Msg) => {
 			const code = msg.read.int32();
@@ -1753,6 +1781,7 @@ class Protocol {
 			}
 		}],
 		[MSG.SET, async () => {
+			await voice.play_sound_effect(KEYS.SOUND_EFFECT_SET);
 			this.event = mainGame.get.strings.system(1601);
 		}],
 		[MSG.SWAP, async (msg : Msg) => {
@@ -1812,7 +1841,10 @@ class Protocol {
 		[MSG.SUMMONING, async (msg : Msg) => {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1603, mainGame.get.name(code));
-			await mainGame.load.pic([code ?? 0]);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_SUMMON),
+				mainGame.load.pic([code ?? 0])
+			]);
 		}],
 		[MSG.SUMMONED, async () => {
 			this.event = mainGame.get.strings.system(1604);
@@ -1821,6 +1853,10 @@ class Protocol {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1605, mainGame.get.name(code));
 			await mainGame.load.pic([code ?? 0]);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_SPECIALSUMMON),
+				mainGame.load.pic([code ?? 0])
+			]);
 		}],
 		[MSG.SPSUMMONED, async () => {
 			this.event = mainGame.get.strings.system(1606);
@@ -1828,7 +1864,10 @@ class Protocol {
 		[MSG.FLIPSUMMONING, async (msg : Msg) => {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1607, mainGame.get.name(code));
-			await mainGame.load.pic([code ?? 0]);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_FLIP),
+				mainGame.load.pic([code ?? 0])
+			]);
 		}],
 		[MSG.FLIPSUMMONED, async () => {
 			this.event = mainGame.get.strings.system(1608);
@@ -1861,6 +1900,7 @@ class Protocol {
 					number : connect.duel.chain.length
 				});
 				await Promise.all([
+					voice.play_sound_effect(KEYS.SOUND_EFFECT_ACTIVATE),
 					card.hint.activate(),
 					connect.duel.hint(code)
 				]);
@@ -1877,13 +1917,14 @@ class Protocol {
 		[MSG.CHAIN_END, async () => {
 			connect.duel.chain.length = 0;
 			this.chain_code = 0;
-			await Promise.all(duel.get.cards()
-				.map(i => i.clear.activate_hint()));
 		}],
 		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
 			const ct = msg.read.uint8();
 			if (!ct) return;
-			await connect.duel.chain[ct - 1]?.hint.negative();
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_EXPLODE),
+				connect.duel.chain[ct - 1]?.hint.negative()
+			]);
 		}],
 		[MSG.RANDOM_SELECTED, async (msg : Msg) => {
 			msg.index ++;
@@ -1932,20 +1973,30 @@ class Protocol {
 				cards : codes.map(i => {return { id : i, pos : POS.FACEUP_ATTACK }; }),
 				avatar : mainGame.get.avatar(tp)
 			});
-			await duel.update(duel.draw(tp, ct, codes));
+			
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_DRAW, 5),
+				duel.update(duel.draw(tp, ct, codes))
+			]);
 		}],
 		[MSG.DAMAGE, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const val = msg.read.int32();
 			if (val === undefined) return;
-			connect.duel.player[tp].lose_lp(val);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_DAMAGE),
+				connect.duel.player[tp].lose_lp(val)
+			]);
 			this.event = mainGame.get.strings.system(1613 + tp, val);
 		}],
 		[MSG.RECOVER, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const val = msg.read.int32();
 			if (val === undefined) return;
-			connect.duel.player[tp].recover_lp(val);
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_GAINLP),
+				connect.duel.player[tp].recover_lp(val)
+			]);
 			this.event = mainGame.get.strings.system(1615 + tp, val);
 		}],
 		[MSG.EQUIP, async (msg : Msg) => {
@@ -1974,6 +2025,7 @@ class Protocol {
 				return;
 			cards[1]
 				.set.equip(cards[0]);
+			await voice.play_sound_effect(KEYS.SOUND_EFFECT_EQUIP);
 		}],
 		[MSG.LPUPDATE, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -2006,7 +2058,10 @@ class Protocol {
 			const card = this.get.card(tp, loc, seq);
 			if (card) {
 				card.set.counter(type, ct, true);
-				await card.update();
+				await Promise.all([
+					voice.play_sound_effect(KEYS.SOUND_EFFECT_ADDCOUNTER),
+					card.update()
+				]);
 			}
 		}],
 		[MSG.REMOVE_COUNTER, async (msg : Msg) => {
@@ -2024,7 +2079,10 @@ class Protocol {
 			const card = this.get.card(tp, loc, seq);
 			if (card) {
 				card.set.counter(type, ct, false);
-				await card.update();
+				await Promise.all([
+					voice.play_sound_effect(KEYS.SOUND_EFFECT_REMOVECOUNTER),
+					card.update()
+				]);
 			}
 		}],
 		[MSG.ATTACK, async (msg : Msg) => {
@@ -2055,7 +2113,10 @@ class Protocol {
 			this.event = cards[1]
 				? mainGame.get.strings.system(1619, [mainGame.get.name(this.attack_code), mainGame.get.name(cards[1].id)])
 				: mainGame.get.strings.system(1620, mainGame.get.name(this.attack_code));
-			await duel.attack(...(cards as [Client_Card, Client_Card | undefined]));
+			await Promise.all([
+				voice.play_sound_effect(KEYS.SOUND_EFFECT_ATTACK),
+				duel.attack(...(cards as [Client_Card, Client_Card | undefined]))
+			]);
 		}],
 		[MSG.ATTACK_DISABLED, async () => {
 			this.event = mainGame.get.strings.system(1621, mainGame.get.name(this.attack_code));
@@ -2069,12 +2130,14 @@ class Protocol {
 			let str = mainGame.get.strings.system(1623);
 			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
 				str += ` [${mainGame.get.strings.system(msg.read.uint8() ? 60 : 61)}] `;
+			await voice.play_sound_effect(KEYS.SOUND_EFFECT_COINFLIP);
 			this.hint(str);
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1624);
 			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
 				str += ` [${msg.read.uint8() ?? 0}] `;
+			await voice.play_sound_effect(KEYS.SOUND_EFFECT_DICEROLL);
 			this.hint(str);
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {
@@ -2434,53 +2497,55 @@ class Protocol {
 						duel.add.card(tp, LOCATION.SZONE, seq, pos);
 					}
 				}
-				[LOCATION.DECK, LOCATION.HAND, LOCATION.GRAVE, LOCATION.REMOVED, LOCATION.EXTRA]
+				[LOCATION.DECK, LOCATION.HAND, LOCATION.GRAVE, LOCATION.REMOVED]
 					.forEach(loc => {
-						for (let seq = 0; seq < (msg.read.uint8() ?? 0); seq ++)
+						const ct = msg.read.uint8() ?? 0;
+						for (let seq = 0; seq < ct; seq ++)
 							duel.add.card(tp, loc, seq);
 					});
 				const ex = msg.read.uint8() ?? 0;
 				const ex_p = msg.read.uint8() ?? 0;
 				for (let seq = 0; seq < ex; seq ++)
-					duel.add.card(tp, LOCATION.EXTRA, i,
-						i >= (ex - ex_p) ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK
-					);
-				const codes : Array<[Client_Card, number]> = [];
-				for (let seq = 0; seq < (msg.read.uint8() ?? 0); seq ++) {
-					const code = msg.read.int32();
-					const tp = this.to.player(msg.read.uint8() ?? 0);
-					const loc = msg.read.uint8();
-					const seq = msg.read.uint8();
-					const ct = msg.read.uint8();
-					if (code === undefined
-						|| loc === undefined
-						|| seq === undefined
-						|| ct === undefined
-					)
-						return;
-					msg.index += 7;
-					const card = this.get.card(tp, loc, seq, ct);
-					if (card)
-						codes.push([card, code]);
-				}
-				await this.update.codes(codes);
-				await duel.update();
-				if (codes.length) {
-					this.chain_code = codes[codes.length - 1][1];
-					const cards = codes.map(i => i[0]);
-					cards.forEach((i, v) => {
-						history.push(HISTORY.CHAINING, {
-							self : !i.owner,
-							cards : [{
-								id : i.id,
-								pos : POS.FACEUP_ATTACK
-							}],
-							number : v + 1
-						});
-						connect.duel.chain.push(i);
+					duel.add.card(tp, LOCATION.EXTRA, seq,
+					seq >= (ex - ex_p) ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK
+				);
+			}
+			const codes : Array<[Client_Card, number]> = [];
+			const ct = msg.read.uint8() ?? 0;
+			for (let seq = 0; seq < ct; seq ++) {
+				const code = msg.read.int32();
+				const tp = this.to.player(msg.read.uint8() ?? 0);
+				const loc = msg.read.uint8();
+				const seq = msg.read.uint8();
+				const ct = msg.read.uint8();
+				if (code === undefined
+					|| loc === undefined
+					|| seq === undefined
+					|| ct === undefined
+				)
+					return;
+				msg.index += 7;
+				const card = this.get.card(tp, loc, seq, ct);
+				if (card)
+					codes.push([card, code]);
+			}
+			await this.update.codes(codes);
+			await duel.update();
+			if (codes.length) {
+				this.chain_code = codes[codes.length - 1][1];
+				const cards = codes.map(i => i[0]);
+				cards.forEach((i, v) => {
+					history.push(HISTORY.CHAINING, {
+						self : !i.owner,
+						cards : [{
+							id : i.id,
+							pos : POS.FACEUP_ATTACK
+						}],
+						number : v + 1
 					});
-					this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
-				}
+					connect.duel.chain.push(i);
+				});
+				this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
 			}
 		}],
 	]);

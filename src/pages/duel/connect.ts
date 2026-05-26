@@ -133,9 +133,11 @@ class Duel {
 	chain : Array<Client_Card> = [];
 	hint_pic = '';
 	hint = async (code : number) : Promise<void> => {
+		await mainGame.load.pic([code]);
 		connect.duel.hint_pic = mainGame.get.card(code).pic;
 		await mainGame.sleep(400);
 		connect.duel.hint_pic = '';
+		await mainGame.sleep(100);
 	};
 	turn : 0 | 1 = 0;
 	time_player : 0 | 1 = 0;
@@ -242,7 +244,7 @@ const connect = reactive({
 							on_disconnect : async () : Promise<void> => {
 								connect.clear();
 								connect.state = 0;
-								voice.play(KEYS.BACK_BGM);
+								await voice.play(KEYS.BACK_BGM);
 								if (local_server) {
 									await Promise.all([
 										mainGame.server.stop(),

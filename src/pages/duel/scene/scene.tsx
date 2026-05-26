@@ -438,17 +438,13 @@ class _Duel {
 		back : () : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
-				dom.style.width = `${SIZE.WIDTH * 12}px`;
+				dom.classList.add('ygopro3__duel__back');
 				for (const [v, src] of srcs.reverse().entries()) {
 					const child = document.createElement('img');
 					child.src = src;
-					child.onerror = () => child.style.opacity = '0';
-					Object.assign(child.style, {
-						display : 'block',
-						width : '100%',
-						height : `${SIZE.HEIGHT * 4}px`,
-						transform : !!v ? 'initial' : 'scaleY(-1)'
-					});
+					child.onload = () => child.classList.add('show');
+					if (!v)
+						child.classList.add('ygopro3__duel__back_oppo');
 					dom.appendChild(child);
 				}
 				return new CSS.CSS3DObject(dom);
