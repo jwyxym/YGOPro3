@@ -480,41 +480,16 @@ jobs:
         with:
           path: build
 
-      - name: Delete old tag
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git fetch --tags
-          git tag -d release-latest || true
-          git push origin :refs/tags/release-latest || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create tag
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git tag release-latest
-          git push origin release-latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: release-latest
-          release_name: release-latest
-          draft: false
-          prerelease: false
-
-      - name: Upload release
+      - name: Create release-latest
         run: |
           cd build
           sh ../.ci/rename.sh
-          gh release upload release-latest $(find . -type f) --clobber
+          gh release delete release-latest --cleanup-tag -y || true
+          gh release create release-latest $(find . -type f) \
+            --target "$GITHUB_SHA" \
+            --title "release-latest" \
+            --notes "Latest build for ${{ github.ref_name }}" \
+            --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
