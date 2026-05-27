@@ -473,7 +473,7 @@ class Protocol {
 			if (player === undefined || name === undefined)
 				return;
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
 				(async () => {
 					connect.wait.players[player].name = mainGame.get.system(KEYS.SETTING_CHK_HIDDEN_NAME)
 						&& connect.wait.self.position !== player ? mainGame.get.text(I18N_KEYS.HIDDEN_NAME)
@@ -505,7 +505,7 @@ class Protocol {
 					break;
 				default:
 					await Promise.all([
-						voice.play_sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
+						voice.play.sound_effect(KEYS.SOUND_EFFECT_PLAYERENTER),
 						(async () => {
 							if (state < 4) {
 								connect.wait.players[state].name = connect.wait.players[player].name;
@@ -659,7 +659,7 @@ class Protocol {
 						duel.add.card(tp, loc[v], seq);
 			});
 			await duel.update();
-			await voice.play(KEYS.BATTLE_BGM);
+			await voice.play.bgm(KEYS.BATTLE_BGM);
 		}],
 		[MSG.WIN, async (msg : Msg) => {
 			const player = msg.read.uint8();
@@ -1475,7 +1475,7 @@ class Protocol {
 		[MSG.SHUFFLE_DECK, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_SHUFFLE),
 				duel.sort.deck(tp)
 			]);
 		}],
@@ -1491,7 +1491,7 @@ class Protocol {
 				codes.push(code);
 			}
 			await Promise.all([
-				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				ct > 1 ? voice.play.sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
 				duel.sort.hand(tp, codes)
 			]);
 		}],
@@ -1507,7 +1507,7 @@ class Protocol {
 				codes.push(code);
 			}
 			await Promise.all([
-				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				ct > 1 ? voice.play.sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
 				duel.sort.ex_deck(tp)
 			]);
 		}],
@@ -1587,14 +1587,14 @@ class Protocol {
 					.forEach(i => i.seq = ps);
 			}
 			await Promise.all([
-				ct > 1 ? voice.play_sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
+				ct > 1 ? voice.play.sound_effect(KEYS.SOUND_EFFECT_SHUFFLE) : Promise.resolve(),
 				duel.update()
 			]);
 		}],
 		[MSG.NEW_TURN, async (msg : Msg) => {
 			const tp = this.to.player((msg.read.uint8() ?? 0) & 0x1);
 			connect.duel.turn = tp;
-			await voice.play_sound_effect(KEYS.SOUND_EFFECT_NEXTTURN);
+			await voice.play.sound_effect(KEYS.SOUND_EFFECT_NEXTTURN);
 			connect.duel.turns[tp] ++;
 			history.push(HISTORY.TURN, {
 				self : !tp,
@@ -1608,7 +1608,7 @@ class Protocol {
 			if (p === undefined)
 				return;
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_PHASE),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_PHASE),
 				phase.on(connect.duel.turn, p),
 				duel.btn?.phase(p) ?? Promise.resolve()
 			]);
@@ -1750,7 +1750,7 @@ class Protocol {
 			}
 			await Promise.all([
 				to.loc === from.loc && (reason & REASON.DESTROY)
-					? voice.play_sound_effect(KEYS.SOUND_EFFECT_DESTROYED)
+					? voice.play.sound_effect(KEYS.SOUND_EFFECT_DESTROYED)
 					: Promise.resolve(),
 				duel.update()
 			]);
@@ -1781,7 +1781,7 @@ class Protocol {
 			}
 		}],
 		[MSG.SET, async () => {
-			await voice.play_sound_effect(KEYS.SOUND_EFFECT_SET);
+			await voice.play.sound_effect(KEYS.SOUND_EFFECT_SET);
 			this.event = mainGame.get.strings.system(1601);
 		}],
 		[MSG.SWAP, async (msg : Msg) => {
@@ -1842,7 +1842,7 @@ class Protocol {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1603, mainGame.get.name(code));
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_SUMMON),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_SUMMON),
 				mainGame.load.pic([code ?? 0])
 			]);
 		}],
@@ -1854,7 +1854,7 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1605, mainGame.get.name(code));
 			await mainGame.load.pic([code ?? 0]);
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_SPECIALSUMMON),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_SPECIALSUMMON),
 				mainGame.load.pic([code ?? 0])
 			]);
 		}],
@@ -1865,7 +1865,7 @@ class Protocol {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1607, mainGame.get.name(code));
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_FLIP),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_FLIP),
 				mainGame.load.pic([code ?? 0])
 			]);
 		}],
@@ -1900,7 +1900,7 @@ class Protocol {
 					number : connect.duel.chain.length
 				});
 				await Promise.all([
-					voice.play_sound_effect(KEYS.SOUND_EFFECT_ACTIVATE),
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE),
 					card.hint.activate(),
 					connect.duel.hint(code)
 				]);
@@ -1922,7 +1922,7 @@ class Protocol {
 			const ct = msg.read.uint8();
 			if (!ct) return;
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_EXPLODE),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_EXPLODE),
 				connect.duel.chain[ct - 1]?.hint.negative()
 			]);
 		}],
@@ -1975,7 +1975,7 @@ class Protocol {
 			});
 			
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_DRAW, 5),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_DRAW, 5),
 				duel.update(duel.draw(tp, ct, codes))
 			]);
 		}],
@@ -1984,7 +1984,7 @@ class Protocol {
 			const val = msg.read.int32();
 			if (val === undefined) return;
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_DAMAGE),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_DAMAGE),
 				connect.duel.player[tp].lose_lp(val)
 			]);
 			this.event = mainGame.get.strings.system(1613 + tp, val);
@@ -1994,7 +1994,7 @@ class Protocol {
 			const val = msg.read.int32();
 			if (val === undefined) return;
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_GAINLP),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_GAINLP),
 				connect.duel.player[tp].recover_lp(val)
 			]);
 			this.event = mainGame.get.strings.system(1615 + tp, val);
@@ -2025,7 +2025,7 @@ class Protocol {
 				return;
 			cards[1]
 				.set.equip(cards[0]);
-			await voice.play_sound_effect(KEYS.SOUND_EFFECT_EQUIP);
+			await voice.play.sound_effect(KEYS.SOUND_EFFECT_EQUIP);
 		}],
 		[MSG.LPUPDATE, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -2059,7 +2059,7 @@ class Protocol {
 			if (card) {
 				card.set.counter(type, ct, true);
 				await Promise.all([
-					voice.play_sound_effect(KEYS.SOUND_EFFECT_ADDCOUNTER),
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_ADDCOUNTER),
 					card.update()
 				]);
 			}
@@ -2080,7 +2080,7 @@ class Protocol {
 			if (card) {
 				card.set.counter(type, ct, false);
 				await Promise.all([
-					voice.play_sound_effect(KEYS.SOUND_EFFECT_REMOVECOUNTER),
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_REMOVECOUNTER),
 					card.update()
 				]);
 			}
@@ -2114,7 +2114,7 @@ class Protocol {
 				? mainGame.get.strings.system(1619, [mainGame.get.name(this.attack_code), mainGame.get.name(cards[1].id)])
 				: mainGame.get.strings.system(1620, mainGame.get.name(this.attack_code));
 			await Promise.all([
-				voice.play_sound_effect(KEYS.SOUND_EFFECT_ATTACK),
+				voice.play.sound_effect(KEYS.SOUND_EFFECT_ATTACK),
 				duel.attack(...(cards as [Client_Card, Client_Card | undefined]))
 			]);
 		}],
@@ -2130,14 +2130,14 @@ class Protocol {
 			let str = mainGame.get.strings.system(1623);
 			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
 				str += ` [${mainGame.get.strings.system(msg.read.uint8() ? 60 : 61)}] `;
-			await voice.play_sound_effect(KEYS.SOUND_EFFECT_COINFLIP);
+			await voice.play.sound_effect(KEYS.SOUND_EFFECT_COINFLIP);
 			this.hint(str);
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1624);
 			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
 				str += ` [${msg.read.uint8() ?? 0}] `;
-			await voice.play_sound_effect(KEYS.SOUND_EFFECT_DICEROLL);
+			await voice.play.sound_effect(KEYS.SOUND_EFFECT_DICEROLL);
 			this.hint(str);
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {

@@ -244,7 +244,7 @@ const connect = reactive({
 							on_disconnect : async () : Promise<void> => {
 								connect.clear();
 								connect.state = 0;
-								await voice.play(KEYS.BACK_BGM);
+								await voice.play.bgm(KEYS.BACK_BGM);
 								if (local_server) {
 									await Promise.all([
 										mainGame.server.stop(),

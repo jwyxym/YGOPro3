@@ -39,13 +39,20 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(true);
 			});
+
+		[
+			"CT_VOICE_SOUND_EFFECT",
+			"CT_VOICE_BGM"
+		]
+			.into_iter().for_each(|i| {
+				system.number
+					.entry(String::from(i))
+					.or_insert(0.2);
+			});
 			
 		system.number
 			.entry(String::from("CT_FRAME"))
 			.or_insert(60.0);
-		system.number
-			.entry(String::from("CT_VOICE"))
-			.or_insert(0.2);
 		system.number
 			.entry(String::from("CT_CARD"))
 			.or_insert(3.0);

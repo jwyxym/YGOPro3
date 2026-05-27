@@ -21,13 +21,15 @@
 					/>
 				</template>
 			</var-cell>
-			<var-cell>
+			<var-cell
+				v-for = 'i in page.sound'
+			>
 				<template #default>
-					{{ `${mainGame.get.text(I18N_KEYS.SETTING_VOICE)} : ${page.sound.ct.toFixed(2)}` }}
+					{{ `${mainGame.get.text(i.key)} : ${i.ct.toFixed(2)}` }}
 					<Slider
-						:x = 'page.sound.ct'
-						@dragging = page.sound.dragging
-						@drag_end = page.sound.end
+						:x = 'i.ct'
+						@dragging = i.dragging
+						@drag_end = i.end
 					/>
 				</template>
 			</var-cell>
@@ -59,7 +61,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, reactive, watch } from 'vue';
+	import { onBeforeMount, reactive, ref, watch } from 'vue';
 
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
@@ -67,6 +69,22 @@
 	import { voice } from '@/pages/voice/voice';
 	import Select from '@/pages/ui/select.vue';
 	import Slider from '@/pages/ui/slider.vue';
+
+	class Sound_Setting {
+		key : number;
+		ct = ref(0);
+		dragging : (v : number) => Promise<void>;
+		end : (v : number) => Promise<void>;
+		constructor (key : number, ct : number, dragging : (v : number) => Promise<void>, end : (v : number) => Promise<void>) {
+			this.key = key;
+			this.ct.value = ct;
+			this.end = end;
+			this.dragging = async (v : number) => {
+				this.ct.value = v;
+				await dragging(v);
+			};
+		}
+	};
 
 	const page = reactive({
 		i18n : {
@@ -91,18 +109,33 @@
 		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,
 		bool : [] as Array<{ i18n : number, key : string; value : boolean; }>,
-		sound : {
-			ct : mainGame.get.system(KEYS.SETTING_VOICE) as number,
-			dragging : async (v : number) => {
-				page.sound.ct = v;
-				mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE, v);
-				voice.update();
-			},
-			end : async (v : number) => {
-				await mainGame.set.system(KEYS.SETTING_VOICE, v);
-				voice.update();
-			}
-		},
+		sound : [
+			new Sound_Setting(
+				I18N_KEYS.SETTING_VOICE_BGM,
+				mainGame.get.system(KEYS.SETTING_VOICE_BGM) as number,
+				async (v : number) => {
+					mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE_BGM, v);
+					voice.update.bgm();
+				},
+				async (v : number) => {
+					await mainGame.set.system(KEYS.SETTING_VOICE_BGM, v);
+					voice.update.bgm();
+				}
+			),
+			new Sound_Setting(
+				I18N_KEYS.SETTING_VOICE_SOUND_EFFECT,
+				mainGame.get.system(KEYS.SETTING_VOICE_SOUND_EFFECT) as number,
+				async (v : number) => {
+					mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE_SOUND_EFFECT, v);
+					voice.update.sound_effect();
+				},
+				async (v : number) => {
+					await mainGame.set.system(KEYS.SETTING_VOICE_SOUND_EFFECT, v);
+					voice.update.sound_effect();
+					await voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE);
+				}
+			)
+		],
 		change : mainGame.set.system
 	});
 
