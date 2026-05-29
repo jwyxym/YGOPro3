@@ -14,6 +14,7 @@ import { phase } from '@/pages/duel/scene/phase';
 import Client_Card from '@/pages/duel/scene/client_card';
 import Plaid from '@/pages/duel/scene/plaid';
 import { voice } from '@/pages/voice/voice';
+import Dialog from '@/pages/ui/dialog';
 
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
@@ -653,6 +654,8 @@ class Protocol {
 			this.select_hint = undefined;
 			this.last_select_hint = 0;
 			const loc = [LOCATION.DECK, LOCATION.EXTRA];
+			if (!connect.duel.is_first)
+				decks.reverse();
 			decks.forEach((i, tp) => {
 				for (let v = 0; v < loc.length; v ++)
 					for (let seq = 0; seq < i[v]; seq ++)
@@ -836,7 +839,7 @@ class Protocol {
 		[MSG.SELECT_EFFECTYN, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			msg.index ++;
 			const code = msg.read.int32();
-			const player = msg.read.uint8();
+			const player = this.to.player(msg.read.uint8() ?? 0);
 			const loc = msg.read.uint8();
 			const seq = msg.read.uint8();
 			msg.index ++;
@@ -1070,6 +1073,7 @@ class Protocol {
 			msg.index ++;
 			const count = msg.read.uint8() ?? 0;
 			const specount = msg.read.uint8() ?? 0;
+			const select_trigger = specount == 0x7f;
 			msg.index += 8;
 			const codes : Array<[Client_Card, number]> = [];
 			let cancelable = true;
@@ -1101,13 +1105,22 @@ class Protocol {
 					cancelable = cancelable && !forced;
 				}
 			}
-			if (codes.length) {
+			const resp = () => send(new Msg()
+				.write.uint8(CTOS.RESPONSE)
+				.write.uint32(- 1)
+			);
+			if(!select_trigger
+				&& (!connect.duel.chaining || ((count == 0 || specount == 0) && connect.duel.chaining !== 3))
+				&& (count == 0 || connect.duel.chaining !== 1)
+			)
+				await resp();
+			else if (codes.length) {
+				await this.update.codes(codes);
 				const title = this.event + (specount === 0x7f
 					? mainGame.get.strings.system(222)
 						+ mainGame.get.strings.system(223)
 					: mainGame.get.strings.system(203)
 				);
-				await this.update.codes(codes);
 				connect.duel.select.cards.cancelable = cancelable;
 				connect.duel.select.cards.cards = codes.map(i => i[0]);
 				connect.duel.select.cards.min = 1;
@@ -1146,11 +1159,13 @@ class Protocol {
 						await connect.response?.(- 1);
 				};
 				connect.duel.select.cards.show = true;
-			} else
-				await send(new Msg()
-					.write.uint8(CTOS.RESPONSE)
-					.write.uint32(- 1)
-				);
+			} else {
+				connect.duel.select.chain.confirm = async () => {
+					connect.duel.select.chain.show = false;
+					await resp();
+				};
+				connect.duel.select.chain.show = true;
+			}
 		}],
 		[MSG.SELECT_PLACE, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
 			const tp = msg.read.uint8();
@@ -2032,7 +2047,6 @@ class Protocol {
 			const val = msg.read.int32();
 			if (val === undefined) return;
 			connect.duel.player[tp].change_lp(val);
-			this.event = mainGame.get.strings.system(1615 + tp, val);
 		}],
 		[MSG.UNEQUIP, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

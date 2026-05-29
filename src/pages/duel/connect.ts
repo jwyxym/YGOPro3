@@ -139,6 +139,7 @@ class Duel {
 		connect.duel.hint_pic = '';
 		await mainGame.sleep(100);
 	};
+	chaining : 0 | 1 | 2 | 3 = 1;
 	turn : 0 | 1 = 0;
 	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
@@ -157,6 +158,7 @@ class Duel {
 		pos : new Selecter.Pos(),
 		counter : new Selecter.Counter(),
 		sort : new Selecter.Sort(),
+		chain : new Selecter.Chain(),
 		chk : () : boolean => [
 			connect.duel.select.cards.show,
 			connect.duel.select.group.show,
@@ -170,6 +172,7 @@ class Duel {
 			connect.duel.select.pos.show,
 			connect.duel.select.counter.show,
 			connect.duel.select.sort.show,
+			connect.duel.select.chain.show,
 			connect.duel.rps.show
 		].includes(true)
 	};

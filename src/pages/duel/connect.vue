@@ -130,6 +130,46 @@
 				v-show = 'connect.state'
 				key = '5'
 			/>
+			<var-menu
+				:close-on-click-reference = 'true'
+				v-show = 'connect.state'
+				placement = 'top-start'
+				key = '6'
+				v-model:show = 'page.chain.show'
+			>
+				<Button
+					:content = 'mainGame.get.text([
+						I18N_KEYS.DUEL_CHAIN_SELECT_NONE,
+						I18N_KEYS.DUEL_CHAIN_SELECT_ABLE,
+						I18N_KEYS.DUEL_CHAIN_SELECT_AUTO,
+						I18N_KEYS.DUEL_CHAIN_SELECT_ALL,
+					][connect.duel.chaining])'
+				/>
+				<template #menu>
+					<var-cell
+						ripple
+						v-for = '(i, v) in [
+							I18N_KEYS.DUEL_CHAIN_SELECT_NONE,
+							I18N_KEYS.DUEL_CHAIN_SELECT_ABLE,
+							I18N_KEYS.DUEL_CHAIN_SELECT_AUTO,
+							I18N_KEYS.DUEL_CHAIN_SELECT_ALL,
+						]'
+						@click = '() => {
+							connect.duel.chaining = v as 0 | 1 | 2 | 3;
+							page.chain.show = false;
+						}'
+					>
+						{{ mainGame.get.text(i) }}
+					</var-cell>
+				</template>
+			</var-menu>
+			<Button
+				:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
+				class = 'ygopro3__duel__confirm'
+				@click = 'connect.duel.select.chain.confirm'
+				v-show = 'connect.state === 2 && connect.duel.select.chain.show'
+				key = '7'
+			/>
 		</div>
 		<TransitionGroup tag = 'div' name = 'bottom_in'>
 			<Select_Cards
@@ -320,6 +360,12 @@
 	import { CTOS } from './ygo-protocol/network';
 	import Msg from './ygo-protocol/msg';
 
+	const page = reactive({
+		chain : {
+			show : false
+		}
+	});
+
 	const card_info = {
 		width : 360,
 		height : GLOBAL.HEIGHT * 0.8
@@ -436,6 +482,9 @@
 			gap: 5px;
 			.var-button {
 				width: 90px !important;
+			}
+			.ygopro3__duel__confirm {
+				color: yellow !important;
 			}
 		}
 	}

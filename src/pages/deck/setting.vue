@@ -12,6 +12,7 @@
 		<var-menu
 			:close-on-click-reference = 'true'
 			placement = 'bottom'
+			v-model:show = 'setting.show'
 		>
 			<var-button
 				text outline container
@@ -63,9 +64,10 @@
 	};
 
 	const setting = reactive({
+		show : false,
 		name : new DeckName(props.modelValue),
 		btns : [
-			{ key : I18N_KEYS.DECK_SETTING_SAVE, func : () => emit('save') },
+			{ key : I18N_KEYS.DECK_SETTING_SAVE, func : () => {emit('save'); setting.show = false; } },
 			{ key : I18N_KEYS.DECK_SETTING_SHARE, func : () => emit('share') },
 			{ key : I18N_KEYS.DECK_SETTING_SORT, func : () => emit('sort') },
 			{ key : I18N_KEYS.DECK_SETTING_DISRUPT, func : () => emit('disrupt') },

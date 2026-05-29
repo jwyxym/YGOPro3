@@ -72,4 +72,5 @@ class Sort extends Base {
 	cards : Array<Client_Card> = [];
 	title = '';
 }
-export { Cards, Group, Confirm, Codes, Plaids, Number, Option, Race, Attribute, Pos, Counter, Sort };
+const Chain = Base;
+export { Cards, Group, Confirm, Codes, Plaids, Number, Option, Race, Attribute, Pos, Counter, Sort, Chain };
