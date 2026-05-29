@@ -14,7 +14,6 @@ import { phase } from '@/pages/duel/scene/phase';
 import Client_Card from '@/pages/duel/scene/client_card';
 import Plaid from '@/pages/duel/scene/plaid';
 import { voice } from '@/pages/voice/voice';
-import Dialog from '@/pages/ui/dialog';
 
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';

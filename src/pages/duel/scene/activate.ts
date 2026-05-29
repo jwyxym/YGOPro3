@@ -14,8 +14,17 @@ class Activate {
 	three : CSS.CSS3DObject;
 	btns : HTMLDivElement;
 	btn : Map<string, HTMLImageElement>;
-	btnable : boolean;
 	cards : Array<Client_Card>;
+
+	_btnable : boolean = false;
+	set btnable (btnable : boolean) {
+		if (connect.replay)
+			return;
+		this._btnable = btnable;
+	};
+	get btnable () : boolean {
+		return this._btnable;
+	};
 
 	constructor () {
 		this.btn = new Map();

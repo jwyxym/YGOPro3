@@ -7,6 +7,7 @@ import { KEYS } from '@/script/constant';
 import mainGame from '@/script/game';
 
 import { COMMAND, LOCATION, POS, STATUS } from '@/pages/duel/ygo-protocol/network';
+import connect from '@/pages/duel/connect';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
@@ -280,9 +281,11 @@ class Client_Card {
 			return this;
 		},
 		activate : (flag : number, index : number, desc ?: number, chk : boolean = false) : Client_Card => {
-			this.need_change.activate = chk;
-			this.activatable
-				.get(flag)?.push({ index : index, desc : desc});
+			if (!connect.replay) {
+				this.need_change.activate = chk;
+				this.activatable
+					.get(flag)?.push({ index : index, desc : desc});
+			}
 			return this;
 		},
 		status : (status : number) : Client_Card => {

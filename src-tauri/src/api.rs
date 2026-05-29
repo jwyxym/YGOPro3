@@ -3,6 +3,7 @@ use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
 use crate::request::{Request, Srv};
 use crate::ygoserver::YgoServer;
+use crate::yrp::Yrp;
 #[cfg(not(target_arch = "x86"))]
 use crate::windbot::WindBot;
 
@@ -258,4 +259,12 @@ pub async fn windbot_list () -> Response {
 		.unwrap_or_else(default_response);
 	#[cfg(target_arch = "x86")]
 	default_response()
+}
+
+#[tauri::command]
+pub async fn read_replay (name: String) -> Response {
+	Yrp::read(name).await
+		.ok()
+		.map(Response::new)
+		.unwrap_or(Response::new(Vec::new()))
 }

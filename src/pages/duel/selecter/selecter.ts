@@ -1,8 +1,17 @@
-import Client_Card from '@/pages/duel/scene/client_card';
-import Plaid from '@/pages/duel/scene/plaid';
+import type Client_Card from '@/pages/duel/scene/client_card';
+import type Plaid from '@/pages/duel/scene/plaid';
+import connect from '@/pages/duel/connect';
 
 class Base {
-	show = false;
+	private _show : boolean = false;
+	get show (): boolean {
+		return this._show;
+	};
+	set show (show : boolean) {
+		if (connect.replay)
+			return;
+		this._show = show;
+	};
 	confirm ?: ((...args : any[]) => Promise<void>);
 }
 class Cards extends Base {

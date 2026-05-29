@@ -49,7 +49,8 @@
 		"vue": "^3.5.13",
 		"vue-virtual-scroller": "^3.0.3",
 		"vue3-starry-sky": "^0.1.0",
-		"ygopro-deck-encode": "^1.0.14"
+		"ygopro-deck-encode": "^1.0.14",
+		"ygopro-yrp3d-encode": "^1.0.1"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2",

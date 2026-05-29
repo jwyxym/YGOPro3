@@ -10,7 +10,7 @@ class Ws {
 		concurrency: 1,
 		autoStart: true
 	});
-	on_disconnect ?: () => Promise<void>
+	on_disconnect ?: () => Promise<void>;
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>

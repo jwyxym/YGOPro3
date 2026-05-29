@@ -254,7 +254,8 @@ class Game {
 			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
 				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;
 		},
-		srv : invoke.game.get_srv
+		srv : invoke.game.get_srv,
+		replay : invoke.replay.read
 	};
 
 	clear = () : void => {
@@ -352,6 +353,7 @@ class Game {
 		new Promise(resolve => setTimeout(resolve, time)),
 		func(...para)
 	]) as any;
+	error = invoke.log.write
 
 	download = invoke.game.download;
 	server = invoke.server;

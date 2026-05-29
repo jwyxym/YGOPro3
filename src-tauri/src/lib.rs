@@ -3,6 +3,7 @@ mod game;
 mod deck;
 mod log;
 mod ypk;
+mod yrp;
 mod file;
 mod request;
 mod ygoserver;
@@ -67,7 +68,8 @@ pub fn run() {
 			api::ygoserver_stop,
 			api::windbot_start,
 			api::windbot_stop,
-			api::windbot_list
+			api::windbot_list,
+			api::read_replay,
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]

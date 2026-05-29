@@ -456,9 +456,22 @@ class Invoke {
 			}
 		}
 	};
+	replay = {
+		read : async (name : string) : Promise<Uint8Array> => {
+			try {
+				const buffer = await invoke<ArrayBuffer>('read_replay', { name : name});
+				console.log(buffer)
+				return new Uint8Array(buffer);
+			} catch (error) {
+				this.log.write(error);
+				return new Uint8Array();
+			}
+		}
+	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {
 			try {
+				console.error(line);
 				toast.error(line);
 				await invoke<void>('write_log', { line : line.toString() });
 				return true;

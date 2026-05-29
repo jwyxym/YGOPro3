@@ -11,13 +11,13 @@ import { voice } from '@/pages/voice/voice';
 
 import ws, { Ws } from './ygo-protocol/ws';
 import tcp, { Tcp } from './ygo-protocol/tcp';
-import Protocol from './ygo-protocol/protocol';
+import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
 import Msg from './ygo-protocol/msg';
 import { CTOS } from './ygo-protocol/network';
 
 import * as Selecter from './selecter/selecter';
 
-import Client_Card from './scene/client_card';
+import type Client_Card from './scene/client_card';
 
 import { history } from './log/history/history';
 import { chat } from './log/chat';
@@ -188,11 +188,12 @@ class Duel {
 };
 const connect = reactive({
 	debouncing : false,
+	replay : false,
 	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
 	duel : new Duel(),
-	protocol : undefined as undefined | Tcp | Ws,
+	protocol : undefined as undefined | Tcp | Ws | Replay3D,
 	chat : {
 		show : false,
 		on : () : void => connect.chat.show ? connect.chat.off()
@@ -213,6 +214,8 @@ const connect = reactive({
 		name : string;
 		args : [string, string];
 		deck : string;
+	} | {
+		replay : string
 	} | Deck) => {
 		if (connect.debouncing)
 			return;
@@ -220,98 +223,117 @@ const connect = reactive({
 		try {
 			switch (connect.state) {
 				case 0:
-					const local_server = i && 'args' in i;
-					const callback = (name : string, pass : string, address : string) => {
-						const protocol = new Protocol();
-						return {
-							on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
-								connect.send = send;
-								connect.state = 1;
-								if (local_server)
-									await mainGame.bot.start(i.args[1], i.deck);
-								await send(new Msg()
-									.write.uint8(CTOS.EXTERNAL_ADDRESS)
-									.write.uint32(0)
-									.write.str(address));
-								await send(new Msg()
-									.write.uint8(CTOS.PLAYER_INFO)
-									.write.str(name, 40));
-								await send(new Msg()
-									.write.uint8(CTOS.JOIN_GAME)
-									.write.uint16(mainGame.version)
-									.write.uint16(0)
-									.write.uint32(0)
-									.write.str(pass, 40));
+					if (i && 'replay' in i) {
+						connect.replay = true;
+						const protocol = new (await import('./ygo-protocol/protocol')).default();
+						const bytes = await mainGame.get.replay(i.replay);
+						connect.protocol = replay3d;
+						await connect.protocol.on(bytes, {
+							on_connect : async (name : [string, string]) : Promise<void> => {
+								connect.duel.player[0].name = name[0];
+								connect.duel.player[1].name = name[1];
 							},
 							on_message : protocol.read,
 							on_disconnect : async () : Promise<void> => {
 								connect.clear();
-								connect.state = 0;
 								await voice.play.bgm(KEYS.BACK_BGM);
-								if (local_server) {
-									await Promise.all([
-										mainGame.server.stop(),
-										mainGame.bot.stop()
-									]);
-								}
 							}
-						};
-					};
-					if (local_server) {
-						const address = 'localhost:7911';
-						await mainGame.server.start(i.args[0]);
-						const p = callback(i.name, '', address);
-						connect.protocol = tcp;
-						await Promise.all([
-							connect.protocol.connect(address, p),
-							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
-						]);
+						});
+						connect.state = 2;
 					} else {
-						const para = i as {
-							name : string;
-							pass : string;
-							address : string;
-							protocal : 0 | 1 | 2;
+						const local_server = i && 'args' in i;
+						const callback = async (name : string, pass : string, address : string) => {
+							const protocol = new (await import('./ygo-protocol/protocol')).default();
+							return {
+								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
+									connect.send = send;
+									connect.state = 1;
+									if (local_server)
+										await mainGame.bot.start(i.args[1], i.deck);
+									await send(new Msg()
+										.write.uint8(CTOS.EXTERNAL_ADDRESS)
+										.write.uint32(0)
+										.write.str(address));
+									await send(new Msg()
+										.write.uint8(CTOS.PLAYER_INFO)
+										.write.str(name, 40));
+									await send(new Msg()
+										.write.uint8(CTOS.JOIN_GAME)
+										.write.uint16(mainGame.version)
+										.write.uint16(0)
+										.write.uint32(0)
+										.write.str(pass, 40));
+								},
+								on_message : protocol.read,
+								on_disconnect : async () : Promise<void> => {
+									connect.clear();
+									connect.state = 0;
+									await voice.play.bgm(KEYS.BACK_BGM);
+									if (local_server) {
+										await Promise.all([
+											mainGame.server.stop(),
+											mainGame.bot.stop()
+										]);
+									}
+								}
+							};
 						};
-						if (!para.name)
-							throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
-						else if (!para.address)
-							throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
-						const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
-						const p = callback(para.name, pass, para.address);
-						const get_srv = async () : Promise<string> => {
-							const address = para.address;
-							if (!address.includes(':') && !para.protocal)
-								return connect.srv_cache.get(address) ??
-									await (async () : Promise<string> => {
-										const url = await mainGame.get.srv(address)
-										connect.srv_cache.set(address, url);
-										return url;
-									})();
-							return address;
-						};
-						switch (para.protocal) {
-							case 0:
-								connect.protocol = tcp;
-								break;
-							case 1:
-								para.address = `ws://${para.address}`;
-								connect.protocol = ws;
-								break;
-							case 2:
-								para.address = `wss://${para.address}`;
-								connect.protocol = ws;
-								break;
+						if (local_server) {
+							const address = 'localhost:7911';
+							await mainGame.server.start(i.args[0]);
+							const p = await callback(i.name, '', address);
+							connect.protocol = tcp;
+							await Promise.all([
+								connect.protocol.connect(address, p),
+								mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
+							]);
+						} else {
+							const para = i as {
+								name : string;
+								pass : string;
+								address : string;
+								protocal : 0 | 1 | 2;
+							};
+							if (!para.name)
+								throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
+							else if (!para.address)
+								throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
+							const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
+							const p = await callback(para.name, pass, para.address);
+							const get_srv = async () : Promise<string> => {
+								const address = para.address;
+								if (!address.includes(':') && !para.protocal)
+									return connect.srv_cache.get(address) ??
+										await (async () : Promise<string> => {
+											const url = await mainGame.get.srv(address)
+											connect.srv_cache.set(address, url);
+											return url;
+										})();
+								return address;
+							};
+							switch (para.protocal) {
+								case 0:
+									connect.protocol = tcp;
+									break;
+								case 1:
+									para.address = `ws://${para.address}`;
+									connect.protocol = ws;
+									break;
+								case 2:
+									para.address = `wss://${para.address}`;
+									connect.protocol = ws;
+									break;
+							}
+							const promise = await Promise.all([
+								mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
+								mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
+								get_srv()
+							]);
+							await Promise.all([
+								mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
+								connect.protocol.connect(promise[2], p)
+							]);
 						}
-						const promise = await Promise.all([
-							mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
-							mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
-							get_srv()
-						]);
-						await Promise.all([
-							mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
-							connect.protocol.connect(promise[2], p)
-						]);
 					}
 					break;
 				case 1:
@@ -346,7 +368,7 @@ const connect = reactive({
 					break;
 			}
 		} catch (e) {
-			toast.error(e);
+			mainGame.error(e);
 		} finally {
 			connect.debouncing = false;
 		}
@@ -355,7 +377,6 @@ const connect = reactive({
 		connect.protocol?.disconnect()
 			.then()
 			.catch();
-		connect.clear();
 	},
 	clear : async () => {
 		connect.chat.off();
@@ -367,6 +388,7 @@ const connect = reactive({
 		connect.response = undefined;
 		connect.send = undefined;
 		connect.protocol = undefined;
+		connect.replay = false;
 	}
 });
 
