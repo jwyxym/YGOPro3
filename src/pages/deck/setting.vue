@@ -35,6 +35,7 @@
 	import { reactive } from 'vue';
 	import { ListenerProp } from '@varlet/ui';
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { REG } from '@/script/constant';
 
@@ -78,7 +79,7 @@
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_LEN);
 			if (name.match(REG.NAME))
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
-			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
+			if ((await invoke.deck.get()).filter(i => i.name === name).length > (props.deck.new || (props.deck.name!.length > 0 && props.deck.name !== name) ? 0 : 1))
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_EXIST);
 			return true;
 		}

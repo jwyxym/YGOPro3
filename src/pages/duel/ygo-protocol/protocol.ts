@@ -1,6 +1,8 @@
 import lodash from 'lodash';
+import { YGOProYrp3d } from 'ygopro-yrp3d-encode';
 
 import mainGame from '@/script/game';
+import invoke from '@/script/invoke';
 import { I18N_KEYS } from '@/script/language/i18n';
 import { KEYS } from '@/script/constant';
 import { TYPE } from '@/script/card';
@@ -34,6 +36,7 @@ class Protocol {
 	attack_code : number;
 	match_kill : number;
 	need_update : boolean;
+	replay : YGOProYrp3d;
 	constructor () {
 		this.event = '';
 		this.current_protocol = 0;
@@ -43,6 +46,7 @@ class Protocol {
 		this.attack_code = 0;
 		this.match_kill = 0;
 		this.need_update = false;
+		this.replay = new YGOProYrp3d();
 		
 		this.msg.set(MSG.SELECT_DISFIELD, this.msg.get(MSG.SELECT_PLACE)!);
 		this.msg.set(MSG.CHAIN_DISABLED, this.msg.get(MSG.CHAIN_NEGATED)!);
@@ -258,6 +262,7 @@ class Protocol {
 	};
 	stoc = new Map<number, Protocol_Func>([
 		[STOC.GAME_MSG, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
+			this.replay.push(msg.to_end().content);
 			const protocol = msg.read.uint8();
 			if (protocol === undefined)
 				return;
@@ -649,6 +654,12 @@ class Protocol {
 			connect.duel.player[1].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[0].index = 0;
 			connect.duel.player[1].index = players.length - 1;
+			this.replay.name0 = connect.duel.player[0].name;
+			this.replay.name0Tag = '---';
+			this.replay.name0Current = connect.duel.player[0].name;
+			this.replay.name1 = connect.duel.player[1].name;
+			this.replay.name1Tag = '---';
+			this.replay.name1Current = connect.duel.player[1].name;
 			const decks = [[msg.read.uint16() ?? 0, msg.read.uint16() ?? 0], [msg.read.uint16() ?? 0, msg.read.uint16() ?? 0]];
 			this.select_hint = undefined;
 			this.last_select_hint = 0;
@@ -673,7 +684,8 @@ class Protocol {
 				: mainGame.get.strings.victory(type);
 			connect.on();
 			connect.state = 4;
-			await duel.win(mainGame.get.text(key), message);
+			if (await duel.win(mainGame.get.text(key), message))
+				await invoke.replay.save(this.replay.toYrp3d());
 		}],
 		[MSG.UPDATE_DATA, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);

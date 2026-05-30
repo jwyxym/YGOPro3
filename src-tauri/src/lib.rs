@@ -70,6 +70,7 @@ pub fn run() {
 			api::windbot_stop,
 			api::windbot_list,
 			api::read_replay,
+			api::save_replay
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]

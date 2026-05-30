@@ -4,8 +4,9 @@ use crate::file::File;
 use walkdir::WalkDir;
 use anyhow::{Error, Result, anyhow};
 use std::{
-	fs::{exists, remove_file, read}, path::PathBuf
+	fs::{exists, remove_file, read, write, create_dir_all}, path::PathBuf
 };
+use chrono::{Local, prelude::DateTime};
 pub struct Yrp;
 
 impl Yrp {
@@ -48,5 +49,15 @@ impl Yrp {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let path: PathBuf = path.join("replay").join(name);
 		Ok(read(path)?)
+	}
+
+	pub async fn save (buffer: &Vec<u8>) -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let now: DateTime<Local> = Local::now();
+		let name: String = format!("{}.yrp3d", now.format("%Y-%m-%d-%H-%M-%S"));
+		let path: PathBuf = path.join("replay");
+		create_dir_all(&path)?;
+		let path: PathBuf = path.join(name);
+		Ok(write(path, buffer)?)
 	}
 }

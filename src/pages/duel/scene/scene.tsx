@@ -718,7 +718,11 @@ class _Duel {
 	win = (title : string, message : string) : Promise<boolean> => dialog({
 			title : title,
 			message : message,
-			cancelButton : false
+			cancelButton : !connect.replay,
+			confirmButtonText : mainGame.get.text(connect.replay
+				? I18N_KEYS.CONFIRM
+				: I18N_KEYS.DUEL_SAVE_REPLAY
+			)
 		}, true);
 };
 

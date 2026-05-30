@@ -102,6 +102,7 @@
 	import hotkeys from 'hotkeys-js';
 
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
 
@@ -144,7 +145,7 @@
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		page.list = await mainGame.bot.list();
+		page.list = await invoke.bot.list();
 		hotkeys('down, pagedown', () => {
 			const len = page.list.length - 1;
 			page.selected = page.selected >= len ? 0 : page.selected + 1;

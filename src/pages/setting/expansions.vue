@@ -91,6 +91,7 @@
 	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG, URL } from '@/script/constant';
 	import { toast } from '@/pages/toast/toast';
@@ -134,7 +135,7 @@
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
-				update : async () => await mainGame.download(URL.SUPER_PRE),
+				update : async () => await invoke.game.download(URL.SUPER_PRE),
 				to_true : true
 			}),
 		],
@@ -164,7 +165,7 @@
 				if (!expansions.includes(value))
 					expansions.push(value);
 				await Promise.all([
-					mainGame.load.ypk(value),
+					invoke.ypk.load(value),
 					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
 				]);
 			} else {
@@ -188,7 +189,7 @@
 					&& typeof page.download.name_rule(name) === 'boolean') {
 					page.download.name = '';
 					page.download.url = '';
-					const ypk = await mainGame.download(url, name);
+					const ypk = await invoke.game.download(url, name);
 					if (ypk) {
 						await page.change(ypk);
 						if (!page.expansion.includes(ypk))
@@ -214,7 +215,7 @@
 	});
 
 	onBeforeMount(async () => {
-		page.expansion = await mainGame.load.ypk() as Array<string>;
+		page.expansion = await invoke.ypk.load() as Array<string>;
 		page.loaded_expansion = mainGame.get.system(KEYS.SETTING_LOADING_EXPANSION) as Array<string>;
 	});
 

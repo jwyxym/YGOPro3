@@ -57,46 +57,6 @@ class Invoke {
 				return '';
 			}
 		},
-		get_ypk : async () : Promise<Array<string>> => {
-			try {
-				const result = await invoke<ArrayBuffer>('get_ypk');
-				return bincode.decode(
-					bincode.Collection(bincode.String), result
-				).value as Array<string>;
-			} catch (error) {
-				this.log.write(error);
-				return [];
-			}
-		},
-		load_ypk : async (name ?: string) : Promise<boolean | Array<string>> => {
-			try {
-				if (name) {
-					await invoke<void>('load_ypk', { name : name });
-					return true;
-				} else return await this.game.get_ypk();
-			} catch (error) {
-				this.log.write(error);
-				return name ? false : [];
-			}
-		},
-		unload_ypk : async (name : string) : Promise<boolean> => {
-			try {
-				await invoke<void>('unload_ypk', { name : name });
-				return true;
-			} catch (error) {
-				this.log.write(error);
-				return false;
-			}
-		},
-		del_ypk : async (name : string) : Promise<boolean> => {
-			try {
-				await invoke<void>('del_ypk', { name : name });
-				return true;
-			} catch (error) {
-				this.log.write(error);
-				return false;
-			}
-		},
 		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>, write : boolean) : Promise<boolean> => {
 			try {
 				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
@@ -403,6 +363,38 @@ class Invoke {
 				this.log.write(error);
 				return false;
 			}
+		},
+		
+		get : async () : Promise<Array<string>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_ypk');
+				return bincode.decode(
+					bincode.Collection(bincode.String), result
+				).value as Array<string>;
+			} catch (error) {
+				this.log.write(error);
+				return [];
+			}
+		},
+		load : async (name ?: string) : Promise<boolean | Array<string>> => {
+			try {
+				if (name) {
+					await invoke<void>('load_ypk', { name : name });
+					return true;
+				} else return await this.ypk.get();
+			} catch (error) {
+				this.log.write(error);
+				return name ? false : [];
+			}
+		},
+		unload : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<void>('unload_ypk', { name : name });
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
 		}
 	};
 	server = {
@@ -459,14 +451,21 @@ class Invoke {
 	replay = {
 		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				const buffer = await invoke<ArrayBuffer>('read_replay', { name : name});
-				console.log(buffer)
-				return new Uint8Array(buffer);
+				return new Uint8Array(await invoke<ArrayBuffer>('read_replay', { name : name}));
 			} catch (error) {
 				this.log.write(error);
 				return new Uint8Array();
 			}
-		}
+		},
+		save : async (buffer : Uint8Array) : Promise<boolean> => {
+			try {
+				await invoke<void>('save_replay', buffer);
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		},
 	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {

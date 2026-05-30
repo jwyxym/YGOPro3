@@ -4,6 +4,7 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import Card from '@/script/card';
 import { I18N_KEYS } from '@/script/language/i18n';
+import invoke from '@/script/invoke';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
@@ -226,7 +227,7 @@ const connect = reactive({
 					if (i && 'replay' in i) {
 						connect.replay = true;
 						const protocol = new (await import('./ygo-protocol/protocol')).default();
-						const bytes = await mainGame.get.replay(i.replay);
+						const bytes = await invoke.replay.read(i.replay);
 						connect.protocol = replay3d;
 						await connect.protocol.on(bytes, {
 							on_connect : async (name : [string, string]) : Promise<void> => {
@@ -249,7 +250,7 @@ const connect = reactive({
 									connect.send = send;
 									connect.state = 1;
 									if (local_server)
-										await mainGame.bot.start(i.args[1], i.deck);
+										await invoke.bot.start(i.args[1], i.deck);
 									await send(new Msg()
 										.write.uint8(CTOS.EXTERNAL_ADDRESS)
 										.write.uint32(0)
@@ -271,8 +272,8 @@ const connect = reactive({
 									await voice.play.bgm(KEYS.BACK_BGM);
 									if (local_server) {
 										await Promise.all([
-											mainGame.server.stop(),
-											mainGame.bot.stop()
+											invoke.server.stop(),
+											invoke.bot.stop()
 										]);
 									}
 								}
@@ -280,7 +281,7 @@ const connect = reactive({
 						};
 						if (local_server) {
 							const address = 'localhost:7911';
-							await mainGame.server.start(i.args[0]);
+							await invoke.server.start(i.args[0]);
 							const p = await callback(i.name, '', address);
 							connect.protocol = tcp;
 							await Promise.all([
@@ -305,7 +306,7 @@ const connect = reactive({
 								if (!address.includes(':') && !para.protocal)
 									return connect.srv_cache.get(address) ??
 										await (async () : Promise<string> => {
-											const url = await mainGame.get.srv(address)
+											const url = await invoke.game.get_srv(address)
 											connect.srv_cache.set(address, url);
 											return url;
 										})();
@@ -368,7 +369,7 @@ const connect = reactive({
 					break;
 			}
 		} catch (e) {
-			mainGame.error(e);
+			await invoke.log.write(e);
 		} finally {
 			connect.debouncing = false;
 		}

@@ -4,7 +4,6 @@ import { fetch } from '@tauri-apps/plugin-http';
 
 import Deck from '@/pages/deck/deck';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
-import { toast } from '@/pages/toast/toast';
 
 import * as CONSTANT from './constant';
 import Card from './card';
@@ -102,7 +101,7 @@ class Game {
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
 				.set.readonly();
 		} catch (error) {
-			this.log.write(error);
+			invoke.log.write(error);
 			return false;
 		}
 		return true;
@@ -117,7 +116,7 @@ class Game {
 			await this.init();
 			return true;
 		} catch (error) {
-			this.log.write(error);
+			invoke.log.write(error);
 		}
 		return false;
 	};
@@ -253,9 +252,7 @@ class Game {
 		counter : (counter : number) : string => {
 			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
 				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;
-		},
-		srv : invoke.game.get_srv,
-		replay : invoke.replay.read
+		}
 	};
 
 	clear = () : void => {
@@ -263,8 +260,6 @@ class Game {
 	};
 
 	load = {
-		deck : invoke.deck.get,
-		ypk : invoke.game.load_ypk,
 		pic : async (deck : Deck | Array<number | string>) : Promise<boolean> => {
 			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
 			deck = deck
@@ -284,7 +279,7 @@ class Game {
 	unload = {
 		ypk : async (name : string, del : boolean = false) : Promise<boolean> => {
 			const i : [boolean, boolean] = await Promise.all([
-				invoke.game.unload_ypk(name),
+				invoke.ypk.unload(name),
 				del ? invoke.ypk.del(name) : Promise.resolve(true)
 			]);
 			return i[0] && i[1];
@@ -328,20 +323,6 @@ class Game {
 		}
 	};
 
-	deck = {
-		write : invoke.deck.write,
-		rename : invoke.deck.rename,
-		del : invoke.deck.del
-	};
-
-	log = {
-		write : async (line : string) => {
-			toast.error(line);
-			console.error(line);
-			await invoke.log.write(line);
-		}
-	};
-
 	exit = async () : Promise<void> => {
 		return await exit(1);
 	};
@@ -353,11 +334,6 @@ class Game {
 		new Promise(resolve => setTimeout(resolve, time)),
 		func(...para)
 	]) as any;
-	error = invoke.log.write
-
-	download = invoke.game.download;
-	server = invoke.server;
-	bot = invoke.bot;
 };
 
 const mainGame = new Game();

@@ -1,5 +1,5 @@
 import { fetch } from '@tauri-apps/plugin-http';
-import mainGame from './game';
+import invoke from './invoke';
 
 class Http {
 	cache : Map<string, any> = new Map();
@@ -13,7 +13,7 @@ class Http {
 			this.cache.set(url, data);
 			return data;
 		} catch (e) {
-			mainGame.log.write(e);
+			await invoke.log.write(e);
 		}
 		return undefined;
 	}

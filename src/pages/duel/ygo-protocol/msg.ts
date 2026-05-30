@@ -159,5 +159,6 @@ class Msg {
   		return new Uint8Array(msg.buffer, msg.byteOffset, msg.length);
 	};
 	array = () : Array<number> => Array.from(this.buffer());
+	clone = () : Msg => new Msg(this.content);
 };
 export default Msg;

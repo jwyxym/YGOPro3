@@ -25,6 +25,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { LANGUAGE, FRAME } from '@/script/constant';
+	import invoke from '@/script/invoke';
 	const props = defineProps<{
 		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'frame' | 'protocol' | 'custom';
 		array ?: Array<[any, any]>;
@@ -53,7 +54,7 @@
 				break;
 			case 'deck':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_DECK);
-				select.array = (await mainGame.load.deck()).map(i => [i, i.name]);
+				select.array = (await invoke.deck.get()).map(i => [i, i.name]);
 				break;
 			case 'model':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_MODEL);

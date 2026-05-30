@@ -17,6 +17,7 @@
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	
 	import { toast } from '@/pages/toast/toast';
 
@@ -36,7 +37,7 @@
 				return true;
 			} catch (e) {
 				toast.error(e);
-				mainGame.log.write(e);
+				invoke.log.write(e);
 			}
 		}
 	});

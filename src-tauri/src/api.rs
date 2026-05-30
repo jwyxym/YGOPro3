@@ -1,7 +1,7 @@
 
 use crate::game::{self, Game};
 use crate::{deck::Deck, log, ypk::Ypk};
-use crate::request::{Request, Srv};
+use crate::request::{Request as NetWork, Srv};
 use crate::ygoserver::YgoServer;
 use crate::yrp::Yrp;
 #[cfg(not(target_arch = "x86"))]
@@ -9,7 +9,7 @@ use crate::windbot::WindBot;
 
 use bincode::{encode_to_vec, config::{standard, Configuration}};
 use tauri::{
-	AppHandle, ipc::Response
+	AppHandle, ipc::{Response, Request, InvokeBody::Raw}
 };
 
 static CONFIG : Configuration = standard();
@@ -64,7 +64,7 @@ pub async fn chk_version () -> Result<bool, String> {
 
 #[tauri::command]
 pub fn get_srv (url: String) -> Result<Srv, String> {
-	Request::srv(url).map_err(|e| e.to_string())
+	NetWork::srv(url).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -267,4 +267,12 @@ pub async fn read_replay (name: String) -> Response {
 		.ok()
 		.map(Response::new)
 		.unwrap_or(Response::new(Vec::new()))
+}
+
+#[tauri::command]
+pub async fn save_replay (request: Request<'_>) -> Result<(), String> {
+	let Raw(bytes) = request.body() else {
+		return Err("expected raw body".into());
+	};
+	Yrp::save(bytes).await.map_err(|e| e.to_string())
 }

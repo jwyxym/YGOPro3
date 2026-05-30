@@ -108,6 +108,7 @@
 
 	import Deck from './deck';
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
@@ -167,7 +168,7 @@
 			page.button = 0;
 		},
 		load : async (deck ?: Deck) : Promise<void> => {
-			const decks = await mainGame.load.deck();
+			const decks = await invoke.deck.get();
 			list.decks = decks;
 			if (deck)
 				list.selected = decks.findIndex(i => i.name === deck.name);
@@ -186,7 +187,7 @@
 			if (list.selected > -1 && await dialog({
 				title : mainGame.get.text(I18N_KEYS.DECK_DELETE_TITLE),
 				message : mainGame.get.text(I18N_KEYS.DECK_DELETE_MESSAGR, list.decks[list.selected].name ?? '')
-			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DELETE_DECK)) && await mainGame.deck.del(list.decks[list.selected].name!)) {
+			}, mainGame.get.system(CONSTANT.KEYS.SETTING_CHK_DELETE_DECK)) && await invoke.deck.del(list.decks[list.selected].name!)) {
 				toast.info(mainGame.get.text(I18N_KEYS.DELETE_COMPELETE));
 				list.decks.splice(list.selected, 1);
 				list.selected = -1;

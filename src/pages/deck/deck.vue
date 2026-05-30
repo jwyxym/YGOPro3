@@ -49,6 +49,7 @@
 	import { reactive } from 'vue';
 
 	import mainGame from '@/script/game';
+	import invoke from '@/script/invoke';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import LFList from '@/script/lflist';
@@ -92,10 +93,10 @@
 			const rule = await page.name_rule(name);
 			const save = async () => {
 				const deck = page.to_deck(name);
-				const write = await mainGame.deck.write(name, deck.toYdkString());
+				const write = await invoke.deck.write(name, deck.toYdkString());
 				let rename = true;
 				if (write && !props.this_deck.new && props.this_deck.name && name !== props.this_deck.name && (props.this_deck.name?.length ?? 0 > 0))
-					rename = await mainGame.deck.rename(props.this_deck.name, name);
+					rename = await invoke.deck.rename(props.this_deck.name, name);
 				if (write && rename)
 					toast.info(mainGame.get.text(I18N_KEYS.DECK_SAVE_COMPELETE));
 				if (props.this_deck.new)
@@ -129,7 +130,7 @@
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_LEN);
 			if (name.match(CONSTANT.REG.NAME))
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
-			if ((await mainGame.load.deck()).filter(i => i.name === name).length > (props.this_deck.new || (props.this_deck.name!.length > 0 && props.this_deck.name !== name) ? 0 : 1))
+			if ((await invoke.deck.get()).filter(i => i.name === name).length > (props.this_deck.new || (props.this_deck.name!.length > 0 && props.this_deck.name !== name) ? 0 : 1))
 				return mainGame.get.text(I18N_KEYS.RULE_NAME_EXIST);
 			return true;
 		}
