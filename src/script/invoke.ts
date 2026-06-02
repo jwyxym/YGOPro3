@@ -457,13 +457,21 @@ class Invoke {
 				return new Uint8Array();
 			}
 		},
-		save : async (buffer : Uint8Array) : Promise<boolean> => {
+		save : async (name : string, content : Uint8Array) : Promise<string | void> => {
 			try {
-				await invoke<void>('replay_save', buffer);
-				return true;
+				const buffer = new ArrayBuffer(256);
+				bincode.encode(
+					bincode.String,
+					name,
+					buffer
+				);
+				const encoded = new Uint8Array(buffer);
+				const bytes = new Uint8Array(encoded.length + content.length);
+				bytes.set(encoded, 0);
+				bytes.set(content, encoded.length);
+				return await invoke<string>('replay_save', bytes);
 			} catch (error) {
 				this.log.write(error);
-				return false;
 			}
 		},
 		list : async () : Promise<Array<string>> => {

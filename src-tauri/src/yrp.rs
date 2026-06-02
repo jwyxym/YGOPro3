@@ -4,7 +4,15 @@ use crate::file::File;
 use walkdir::WalkDir;
 use anyhow::{Error, Result, anyhow};
 use std::{
-	fs::{exists, remove_file, read, write, create_dir_all, rename}, path::PathBuf
+	fs::{
+		create_dir_all,
+		exists,
+		read,
+		remove_file,
+		rename,
+		write
+	},
+	path::PathBuf
 };
 use chrono::{Local, prelude::DateTime};
 pub struct Yrp;
@@ -69,13 +77,18 @@ impl Yrp {
 		Ok(read(path)?)
 	}
 
-	pub async fn save (buffer: &Vec<u8>) -> Result<(), Error> {
+	pub async fn save (mut name: String, content: &[u8]) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		let now: DateTime<Local> = Local::now();
-		let name: String = format!("{}.yrp3d", now.format("%Y-%m-%d-%H-%M-%S"));
+		if !name.ends_with(".yrp3d") {
+			name = format!("{}.yrp3d", name);
+		}
 		let path: PathBuf = path.join("replay");
 		create_dir_all(&path)?;
-		let path: PathBuf = path.join(name);
-		Ok(write(path, buffer)?)
+		if exists(&path)? || write(path.join(&name), &content).is_err() {
+			let now: DateTime<Local> = Local::now();
+			name = format!("{}.yrp3d", now.format("%Y-%m-%d-%H-%M-%S"));
+			write(path.join(&name), content)?;
+		}
+		Ok(name)
 	}
 }

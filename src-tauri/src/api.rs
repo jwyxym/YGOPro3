@@ -7,7 +7,7 @@ use crate::yrp::Yrp;
 #[cfg(not(target_arch = "x86"))]
 use crate::windbot::WindBot;
 
-use bincode::{encode_to_vec, config::{standard, Configuration}};
+use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use tauri::{
 	AppHandle, ipc::{Response, Request, InvokeBody::Raw}
 };
@@ -270,11 +270,14 @@ pub async fn replay_read (name: String) -> Response {
 }
 
 #[tauri::command]
-pub async fn replay_save (request: Request<'_>) -> Result<(), String> {
+pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 	let Raw(bytes) = request.body() else {
 		return Err("expected raw body".into());
 	};
-	Yrp::save(bytes).await.map_err(|e| e.to_string())
+	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
+		.map_err(|e| e.to_string())?;
+	let content: &[u8] = &bytes[256..];
+	Yrp::save(name, content).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

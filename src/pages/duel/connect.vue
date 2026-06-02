@@ -317,6 +317,14 @@
 		<PicHint
 			:pic = 'connect.duel.hint_pic'
 		/>
+		<Win
+			v-model:show = 'connect.duel.win.show'
+			:replay = 'connect.replay'
+			:title = 'connect.duel.win.title'
+			:message = 'connect.duel.win.message'
+			@confirm = '(name : string) => connect.duel.win.resolve?.(name)'
+			@cancel = '() => connect.duel.win.resolve?.()'
+		/>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -348,8 +356,9 @@
 	import Phase from './scene/phase';
 	import Chain from './scene/chain.vue';
 	import Cards from './scene/cards.vue';
-	import Client_Card from './scene/client_card';
-	import Plaid from './scene/plaid';
+	import Win from './scene/win.vue';
+	import type Client_Card from './scene/client_card';
+	import type Plaid from './scene/plaid';
 
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';

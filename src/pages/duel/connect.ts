@@ -146,6 +146,13 @@ class Duel {
 	turns : [number, number] = [0, 0];
 	shuffle = false;
 	reverse = false;
+	win = {
+		show : false,
+		title : '',
+		message : '',
+		resolve : undefined as ((name ?: string) => string | void) | undefined,
+		await : undefined as Promise<string | void> | undefined
+	};
 	select = {
 		cards : new Selecter.Cards(),
 		group : new Selecter.Group(),
@@ -185,6 +192,9 @@ class Duel {
 				.write.uint8(connect.duel.rps.head)
 				.write.uint8(v)
 		)
+	};
+	constructor () {
+		this.win.await = new Promise<string | void>((r) => this.win.resolve = r);
 	};
 };
 const connect = reactive({

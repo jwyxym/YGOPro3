@@ -684,8 +684,15 @@ class Protocol {
 				: mainGame.get.strings.victory(type);
 			connect.on();
 			connect.state = 4;
-			if (await duel.win(mainGame.get.text(key), message))
-				await invoke.replay.save(this.replay.toYrp3d());
+			connect.duel.win.title = mainGame.get.text(key);
+			connect.duel.win.message = message;
+			connect.duel.win.show = true;
+			const result = await connect.duel.win.await;
+			if (result) {
+				const name = await invoke.replay.save(result, this.replay.toYrp3d());
+				if (name)
+					toast.info(mainGame.get.text(I18N_KEYS.REPLAY_SAVE, name));
+			}
 		}],
 		[MSG.UPDATE_DATA, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
