@@ -95,7 +95,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG, URL } from '@/script/constant';
 	import { toast } from '@/pages/toast/toast';
-	import dialog from '@/pages/ui/dialog';
+	import Dialog from '@/pages/ui/dialog';
 	import Input from '@/pages/ui/input.vue';
 	
 	class Version {
@@ -146,7 +146,7 @@
 		expansion : [] as Array<string>,
 		loaded_expansion : [] as Array<string>,
 		delete : async (v : number) => {
-			if (await dialog({
+			if (await Dialog({
 					title : mainGame.get.text(I18N_KEYS.SETTING_DELETE_YPK),
 				}, mainGame.get.system(KEYS.SETTING_CHK_DELETE_YPK))
 				&& await mainGame.unload.ypk(page.expansion[v], true)

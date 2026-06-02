@@ -12,7 +12,6 @@ import { I18N_KEYS } from '@/script/language/i18n';
 
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
-import dialog from '@/pages/ui/dialog';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
