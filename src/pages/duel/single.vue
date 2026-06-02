@@ -183,7 +183,6 @@
 			border: 1px solid white;
 		}
 		> div {
-			height: 100%;
 			overflow-y: auto;
 			h2 {
 				font-size: 18px;

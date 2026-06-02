@@ -4,7 +4,7 @@ use crate::file::File;
 use walkdir::WalkDir;
 use anyhow::{Error, Result, anyhow};
 use std::{
-	fs::{exists, remove_file, read, write, create_dir_all}, path::PathBuf
+	fs::{exists, remove_file, read, write, create_dir_all, rename}, path::PathBuf
 };
 use chrono::{Local, prelude::DateTime};
 pub struct Yrp;
@@ -15,13 +15,31 @@ impl Yrp {
 
 		let file_path: PathBuf = path
 			.join("replay")
-			.join(&name);
+			.join(name);
 
 		if !exists(&file_path)? {
 			return Err(anyhow!("replay not found"));
 		}
 
 		remove_file(file_path)?;
+		Ok(())
+	}
+	pub async fn rename (from: String, to: String) -> Result<(), Error> {
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let path: PathBuf = path
+			.join("replay");
+
+		let from: PathBuf = path
+			.join(from);
+
+		if !exists(&from)? {
+			return Err(anyhow!("replay not found"));
+		}
+
+		let to: PathBuf = path
+			.join(to);
+
+		rename(from, to)?;
 		Ok(())
 	}
 	

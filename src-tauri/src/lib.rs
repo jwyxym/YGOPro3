@@ -69,8 +69,11 @@ pub fn run() {
 			api::windbot_start,
 			api::windbot_stop,
 			api::windbot_list,
-			api::read_replay,
-			api::save_replay
+			api::replay_read,
+			api::replay_save,
+			api::replay_list,
+			api::replay_rename,
+			api::replay_del,
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]

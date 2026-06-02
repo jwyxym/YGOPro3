@@ -4,7 +4,7 @@
 		--tab-font-size: 24px;
 		--tab-active-font-size: 24px;
 		> div:first-child {
-			.single {
+			.single, .replay {
 				--cell-font-size: 24px;
 				.var-input {
 					transform: scale(140%) translateX(-20px);
@@ -28,7 +28,8 @@
 					}
 				}
 				> form {
-					> div:last-child {
+					> div:last-child,
+					> .var-cell {
 						height: 100px;
 						.var-button {
 							transform: scale(140%);

@@ -41,7 +41,14 @@
 			interval : null as null | number
 		},
 		select : 0,
-		menu : [I18N_KEYS.MENU_SINGLE, I18N_KEYS.MENU_CONENCT, I18N_KEYS.MENU_DECK, I18N_KEYS.MENU_SETTING, I18N_KEYS.MENU_EXIT],
+		menu : [
+			I18N_KEYS.MENU_SINGLE,
+			I18N_KEYS.MENU_CONENCT,
+			I18N_KEYS.MENU_REPLAY,
+			I18N_KEYS.MENU_DECK,
+			I18N_KEYS.MENU_SETTING,
+			I18N_KEYS.MENU_EXIT
+		],
 		pointer : new Array(2).fill(-1000),
 		click : (v : number, item : boolean = false) : void => {
 			if (item && page.select === v) {
@@ -68,12 +75,15 @@
 					emit('server');
 					break;
 				case 2:
-					emit('deck');
+					emit('replay');
 					break;
 				case 3:
-					emit('setting');
+					emit('deck');
 					break;
 				case 4:
+					emit('setting');
+					break;
+				case 5:
 					await mainGame.exit();
 					break;
 			}
@@ -123,6 +133,7 @@
 	const emit = defineEmits<{
 		single : [];
 		server : [];
+		replay : [];
 		deck : [];
 		setting : [];
 	}>();

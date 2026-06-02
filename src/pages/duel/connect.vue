@@ -11,6 +11,11 @@
 				@connect = 'connect.on'
 				key = '0'
 			/>
+			<Replay
+				v-if = '!connect.state && model === 2'
+				@connect = 'connect.on'
+				key = '0'
+			/>
 			<Wait
 				v-if = 'connect.state === 1'
 				:player = 'connect.wait.players'
@@ -330,8 +335,9 @@
 
 	import Server from './server.vue';
 	import Wait from './wait.vue';
-	import connect from './connect';
 	import Single from './single.vue';
+	import Replay from './replay.vue';
+	import connect from './connect';
 
 	import Log from './log/log.vue';
 

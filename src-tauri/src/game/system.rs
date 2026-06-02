@@ -25,6 +25,7 @@ impl System {
 			});
 		[
 			"DELETE_YPK",
+			"DELETE_REPLAY",
 			"DELETE_DECK",
 			"EXIT_DECK",
 			"SWAP_BUTTON",

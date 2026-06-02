@@ -26,6 +26,7 @@
 				@deck = 'page.select.deck'
 				@single = 'page.select.single'
 				@server = 'page.select.server'
+				@replay = 'page.select.replay'
 				@setting = 'page.select.setting'
 			/>
 		</TransitionGroup>
@@ -86,6 +87,16 @@
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 1;
+					page.show.duel = true;
+				}, 600);
+			},
+			replay : () : void => {
+				if (page.loading) {
+					return;
+				}
+				page.show.menu = false;
+				setTimeout(() => {
+					page.duel.model = 2;
 					page.show.duel = true;
 				}, 600);
 			},

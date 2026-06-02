@@ -262,7 +262,7 @@ pub async fn windbot_list () -> Response {
 }
 
 #[tauri::command]
-pub async fn read_replay (name: String) -> Response {
+pub async fn replay_read (name: String) -> Response {
 	Yrp::read(name).await
 		.ok()
 		.map(Response::new)
@@ -270,9 +270,28 @@ pub async fn read_replay (name: String) -> Response {
 }
 
 #[tauri::command]
-pub async fn save_replay (request: Request<'_>) -> Result<(), String> {
+pub async fn replay_save (request: Request<'_>) -> Result<(), String> {
 	let Raw(bytes) = request.body() else {
 		return Err("expected raw body".into());
 	};
 	Yrp::save(bytes).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn replay_list () -> Response {
+	Yrp::get().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(default_response)
+}
+
+#[tauri::command]
+pub async fn replay_rename (from: String, to: String) -> Result<(), String>{
+	Yrp::rename(from, to).await.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn replay_del (name: String) -> Result<(), String>{
+	Yrp::del(name).await.map_err(|e| e.to_string())
 }

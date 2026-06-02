@@ -451,7 +451,7 @@ class Invoke {
 	replay = {
 		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				return new Uint8Array(await invoke<ArrayBuffer>('read_replay', { name : name}));
+				return new Uint8Array(await invoke<ArrayBuffer>('replay_read', { name : name}));
 			} catch (error) {
 				this.log.write(error);
 				return new Uint8Array();
@@ -459,13 +459,42 @@ class Invoke {
 		},
 		save : async (buffer : Uint8Array) : Promise<boolean> => {
 			try {
-				await invoke<void>('save_replay', buffer);
+				await invoke<void>('replay_save', buffer);
 				return true;
 			} catch (error) {
 				this.log.write(error);
 				return false;
 			}
 		},
+		list : async () : Promise<Array<string>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('replay_list');
+				return bincode.decode(
+					bincode.Collection(bincode.String), result
+				).value as any;
+			} catch (error) {
+				this.log.write(error);
+				return [];
+			}
+		},
+		rename : async (from : string, to : string) : Promise<boolean> => {
+			try {
+				await invoke<ArrayBuffer>('replay_rename', { from : from, to : to });
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		},
+		del : async (name : string) : Promise<boolean> => {
+			try {
+				await invoke<ArrayBuffer>('replay_del', { name : name });
+				return true;
+			} catch (error) {
+				this.log.write(error);
+				return false;
+			}
+		}
 	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {
