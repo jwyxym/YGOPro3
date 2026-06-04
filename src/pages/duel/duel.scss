@@ -7,7 +7,8 @@
 			.single, .replay {
 				--cell-font-size: 24px;
 				.var-input {
-					transform: scale(140%) translateX(-20px);
+					transform: scale(140%);
+					width: 70%;
 					transform-origin: left center;
 				}
 				.var-select {
@@ -24,7 +25,7 @@
 				}
 				.select {
 					.var-select {
-						width: 60%;
+						width: 70%;
 					}
 				}
 				> form {

@@ -14,15 +14,16 @@
 				@submit = 'page.connect'
 				v-show = 'page.selected > - 1'
 			>
-				<var-cell
-					:title = 'mainGame.get.text(I18N_KEYS.SERVER_NAME)'
-				>
-					<template #extra>
+				<div class = 'input'>
+					<transition name = 'opacity'>
 						<Input
+							v-if = 'page.selected > - 1'
+							:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_NAME)'
 							v-model = 'page.name'
+							:maxlength = '20'
 						/>
-					</template>
-				</var-cell>
+					</transition>
+				</div>
 				<var-cell
 					:title = 'mainGame.get.text(I18N_KEYS.SINGLE_LP)'
 				>
@@ -205,13 +206,19 @@
 			> * {
 				transition: opacity 0.2s ease;
 			}
+			.input {
+				height: 100px;
+				width: 80%;
+				display: flex;
+				align-items: center;
+				.var-input {
+					width: 100%;
+				}
+			}
 			.var-cell {
 				width: 80%;
 				:deep(.var-cell__extra) {
 					height: 40px;
-				}
-				:deep(.var-input) {
-					width: 200px;
 				}
 			}
 			.unshow {
@@ -224,7 +231,7 @@
 				justify-content: center;
 				align-items: center;
 				.var-select {
-					width: 80%;
+					width: 100%;
 				}
 			}
 			> div:last-child {

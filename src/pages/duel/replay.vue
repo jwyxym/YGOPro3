@@ -14,16 +14,17 @@
 				@submit = 'page.rename'
 				v-show = 'page.selected > - 1'
 			>
-				<var-cell
-					:title = 'mainGame.get.text(I18N_KEYS.REPLAY_NAME)'
-				>
-					<template #extra>
+				<div class = 'input'>
+					<transition name = 'opacity'>
 						<Input
+							v-if = 'page.selected > - 1'
+							:placeholder = 'mainGame.get.text(I18N_KEYS.REPLAY_NAME)'
 							v-model = 'page.name'
 							:rules = 'page.rule'
+							:maxlength = '248'
 						/>
-					</template>
-				</var-cell>
+					</transition>
+				</div>
 				<var-cell>
 					<template #extra>
 						<Button
@@ -69,7 +70,17 @@
 		name : '',
 		selected : -1,
 		list : [] as Array<{ name : string; key : number; }>,
-		select : (v : number) => [page.name, page.selected] = page.selected === v ? ['', -1] : [page.list[v].name, v],
+		select : async (v : number) => {
+			if (page.selected === v) {
+				page.name = '',
+				page.selected = - 1;
+			} else {
+				page.selected = - 1;
+				await mainGame.sleep(100);
+				page.name = page.list[v].name,
+				page.selected = v;
+			}
+		},
 		connect : () => {
 			const selected = page.list[page.selected];
 			if (!selected) return;
@@ -161,8 +172,14 @@
 			display: flex;
 			flex-direction: column;
 			align-items: center;
-			.var-cell:first-of-type {
+			.input {
 				height: 100px;
+				width: 80%;
+				display: flex;
+				align-items: center;
+				.var-input {
+					width: 100%;
+				}
 			}
 			.var-cell {
 				width: 80%;

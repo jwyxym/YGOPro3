@@ -3,6 +3,7 @@
 		<div>
 			<Input
 				:placeholder = 'mainGame.get.text(I18N_KEYS.SERVER_NAME)'
+				:maxlength = '20'
 				v-model = 'server.name'
 			/>
 		</div>
