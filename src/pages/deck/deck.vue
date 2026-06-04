@@ -78,7 +78,7 @@
 		card : 0,
 		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
-		desc : '',
+		desc : [],
 		move : {
 			x : 0,
 			y : 0,

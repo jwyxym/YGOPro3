@@ -394,10 +394,11 @@
 				};
 			});
 			await page.load_on();
+			const desc = searcher.desc ?? [];
 			mark?.unmark({
-				done : () => mark?.mark(search.info.desc)
+				done : () => desc.length ? mark?.mark(desc) : true
 			});
-			emit('update:desc', search.info.desc);
+			emit('update:desc', desc);
 		}
 	});
 
@@ -408,11 +409,11 @@
 		exit : [];
 		hover : [para : [HTMLElement, number]];
 		add : [code : number];
-		'update:desc' : [desc : string];
+		'update:desc' : [desc : Array<string>];
 	}>();
 
 	const props = defineProps<{
-		desc : string;
+		desc : Array<string>;
 		width : number;
 		height : number;
 		count : number;

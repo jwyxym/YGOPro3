@@ -124,7 +124,7 @@
 		modelValue ?: string | number | Card | Client_Card;
 		height : number;
 		width : number;
-		desc ?: string;
+		desc ?: Array<string>;
 	}>();
 
 	watch(() => props.modelValue, (n) => {
@@ -204,14 +204,15 @@
 			mark?.unmark({
 				done : async () => {
 					await nextTick();
-					props.desc ? mark?.mark(props.desc) : true
+					if (props.desc && props.desc.length)
+						mark?.mark(props.desc);
 				}
 			});
 		}
 	}, { immediate : true });
 
-	watch(() => props.desc, (n ?: string) => mark?.unmark({
-		done : () => n ? mark?.mark(n) : true
+	watch(() => props.desc, (n ?: Array<string>) => mark?.unmark({
+		done : () => n && n.length ? mark?.mark(n) : true
 	}));
 
 	onMounted(() => info.value
