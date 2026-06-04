@@ -147,71 +147,67 @@
 		}
 		page.show = false;
 		page.show_hint = false;
-		if (!n)
-			return;
-		if (n instanceof Client_Card) {
-			if (n.id) {
-				const [card, orgin] = !n.alias || Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
-					: [mainGame.get.card(n.alias), mainGame.get.card(n.id)];
-				page.card.orgin = orgin?.name ?? '';
-				page.card.id = card.id;
-				page.card.pic = card.pic;
-				page.card.name = card.name;
-				page.card.description = card.desc;
-				page.card.setcode = card.setcode
-					.filter(i => i)
-					.map(i  => mainGame.get.strings.setcode(i));
-				page.card.type = mainGame.get.strings.type(n.type);
-				if (n.location & LOCATION.ONFIELD && n.hint_msg)
-					page.card.hint.push(n.hint_msg);
-				n.desc.forEach((v, i) => {
-					if (v > 0)
-						page.card.hint.push(mainGame.get.desc(i));
-				});
-				n.counter.forEach((i, v) => {
-					if (v > 0)
-						page.card.hint.push(`${mainGame.get.strings.counter(i)} : ${v}`);
-				});
-				if (n.type & TYPE.MONSTER) {
-					page.card.attribute = mainGame.get.strings.attribute(n.attribute);
-					page.card.race = mainGame.get.strings.race(n.race);
-					page.card.lv = n.level.toString();
-					page.card.atk = n.atk >= 0 ? n.atk.toString() : '?';
-					if (!(n.type & TYPE.LINK))
-						page.card.def = n.def >= 0 ? n.def.toString() : '?';
-					page.card.scale =  n.type & TYPE.PENDULUM ? n.scale.toString() : '';
+		if (n instanceof Client_Card && n.id) {
+			const [card, orgin] = !n.alias || Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
+				: [mainGame.get.card(n.alias), mainGame.get.card(n.id)];
+			page.card.orgin = orgin?.name ?? '';
+			page.card.id = card.id;
+			page.card.pic = card.pic;
+			page.card.name = card.name;
+			page.card.description = card.desc;
+			page.card.setcode = card.setcode
+				.filter(i => i)
+				.map(i  => mainGame.get.strings.setcode(i));
+			page.card.type = mainGame.get.strings.type(n.type);
+			if (n.location & LOCATION.ONFIELD && n.hint_msg)
+				page.card.hint.push(n.hint_msg);
+			n.desc.forEach((v, i) => {
+				if (v > 0)
+					page.card.hint.push(mainGame.get.desc(i));
+			});
+			n.counter.forEach((i, v) => {
+				if (v > 0)
+					page.card.hint.push(`${mainGame.get.strings.counter(i)} : ${v}`);
+			});
+			if (n.type & TYPE.MONSTER) {
+				page.card.attribute = mainGame.get.strings.attribute(n.attribute);
+				page.card.race = mainGame.get.strings.race(n.race);
+				page.card.lv = n.level.toString();
+				page.card.atk = n.atk >= 0 ? n.atk.toString() : '?';
+				if (!(n.type & TYPE.LINK))
+					page.card.def = n.def >= 0 ? n.def.toString() : '?';
+				page.card.scale =  n.type & TYPE.PENDULUM ? n.scale.toString() : '';
+			}
+			page.show = true;
+			page.show_hint = true;
+		} else if (n) {
+			const card : Card = n instanceof Card ? n : mainGame.get.card(n as string | number);
+			page.card.id = card.id;
+			page.card.pic = card.pic;
+			page.card.name = card.name;
+			page.card.description = card.desc;
+			page.card.setcode = card.setcode
+				.filter(i => i)
+				.map(i  => mainGame.get.strings.setcode(i));
+			page.card.type = mainGame.get.strings.type(card.type);
+			if (card.is_monster()) {
+				page.card.attribute = mainGame.get.strings.attribute(card.attribute);
+				page.card.race = mainGame.get.strings.race(card.race);
+				page.card.lv = card.level.toString();
+				page.card.atk = card.atk >= 0 ? card.atk.toString() : '?';
+				if (!card.is_link())
+					page.card.def = card.def >= 0 ? card.def.toString() : '?';
+				page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
+			}
+			page.show = true;
+			page.show_hint = false;
+			mark?.unmark({
+				done : async () => {
+					await nextTick();
+					props.desc ? mark?.mark(props.desc) : true
 				}
-				page.show = true;
-				page.show_hint = true;
-			}
-			return;
+			});
 		}
-		const card : Card = n instanceof Card ? n : mainGame.get.card(n);
-		page.card.id = card.id;
-		page.card.pic = card.pic;
-		page.card.name = card.name;
-		page.card.description = card.desc;
-		page.card.setcode = card.setcode
-			.filter(i => i)
-			.map(i  => mainGame.get.strings.setcode(i));
-		page.card.type = mainGame.get.strings.type(card.type);
-		if (card.is_monster()) {
-			page.card.attribute = mainGame.get.strings.attribute(card.attribute);
-			page.card.race = mainGame.get.strings.race(card.race);
-			page.card.lv = card.level.toString();
-			page.card.atk = card.atk >= 0 ? card.atk.toString() : '?';
-			if (!card.is_link())
-				page.card.def = card.def >= 0 ? card.def.toString() : '?';
-			page.card.scale =  card.is_pendulum() ? card.scale.toString() : '';
-		}
-		page.show = true;
-		page.show_hint = false;
-		mark?.unmark({
-			done : async () => {
-				await nextTick();
-				props.desc ? mark?.mark(props.desc) : true
-			}
-		});
 	}, { immediate : true });
 
 	watch(() => props.desc, (n ?: string) => mark?.unmark({
