@@ -130,4 +130,8 @@
 body {
 	overflow: hidden;
 	user-select: none;
+	mark{
+		background: transparent;
+		color: orange;
+	}
 }

@@ -2,7 +2,7 @@
 	<div
 		ref = 'info'
 		class = 'no-scrollbar info ygopro3__card__info'
-		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? '#FFA500' : 'white' }"
+		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? 'orange' : 'white' }"
 	>
 		<div>
 			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
