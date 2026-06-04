@@ -3,6 +3,7 @@
 		<Card_Box
 			:height = 'page.height'
 			:width = 'page.width[0]'
+			:desc = 'page.desc'
 			v-model = 'page.card'
 		/>
 		<div>
@@ -42,6 +43,7 @@
 			@exit = "emit('exit')"
 			@hover = '(i : [HTMLElement, number]) => page.el?.hover(i[0], i[1])'
 			@add = '(i : number) => page.el?.add(i)'
+			v-model:desc = 'page.desc'
 		/>
 	</main>
 </template>
@@ -76,6 +78,7 @@
 		card : 0,
 		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
+		desc : '',
 		move : {
 			x : 0,
 			y : 0,

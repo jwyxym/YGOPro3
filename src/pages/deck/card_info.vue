@@ -1,5 +1,6 @@
 <template>
 	<div
+		ref = 'info'
 		class = 'no-scrollbar info ygopro3__card__info'
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? '#FFA500' : 'white' }"
 	>
@@ -78,7 +79,8 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, watch } from 'vue';
+	import { onMounted, onUnmounted, reactive, watch, ref } from 'vue';
+	import Mark from 'mark.js';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card, { TYPE } from '@/script/card';
@@ -86,7 +88,11 @@
 	import Client_Card from '@/pages/duel/scene/client_card';
 	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
+	let mark : InstanceType<typeof Mark> | undefined;
+	const info = ref<HTMLElement | null>(null);
+
 	const emit = defineEmits<{ 'update:modelValue' : []; }>();
+
 	const page = reactive({
 		show : false,
 		show_hint : false,
@@ -118,6 +124,7 @@
 		modelValue ?: string | number | Card | Client_Card;
 		height : number;
 		width : number;
+		desc ?: string;
 	}>();
 
 	watch(() => props.modelValue, (n) => {
@@ -201,6 +208,16 @@
 		page.show = true;
 		page.show_hint = false;
 	}, { immediate : true });
+
+	watch(() => props.desc, (n ?: string) => mark?.unmark({
+		done : () => n ? mark?.mark(n) : true
+	}));
+
+	onMounted(() => info.value
+		? mark = new Mark(info.value)
+		: true
+	);
+	onUnmounted(() => mark = undefined);
 </script>
 <style lang = 'scss' scoped>
 	$color-sub : rgb(203, 203, 203);

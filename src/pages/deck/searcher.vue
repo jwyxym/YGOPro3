@@ -176,6 +176,7 @@
 </template>
 <script setup lang = 'ts'>
 	import { onMounted, onUnmounted, reactive, watch, ref, ComponentPublicInstance } from 'vue';
+	import Mark from 'mark.js';
 
 	import mainGame from '@/script/game';
 	import Card, { TYPE } from '@/script/card';
@@ -191,6 +192,7 @@
 	import Select from '@/pages/ui/select.vue';
 	import Deck from './deck';
 
+	let mark : InstanceType<typeof Mark> | undefined;
 	const search_div = ref<HTMLDivElement | null>(null);
 	const list = ref<HTMLDivElement | null>(null);
 
@@ -383,7 +385,7 @@
 				.set.scale(search.info.scale)
 				.set.atk(search.info.atk)
 				.set.def(search.info.def)
-				.set.desc(search.info.desc ?? '')
+				.set.desc(search.info.desc)
 				.set.and_or(search.switchs);
 			page.result = searcher.search().map(i => {
 				return {
@@ -392,6 +394,10 @@
 				};
 			});
 			await page.load_on();
+			mark?.unmark({
+				done : () => mark?.mark(search.info.desc)
+			});
+			emit('update:desc', search.info.desc);
 		}
 	});
 
@@ -402,9 +408,11 @@
 		exit : [];
 		hover : [para : [HTMLElement, number]];
 		add : [code : number];
+		'update:desc' : [desc : string];
 	}>();
 
 	const props = defineProps<{
+		desc : string;
 		width : number;
 		height : number;
 		count : number;
@@ -418,6 +426,8 @@
 		window.addEventListener('mouseup', page.end);
 		window.addEventListener('touchend', page.end);
 		await search.search();
+		if (list.value)
+			mark = new Mark(list.value);
 	});
 
 	onUnmounted(() => {
@@ -425,6 +435,7 @@
 		window.removeEventListener('touchstart', page.touchstart);
 		window.removeEventListener('mouseup', page.end);
 		window.removeEventListener('touchend', page.touchstart);
+		mark = undefined;
 	});
 
 	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
