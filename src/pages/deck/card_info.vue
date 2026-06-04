@@ -79,7 +79,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted, reactive, watch, ref } from 'vue';
+	import { onMounted, onUnmounted, reactive, watch, ref, nextTick } from 'vue';
 	import Mark from 'mark.js';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -145,11 +145,10 @@
 			setcode : [],
 			hint : []
 		}
-		if (!n) {
-			page.show = false;
-			page.show_hint = false;
+		page.show = false;
+		page.show_hint = false;
+		if (!n)
 			return;
-		}
 		if (n instanceof Client_Card) {
 			if (n.id) {
 				const [card, orgin] = !n.alias || Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
@@ -207,6 +206,12 @@
 		}
 		page.show = true;
 		page.show_hint = false;
+		mark?.unmark({
+			done : async () => {
+				await nextTick();
+				props.desc ? mark?.mark(props.desc) : true
+			}
+		});
 	}, { immediate : true });
 
 	watch(() => props.desc, (n ?: string) => mark?.unmark({
