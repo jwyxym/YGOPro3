@@ -44,12 +44,12 @@ impl CardInfo {
 				result
 			}
 
-			result = result || merge(&mut self.ot, info.ot);
-			result = result || merge(&mut self.attribute, info.attribute);
-			result = result || merge(&mut self.category, info.category);
-			result = result || merge(&mut self.race, info.race);
-			result = result || merge(&mut self.types, info.types);
-			result = result || merge(&mut self.link, info.link);
+			result |= merge(&mut self.ot, info.ot);
+			result |= merge(&mut self.attribute, info.attribute);
+			result |= merge(&mut self.category, info.category);
+			result |= merge(&mut self.race, info.race);
+			result |= merge(&mut self.types, info.types);
+			result |= merge(&mut self.link, info.link);
 			return result;
 		}
 		false

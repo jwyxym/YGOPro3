@@ -1,7 +1,7 @@
 use super::File;
 use serde::{Serialize, Deserialize};
 use basic_toml::{from_str, to_string};
-use std::path::{Path, PathBuf};
+use std::{path::{Path, PathBuf}, collections::HashSet};
 use indexmap::{IndexMap, map::Entry};
 use anyhow::{Error, Result};
 
@@ -37,49 +37,8 @@ pub type Textures = (
 );
 
 impl Resource {
-	pub fn new (text: String, path: &Path) -> Self {
-		let mut resource: Self = from_str::<Self>(&text).unwrap_or(Self::default());
-		[
-			resource.ot.iter_mut(),
-			resource.attribute.iter_mut(),
-			resource.category.iter_mut(),
-			resource.race.iter_mut(),
-			resource.types.iter_mut(),
-			resource.info.iter_mut(),
-			resource.counter.iter_mut(),
-			resource.other.iter_mut()
-		]
-			.into_iter().for_each(|i|
-				for (_, value) in i {
-					let p: PathBuf = path.join(&value);
-					if let Some(p) = File::new(&p) {
-						*value = p.url();
-					}
-				}
-			);
-		if let Some(avatar) = resource.avatar.get_mut("AVATAR") {
-			avatar.iter_mut().for_each(|i| {
-				let p: PathBuf = path.join(i.clone());
-				if let Some(p) = File::new(&p) {
-					*i = p.url();
-				}
-			});
-		}
-
-		[resource.link.iter_mut(), resource.btn.iter_mut()]
-			.into_iter().for_each(|i|
-				for (_, (value_i, value_ii)) in i {
-					let p: PathBuf = path.join(&value_i);
-					if let Some(p) = File::new(&p) {
-						*value_i = p.url();
-					}
-					let p: PathBuf = path.join(&value_ii);
-					if let Some(p) = File::new(&p) {
-						*value_ii = p.url();
-					}
-				}
-			);
-		resource
+	pub fn new (text: String) -> Self {
+		from_str::<Self>(&text).unwrap_or(Self::default())
 	}
 	pub fn default () -> Self {
 		Self {
@@ -98,8 +57,8 @@ impl Resource {
 			other: IndexMap::new()
 		}
 	}
-	pub fn merge (&mut self, text: &str, path: &Path) -> bool {
-		let resource: Self = Self::new(String::from(text), path);
+	pub fn merge (&mut self, text: &str) -> bool {
+		let resource: Self = Self::new(String::from(text));
 		let mut result: bool = false;
 		fn merge (target: &mut IndexMap<String, String>, source: IndexMap<String, String>) -> bool {
 			let mut result: bool = false;
@@ -114,20 +73,71 @@ impl Resource {
 			}
 			result
 		}
+		fn merge_string_vec (target: &mut IndexMap<String, Vec<String>>, source: IndexMap<String, Vec<String>>) -> bool {
+			let mut result: bool = false;
+			for (key, value) in source {
+				match target.entry(key) {
+					Entry::Occupied(mut entry) => {
+						let vec: &Vec<String> = entry.get();
+						let a: HashSet<String> = vec
+							.into_iter()
+							.map(|i: &String| i.clone())
+							.collect();
+						let b: HashSet<String> = value
+							.into_iter()
+							.collect();
 
-		result = result || merge(&mut self.ot, resource.ot);
-		result = result || merge(&mut self.attribute, resource.attribute);
-		result = result || merge(&mut self.category, resource.category);
-		result = result || merge(&mut self.race, resource.race);
-		result = result || merge(&mut self.types, resource.types);
-		result = result || merge(&mut self.info, resource.info);
-		result = result || merge(&mut self.counter, resource.counter);
-		result = result || merge(&mut self.other, resource.other);
+						let value: Vec<String> = a
+							.union(&b)
+							.map(|i: &String| i.clone())
+							.collect();
+						if value.len() != vec.len() {
+							*entry.get_mut() = value;
+							result = true;
+						}
+					},
+					Entry::Vacant(entry) => {
+						entry.insert(value);
+						result = true;
+					}
+				};
+			}
+			result
+		}
+		fn merge_string_tuple (target: &mut IndexMap<String, (String, String)>, source: IndexMap<String, (String, String)>) -> bool {
+			let mut result: bool = false;
+			for (key, value) in source {
+				match target.entry(key) {
+					Entry::Occupied(_) => (),
+					Entry::Vacant(entry) => {
+						entry.insert(value);
+						result = true;
+					}
+				};
+			}
+			result
+		}
+
+		result |= merge(&mut self.ot, resource.ot);
+		result |= merge(&mut self.attribute, resource.attribute);
+		result |= merge(&mut self.category, resource.category);
+		result |= merge(&mut self.race, resource.race);
+		result |= merge(&mut self.types, resource.types);
+		result |= merge(&mut self.info, resource.info);
+		result |= merge(&mut self.counter, resource.counter);
+		result |= merge(&mut self.other, resource.other);
+		result |= merge(&mut self.sound, resource.sound);
+		result |= merge(&mut self.font, resource.font);
+		result |= merge_string_vec(&mut self.avatar, resource.avatar);
+		result |= merge_string_tuple(&mut self.btn, resource.btn);
+		result |= merge_string_tuple(&mut self.link, resource.link);
 		result
 	}
-	pub fn to_array (&self) -> Textures {
+	pub fn to_array (&self, path: &Path) -> Textures {
+		let mut resource: Resource = self.clone();
+		resource.to_url(path);
 		(
-			self.ot.clone().into_iter()
+			resource.ot.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -137,7 +147,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.attribute.clone().into_iter()
+			resource.attribute.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -147,7 +157,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.category.clone().into_iter()
+			resource.category.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -157,7 +167,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.race.clone().into_iter()
+			resource.race.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -167,7 +177,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.types.clone().into_iter()
+			resource.types.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -177,7 +187,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.counter.clone().into_iter()
+			resource.counter.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -187,7 +197,7 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.link.clone().into_iter()
+			resource.link.clone().into_iter()
 				.filter_map(|i|
 					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
 						if i.0.starts_with("0x") { 16 } else { 10 }
@@ -197,10 +207,10 @@ impl Resource {
 						None
 					})
 				.collect(),
-			self.info.clone().into_iter().collect(),
-			self.other.clone().into_iter().collect(),
-			self.btn.clone().into_iter().collect(),
-			self.avatar.get("AVATAR").unwrap_or(&Vec::new()).to_vec()
+			resource.info.clone().into_iter().collect(),
+			resource.other.clone().into_iter().collect(),
+			resource.btn.clone().into_iter().collect(),
+			resource.avatar.get("AVATAR").unwrap_or(&Vec::new()).to_vec()
 		)
 	}
 	pub fn sound (&self) -> Vec<(String, String)> {
@@ -211,5 +221,47 @@ impl Resource {
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
 		Ok(to_string(&self)?)
+	}
+	fn to_url (&mut self, path: &Path) {
+		[
+			self.ot.iter_mut(),
+			self.attribute.iter_mut(),
+			self.category.iter_mut(),
+			self.race.iter_mut(),
+			self.types.iter_mut(),
+			self.info.iter_mut(),
+			self.counter.iter_mut(),
+			self.other.iter_mut()
+		]
+			.into_iter().for_each(|i|
+				for (_, value) in i {
+					let p: PathBuf = path.join(&value);
+					if let Some(p) = File::new(&p) {
+						*value = p.url();
+					}
+				}
+			);
+		if let Some(avatar) = self.avatar.get_mut("AVATAR") {
+			avatar.iter_mut().for_each(|i| {
+				let p: PathBuf = path.join(i.clone());
+				if let Some(p) = File::new(&p) {
+					*i = p.url();
+				}
+			});
+		}
+
+		[self.link.iter_mut(), self.btn.iter_mut()]
+			.into_iter().for_each(|i|
+				for (_, (value_i, value_ii)) in i {
+					let p: PathBuf = path.join(&value_i);
+					if let Some(p) = File::new(&p) {
+						*value_i = p.url();
+					}
+					let p: PathBuf = path.join(&value_ii);
+					if let Some(p) = File::new(&p) {
+						*value_ii = p.url();
+					}
+				}
+			);
 	}
 }
