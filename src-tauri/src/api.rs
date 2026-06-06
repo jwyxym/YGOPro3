@@ -122,6 +122,14 @@ pub async fn get_system () -> Response {
 }
 
 #[tauri::command]
+pub async fn get_hash () -> Response {
+	Game::get_hash().await
+		.ok()
+		.map(Response::new)
+		.unwrap_or(Response::new(Vec::new()))
+}
+
+#[tauri::command]
 pub async fn get_server () -> Response {
 	Game::get_server().await
 		.ok()

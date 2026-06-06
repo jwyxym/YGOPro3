@@ -20,6 +20,7 @@ pub struct Resource {
 	avatar: IndexMap<String, Vec<String>>,
 	link: IndexMap<String, (String, String)>,
 	btn: IndexMap<String, (String, String)>,
+	recognizer: IndexMap<String, String>
 }
 
 pub type Textures = (
@@ -54,7 +55,8 @@ impl Resource {
 			info: IndexMap::new(),
 			counter: IndexMap::new(),
 			avatar: IndexMap::new(),
-			other: IndexMap::new()
+			other: IndexMap::new(),
+			recognizer: IndexMap::new(),
 		}
 	}
 	pub fn merge (&mut self, text: &str) -> bool {
@@ -128,6 +130,7 @@ impl Resource {
 		result |= merge(&mut self.other, resource.other);
 		result |= merge(&mut self.sound, resource.sound);
 		result |= merge(&mut self.font, resource.font);
+		result |= merge(&mut self.recognizer, resource.recognizer);
 		result |= merge_string_vec(&mut self.avatar, resource.avatar);
 		result |= merge_string_tuple(&mut self.btn, resource.btn);
 		result |= merge_string_tuple(&mut self.link, resource.link);
@@ -218,6 +221,9 @@ impl Resource {
 	}
 	pub fn font (&self) -> Vec<(String, String)> {
 		self.font.clone().into_iter().collect()
+	}
+	pub fn recognizer (&self) -> IndexMap<String, String> {
+		self.recognizer.clone()
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
 		Ok(to_string(&self)?)

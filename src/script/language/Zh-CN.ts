@@ -41,6 +41,7 @@ Zh_CN[I18N_KEYS.DECK_COPY] = '分享卡组';
 Zh_CN[I18N_KEYS.DECK_INIT] = '编辑卡组';
 Zh_CN[I18N_KEYS.DECK_DEL] = '删除卡组';
 Zh_CN[I18N_KEYS.DECK_INPUT] = '导入卡组';
+Zh_CN[I18N_KEYS.DECK_INPUT_BY_PIC] = '识图导入';
 Zh_CN[I18N_KEYS.DECK_NAME] = '卡组名称';
 Zh_CN[I18N_KEYS.DECK_EXIT] = '确认要退出吗？';
 Zh_CN[I18N_KEYS.DECK_SORT] = '确认要排序吗？';

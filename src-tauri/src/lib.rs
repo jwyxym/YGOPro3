@@ -51,6 +51,7 @@ pub fn run() {
 			api::get_textures,
 			api::get_cards,
 			api::get_system,
+			api::get_hash,
 			api::get_server,
 			api::get_strings,
 			api::get_lflist,

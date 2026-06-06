@@ -35,7 +35,6 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
 
     - name: Download Assets
       run: |
@@ -45,6 +44,10 @@ jobs:
 
         mkdir -p cdb
         mkdir -p strings
+        mkdir -p recognizer
+        cd recognizer
+        wget https://github.com/jwyxym/YGOPic_Best/releases/download/hash-latest/card_data
+        cd ..
 
         cp ygopro-database-master/locales/zh-CN/cards.cdb cdb/cards-zh-CN.cdb
         cp ygopro-database-master/locales/ko-KR/cards.cdb cdb/cards-ko-KR.cdb

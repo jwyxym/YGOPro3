@@ -30,6 +30,7 @@
 		"@kuyoonjo/tauri-plugin-tcp": "^0.1.2",
 		"@tauri-apps/api": "^2",
 		"@tauri-apps/plugin-clipboard-manager": "^2.3.0",
+		"@tauri-apps/plugin-dialog": "^2.4.0",
 		"@tauri-apps/plugin-fs": "^2.4.2",
 		"@tauri-apps/plugin-http": "^2.5.2",
 		"@tauri-apps/plugin-opener": "^2.5.2",
@@ -49,6 +50,7 @@
 		"vue": "^3.5.13",
 		"vue-virtual-scroller": "^3.0.3",
 		"vue3-starry-sky": "^0.1.0",
+		"ygopic-best": "https://github.com/jwyxym/YGOPic_Best/releases/download/release-latest/ygopic-best.tgz",
 		"ygopro-deck-encode": "^1.0.14",
 		"ygopro-yrp3d-encode": "github:jwyxym/ygopro-yrp3d-encode"
 	},

@@ -44,7 +44,7 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
-	fs::{create_dir_all, exists, write},
+	fs::{create_dir_all, exists, write, read},
 	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
@@ -723,15 +723,18 @@ impl Game {
 		}
 		Ok(())
 	}
+
 	pub async fn chk_version () -> Result<bool, Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
+
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		Request::download(app, path.join("expansions"), &url, &name).await
 	}
+
 	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let mut path: PathBuf = path.clone();
@@ -745,6 +748,7 @@ impl Game {
 			Ok(String::new())
 		}
 	}
+
 	pub async fn get_server_args () -> Result<(String, String), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
@@ -761,5 +765,17 @@ impl Game {
 			.collect::<Vec<String>>()
 			.join("/");
 		Ok((i18n, pack))
+	}
+
+	pub async fn get_hash () -> Result<Vec<u8>, Error> {
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let hash: String = String::from(game.resource.recognizer()
+			.get("hash").ok_or(anyhow!("no hash data"))?);
+		let path = path
+			.join("recognizer")
+			.join(hash);
+		Ok(read(path)?)
 	}
 }

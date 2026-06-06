@@ -295,6 +295,14 @@ class Invoke {
 				this.log.write(error);
 				return [];
 			}
+		},
+		get_hash : async () : Promise<ArrayBuffer | undefined> => {
+			try {
+				return await invoke<ArrayBuffer>('get_hash');
+			} catch (error) {
+				this.log.write(error);
+				return undefined;
+			}
 		}
 	};
 	deck = {

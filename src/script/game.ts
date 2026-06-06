@@ -3,6 +3,7 @@ import { exit } from '@tauri-apps/plugin-process';
 import { fetch } from '@tauri-apps/plugin-http';
 
 import Deck from '@/pages/deck/deck';
+import recognizer from '@/pages/deck/recognizer';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
 import * as CONSTANT from './constant';
@@ -38,7 +39,7 @@ class Game {
 		try {
 			if (!await invoke.game.init())
 				return false;
-			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info] = await Promise.all([
+			const [fonts, sounds, textures, cards, systems, servers, lflist, strings, model, info, hash] = await Promise.all([
 				invoke.game.get_font(),
 				invoke.game.get_sound(),
 				invoke.game.get_textures(),
@@ -49,7 +50,10 @@ class Game {
 				invoke.game.get_strings(),
 				invoke.game.get_model(),
 				invoke.game.get_info(),
+				invoke.game.get_hash()
 			]);
+			if (hash)
+				await recognizer.init(hash);
 			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
 			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
