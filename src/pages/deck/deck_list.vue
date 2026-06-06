@@ -228,7 +228,6 @@
 			if (file) {
 				input.loading = true;
 				const deck = await recognizer.on(file);
-				console.log(deck)
 				await page.indeck(deck);
 				input.loading = false;
 			}

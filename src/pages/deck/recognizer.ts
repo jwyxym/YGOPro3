@@ -1,7 +1,6 @@
 import { createYGOPicRecognizer, type YGOPicRecognizer } from 'ygopic-best';
-import ygo_pic_wasm_url from 'ygopic-best/dist/core-wasm/core_wasm_bg.wasm?url';
-import ort_wasm_url from 'ygopic-best/dist/onnxruntime-web/dist/ort.webgpu.js?url';
-import model_url from 'ygopic-best/dist/onnx?url';
+import ygo_pic_wasm_url from 'ygopic-best/core-wasm/core_wasm_bg.wasm?url';
+import model_url from 'ygopic-best/onnx?url';
 import { convertFileSrc } from '@tauri-apps/api/core';
 
 import Deck from './deck';
@@ -13,14 +12,11 @@ class Pic_Recognizer {
 	private recognizer ?: YGOPicRecognizer;
 	init = async (hash : ArrayBuffer) : Promise<void> => {
 		if (this.recognizer) return;
-		const ort_wasm_path = ort_wasm_url.split('/');
-		ort_wasm_path.pop();
-		const ort_wasm = ort_wasm_path.join('/') + '/';
 		this.recognizer = await createYGOPicRecognizer({
 			modelUrl : model_url,
 			hashDb : hash,
 			wasmPath : ygo_pic_wasm_url,
-			ortWasmPaths : ort_wasm
+			ortNumThreads : 1
 		});
 	};
 
@@ -46,9 +42,10 @@ class Pic_Recognizer {
 				img.onerror = () => reject(undefined);
 			});
 
-			const cards = (await this.recognizer.recognizeImage(img, {
+			const result = (await this.recognizer.recognizeImage(img, {
 				includeArtworkUrl: true
 			}))
+			const cards = result
 				.map(i => i.matches[0]?.id)
 				.filter(i => i);
 
@@ -59,7 +56,6 @@ class Pic_Recognizer {
 				(c.is_ex() ? deck.extra : deck.main)
 					.push(id);
 			}
-			console.log(cards)
 		} catch (e) {
 			if (e)
 				invoke.log.write(e);
