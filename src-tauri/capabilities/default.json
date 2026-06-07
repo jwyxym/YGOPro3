@@ -9,6 +9,17 @@
     "core:default",
     "opener:default",
     "fs:default",
+	{
+		"identifier": "fs:allow-read-file",
+		"allow": [
+			{
+				"path": "$APPLOCALDATA/**"
+			},
+			{
+				"path": "$RESOURCE/**"
+			}
+		]
+	},
     "os:default",
     "process:default",
     "clipboard-manager:allow-read-text",

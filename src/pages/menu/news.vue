@@ -16,7 +16,6 @@
 
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
-	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
 	
 	import { toast } from '@/pages/toast/toast';
@@ -43,7 +42,7 @@
 	});
 
 	onMounted(async () => {
-		if (!import.meta.env.DEV) {
+		if (!__DEV__) {
 			const data = await http.get<Array<{
 				id : string;
 				news : {

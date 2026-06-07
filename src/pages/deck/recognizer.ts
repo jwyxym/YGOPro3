@@ -1,7 +1,6 @@
 import { createYGOPicRecognizer, type YGOPicRecognizer } from 'ygopic-best';
 import ygo_pic_wasm_url from 'ygopic-best/core-wasm/core_wasm_bg.wasm?url';
 import model_url from 'ygopic-best/onnx?url';
-import { convertFileSrc } from '@tauri-apps/api/core';
 
 import Deck from './deck';
 
@@ -32,7 +31,16 @@ class Pic_Recognizer {
 			if (!this.recognizer)
 				throw 'recognizer init error';
 
-			const path = convertFileSrc(file);
+			const path = await (async () => {
+				if (__ANDROID__) {
+					const { readFile } = await import('@tauri-apps/plugin-fs');
+					const buffer = await readFile(file);
+					return URL.createObjectURL(new Blob([new Uint8Array(buffer)]));
+				} else {
+					const { convertFileSrc } = await import('@tauri-apps/api/core');
+					return convertFileSrc(file);
+				}
+			})();
 			const img = new Image();
 			img.crossOrigin = 'anonymous';
 			img.src = path;
@@ -48,6 +56,8 @@ class Pic_Recognizer {
 			const cards = result
 				.map(i => i.matches[0]?.id)
 				.filter(i => i);
+			if (__ANDROID__)
+				URL.revokeObjectURL(path);
 
 			for (const id of cards) {
 				const c = mainGame.get.card(id);

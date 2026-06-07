@@ -58,15 +58,16 @@
 					<Button
 						v-if = 'page.button === 0'
 						:content = 'mainGame.get.text(I18N_KEYS.DECK_NEW)'
+						:loading = 'input.loading'
 						@click = 'list.add()'
 						key = '0'
 					/>
 					<Button
 						v-if = 'page.button === 1'
 						:content = 'mainGame.get.text(I18N_KEYS.DECK_INIT)'
+						:loading = 'input.loading'
 						@click = 'page.indeck(list.decks[list.selected])'
 						key = '2'
-						:loading = 'input.loading'
 					/>
 					<Button
 						v-if = 'page.button === 1'
@@ -88,6 +89,7 @@
 					/>
 					<Button
 						:content = 'mainGame.get.text(I18N_KEYS.EXIT)'
+						:loading = 'input.loading'
 						@click = "emit('exit')"
 						key = '6'
 					/>

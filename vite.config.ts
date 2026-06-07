@@ -13,6 +13,10 @@ export default defineConfig(async () => ({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  define: {
+    __ANDROID__: JSON.stringify(process.env.TAURI_ENV_PLATFORM === 'android'),
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+  },
 
   // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
   //
