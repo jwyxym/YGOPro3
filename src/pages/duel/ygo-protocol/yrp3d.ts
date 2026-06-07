@@ -12,13 +12,13 @@ class Replay3D {
 	});
 	on_disconnect ?: () => Promise<void>;
 	on = async (bytes : Uint8Array, call_back : {
-		on_connect ?: (name : [string, string]) => Promise<void>
+		on_connect ?: (name : [string, string], duel_rule : number) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
 	}) => {
 		const replay = this.yrp3d.fromYrp3d(bytes);
 		this.on_disconnect = call_back.on_disconnect;
-		await call_back.on_connect?.([replay.name0, replay.name1]);
+		await call_back.on_connect?.([replay.name0, replay.name1], replay.masterRule);
 		for (const packet of replay.messages) {
 			const m = new Msg([STOC.GAME_MSG]).concat(packet.toPayload());
 			this.queue.add(

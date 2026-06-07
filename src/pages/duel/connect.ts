@@ -39,7 +39,7 @@ class Wait {
 		lflist : 0,
 		rule : 0,
 		mode : 0,
-		duel_rule : 0,
+		duel_rule : - 1,
 		no_check_deck : false,
 		no_shuffle_deck : false,
 		start_lp : 0,
@@ -234,15 +234,17 @@ const connect = reactive({
 		try {
 			switch (connect.state) {
 				case 0:
+					const protocol = new (await import('./ygo-protocol/protocol')).default();
 					if (i && 'replay' in i) {
 						connect.replay = true;
-						const protocol = new (await import('./ygo-protocol/protocol')).default();
 						const bytes = await invoke.replay.read(i.replay);
 						connect.protocol = replay3d;
 						await connect.protocol.on(bytes, {
-							on_connect : async (name : [string, string]) : Promise<void> => {
+							on_connect : async (name : [string, string], duel_rule : number) : Promise<void> => {
 								connect.duel.player[0].name = name[0];
 								connect.duel.player[1].name = name[1];
+								connect.wait.info.duel_rule = duel_rule;
+								connect.state = 2;
 							},
 							on_message : protocol.read,
 							on_disconnect : async () : Promise<void> => {
@@ -250,11 +252,9 @@ const connect = reactive({
 								await voice.play.bgm(KEYS.BACK_BGM);
 							}
 						});
-						connect.state = 2;
 					} else {
 						const local_server = i && 'args' in i;
 						const callback = async (name : string, pass : string, address : string) => {
-							const protocol = new (await import('./ygo-protocol/protocol')).default();
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;

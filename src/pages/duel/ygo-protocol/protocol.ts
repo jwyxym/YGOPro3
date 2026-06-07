@@ -660,6 +660,7 @@ class Protocol {
 			this.replay.name1 = connect.duel.player[1].name;
 			this.replay.name1Tag = '---';
 			this.replay.name1Current = connect.duel.player[1].name;
+			this.replay.masterRule = connect.wait.info.duel_rule;
 			const decks = [[msg.read.uint16() ?? 0, msg.read.uint16() ?? 0], [msg.read.uint16() ?? 0, msg.read.uint16() ?? 0]];
 			this.select_hint = undefined;
 			this.last_select_hint = 0;

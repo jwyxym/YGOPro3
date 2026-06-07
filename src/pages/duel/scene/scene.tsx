@@ -65,10 +65,14 @@ class _Duel {
 		this.add.activate();
 		this.add.back();
 		this.add.btn();
-		for (let x = -3; x < 4; x++)
-			for (let y = -2; y < 3; y++)
+		for (let x = - 3; x < 4; x++)
+			for (let y = - 2; y < 3; y++)
 				if (y !== 0 || x % 2 !== 0)
     				this.add.plaid(x, y);
+		if (connect.wait.info.duel_rule >= 0 && connect.wait.info.duel_rule <= 3)
+			for (const x of [- 2, 2])
+				for (const y of [- 3, 3])
+					this.add.plaid(x, y);
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);

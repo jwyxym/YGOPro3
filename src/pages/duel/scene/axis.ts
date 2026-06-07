@@ -1,4 +1,5 @@
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
+import connect from '@/pages/duel/connect';
 import Client_Card from './client_card';
 import * as SIZE from './scene-size';
 import { duel } from './scene';
@@ -22,7 +23,9 @@ class Axis {
 
 	get = {
 		xyz : () : [number, number, number] => [this.x, this.y, this.z ?? 0]
-	}
+	};
+
+	static chk = () => connect.wait.info.duel_rule >= 0 && connect.wait.info.duel_rule <= 3;
 
 	static map : Map<number, Array<Axis>> = new Map([
 		[LOCATION.HAND, [
@@ -77,10 +80,6 @@ class Axis {
 			new Axis(1, 0),
 			new Axis(- 1, 0)
 		]],
-		[LOCATION.SZONE | (0 << 16), [
-			new Axis(- 2, - 2),
-			new Axis(2, 2)
-		]],
 		[LOCATION.SZONE | (1 << 16), [
 			new Axis(- 1, - 2),
 			new Axis(1, 2)
@@ -92,10 +91,6 @@ class Axis {
 		[LOCATION.SZONE | (3 << 16), [
 			new Axis(1, - 2),
 			new Axis(- 1, 2)
-		]],
-		[LOCATION.SZONE | (4 << 16), [
-			new Axis(2, - 2),
-			new Axis(- 2, 2)
 		]],
 		[LOCATION.SZONE | (5 << 16), [
 			new Axis(- 3, - 1),
@@ -116,14 +111,39 @@ class Axis {
 		[LOCATION.PZONE | (1 << 16), [
 			new Axis(2, - 2),
 			new Axis(- 2, 2)
-		]]
+		]],
 	]);
+	
+	static get = (key: number): Array<Axis> => {
+		switch (key) {
+			case LOCATION.SZONE | (0 << 16):
+				return Axis.chk()
+					? [
+						new Axis(-2, -3),
+						new Axis(2, 3)
+					] : [
+						new Axis(-2, -2),
+						new Axis(2, 2)
+					];
+			case LOCATION.SZONE | (4 << 16):
+				return Axis.chk()
+					? [
+						new Axis(2, -3),
+						new Axis(-2, 3)
+					] : [
+						new Axis(2, -2),
+						new Axis(-2, 2)
+					];
+			default:
+				return Axis.map.get(key)!;
+		}
+	};
 
 	static computed = {
 		card : (card : Client_Card) : Axis => {
 			if (card.location === LOCATION.HAND) {
 				const width = SIZE.WIDTH * SIZE.MAX_HAND;
-				const axis : Axis = Axis.map.get(card.location)![card.owner];
+				const axis : Axis = Axis.get(card.location)![card.owner];
 				const ct = duel.get.cards()
 					.filter(i => i.owner === card.owner && i.location === LOCATION.HAND)
 					.length;
@@ -133,32 +153,37 @@ class Axis {
 				return new Axis(x, y, z);
 			} else {
 				const loc = card.location & LOCATION.ONFIELD;
-				const axis : Axis = Axis.map.get(loc ? (
+				const axis : Axis = Axis.get(loc ? (
 					loc | (card.seq << 16)
 				) : card.location)![card.owner];
-				const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
+				let x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
 				let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
 				const z : number  = (loc ? card.overlay : card.seq) * SIZE.TOP;
-				if (axis.x % 3 === 0 && axis.x !== 0) {
-					y += SIZE.OFFSET * 
-						(axis.y > 0 ? 1
-							: axis.y < 0 ? - 1
-							: axis.x === - 3 ? 1 : - 1
-						)
-				}
+				if (Axis.chk() && Math.abs(axis.x) === 2)
+					y += (SIZE.HEIGHT + SIZE.GAP.SCENE) * (axis.y > 0 ? - 0.5 : 0.5);
+				else if (axis.x % 3 === 0 && axis.x !== 0)
+					y += SIZE.OFFSET * (axis.y > 0 ? 1
+						: axis.y < 0 ? - 1
+						: axis.x === - 3 ? 1 : - 1
+					);
 				return new Axis(x, y, z);
 			}
 		},
 		back : (axis : Axis) : Axis => {
-			const x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
+			let x : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.x;
 			let y : number = (SIZE.HEIGHT + SIZE.GAP.SCENE) * axis.y
-			if (axis.x % 3 === 0 && axis.x !== 0) {
-				y += SIZE.OFFSET * 
-					(axis.y > 0 ? 1
-						: axis.y < 0 ? - 1
-						: axis.x === - 3 ? 1 : - 1
-					)
-			}
+			if (Axis.chk() && Math.abs(axis.x) === 2)
+				axis.y === 0
+					? (() => {
+						x += SIZE.HEIGHT + SIZE.GAP.SCENE;
+						y += (SIZE.HEIGHT + SIZE.GAP.SCENE) * 0.2;
+					})()
+					: y += (SIZE.HEIGHT + SIZE.GAP.SCENE) * (axis.y > 0 ? - 0.5 : 0.5);
+			else if (axis.x % 3 === 0 && axis.x !== 0)
+				y += SIZE.OFFSET * (axis.y > 0 ? 1
+					: axis.y < 0 ? - 1
+					: axis.x === - 3 ? 1 : - 1
+				);
 			return new Axis(x, y, 0);
 		},
 	}

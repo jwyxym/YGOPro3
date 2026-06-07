@@ -51,6 +51,14 @@
 						][info.mode] ?? I18N_KEYS.UNKNOW)}`
 					}}
 				</span>
+				<span>
+					{{
+						mainGame.get.text(new Array(4)
+							.fill(I18N_KEYS.SERVER_DUEL_RULE_PENDULUM).concat([
+								I18N_KEYS.SERVER_DUEL_RULE_2017, I18N_KEYS.SERVER_DUEL_RULE_2020
+							])[info.duel_rule] ?? I18N_KEYS.UNKNOW)
+					}}
+				</span>
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_TIME_LIMIT)} : ${info.time_limit}` }}</span>
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_LP)} : ${info.start_lp}` }}</span>
 				<span>{{ `${mainGame.get.text(I18N_KEYS.SERVER_HOME_START_HAND)} : ${info.start_hand}` }}</span>
