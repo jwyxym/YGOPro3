@@ -8,52 +8,56 @@ class Msg {
 		[this.content, this.readonly] = data === undefined ? [Buffer.alloc(256), false]
 			: [Buffer.from(data as any), true];
 	};
-	length = () : number => this.content.length;
+
+	get length () : number {
+		return this.content.length;
+	};
+
 	read = {
 		uint8 : () : number | undefined => {
-			if (this.index >= this.length())
+			if (this.index >= this.length)
 				return undefined;
 			const data = this.content.readUInt8(this.index);
 			this.index ++;
 			return data;
 		},
 		uint16 : () : number | undefined => {
-			if (this.index + 1 >= this.length())
+			if (this.index + 1 >= this.length)
 				return undefined;
 			const data = this.content.readUInt16LE(this.index);
 			this.index += 2;
 			return data;
 		},
 		uint32 : () : number | undefined => {
-			if (this.index + 2 >= this.length())
+			if (this.index + 2 >= this.length)
 				return undefined;
 			const data = this.content.readUInt32LE(this.index);
 			this.index += 4;
 			return data;
 		},
 		int8 : () : number | undefined => {
-			if (this.index >= this.length())
+			if (this.index >= this.length)
 				return undefined;
 			const data = this.content.readInt8(this.index);
 			this.index ++;
 			return data;
 		},
 		int16 : () : number | undefined => {
-			if (this.index + 1 >= this.length())
+			if (this.index + 1 >= this.length)
 				return undefined;
 			const data = this.content.readInt16LE(this.index);
 			this.index += 2;
 			return data;
 		},
 		int32 : () : number | undefined => {
-			if (this.index + 2 >= this.length())
+			if (this.index + 2 >= this.length)
 				return undefined;
 			const data = this.content.readInt32LE(this.index);
 			this.index += 4;
 			return data;
 		},
 		str : (len ?: number) : string | undefined => {
-			const length = this.length();
+			const length = this.length;
 
 			if (len !== undefined && (len < 0 || this.index + len > length || len & 1))
 				return undefined;
@@ -77,7 +81,7 @@ class Msg {
 				return this.write.int8(data);
 			if (this.readonly)
 				return this;
-			if (this.index >= this.length())
+			if (this.index >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt8(data, this.index);
 			this.index ++;
@@ -88,7 +92,7 @@ class Msg {
 				return this.write.int16(data);
 			if (this.readonly)
 				return this;
-			if (this.index + 1 >= this.length())
+			if (this.index + 1 >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt16LE(data, this.index);
 			this.index += 2;
@@ -99,7 +103,7 @@ class Msg {
 				return this.write.int32(data);
 			if (this.readonly)
 				return this;
-			if (this.index + 3 >= this.length())
+			if (this.index + 3 >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeUInt32LE(data, this.index);
 			this.index += 4;
@@ -108,7 +112,7 @@ class Msg {
 		int8 : (data : number) : Msg => {
 			if (this.readonly)
 				return this;
-			if (this.index >= this.length())
+			if (this.index >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeInt8(data, this.index);
 			this.index ++;
@@ -117,7 +121,7 @@ class Msg {
 		int16 : (data : number) : Msg => {
 			if (this.readonly)
 				return this;
-			if (this.index + 3 >= this.length())
+			if (this.index + 3 >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeInt16LE(data, this.index);
 			this.index += 2;
@@ -126,7 +130,7 @@ class Msg {
 		int32 : (data : number) : Msg => {
 			if (this.readonly)
 				return this;
-			if (this.index + 3 >= this.length())
+			if (this.index + 3 >= this.length)
 				this.content = Buffer.concat([this.content, Buffer.alloc(256)]);
 			this.content.writeInt32LE(data, this.index);
 			this.index += 4;
@@ -143,12 +147,12 @@ class Msg {
 	};
 	slice = (len : number, start ?: number) : Msg | undefined => {
 		start = start ?? this.index;
-		if (this.index + len > this.length())
+		if (this.index + len > this.length)
 			return undefined;
 		this.index += len;
 		return new Msg(this.content.subarray(start, this.index));
 	};
-	to_end = () : Msg => new Msg(this.index >= this.length() ? Buffer.from([])
+	to_end = () : Msg => new Msg(this.index >= this.length ? Buffer.from([])
 		: this.content.subarray(this.index));
 	concat = (data : Buffer | ArrayBuffer | Uint8Array | Array<number> | string | Msg) : Msg => new Msg(Buffer.concat([this.content, data instanceof Msg ? data.content : Buffer.from(data as any)]));
 	buffer = () : Uint8Array => {
