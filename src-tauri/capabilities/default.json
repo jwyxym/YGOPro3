@@ -36,6 +36,7 @@
         }
       ]
     },
-    "websocket:default"
+    "websocket:default",
+    "dialog:default"
   ]
 }

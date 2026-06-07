@@ -44,3 +44,4 @@ bincode = "2.0.0-rc.3"
 indexmap = { version = "2.13.0", features = ["serde"] }
 uuid = { version = "1.21.0", features = ["v4"] }
 libloading = "0.9.0"
+tauri-plugin-dialog = "2"

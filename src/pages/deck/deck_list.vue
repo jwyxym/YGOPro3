@@ -10,8 +10,16 @@
 							v-model = 'input.value'
 						/>
 						<div>
-							<Button :content = 'mainGame.get.text(I18N_KEYS.CONFIRM)' @click = 'input.confirm'/>
-							<Button :content = 'mainGame.get.text(I18N_KEYS.CANCEL)' @click = 'input.cancel'/>
+							<Button
+								:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
+								@click = 'input.confirm'
+								:loading = 'input.loading'
+							/>
+							<Button
+								:content = 'mainGame.get.text(I18N_KEYS.DECK_INPUT_BY_PIC)'
+								@click = 'input.by_pic'
+								:loading = 'input.loading'
+							/>
 						</div>
 					</div>
 					<TransitionGroup tag = 'div' name = 'move_left' class = 'no-scrollbar'>
@@ -58,6 +66,7 @@
 						:content = 'mainGame.get.text(I18N_KEYS.DECK_INIT)'
 						@click = 'page.indeck(list.decks[list.selected])'
 						key = '2'
+						:loading = 'input.loading'
 					/>
 					<Button
 						v-if = 'page.button === 1'
@@ -99,6 +108,7 @@
 <script setup lang = 'ts'>
 	import { reactive, onMounted } from 'vue';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
+	import { open } from '@tauri-apps/plugin-dialog';
 
 	import DeckPage from './deck.vue';
 	import Button from '@/pages/ui/button.vue';
@@ -107,6 +117,7 @@
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
+	import recognizer from './recognizer';
 	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
 	import * as CONSTANT from '@/script/constant';
@@ -127,7 +138,7 @@
 		},
 		indeck : async (deck : Deck) : Promise<void> => {
 			page.list = false;
-			input.cancel();
+			input.clear();
 			await mainGame.sleep(200);
 			page.deck = deck;
 			list.decks.length = 0;
@@ -155,7 +166,7 @@
 			else {
 				list.selected = -1;
 				page.button = -1;
-				input.cancel();
+				input.clear();
 				await mainGame.sleep(200, mainGame.load.pic, [list.decks[n]]);
 				list.selected = n;
 				page.button = 1;
@@ -196,6 +207,7 @@
 	});
 
 	const input = reactive({
+		loading : false,
 		value : '',
 		confirm : () : void => {
 			if (input.value) {
@@ -206,9 +218,21 @@
 				deck.is_new();
 				page.indeck(deck);
 			}
-			return input.cancel();
+			return input.clear();
 		},
-		cancel : () : void => {
+		by_pic : async () => {
+			const file = await open({
+				multiple: false,
+				directory: false
+			});
+			if (file) {
+				input.loading = true;
+				const deck = await recognizer.on(file);
+				await page.indeck(deck);
+				input.loading = false;
+			}
+		},
+		clear : () : void => {
 			input.value = '';
 		}
 	})

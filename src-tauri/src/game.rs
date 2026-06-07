@@ -44,7 +44,7 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
-	fs::{exists, write},
+	fs::{create_dir_all, exists, write, read},
 	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
@@ -131,11 +131,12 @@ impl Game {
 		let (system, resource, lflist, servers, model, mut tasks) = Self::load_config(path, &config).await;
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
-			Self::load_expansion(app, path, &system),
+			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n(), &config)
 		);
 
 		tasks.push(task);
+		create_dir_all(path.join("config"))?;
 		for task in tasks {
 			let _ = task.await;
 		}
@@ -215,7 +216,7 @@ impl Game {
 							system.get_or_insert_with(|| System::new(text));
 						}
 						FileContent::Resource(text) => {
-							resources.get_or_insert_with(|| Resource::new(text, &path.join("textures")));
+							resources.get_or_insert_with(|| Resource::new(text));
 						}
 						FileContent::Servers(text) => {
 							servers.init_by_toml(text)
@@ -236,7 +237,7 @@ impl Game {
 		if let Some((_, text)) = config
 			.iter()
 			.find(|i| i.0.ends_with("resource.toml"))
-			&& resources.merge(text, path) {
+			&& resources.merge(text) {
 			let p: PathBuf = config_path
 				.join("resource.toml");
 			if let Ok(text) = resources.to_string() {
@@ -351,7 +352,7 @@ impl Game {
 		}
 	}
 
-	async fn load_expansion (app: &AppHandle, path: &Path, system: &System) -> IndexMap<String, GamePack> {
+	async fn load_expansion (path: &Path, system: &System) -> IndexMap<String, GamePack> {
 		let mut zip_tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		WalkDir::new(path.join("expansions"))
@@ -399,11 +400,9 @@ impl Game {
 		let mut packs: IndexMap<String, GamePack> = IndexMap::new();
 		let mut zip_tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = zip_tasks.into_iter().collect::<FuturesUnordered<_>>();
 		let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
-		let _ = app.emit("started", zip_tasks.len() + tasks.len());
 		let (_, gamepack) = join!(
 			async {
 				while let Some(task) = zip_tasks.next().await {
-					let _ = app.emit("progress", 1);
 					if let Ok(task) = task {
 						if let Ok(zip) = task {
 							let mut lflist: LFList = LFList::new();
@@ -448,7 +447,6 @@ impl Game {
 				let mut lflist: LFList = LFList::new();
 				let mut db: Cdb = Cdb::new();
 				while let Some(task) = tasks.next().await {
-					let _ = app.emit("progress", 1);
 					if let Ok(task) = task {
 						if let Ok(file) = task {
 							match file {
@@ -484,7 +482,6 @@ impl Game {
 			}
 		);
 		packs.insert(String::from("./expansions"), gamepack);
-		let _ = app.emit("end", 0);
 		packs
 	}
 
@@ -594,7 +591,8 @@ impl Game {
 	pub async fn get_textures () -> Result<Textures, Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
-		Ok(game.resource.to_array())
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		Ok(game.resource.to_array(&path.join("textures")))
 	}
 
 	pub async fn get_cards () -> Result<Vec<(Vec<i64>, Vec<String>)>, Error> {
@@ -725,15 +723,18 @@ impl Game {
 		}
 		Ok(())
 	}
+
 	pub async fn chk_version () -> Result<bool, Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
+
 	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		Request::download(app, path.join("expansions"), &url, &name).await
 	}
+
 	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let mut path: PathBuf = path.clone();
@@ -747,6 +748,7 @@ impl Game {
 			Ok(String::new())
 		}
 	}
+
 	pub async fn get_server_args () -> Result<(String, String), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
@@ -763,5 +765,17 @@ impl Game {
 			.collect::<Vec<String>>()
 			.join("/");
 		Ok((i18n, pack))
+	}
+
+	pub async fn get_hash () -> Result<Vec<u8>, Error> {
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
+		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+		let hash: String = String::from(game.resource.recognizer()
+			.get("hash").ok_or(anyhow!("no hash data"))?);
+		let path = path
+			.join("recognizer")
+			.join(hash);
+		Ok(read(path)?)
 	}
 }

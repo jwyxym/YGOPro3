@@ -35,6 +35,7 @@ pub fn run() {
 		.plugin(tauri_plugin_os::init())
 		.plugin(tauri_plugin_fs::init())
 		.plugin(tauri_plugin_opener::init())
+		.plugin(tauri_plugin_dialog::init())
 		.invoke_handler(generate_handler![
 			api::init,
 			api::reload,
@@ -50,6 +51,7 @@ pub fn run() {
 			api::get_textures,
 			api::get_cards,
 			api::get_system,
+			api::get_hash,
 			api::get_server,
 			api::get_strings,
 			api::get_lflist,
