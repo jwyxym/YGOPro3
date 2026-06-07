@@ -30,7 +30,7 @@ class Pic_Recognizer {
 		deck.is_new();
 		try {
 			if (!this.recognizer)
-				throw undefined;
+				throw 'recognizer init error';
 
 			const path = convertFileSrc(file);
 			const img = new Image();
@@ -39,7 +39,7 @@ class Pic_Recognizer {
 
 			await new Promise<void>((resolve, reject) => {
 				img.onload = () => resolve();
-				img.onerror = () => reject(undefined);
+				img.onerror = () => reject('img load failed');
 			});
 
 			const result = (await this.recognizer.recognizeImage(img, {
@@ -57,8 +57,7 @@ class Pic_Recognizer {
 					.push(id);
 			}
 		} catch (e) {
-			if (e)
-				invoke.log.write(e);
+			invoke.log.write(e);
 		}
 		return deck;
 	}
