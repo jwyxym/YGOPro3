@@ -2,7 +2,6 @@ use crate::game::Cdb;
 
 use std::path::Path;
 use serde::Serialize;
-use tauri_plugin_os::{OsType, type_};
 use urlencoding::encode;
 
 
@@ -46,10 +45,16 @@ impl File {
 	}
 	pub fn url (&self) -> String {
 		let path: String = encode(self.path()).into_owned();
-		match type_() {
-			OsType::Windows | OsType::Android => format!("http://asset.localhost/{}", path),
-			_ => format!("asset://localhost/{}", path),
-		}
+		#[cfg(any(
+			target_os = "windows",
+			target_os = "android"
+		))]
+			return format!("http://asset.localhost/{}", path);
+		#[cfg(not(any(
+			target_os = "windows",
+			target_os = "android"
+		)))]
+			format!("asset://localhost/{}", path)
 	}
 	pub fn name (&self) -> &str {
 		&self.name
