@@ -82,7 +82,7 @@ class Search {
 				return this.forbidden.findIndex(i => compare(i, ct, lflist.genesys ? 3 : undefined)) > -1;
 			})()))
 		);
-	}
+	};
 };
 
 export default Search;

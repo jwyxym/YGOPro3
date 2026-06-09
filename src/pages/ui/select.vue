@@ -62,7 +62,9 @@
 				break;
 			case 'i18n':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_I18N);
-				select.array = Object.entries(LANGUAGE) ?? new Array;
+				select.array = (Object.entries(LANGUAGE) ?? new Array)
+					.map(i => i.reverse()) as Array<[string, string]>;
+				select.label = true;
 				break;
 			case 'frame':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_FRAME);

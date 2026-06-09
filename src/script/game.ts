@@ -12,6 +12,7 @@ import LFList from './lflist';
 import invoke from './invoke';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
+import Zh_TW from './language/Zh-TW';
 import YGOPRO_STR from './language/string';
 
 class Game {
@@ -143,6 +144,8 @@ class Game {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:
 					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
+				case CONSTANT.LANGUAGE.Zh_TW:
+					return new YGOPRO_STR(Zh_TW[key]).toString(replace);
 			}
 			return new YGOPRO_STR(Zh_CN[key]).toString();
 		},

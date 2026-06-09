@@ -166,7 +166,6 @@ impl Game {
 	}
 
 	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, Vec<JoinHandle<Result<(), Error>>>) {
-		
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		let config_path: PathBuf = path
 			.join("config");
@@ -213,7 +212,7 @@ impl Game {
 				if let Ok(task) = task {
 					match task {
 						FileContent::System(text) => {
-							system.get_or_insert_with(|| System::new(text));
+							system.get_or_insert_with(|| System::new(text).init());
 						}
 						FileContent::Resource(text) => {
 							resources.get_or_insert_with(|| Resource::new(text));
@@ -276,7 +275,7 @@ impl Game {
 		let system: System = match system {
 			Some(system) => system,
 			None => {
-				let system: System = System::default();
+				let system: System = System::default().init();
 				let p: PathBuf = config_path
 					.join("system.toml");
 				let text: String = system.to_string();
