@@ -36,7 +36,7 @@ use lazy_static::lazy_static;
 use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
-	fs::{read_to_string, metadata},
+	fs::{create_dir_all, read_to_string, metadata},
 	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
@@ -44,7 +44,7 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
-	fs::{create_dir_all, exists, write, read},
+	fs::{exists, write, read},
 	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
@@ -136,7 +136,11 @@ impl Game {
 		);
 
 		tasks.push(task);
-		create_dir_all(path.join("config"))?;
+		for i in vec!["config", "deck", "expansions", "replay"] {
+			tasks.push(spawn(async move {
+				Ok(create_dir_all(path.join(i)).await?)
+			}));
+		}
 		for task in tasks {
 			let _ = task.await;
 		}
@@ -166,7 +170,6 @@ impl Game {
 	}
 
 	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, Vec<JoinHandle<Result<(), Error>>>) {
-		
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		let config_path: PathBuf = path
 			.join("config");
@@ -213,7 +216,7 @@ impl Game {
 				if let Ok(task) = task {
 					match task {
 						FileContent::System(text) => {
-							system.get_or_insert_with(|| System::new(text));
+							system.get_or_insert_with(|| System::new(text).init());
 						}
 						FileContent::Resource(text) => {
 							resources.get_or_insert_with(|| Resource::new(text));
@@ -276,7 +279,7 @@ impl Game {
 		let system: System = match system {
 			Some(system) => system,
 			None => {
-				let system: System = System::default();
+				let system: System = System::default().init();
 				let p: PathBuf = config_path
 					.join("system.toml");
 				let text: String = system.to_string();

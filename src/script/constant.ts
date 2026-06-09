@@ -7,7 +7,8 @@ const REG = {
 };
 
 const LANGUAGE = {
-	Zh_CN : 'zh-CN'
+	Zh_CN : 'zh-CN',
+	Zh_TW : 'zh-TW',
 };
 
 const FRAME = [

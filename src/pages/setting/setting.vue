@@ -1,9 +1,9 @@
 <template>
 	<div class = 'ygopro3__setting'>
 		<var-tabs v-model:active = 'page.select'>
-			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
-			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
-			<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
+			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
+			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
+			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
 		</var-tabs>
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Expansions v-if = '!page.select' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
