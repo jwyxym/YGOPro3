@@ -8,7 +8,7 @@
 			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
 			<Button v-show = 'page.card.id' icon_name = 'collapse' @click = 'page.clear'/>
 			<div v-show = 'page.card.id'>
-				<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD)' @click = "emit('about', page.card.id)" style = 'margin-bottom: 5px;'/>
+				<Button content = '相關卡片' @click = "emit('about', page.card.id)" style = 'margin-bottom: 5px;'/>
 				<transition name = 'opacity'>
 					<span v-show = 'page.show' class = 'card_name'>{{ page.card.name }}</span>
 				</transition>

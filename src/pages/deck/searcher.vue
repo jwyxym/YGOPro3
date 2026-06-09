@@ -13,7 +13,7 @@
 			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
 		</div>
 		<div v-else style="display: flex; align-items: center; justify-content: space-between; padding: 5px;">
-			<span style="font-weight: bold;">{{ mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD_TITLE, [page.about_card.name]) }}</span>
+			<span style="font-weight: bold;">「{{ page.about_card.name }}」的相關卡片</span>
 			<Button icon_name="collapse" @click="page.about_card = undefined; search.search()" />
 		</div>
 		<div class = 'no-scrollbar' @scroll = 'page.load_on' ref = 'list'>
