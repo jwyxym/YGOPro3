@@ -12,7 +12,10 @@
 						:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
 						@click = 'page.clear'
 					/>
-					<Button content = '相關卡片' @click = "emit('about', page.card.id)" style = 'margin-bottom: 5px;'/>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD)'
+						@click = "emit('about', page.card.id)"
+					/>
 				</div>
 			</div>
 			<div v-show = 'page.card.id'>
