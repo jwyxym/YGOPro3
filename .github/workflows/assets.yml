@@ -38,6 +38,7 @@ jobs:
 
     - name: Magick Pics
       run: |
+        cd .ci
         git clone git@github.com:jwyxym/pics.git --depth 1 pics_jpg
         find ./pics_jpg -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
         find ./pics_jpg -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
