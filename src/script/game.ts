@@ -11,16 +11,9 @@ import Card from './card';
 import LFList from './lflist';
 import invoke from './invoke';
 import { I18N_KEYS } from './language/i18n';
-import de_DE from './language/de-DE';
 import en_US from './language/en-US';
-import es_ES from './language/es-ES';
-import fr_FR from './language/fr-FR';
-import ge_DE from './language/ge-DE';
-import it_IT from './language/it-IT';
 import ja_JP from './language/ja-JP';
 import ko_KR from './language/ko-KR';
-import ko_KRIDS from './language/ko-KRIDS';
-import pt_PT from './language/pt-PT';
 import zh_CN from './language/zh-CN';
 import zh_TW from './language/zh-TW';
 import YGOPRO_STR from './language/string';
@@ -162,26 +155,12 @@ class Game {
 			?? this.lflist.get(CONSTANT.KEYS.NA)!,
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
-				case CONSTANT.LANGUAGE['de-DE']:
-					return new YGOPRO_STR(de_DE[key]).toString(replace);
 				case CONSTANT.LANGUAGE['en-US']:
 					return new YGOPRO_STR(en_US[key]).toString(replace);
-				case CONSTANT.LANGUAGE['es-ES']:
-					return new YGOPRO_STR(es_ES[key]).toString(replace);
-				case CONSTANT.LANGUAGE['fr-FR']:
-					return new YGOPRO_STR(fr_FR[key]).toString(replace);
-				case CONSTANT.LANGUAGE['ge-DE']:
-					return new YGOPRO_STR(ge_DE[key]).toString(replace);
-				case CONSTANT.LANGUAGE['it-IT']:
-					return new YGOPRO_STR(it_IT[key]).toString(replace);
 				case CONSTANT.LANGUAGE['ja-JP']:
 					return new YGOPRO_STR(ja_JP[key]).toString(replace);
 				case CONSTANT.LANGUAGE['ko-KR']:
 					return new YGOPRO_STR(ko_KR[key]).toString(replace);
-				case CONSTANT.LANGUAGE['ko-KRIDS']:
-					return new YGOPRO_STR(ko_KRIDS[key]).toString(replace);
-				case CONSTANT.LANGUAGE['pt-PT']:
-					return new YGOPRO_STR(pt_PT[key]).toString(replace);
 				case CONSTANT.LANGUAGE['zh-CN']:
 					return new YGOPRO_STR(zh_CN[key]).toString(replace);
 				case CONSTANT.LANGUAGE['zh-TW']:

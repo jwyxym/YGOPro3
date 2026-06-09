@@ -7,16 +7,9 @@ const REG = {
 };
 
 const LANGUAGE = {
-	'de-DE' : 'de-DE',
 	'en-US' : 'en-US',
-	'es-ES' : 'es-ES',
-	'fr-FR' : 'fr-FR',
-	'ge-DE' : 'ge-DE',
-	'it-IT' : 'it-IT',
 	'ja-JP' : 'ja-JP',
 	'ko-KR' : 'ko-KR',
-	'ko-KRIDS' : 'ko-KRIDS',
-	'pt-PT' : 'pt-PT',
 	'zh-CN' : 'zh-CN',
 	'zh-TW' : 'zh-TW'
 };
