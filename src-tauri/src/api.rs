@@ -113,6 +113,15 @@ pub async fn get_cards () -> Response {
 }
 
 #[tauri::command]
+pub async fn get_related_cards (id: u32, setcodes: Vec<u32>) -> Response {
+	Game::get_related_cards(id, setcodes).await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(default_response)
+}
+
+#[tauri::command]
 pub async fn get_system () -> Response {
 	Game::get_system().await
 		.ok()

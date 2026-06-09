@@ -39,6 +39,7 @@
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state > 1 && connect.duel.card'
+				@about = 'page.about_show = true'
 				key = '3'
 			/>
 			<RPS
@@ -325,6 +326,11 @@
 			@confirm = '(name : string) => connect.duel.win.resolve?.(name)'
 			@cancel = '() => connect.duel.win.resolve?.()'
 		/>
+		<Related
+			v-model:show = 'page.about_show'
+			:cardId = 'connect.duel.card'
+			@card = '(id: number) => connect.duel.card = id'
+		/>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -359,6 +365,7 @@
 	import Win from './scene/win.vue';
 	import type Client_Card from './scene/client_card';
 	import type Plaid from './scene/plaid';
+	import Related from './related.vue';
 
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';
@@ -378,7 +385,8 @@
 	const page = reactive({
 		chain : {
 			show : false
-		}
+		},
+		about_show : false
 	});
 
 	const card_info = {

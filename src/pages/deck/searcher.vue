@@ -2,7 +2,7 @@
 	<main
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
 	>
-		<div>
+		<div v-if="!page.about_card">
 			<Input
 				variant = 'outlined'
 				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
@@ -11,6 +11,10 @@
 				@clear = "search.search"
 			/>
 			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
+		</div>
+		<div v-else style="display: flex; align-items: center; justify-content: space-between; padding: 5px;">
+			<span style="font-weight: bold;">「{{ page.about_card.name }}」的相關卡片</span>
+			<Button icon_name="collapse" @click="page.about_card = undefined; search.search()" />
 		</div>
 		<div class = 'no-scrollbar' @scroll = 'page.load_on' ref = 'list'>
 			<var-list
@@ -199,6 +203,23 @@
 	const cards = ref<Array<ComponentPublicInstance> | null>(null);
 	const page = reactive({
 		card : undefined as undefined | CardPic,
+		about_card : undefined as undefined | Card,
+		about : async (card_id: number) => {
+			const c = mainGame.get.card(card_id);
+			if (c && c !== mainGame.unknown) {
+				page.about_card = c;
+				page.list = [];
+				page.loading = true;
+				const results = await Search.about(card_id);
+				page.result = results.map(i => ({
+					card : i,
+					pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
+				}));
+				page.finished = false;
+				page.loading = false;
+				await page.load_on();
+			}
+		},
 		size : {
 			width : 0,
 			height : 0,
@@ -440,6 +461,10 @@
 	});
 
 	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
+
+	defineExpose({
+		about: page.about
+	});
 </script>
 <style lang = 'scss' scoped>
 	$head-height: 60px;

@@ -8,6 +8,7 @@
 			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
 			<Button v-show = 'page.card.id' icon_name = 'collapse' @click = 'page.clear'/>
 			<div v-show = 'page.card.id'>
+				<Button content = '相關卡片' @click = "emit('about', page.card.id)" style = 'margin-bottom: 5px;'/>
 				<transition name = 'opacity'>
 					<span v-show = 'page.show' class = 'card_name'>{{ page.card.name }}</span>
 				</transition>
@@ -91,7 +92,10 @@
 	let mark : InstanceType<typeof Mark> | undefined;
 	const info = ref<HTMLElement | null>(null);
 
-	const emit = defineEmits<{ 'update:modelValue' : []; }>();
+	const emit = defineEmits<{
+		'update:modelValue' : [];
+		'about': [cardId: number];
+	}>();
 
 	const page = reactive({
 		show : false,

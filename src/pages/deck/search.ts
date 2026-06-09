@@ -83,6 +83,35 @@ class Search {
 			})()))
 		);
 	}
+
+	static about = async (card : number | Card) : Promise<Array<Card>> => {
+		const targetCard = typeof card === 'number' ? mainGame.get.card(card) : card;
+		if (!targetCard || targetCard === mainGame.unknown) return [];
+
+		const targetSetcodes = targetCard.setcode.filter(sc => sc !== 0);
+		const targetBaseSetcodes = targetSetcodes.map(sc => sc & 0xfff);
+		
+		const { default : invoke } = await import('@/script/invoke');
+		const relatedIds = await invoke.game.get_related_cards(targetCard.id, targetSetcodes);
+		
+		const result = new Set<Card>();
+		
+		for (const id of relatedIds) {
+			const c = mainGame.get.card(id);
+			if (c !== mainGame.unknown) {
+				result.add(c);
+			}
+		}
+		
+		const allCards = Array.from(mainGame.cards.values());
+		for (const c of allCards) {
+			if (c.setcode.some(sc => sc !== 0 && targetBaseSetcodes.includes(sc & 0xfff))) {
+				result.add(c);
+			}
+		}
+		
+		return Array.from(result);
+	}
 };
 
 export default Search;

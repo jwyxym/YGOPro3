@@ -303,6 +303,15 @@ class Invoke {
 				this.log.write(error);
 				return undefined;
 			}
+		},
+		get_related_cards : async (id: number, setcodes: Array<number>) : Promise<Array<number>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_related_cards', { id, setcodes });
+				return bincode.decode(bincode.Collection(bincode.u32), result).value as Array<number>;
+			} catch (error) {
+				this.log.write(error);
+				return [];
+			}
 		}
 	};
 	deck = {
