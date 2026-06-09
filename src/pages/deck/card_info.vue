@@ -5,8 +5,16 @@
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px`, '--color' : page.card.orgin ? 'orange' : 'white' }"
 	>
 		<div>
-			<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
-			<Button v-show = 'page.card.id' icon_name = 'collapse' @click = 'page.clear'/>
+			<div>
+				<div :style = "{ '--url' : `url('${page.card.pic}')` }"></div>
+				<div v-show = 'page.card.id'>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
+						@click = 'page.clear'
+					/>
+					<Button content = '相關卡片' @click = "emit('about', page.card.id)" style = 'margin-bottom: 5px;'/>
+				</div>
+			</div>
 			<div v-show = 'page.card.id'>
 				<transition name = 'opacity'>
 					<span v-show = 'page.show' class = 'card_name'>{{ page.card.name }}</span>
@@ -91,7 +99,10 @@
 	let mark : InstanceType<typeof Mark> | undefined;
 	const info = ref<HTMLElement | null>(null);
 
-	const emit = defineEmits<{ 'update:modelValue' : []; }>();
+	const emit = defineEmits<{
+		'update:modelValue' : [];
+		'about': [id : number];
+	}>();
 
 	const page = reactive({
 		show : false,
@@ -243,16 +254,24 @@
 			flex-direction: column;
 			gap: 10px;
 			> div:first-child {
-				width: 25%;
-				aspect-ratio: 1 / 1.45;
-				box-shadow: 0 0 10px white;
-				background-image: var(--url);
-				background-size: cover;
-			}
-			> button {
-				position: absolute;
-				right: 5%;
-				top: 0;
+				width: 90%;
+				aspect-ratio: 4 / 1.45;
+				display: flex;
+				justify-content: space-between;
+				> div:first-child {
+					width: 25%;
+					height: 100%;
+					box-shadow: 0 0 10px white;
+					background-image: var(--url);
+					background-size: cover;
+				}
+				> div:last-child {
+					height: 100%;
+					width: 25%;
+					display: flex;
+					flex-direction: column;
+					gap: 10%;
+				}
 			}
 			> div:last-child {
 				display: flex;

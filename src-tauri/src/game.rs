@@ -36,7 +36,7 @@ use lazy_static::lazy_static;
 use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
-	fs::{read_to_string, metadata},
+	fs::{create_dir_all, read_to_string, metadata},
 	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
@@ -44,7 +44,7 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
-	fs::{create_dir_all, exists, write, read},
+	fs::{exists, write, read},
 	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
@@ -136,7 +136,11 @@ impl Game {
 		);
 
 		tasks.push(task);
-		create_dir_all(path.join("config"))?;
+		for i in vec!["config", "deck", "expansions", "replay"] {
+			tasks.push(spawn(async move {
+				Ok(create_dir_all(path.join(i)).await?)
+			}));
+		}
 		for task in tasks {
 			let _ = task.await;
 		}
@@ -609,7 +613,6 @@ impl Game {
 			});
 		Ok(cards.values().cloned().collect())
 	}
-
 	pub async fn get_system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;

@@ -39,6 +39,7 @@
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state > 1 && connect.duel.card'
+				@about = 'page.about_show = true'
 				key = '3'
 			/>
 			<RPS
@@ -378,7 +379,8 @@
 	const page = reactive({
 		chain : {
 			show : false
-		}
+		},
+		about_show : false
 	});
 
 	const card_info = {

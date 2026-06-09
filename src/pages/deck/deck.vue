@@ -5,6 +5,7 @@
 			:width = 'page.width[0]'
 			:desc = 'page.desc'
 			v-model = 'page.card'
+			@about = 'page.about'
 		/>
 		<div>
 			<Deck_Setting
@@ -32,6 +33,7 @@
 			/>
 		</div>
 		<Search_Box
+			:ref = '(el) => (page.search_el = el as InstanceType<typeof Search_Box> | null)'
 			:height = 'page.height'
 			:width = 'page.width[0]'
 			:count = '10'
@@ -72,6 +74,7 @@
 
 	const page = reactive({
 		el : null as null | InstanceType<typeof Deck_Box>,
+		search_el : null as null | InstanceType<typeof Search_Box>,
 		lflist : undefined as LFList | undefined,
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
@@ -79,6 +82,7 @@
 		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
 		desc : [],
+		about : (card : number) => page.search_el?.about(card),
 		move : {
 			x : 0,
 			y : 0,
