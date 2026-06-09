@@ -122,6 +122,14 @@ pub async fn get_system () -> Response {
 }
 
 #[tauri::command]
+pub async fn get_hash () -> Response {
+	Game::get_hash().await
+		.ok()
+		.map(Response::new)
+		.unwrap_or(Response::new(Vec::new()))
+}
+
+#[tauri::command]
 pub async fn get_server () -> Response {
 	Game::get_server().await
 		.ok()
@@ -297,9 +305,4 @@ pub async fn replay_rename (from: String, to: String) -> Result<(), String>{
 #[tauri::command]
 pub async fn replay_del (name: String) -> Result<(), String>{
 	Yrp::del(name).await.map_err(|e| e.to_string())
-}
-
-#[tauri::command]
-pub async fn get_hash () -> Result<Response, String> {
-	Ok(Response::new(Game::get_hash().await.map_err(|e| e.to_string())?))
 }
