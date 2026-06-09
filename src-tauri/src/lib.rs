@@ -75,8 +75,7 @@ pub fn run() {
 			api::replay_save,
 			api::replay_list,
 			api::replay_rename,
-			api::replay_del,
-			api::get_related_cards,
+			api::replay_del
 		])
 		.setup(|app| {
 			#[cfg(target_os = "android")]
