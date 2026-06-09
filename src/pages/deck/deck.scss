@@ -65,9 +65,14 @@
 			}
 			> main:last-child {
 				> div:first-child {
-					gap: 125px;
-					.var-input {
-						width: 55%;
+					&.search__input {
+						gap: 125px;
+						.var-input {
+							width: 55%;
+						}
+					}
+					&.about__name {
+						width: calc(95% - 20px);
 					}
 				}
 				.list {
@@ -174,7 +179,10 @@
 		font-size: 24px;
 		> div:first-child {
 			> div:first-child {
-				width: 40%;
+				aspect-ratio: 2.5 / 1.45;
+				> div:first-child {
+					width: 40%;
+				}
 			}
 			> div:last-child {
 				> span:first-child {

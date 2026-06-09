@@ -7,7 +7,11 @@ const REG = {
 };
 
 const LANGUAGE = {
-	Zh_CN : 'zh-CN'
+	Zh_CN : 'zh-CN',
+	Zh_TW : 'zh-TW',
+	En_US : 'en-US',
+	Ja_JP : 'ja-JP',
+	Ko_KR : 'ko-KR',
 };
 
 const FRAME = [

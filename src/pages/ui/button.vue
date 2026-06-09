@@ -13,10 +13,8 @@
 	import { type Component } from 'vue';
 	import Search from './svg/search.vue';
 	import Chat from './svg/chat.vue';
-	import Collapse from './svg/collapse.vue';
 
 	type Icon = 'cards'
-		| 'collapse'
 		| 'chat'
 		| 'search';
 
@@ -27,7 +25,6 @@
 	const svgs : Map<Icon, Component> = new Map ([
 		['search', Search],
 		['chat', Chat],
-		['collapse', Collapse]
 	]);
 	const svg : null | Component = props.icon_name ? svgs.get(props.icon_name)! : null;
 </script>

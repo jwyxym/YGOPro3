@@ -91,6 +91,7 @@
 			value : mainGame.get.system(KEYS.I18N) as string,
 			changing : false,
 			change : async (i : string) : Promise<void> => {
+				console.log(i)
 				if (i === mainGame.get.system(KEYS.I18N))
 					return;
 				page.i18n.changing = true;

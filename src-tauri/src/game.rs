@@ -36,7 +36,7 @@ use lazy_static::lazy_static;
 use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
-	fs::{read_to_string, metadata},
+	fs::{create_dir_all, read_to_string, metadata},
 	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
@@ -44,7 +44,7 @@ use futures::{StreamExt, stream::FuturesUnordered};
 use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
-	fs::{create_dir_all, exists, write, read},
+	fs::{exists, write, read},
 	path::{Path, PathBuf}
 };
 use tauri::{AppHandle, Emitter};
@@ -136,7 +136,11 @@ impl Game {
 		);
 
 		tasks.push(task);
-		create_dir_all(path.join("config"))?;
+		for i in vec!["config", "deck", "expansions", "replay"] {
+			tasks.push(spawn(async move {
+				Ok(create_dir_all(path.join(i)).await?)
+			}));
+		}
 		for task in tasks {
 			let _ = task.await;
 		}
@@ -166,7 +170,6 @@ impl Game {
 	}
 
 	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, Vec<JoinHandle<Result<(), Error>>>) {
-		
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		let config_path: PathBuf = path
 			.join("config");
@@ -213,7 +216,7 @@ impl Game {
 				if let Ok(task) = task {
 					match task {
 						FileContent::System(text) => {
-							system.get_or_insert_with(|| System::new(text));
+							system.get_or_insert_with(|| System::new(text).init());
 						}
 						FileContent::Resource(text) => {
 							resources.get_or_insert_with(|| Resource::new(text));
@@ -276,7 +279,7 @@ impl Game {
 		let system: System = match system {
 			Some(system) => system,
 			None => {
-				let system: System = System::default();
+				let system: System = System::default().init();
 				let p: PathBuf = config_path
 					.join("system.toml");
 				let text: String = system.to_string();
@@ -610,51 +613,6 @@ impl Game {
 			});
 		Ok(cards.values().cloned().collect())
 	}
-
-	pub async fn get_related_cards (id: u32, _setcodes: Vec<u32>) -> Result<Vec<u32>, Error> {
-		let path: &std::path::PathBuf = PATH.get().ok_or(anyhow::anyhow!("get path error"))?;
-		let script_dir = path.join("script");
-		
-		let related = tokio::task::spawn_blocking(move || -> Result<Vec<u32>, Error> {
-			let mut mentioned_ids = std::collections::HashSet::new();
-			
-			if let Ok(content) = std::fs::read_to_string(script_dir.join(format!("c{}.lua", id))) {
-				let re_code = regex::Regex::new(r"IsCode\s*\(\s*(\d+)\s*\)|aux\.AddCodeList\s*\([^,]+,\s*(\d+)\s*\)").unwrap();
-				for cap in re_code.captures_iter(&content) {
-					if let Some(m) = cap.get(1).or(cap.get(2)) {
-						if let Ok(num) = m.as_str().parse::<u32>() {
-							mentioned_ids.insert(num);
-						}
-					}
-				}
-			}
-
-			let mut related_set = std::collections::HashSet::new();
-			let id_str = id.to_string();
-			if let Ok(entries) = std::fs::read_dir(&script_dir) {
-				for entry in entries.flatten() {
-					let file_name = entry.file_name().into_string().unwrap_or_default();
-					if file_name.starts_with('c') && file_name.ends_with(".lua") {
-						if let Ok(c_id) = file_name[1..file_name.len() - 4].parse::<u32>() {
-							if c_id == id { continue; }
-							if mentioned_ids.contains(&c_id) {
-								related_set.insert(c_id);
-								continue;
-							}
-							if let Ok(content) = std::fs::read_to_string(entry.path()) {
-								if content.contains(&id_str) {
-									related_set.insert(c_id);
-								}
-							}
-						}
-					}
-				}
-			}
-			Ok(related_set.into_iter().collect())
-		}).await??;
-		Ok(related)
-	}
-
 	pub async fn get_system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;

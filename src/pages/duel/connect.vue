@@ -326,11 +326,6 @@
 			@confirm = '(name : string) => connect.duel.win.resolve?.(name)'
 			@cancel = '() => connect.duel.win.resolve?.()'
 		/>
-		<Related
-			v-model:show = 'page.about_show'
-			:cardId = 'connect.duel.card'
-			@card = '(id: number) => connect.duel.card = id'
-		/>
 	</main>
 </template>
 <script setup lang = 'ts'>
@@ -365,7 +360,6 @@
 	import Win from './scene/win.vue';
 	import type Client_Card from './scene/client_card';
 	import type Plaid from './scene/plaid';
-	import Related from './related.vue';
 
 	import Select_Cards from './selecter/cards.vue';
 	import Select_Group from './selecter/group.vue';

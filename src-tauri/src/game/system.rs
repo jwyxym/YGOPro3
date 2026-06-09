@@ -13,103 +13,7 @@ pub struct System {
 
 impl System {
 	pub fn new (text: String) -> Self {
-		let mut system: Self = from_str::<Self>(&text).unwrap_or(Self::default());
-		system.array
-			.entry(String::from("LOADING_EXPANSION"))
-			.or_insert(Vec::new());
-		["HIDDEN_NAME", "HIDDEN_CHAT"]
-			.into_iter().for_each(|i| {
-				system.boolean
-					.entry(String::from(i))
-					.or_insert(false);
-			});
-		[
-			"DELETE_YPK",
-			"DELETE_REPLAY",
-			"DELETE_DECK",
-			"EXIT_DECK",
-			"SWAP_BUTTON",
-			"SORT_DECK",
-			"DISRUPT_DECK",
-			"CLEAR_DECK",
-			"SELECT_SORT",
-			"EXIT_SERVER"
-		]
-			.into_iter().for_each(|i| {
-				system.boolean
-					.entry(String::from(i))
-					.or_insert(true);
-			});
-
-		[
-			"CT_VOICE_SOUND_EFFECT",
-			"CT_VOICE_BGM"
-		]
-			.into_iter().for_each(|i| {
-				system.number
-					.entry(String::from(i))
-					.or_insert(0.2);
-			});
-			
-		system.number
-			.entry(String::from("CT_FRAME"))
-			.or_insert(60.0);
-		system.number
-			.entry(String::from("CT_CARD"))
-			.or_insert(3.0);
-		system.number
-			.entry(String::from("CT_DECK_MAIN"))
-			.or_insert(60.0);
-		system.number
-			.entry(String::from("CT_DECK_EX"))
-			.or_insert(15.0);
-		system.number
-			.entry(String::from("CT_DECK_SIDE"))
-			.or_insert(15.0);
-		#[cfg(not(target_os = "android"))]
-		{
-			system.number
-				.entry(String::from("CT_DECK_PRELINE"))
-				.or_insert(10.0);
-			system.number
-				.entry(String::from("CT_SIDE_PRELINE"))
-				.or_insert(15.0);
-		}
-		#[cfg(target_os = "android")]
-		{
-			system.number
-				.entry(String::from("CT_DECK_PRELINE"))
-				.or_insert(6.0);
-			system.number
-				.entry(String::from("CT_SIDE_PRELINE"))
-				.or_insert(9.0);
-		}
-		[
-			"CT_AVATAR_SELF",
-			"CT_AVATAR_OPPO",
-			"CT_AVATAR_SERVER",
-			"CT_AVATAR_WATCHER"
-		]
-			.into_iter().for_each(|i| {
-				system.number
-					.entry(String::from(i))
-					.or_insert(0.0);
-			});
-		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
-			.into_iter().for_each(|i| {
-				system.string
-					.entry(String::from(i))
-					.or_insert(String::from(""));
-			});
-		
-		let i18n: &mut String = system.string
-			.entry(String::from("I18N"))
-			.or_insert(String::from("zh-CN"));
-		if !["zh-CN", "ko-KR"].contains(&i18n.as_str()) {
-			*i18n = String::from("zh-CN");
-		}
-		system
-
+		from_str::<Self>(&text).unwrap_or(Self::default())
 	}
 	pub fn default () -> Self {
 		Self {
@@ -167,5 +71,102 @@ impl System {
 			}
 			_ => ()
 		})
+	}
+	pub fn init (mut self) -> Self {
+		self.array
+			.entry(String::from("LOADING_EXPANSION"))
+			.or_insert(Vec::new());
+		["HIDDEN_NAME", "HIDDEN_CHAT"]
+			.into_iter().for_each(|i| {
+				self.boolean
+					.entry(String::from(i))
+					.or_insert(false);
+			});
+		[
+			"DELETE_YPK",
+			"DELETE_REPLAY",
+			"DELETE_DECK",
+			"EXIT_DECK",
+			"SWAP_BUTTON",
+			"SORT_DECK",
+			"DISRUPT_DECK",
+			"CLEAR_DECK",
+			"SELECT_SORT",
+			"EXIT_SERVER"
+		]
+			.into_iter().for_each(|i| {
+				self.boolean
+					.entry(String::from(i))
+					.or_insert(true);
+			});
+
+		[
+			"CT_VOICE_SOUND_EFFECT",
+			"CT_VOICE_BGM"
+		]
+			.into_iter().for_each(|i| {
+				self.number
+					.entry(String::from(i))
+					.or_insert(0.2);
+			});
+			
+		self.number
+			.entry(String::from("CT_FRAME"))
+			.or_insert(60.0);
+		self.number
+			.entry(String::from("CT_CARD"))
+			.or_insert(3.0);
+		self.number
+			.entry(String::from("CT_DECK_MAIN"))
+			.or_insert(60.0);
+		self.number
+			.entry(String::from("CT_DECK_EX"))
+			.or_insert(15.0);
+		self.number
+			.entry(String::from("CT_DECK_SIDE"))
+			.or_insert(15.0);
+		#[cfg(not(target_os = "android"))]
+		{
+			self.number
+				.entry(String::from("CT_DECK_PRELINE"))
+				.or_insert(10.0);
+			self.number
+				.entry(String::from("CT_SIDE_PRELINE"))
+				.or_insert(15.0);
+		}
+		#[cfg(target_os = "android")]
+		{
+			self.number
+				.entry(String::from("CT_DECK_PRELINE"))
+				.or_insert(6.0);
+			self.number
+				.entry(String::from("CT_SIDE_PRELINE"))
+				.or_insert(9.0);
+		}
+		[
+			"CT_AVATAR_SELF",
+			"CT_AVATAR_OPPO",
+			"CT_AVATAR_SERVER",
+			"CT_AVATAR_WATCHER"
+		]
+			.into_iter().for_each(|i| {
+				self.number
+					.entry(String::from(i))
+					.or_insert(0.0);
+			});
+		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
+			.into_iter().for_each(|i| {
+				self.string
+					.entry(String::from(i))
+					.or_insert(String::from(""));
+			});
+		
+		let i18n: &mut String = self.string
+			.entry(String::from("I18N"))
+			.or_insert(String::from("zh-CN"));
+		if !["zh-CN", "ko-KR", "ja-JP", "en-US", "zh-TW"].contains(&i18n.as_str()) {
+			*i18n = String::from("zh-CN");
+		}
+		self
 	}
 }

@@ -1,3 +1,4 @@
+import lodash from 'lodash';
 import Card, { TYPE } from '@/script/card';
 import mainGame from '@/script/game';
 import calculator from './calculator';
@@ -22,12 +23,18 @@ class Search {
 	atk ?: Array<string>;
 	def ?: Array<string>;
 	scale ?: Array<string>;
-	desc ?: Array<string>;
+	desc ?: string;
+	setcode ?: number;
+	id ?: number;
 	// ture为and，false为or
 	and_or : AndOr = {
 		type : false,
 		category : false,
 		link : false
+	};
+
+	get = {
+		desc : () : Array<string> => this.desc?.split('%%').filter(i => i) ?? []
 	};
 
 	set = {
@@ -44,7 +51,9 @@ class Search {
 		atk : (atk : string) => { this.atk = atk.split('%%').filter(i => i); return this; },
 		def : (def : string) => { this.def = def.split('%%').filter(i => i); return this; },
 		scale : (scale : string) => { this.scale = scale.split('%%').filter(i => i); return this; },
-		desc : (desc : string) => { this.desc = desc.split('%%').filter(i => i); return this; },
+		desc : (desc : string) => { if (desc) this.desc = desc; return this; },
+		setcode : (setcode : Array<number>) => { this.setcode = lodash.sum(setcode); return this; },
+		id : (id : number) => { this.id = id; return this; },
 		and_or : (and_or : AndOr) => { this.and_or = and_or; return this; }
 	};
 
@@ -52,8 +61,9 @@ class Search {
 		if (!this.cards) return [];
 		const and_or = (and_or : boolean, ct : number, length : number) => and_or ? ct !== length : ct === 0;
 		const compare = (i : string, num : number, except ?: number) => i.includes('..') ? calculator.interval(i, num, except) : calculator.compare(i, num);
+		const desc = this.get.desc(); 
 		return this.cards.filter(card =>
-			!((this.desc && this.desc.length && this.desc.filter(i => card.name.includes(i) || card.desc.includes(i) || card.id.toString() === i || compare(i, card.id)).length !== this.desc.length)
+			!((desc && desc.length && desc.filter(i => card.name.includes(i) || card.desc.includes(i) || card.id.toString() === i || compare(i, card.id)).length !== desc.length)
 				|| (this.ot && this.ot.length && this.ot.findIndex(i => i.toString(2).split('1').length > 2 ? card.ot.toString(2).split('1').length > 2 : i === card.ot) === -1)
 				|| (this.attribute && this.attribute.length && !this.attribute.includes(card.attribute))
 				|| (this.race && this.race.length && !this.race.includes(card.race))
@@ -82,33 +92,18 @@ class Search {
 				return this.forbidden.findIndex(i => compare(i, ct, lflist.genesys ? 3 : undefined)) > -1;
 			})()))
 		);
-	}
+	};
 
-	static about = async (card : number | Card) : Promise<Array<Card>> => {
-		const target_card = typeof card === 'number' ? mainGame.get.card(card) : card;
-		if (!target_card || target_card === mainGame.unknown) return [];
-
-		const target_setcodes = target_card.setcode.filter(sc => sc !== 0);
-		const result = new Set<Card>();
-		const all_cards = Array.from(mainGame.cards.values());
-		
-		for (const c of all_cards) {
-			if (c.id === target_card.id) continue;
-
-			const has_setcode = c.setcode.some(sc => 
-				sc !== 0 && target_setcodes.some(target_sc => 
-					(sc & 0xfff) === (target_sc & 0xfff)
-				)
-			);
-			const mentions_name = c.desc.includes(target_card.name);
-
-			if (has_setcode || mentions_name) {
-				result.add(c);
-			}
-		}
-		
-		return Array.from(result);
-	}
+	about = () : Array<Card> => {
+		if (!this.cards) return [];
+		return this.cards.filter(card => (
+				(this.desc && card.desc.includes(this.desc))
+				|| (this.setcode && card.setcode.some(i => (i & 0xff) === (this.setcode! & 0xff)))
+				|| (card.alias === this.id)
+			)
+			&& card.id !== this.id
+		);
+	};
 };
 
 export default Search;

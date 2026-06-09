@@ -2,19 +2,26 @@
 	<main
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
 	>
-		<div v-if="!page.about_card">
+		<div v-if = 'page.about' class = 'about__name'>
+			<span>{{ mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD_TITLE, [page.about.name]) }}</span>
+			<Button
+				:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
+				@click = 'search.search'
+			/>
+		</div>
+		<div v-else class = 'search__input'>
 			<Input
 				variant = 'outlined'
 				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
 				v-model = 'search.info.desc'
 				@enter = 'search.search'
-				@clear = "search.search"
+				@clear = 'search.search'
 			/>
-			<Button icon_name = 'search' @click = 'search.search' :loading = 'page.loading'/>
-		</div>
-		<div v-else style="display: flex; align-items: center; justify-content: space-between; padding: 5px;">
-			<span style="font-weight: bold;">「{{ page.about_card.name }}」的相關卡片</span>
-			<Button icon_name="collapse" @click="page.about_card = undefined; search.search()" />
+			<Button
+				icon_name = 'search'
+				@click = 'search.search'
+				:loading = 'page.loading'
+			/>
 		</div>
 		<div class = 'no-scrollbar' @scroll = 'page.load_on' ref = 'list'>
 			<var-list
@@ -203,23 +210,7 @@
 	const cards = ref<Array<ComponentPublicInstance> | null>(null);
 	const page = reactive({
 		card : undefined as undefined | CardPic,
-		about_card : undefined as undefined | Card,
-		about : async (card_id: number) => {
-			const c = mainGame.get.card(card_id);
-			if (c && c !== mainGame.unknown) {
-				page.about_card = c;
-				page.list = [];
-				page.loading = true;
-				const results = await Search.about(card_id);
-				page.result = results.map(i => ({
-					card : i,
-					pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
-				}));
-				page.finished = false;
-				page.loading = false;
-				await page.load_on();
-			}
-		},
+		about : undefined as undefined | Card,
 		size : {
 			width : 0,
 			height : 0,
@@ -390,6 +381,7 @@
 			search.info.desc = '';
 		},
 		search : async () : Promise<void> => {
+			page.about = undefined;
 			page.list.length = 0;
 			page.finished = false;
 			const searcher = new Search()
@@ -415,7 +407,7 @@
 				};
 			});
 			await page.load_on();
-			const desc = searcher.desc ?? [];
+			const desc = searcher.get.desc();
 			mark?.unmark({
 				done : () => desc.length ? mark?.mark(desc) : true
 			});
@@ -462,8 +454,33 @@
 
 	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
 
-	defineExpose({
-		about: page.about
+	defineExpose<{
+		about : (id : number) => Promise<void>
+	}>({
+		about : async (id : number) => {
+			if (!id) return;
+			const c = mainGame.get.card(id);
+			page.about = c;
+			page.list = [];
+			page.loading = true;
+			const searcher = new Search()
+				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
+				.set.id(c.id)
+				.set.setcode(c.setcode)
+				.set.desc(c.name);
+			page.result = searcher.about().map(i => ({
+				card : i,
+				pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
+			}));
+			page.finished = false;
+			page.loading = false;
+			await page.load_on();
+			const desc = searcher.get.desc();
+			mark?.unmark({
+				done : () => desc.length ? mark?.mark(desc) : true
+			});
+			emit('update:desc', desc);
+		}
 	});
 </script>
 <style lang = 'scss' scoped>
@@ -485,9 +502,17 @@
 			height: $head-height;
 			display: flex;
 			align-items: center;
-			gap: 10px;
-			.var-input {
-				width: 80%;
+			&.search__input {
+				gap: 10px;
+				.var-input {
+					width: 80%;
+				}
+			}
+			&.about__name {
+				justify-content: space-between;
+				span {
+					font-weight: bold;
+				}
 			}
 		}
 		> div:nth-child(2) {

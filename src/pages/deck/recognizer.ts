@@ -10,7 +10,6 @@ import mainGame from '@/script/game';
 class Pic_Recognizer {
 	private recognizer ?: YGOPicRecognizer;
 	init = async (hash : ArrayBuffer) : Promise<void> => {
-		console.log('hash length:', hash.byteLength);
 		if (this.recognizer) return;
 		this.recognizer = await createYGOPicRecognizer({
 			modelUrl : model_url,
@@ -54,11 +53,9 @@ class Pic_Recognizer {
 			const result = (await this.recognizer.recognizeImage(img, {
 				includeArtworkUrl: true
 			}))
-			console.log('result:', result);
 			const cards = result
 				.map(i => i.matches[0]?.id)
 				.filter(i => i);
-			console.log('cards:', cards);
 			if (__ANDROID__)
 				URL.revokeObjectURL(path);
 

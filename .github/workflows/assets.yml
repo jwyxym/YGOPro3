@@ -53,35 +53,59 @@ jobs:
             "pics/${name}.webp"
         done
 
-    - name: Download Assets
+    - name: Mkdir
+      run: |
+        cd .ci
+        mkdir -p cdb
+        mkdir -p strings
+        mkdir -p recognizer
+
+    - name: Script
+      run: |
+        cd .ci
+        git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
+        find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+        find ./script -type f ! \( -name "*.jpg" -o -name "*.lua" \) -delete
+
+    - name: Strings
       run: |
         cd .ci
         wget -O ygopro-database.zip https://github.com/mycard/ygopro-database/archive/refs/heads/master.zip
         unzip ygopro-database.zip
-
-        mkdir -p cdb
-        mkdir -p strings
-        mkdir -p recognizer
-        cd recognizer
-        wget https://github.com/jwyxym/YGOPic_Best/releases/download/hash-latest/card_data
-        cd ..
-
-        cp ygopro-database-master/locales/zh-CN/cards.cdb cdb/cards-zh-CN.cdb
-        cp ygopro-database-master/locales/ko-KR/cards.cdb cdb/cards-ko-KR.cdb
-        cp ygopro-database-master/locales/ja-JP/cards.cdb cdb/cards-ja-JP.cdb
-        cp ygopro-database-master/locales/en-US_mdpro3/cards.cdb cdb/cards-en-US.cdb
 
         cp ygopro-database-master/locales/zh-CN/strings.conf strings/strings-zh-CN.conf
         cp ygopro-database-master/locales/ko-KR/strings.conf strings/strings-ko-KR.conf
         cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
-        git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
-        find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
-        find ./script -type f ! \( -name "*.jpg" -o -name "*.lua" \) -delete
+        cd strings
+        wget https://github.com/salix5/CardEditor/releases/latest/download/strings.conf -O strings-zh-TW.conf
 
+    - name: Cdb
+      run: |
+        cd .ci
+        cp ygopro-database-master/locales/zh-CN/cards.cdb cdb/cards-zh-CN.cdb
+        cp ygopro-database-master/locales/ko-KR/cards.cdb cdb/cards-ko-KR.cdb
+        cp ygopro-database-master/locales/ja-JP/cards.cdb cdb/cards-ja-JP.cdb
+        cp ygopro-database-master/locales/en-US_mdpro3/cards.cdb cdb/cards-en-US.cdb
+
+        cd cdb
+        wget https://github.com/salix5/cdb/releases/latest/download/cards.cdb -O cards-zh-TW.cdb
+        
+    - name: PicBest HAsh Data
+      run: |
+        cd .ci
+        cd recognizer
+        wget https://github.com/jwyxym/YGOPic_Best/releases/download/hash-latest/card_data
+
+    - name: LFlist
+      run: |
+        cd .ci
         wget -O lflist.conf https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
 
+    - name: Zip
+      run: |
+        cd .ci
         7z a -tzip -mx=9 a.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ script/ recognizer/ lflist.conf
         python zip.py ${{ github.ref_name }} a.zip assets.zip
 
