@@ -48,7 +48,7 @@ jobs:
           filename=$(basename "$file")
           name="${filename%.*}"
 
-          magick "$file" \
+          convert "$file" \
             "pics/${name}.webp"
         done
 
