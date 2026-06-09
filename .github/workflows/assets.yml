@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'assets*'
-    
+
 jobs:
   make-assets:
     runs-on: ubuntu-latest
@@ -16,7 +16,7 @@ jobs:
     - name: Install wget and unzip
       run: |
         sudo apt-get update
-        sudo apt-get install -y wget unzip p7zip-full p7zip-rar
+        sudo apt-get install -y wget unzip p7zip-full p7zip-rar imagemagick
 
     - name: Install Python
       uses: actions/setup-python@v4
@@ -35,6 +35,22 @@ jobs:
         mkdir -p ~/.ssh
         echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
+
+    - name: Magick Pics
+      run: |
+        git clone git@github.com:jwyxym/pics.git --depth 1 pics_jpg
+        find ./pics_jpg -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+        find ./pics_jpg -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
+        mkdir pics
+        for file in pics_jpg/*.{png,jpg,jpeg}; do
+          [ -e "$file" ] || continue
+
+          filename=$(basename "$file")
+          name="${filename%.*}"
+
+          magick "$file" \
+            "pics/${name}.webp"
+        done
 
     - name: Download Assets
       run: |
@@ -59,18 +75,15 @@ jobs:
         cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
-        git clone git@github.com:jwyxym/pics.git --depth 1
         git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
-        find ./pics -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
         find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
-        find ./pics -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
         find ./script -type f ! \( -name "*.jpg" -o -name "*.lua" \) -delete
 
         wget -O lflist.conf https://github.com/Fluorohydride/ygopro/raw/refs/heads/master/lflist.conf
 
         7z a -tzip -mx=9 a.zip pics/ config/ strings/ cdb/ sound/ textures/ font/ script/ recognizer/ lflist.conf
         python zip.py ${{ github.ref_name }} a.zip assets.zip
-    
+
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:

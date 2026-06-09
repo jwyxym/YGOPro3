@@ -30,7 +30,7 @@ impl Pic {
 			.filter_map(|i| {
 				if let Ok(i) = i {
 					let file: File = File::new(i.path())?;
-					if ["jpg", "jpeg", "png", "gif"].contains(&file.ext()) {
+					if ["jpg", "jpeg", "png", "gif", "webp"].contains(&file.ext()) {
 						let code: u32 = file.stem().parse::<u32>().unwrap_or(0);
 						if code > 0 {
 							return Some((code, file.url()));
