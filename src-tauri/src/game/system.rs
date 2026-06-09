@@ -164,11 +164,9 @@ impl System {
 		let i18n: &mut String = self.string
 			.entry(String::from("I18N"))
 			.or_insert(String::from("zh-CN"));
-		println!("{}", i18n);
 		if !["zh-CN", "ko-KR", "ja-JP", "en-US", "zh-TW"].contains(&i18n.as_str()) {
 			*i18n = String::from("zh-CN");
 		}
-		println!("{}", i18n);
 		self
 	}
 }
