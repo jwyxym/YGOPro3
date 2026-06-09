@@ -610,51 +610,6 @@ impl Game {
 			});
 		Ok(cards.values().cloned().collect())
 	}
-
-	pub async fn get_related_cards (id: u32, _setcodes: Vec<u32>) -> Result<Vec<u32>, Error> {
-		let path: &std::path::PathBuf = PATH.get().ok_or(anyhow::anyhow!("get path error"))?;
-		let script_dir = path.join("script");
-		
-		let related = tokio::task::spawn_blocking(move || -> Result<Vec<u32>, Error> {
-			let mut mentioned_ids = std::collections::HashSet::new();
-			
-			if let Ok(content) = std::fs::read_to_string(script_dir.join(format!("c{}.lua", id))) {
-				let re_code = regex::Regex::new(r"IsCode\s*\(\s*(\d+)\s*\)|aux\.AddCodeList\s*\([^,]+,\s*(\d+)\s*\)").unwrap();
-				for cap in re_code.captures_iter(&content) {
-					if let Some(m) = cap.get(1).or(cap.get(2)) {
-						if let Ok(num) = m.as_str().parse::<u32>() {
-							mentioned_ids.insert(num);
-						}
-					}
-				}
-			}
-
-			let mut related_set = std::collections::HashSet::new();
-			let id_str = id.to_string();
-			if let Ok(entries) = std::fs::read_dir(&script_dir) {
-				for entry in entries.flatten() {
-					let file_name = entry.file_name().into_string().unwrap_or_default();
-					if file_name.starts_with('c') && file_name.ends_with(".lua") {
-						if let Ok(c_id) = file_name[1..file_name.len() - 4].parse::<u32>() {
-							if c_id == id { continue; }
-							if mentioned_ids.contains(&c_id) {
-								related_set.insert(c_id);
-								continue;
-							}
-							if let Ok(content) = std::fs::read_to_string(entry.path()) {
-								if content.contains(&id_str) {
-									related_set.insert(c_id);
-								}
-							}
-						}
-					}
-				}
-			}
-			Ok(related_set.into_iter().collect())
-		}).await??;
-		Ok(related)
-	}
-
 	pub async fn get_system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;

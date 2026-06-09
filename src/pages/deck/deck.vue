@@ -74,6 +74,7 @@
 
 	const page = reactive({
 		el : null as null | InstanceType<typeof Deck_Box>,
+		search_el : null as null | InstanceType<typeof Search_Box>,
 		lflist : undefined as LFList | undefined,
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
@@ -81,10 +82,7 @@
 		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
 		desc : [],
-		search_el : null as null | InstanceType<typeof Search_Box>,
-		about : (card : number) => {
-			page.search_el?.about(card);
-		},
+		about : (card : number) => page.search_el?.about(card),
 		move : {
 			x : 0,
 			y : 0,
