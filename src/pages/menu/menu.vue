@@ -14,7 +14,6 @@
 				v-for = '(i, v) in page.menu'
 				:class = "{ 'select' : page.select === v }"
 				ref = 'items'
-				@mouseenter = 'page.hover(v)'
 				@click = 'page.click(v, true)'
 				class = 'pointer'
 			>{{ mainGame.get.text(i) }}</span>
@@ -51,21 +50,12 @@
 			I18N_KEYS.MENU_EXIT
 		],
 		pointer : new Array(2).fill(-1000),
-		is_pc: window.matchMedia('(hover: hover) and (pointer: fine)').matches,
-		hover: (v: number): void => {
-			if (page.is_pc) {
-				page.select = v;
-			}
-		},
 		click : (v : number, item : boolean = false) : void => {
 			if (item && page.select === v) {
 				page.to();
 				return;
 			}
 			page.select = v;
-			if (page.is_pc && item) {
-				page.to();
-			}
 		},
 		keydown : (event : KeyboardEvent) : void => {
 			const len = page.menu.length - 1;

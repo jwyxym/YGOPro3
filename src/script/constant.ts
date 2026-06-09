@@ -7,18 +7,7 @@ const REG = {
 };
 
 const LANGUAGE = {
-	'de-DE' : 'de-DE',
-	'en-US' : 'en-US',
-	'es-ES' : 'es-ES',
-	'fr-FR' : 'fr-FR',
-	'ge-DE' : 'ge-DE',
-	'it-IT' : 'it-IT',
-	'ja-JP' : 'ja-JP',
-	'ko-KR' : 'ko-KR',
-	'ko-KRIDS' : 'ko-KRIDS',
-	'pt-PT' : 'pt-PT',
-	'zh-CN' : 'zh-CN',
-	'zh-TW' : 'zh-TW'
+	Zh_CN : 'zh-CN'
 };
 
 const FRAME = [
@@ -118,7 +107,6 @@ const KEYS = {
 	SETTING_CHK_SWAP_BUTTON : 'SWAP_BUTTON',
 	SETTING_CHK_HIDDEN_NAME : 'HIDDEN_NAME',
 	SETTING_CHK_HIDDEN_CHAT : 'HIDDEN_CHAT',
-	SETTING_CHK_USE_CUSTOM_FONT : 'USE_CUSTOM_FONT',
 	SETTING_CHK_SURRENDER : 'SURRENDER',
 	SETTING_CHK_EXIT_SERVER : 'EXIT_SERVER',
 	SETTING_CT_DECK_MAIN : 'CT_DECK_MAIN',

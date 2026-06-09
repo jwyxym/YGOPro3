@@ -17,7 +17,7 @@ impl System {
 		system.array
 			.entry(String::from("LOADING_EXPANSION"))
 			.or_insert(Vec::new());
-		["HIDDEN_NAME", "HIDDEN_CHAT", "USE_CUSTOM_FONT"]
+		["HIDDEN_NAME", "HIDDEN_CHAT"]
 			.into_iter().for_each(|i| {
 				system.boolean
 					.entry(String::from(i))
@@ -105,7 +105,7 @@ impl System {
 		let i18n: &mut String = system.string
 			.entry(String::from("I18N"))
 			.or_insert(String::from("zh-CN"));
-		if !["de-DE", "en-US", "es-ES", "fr-FR", "ge-DE", "it-IT", "ja-JP", "ko-KR", "ko-KRIDS", "pt-PT", "zh-CN", "zh-TW"].contains(&i18n.as_str()) {
+		if !["zh-CN", "ko-KR"].contains(&i18n.as_str()) {
 			*i18n = String::from("zh-CN");
 		}
 		system
