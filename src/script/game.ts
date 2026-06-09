@@ -11,7 +11,18 @@ import Card from './card';
 import LFList from './lflist';
 import invoke from './invoke';
 import { I18N_KEYS } from './language/i18n';
-import Zh_CN from './language/Zh-CN';
+import de_DE from './language/de-DE';
+import en_US from './language/en-US';
+import es_ES from './language/es-ES';
+import fr_FR from './language/fr-FR';
+import ge_DE from './language/ge-DE';
+import it_IT from './language/it-IT';
+import ja_JP from './language/ja-JP';
+import ko_KR from './language/ko-KR';
+import ko_KRIDS from './language/ko-KRIDS';
+import pt_PT from './language/pt-PT';
+import zh_CN from './language/zh-CN';
+import zh_TW from './language/zh-TW';
 import YGOPRO_STR from './language/string';
 
 class Game {
@@ -30,6 +41,15 @@ class Game {
 	max_string_id = 2047;
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
 	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
+	font_css : string = '';
+
+	update_font_usage = () => {
+		if (this.get.system(CONSTANT.KEYS.SETTING_CHK_USE_CUSTOM_FONT)) {
+			this.font.textContent = this.font_css;
+		} else {
+			this.font.textContent = '';
+		}
+	};
 
 	constructor () {
 		document.head.appendChild(this.font);
@@ -89,8 +109,8 @@ class Game {
 			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
-			if (!this.font.textContent)
-				this.font.textContent = fonts.map(([name, url]) =>
+			if (!this.font_css)
+				this.font_css = fonts.map(([name, url]) =>
 					`@font-face {
 						font-family: '${name}';
 						src: url('${url}');
@@ -98,6 +118,7 @@ class Game {
 						font-style: normal;
 					}`
 				).join('\n');
+			this.update_font_usage();
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
 				.set.readonly();
@@ -141,10 +162,32 @@ class Game {
 			?? this.lflist.get(CONSTANT.KEYS.NA)!,
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
-				case CONSTANT.LANGUAGE.Zh_CN:
-					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
+				case CONSTANT.LANGUAGE['de-DE']:
+					return new YGOPRO_STR(de_DE[key]).toString(replace);
+				case CONSTANT.LANGUAGE['en-US']:
+					return new YGOPRO_STR(en_US[key]).toString(replace);
+				case CONSTANT.LANGUAGE['es-ES']:
+					return new YGOPRO_STR(es_ES[key]).toString(replace);
+				case CONSTANT.LANGUAGE['fr-FR']:
+					return new YGOPRO_STR(fr_FR[key]).toString(replace);
+				case CONSTANT.LANGUAGE['ge-DE']:
+					return new YGOPRO_STR(ge_DE[key]).toString(replace);
+				case CONSTANT.LANGUAGE['it-IT']:
+					return new YGOPRO_STR(it_IT[key]).toString(replace);
+				case CONSTANT.LANGUAGE['ja-JP']:
+					return new YGOPRO_STR(ja_JP[key]).toString(replace);
+				case CONSTANT.LANGUAGE['ko-KR']:
+					return new YGOPRO_STR(ko_KR[key]).toString(replace);
+				case CONSTANT.LANGUAGE['ko-KRIDS']:
+					return new YGOPRO_STR(ko_KRIDS[key]).toString(replace);
+				case CONSTANT.LANGUAGE['pt-PT']:
+					return new YGOPRO_STR(pt_PT[key]).toString(replace);
+				case CONSTANT.LANGUAGE['zh-CN']:
+					return new YGOPRO_STR(zh_CN[key]).toString(replace);
+				case CONSTANT.LANGUAGE['zh-TW']:
+					return new YGOPRO_STR(zh_TW[key]).toString(replace);
 			}
-			return new YGOPRO_STR(Zh_CN[key]).toString();
+			return new YGOPRO_STR(zh_CN[key]).toString();
 		},
 		system : (key : string) : Array<string> | string | number | boolean | undefined => {
 			for (const i of this.system)
@@ -323,6 +366,9 @@ class Game {
 				if (i.has(k))
 					i.set(k, v);
 			});
+			if (k === CONSTANT.KEYS.SETTING_CHK_USE_CUSTOM_FONT) {
+				this.update_font_usage();
+			}
 			await invoke.game.set_system(k, this.get.system_index(k), v, write);
 		}
 	};

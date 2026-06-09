@@ -66,15 +66,18 @@ jobs:
         wget https://github.com/jwyxym/YGOPic_Best/releases/download/hash-latest/card_data
         cd ..
 
-        cp ygopro-database-master/locales/zh-CN/cards.cdb cdb/cards-zh-CN.cdb
-        cp ygopro-database-master/locales/ko-KR/cards.cdb cdb/cards-ko-KR.cdb
-        cp ygopro-database-master/locales/ja-JP/cards.cdb cdb/cards-ja-JP.cdb
-        cp ygopro-database-master/locales/en-US_mdpro3/cards.cdb cdb/cards-en-US.cdb
-
-        cp ygopro-database-master/locales/zh-CN/strings.conf strings/strings-zh-CN.conf
-        cp ygopro-database-master/locales/ko-KR/strings.conf strings/strings-ko-KR.conf
-        cp ygopro-database-master/locales/ja-JP/strings.conf strings/strings-ja-JP.conf
-        cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
+        for lang in de-DE en-US es-ES fr-FR ge-DE it-IT ja-JP ko-KR ko-KRIDS pt-PT zh-CN zh-TW; do
+          if [ -d "ygopro-database-master/locales/$lang" ]; then
+            cp ygopro-database-master/locales/$lang/cards.cdb cdb/cards-$lang.cdb || true
+            cp ygopro-database-master/locales/$lang/strings.conf strings/strings-$lang.conf || true
+          fi
+        done
+        
+        # Handing special en-US_mdpro3 folder in ygopro-database
+        if [ -d "ygopro-database-master/locales/en-US_mdpro3" ]; then
+          cp ygopro-database-master/locales/en-US_mdpro3/cards.cdb cdb/cards-en-US.cdb || true
+          cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf || true
+        fi
 
         git clone https://github.com/Smile-DK/ygopro-scripts.git --depth 1 script
         find ./script -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
