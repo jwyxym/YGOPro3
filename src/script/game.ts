@@ -13,6 +13,9 @@ import invoke from './invoke';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import Zh_TW from './language/Zh-TW';
+import En_US from './language/En-US';
+import Ja_JP from './language/Ja-JP';
+import Ko_KR from './language/Ko-KR';
 import YGOPRO_STR from './language/string';
 
 class Game {
@@ -146,6 +149,12 @@ class Game {
 					return new YGOPRO_STR(Zh_CN[key]).toString(replace);
 				case CONSTANT.LANGUAGE.Zh_TW:
 					return new YGOPRO_STR(Zh_TW[key]).toString(replace);
+				case CONSTANT.LANGUAGE.En_US:
+					return new YGOPRO_STR(En_US[key]).toString(replace);
+				case CONSTANT.LANGUAGE.Ja_JP:
+					return new YGOPRO_STR(Ja_JP[key]).toString(replace);
+				case CONSTANT.LANGUAGE.Ko_KR:
+					return new YGOPRO_STR(Ko_KR[key]).toString(replace);
 			}
 			return new YGOPRO_STR(Zh_CN[key]).toString();
 		},

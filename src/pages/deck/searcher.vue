@@ -3,7 +3,7 @@
 		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
 	>
 		<div v-if = 'page.about' class = 'about__name'>
-			<span>「{{ page.about.name }}」的相關卡片</span>
+			<span>{{ mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD_TITLE, [page.about.name]) }}</span>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
 				@click = 'search.search'
