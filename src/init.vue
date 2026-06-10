@@ -1,6 +1,6 @@
 <template>
 	<div class = 'main'>
-		<StarrySky/>
+		<starry-sky :stars-count = '1500' :distance = '800'/>
 		<Voice v-if = 'page.show.voice'/>
 		<Loading
 			@loading = '(n) => page.loading = n'
@@ -151,6 +151,9 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
+		}
+		.starry-sky-bg {
+			background: linear-gradient(#1c1a2e, #2f2434);
 		}
 	}
 
