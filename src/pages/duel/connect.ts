@@ -260,8 +260,6 @@ const connect = reactive({
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
 									connect.state = 1;
-									if (local_server)
-										await invoke.bot.start(i.args[1], i.deck);
 									await send(new Msg()
 										.write.uint8(CTOS.EXTERNAL_ADDRESS)
 										.write.uint32(0)
@@ -275,6 +273,8 @@ const connect = reactive({
 										.write.uint16(0)
 										.write.uint32(0)
 										.write.str(pass, 40));
+									if (local_server)
+										await invoke.bot.start(i.args[1], i.deck);
 								},
 								on_message : protocol.read,
 								on_disconnect : async () : Promise<void> => {
