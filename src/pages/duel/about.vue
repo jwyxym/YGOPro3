@@ -91,6 +91,10 @@
 			}
 			span {
 				width: calc(100% - 80px);
+				font-weight: bold;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
 				[media = 'mobile'] & {
 					font-size: 24px;
 				}

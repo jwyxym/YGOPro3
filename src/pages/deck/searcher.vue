@@ -522,6 +522,10 @@
 				}
 				span {
 					font-weight: bold;
+					white-space: nowrap;
+					max-width: calc(100% - 100px);
+					overflow: hidden;
+					text-overflow: ellipsis;
 				}
 			}
 		}
