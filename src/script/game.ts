@@ -276,19 +276,27 @@ class Game {
 	};
 
 	load = {
-		pic : async (deck : Deck | Array<number | string>) : Promise<boolean> => {
-			if (deck instanceof Deck) deck = deck.main.concat(deck.side, deck.extra);
-			deck = deck
-				.filter(i => !this.get.card(i).has_pic())
-				.map(i => Number(i));
-			const pics = await invoke.game.get_pic(deck as Array<number>);
+		pic : async (deck : Deck | Array<number | string>) : Promise<Array<[number, string]>> => {
+			if (deck instanceof Deck)
+				deck = deck.main.concat(deck.side, deck.extra);
+			const result : Array<[number, string]> = [];
+			const d : Array<number> = [];
+			for (const i of deck) {
+				const c = this.get.card(i);
+				const id = Number(i);
+				c.has_pic() ? result.push([id, c.pic]) : d.push(id);
+			};
+			const pics = await invoke.game.get_pic(d);
 			pics
-				.forEach(i => this.get.card(i[0]).update_pic(i[1]));
-			deck
+				.forEach(i => {
+					this.get.card(i[0]).update_pic(i[1]);
+					result.push(i);
+				});
+			d
 				.map(i => this.get.card(i))
 				.filter(i => !i.has_pic())
 				.forEach(i => i.update_pic(this.unknown.pic));
-			return !!pics.length;
+			return result;
 		}
 	};
 

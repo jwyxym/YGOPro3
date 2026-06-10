@@ -132,6 +132,7 @@ class Duel {
 	cards : Array<Client_Card> = [];
 	player : [Player, Player] = reactive([new Player(), new Player()]);
 	chain : Array<Client_Card> = [];
+	about : number =  0;
 	hint_pic = '';
 	hint = async (code : number) : Promise<void> => {
 		await mainGame.load.pic([code]);

@@ -1,5 +1,5 @@
 <template>
-	<div class = 'log'>
+	<div class = 'log ygopro3__duel__log'>
 		<div>
 			<div>
 				<var-icon name = 'chevron-right' :size = '24' @click = "emit('exit')"/>

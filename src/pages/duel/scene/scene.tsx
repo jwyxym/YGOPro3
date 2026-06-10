@@ -642,7 +642,7 @@ class _Duel {
 					await mainGame.sleep(100);
 				}
 				const target = event.target;
-				if (!(target instanceof HTMLElement))
+				if (!(target instanceof HTMLElement) || target.closest('.ygopro3__card__info, .ygopro3__duel__log'))
 					return;
 				if (this.btn?.contains(target)) {
 					this.clear_clicked();

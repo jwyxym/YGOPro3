@@ -450,7 +450,7 @@ class Protocol {
 		}],
 		[STOC.CHAT, async (msg : Msg) => {
 			const player = msg.read.uint16();
-			const str = msg.read.str(msg.length() - msg.index);
+			const str = msg.read.str(msg.length - msg.index);
 			if (player === undefined || str === undefined)
 				return;
 			const players = connect.state < 2 || connect.duel.is_first ? connect.wait.players

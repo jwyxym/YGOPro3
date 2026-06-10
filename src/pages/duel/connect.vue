@@ -39,7 +39,7 @@
 				:width = 'card_info.width'
 				:height = 'card_info.height'
 				v-if = 'connect.state > 1 && connect.duel.card'
-				@about = 'page.about_show = true'
+				@about = '(n) => connect.duel.about = n'
 				key = '3'
 			/>
 			<RPS
@@ -87,6 +87,11 @@
 				:del = 'false'
 				@card = '(card : number) => connect.duel.card = card'
 				key = '8'
+			/>
+			<About
+				v-if = 'connect.state > 1 && connect.duel.about'
+				v-model:card = 'connect.duel.about'
+				@click = '(id) => connect.duel.card = id'
 			/>
 		</TransitionGroup>
 		<div>
@@ -346,6 +351,7 @@
 	import Wait from './wait.vue';
 	import Single from './single.vue';
 	import Replay from './replay.vue';
+	import About from './about.vue';
 	import connect from './connect';
 
 	import Log from './log/log.vue';
@@ -379,8 +385,7 @@
 	const page = reactive({
 		chain : {
 			show : false
-		},
-		about_show : false
+		}
 	});
 
 	const card_info = {

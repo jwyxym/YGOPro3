@@ -161,7 +161,9 @@
 		}
 		page.show = false;
 		page.show_hint = false;
-		if (n instanceof Client_Card && n.id) {
+		if (n instanceof Client_Card) {
+			if (!n.id)
+				return;
 			const [card, orgin] = !n.alias || Math.abs(n.alias - n.id) <= 20 ? [mainGame.get.card(n.id), undefined]
 				: [mainGame.get.card(n.alias), mainGame.get.card(n.id)];
 			page.card.orgin = orgin?.name ?? '';
