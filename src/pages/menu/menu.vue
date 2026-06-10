@@ -14,7 +14,9 @@
 				v-for = '(i, v) in page.menu'
 				:class = "{ 'select' : page.select === v }"
 				ref = 'items'
-				@click = 'page.click(v, true)'
+				@click = 'page.click(v)'
+				@mouseenter = 'page.mouseenter(v)'
+				@mouseleave = 'page.mouseleave'
 				class = 'pointer'
 			>{{ mainGame.get.text(i) }}</span>
 		</div>
@@ -22,7 +24,6 @@
 </template>
 <script setup lang = 'ts'>
 	import { reactive, onUnmounted, onBeforeMount } from 'vue';
-	import hotkeys from 'hotkeys-js';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -40,7 +41,7 @@
 			second : '',
 			interval : null as null | number
 		},
-		select : 0,
+		select : - 1,
 		menu : [
 			I18N_KEYS.MENU_SINGLE,
 			I18N_KEYS.MENU_CONENCT,
@@ -50,21 +51,22 @@
 			I18N_KEYS.MENU_EXIT
 		],
 		pointer : new Array(2).fill(-1000),
-		click : (v : number, item : boolean = false) : void => {
-			if (item && page.select === v) {
+		click : (v : number) : void => {
+			if (__ANDROID__)
+				page.select === v ? page.to() : page.select = v;
+			else {
+				if (page.select !== v)
+					page.select = v;
 				page.to();
-				return;
 			}
-			page.select = v;
 		},
-		keydown : (event : KeyboardEvent) : void => {
-			const len = page.menu.length - 1;
-			if (['PageDown', 'ArrowDown'].includes(event.key))
-				page.select >= len ? page.select = 0 : page.select ++;
-			else if (['PageUp', 'ArrowUp'].includes(event.key))
-				page.select <= 0 ? page.select = len : page.select --;
-			else if (event.key === 'Enter')
-				page.click(page.select, true);
+		mouseenter : (v : number) : void => {
+			if (!__ANDROID__)
+				page.select = v;
+		},
+		mouseleave : () : void => {
+			if (!__ANDROID__)
+				page.select = - 1;
 		},
 		to : async () : Promise<void> => {
 			switch (page.select) {
@@ -91,18 +93,6 @@
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		hotkeys('down, pagedown', () => {
-			const len = page.menu.length - 1;
-			page.select = page.select >= len ? 0 : page.select + 1;
-		});
-		hotkeys('up, pageup', () => {
-			const len = page.menu.length - 1;
-			page.select = page.select <= 0 ? len : page.select - 1;
-		});
-		hotkeys('enter', () => {
-			page.click(page.select, true);
-		});
-
 		const time = () => {
 			const now = new Date();
 			const year = now.getFullYear().toString();
@@ -123,9 +113,6 @@
 	})
 
 	onUnmounted(() => {
-		hotkeys.unbind('down, pagedown');
-		hotkeys.unbind('up, pageup');
-		hotkeys.unbind('enter');
 		if (page.time.interval)
 			clearInterval(page.time.interval);
 	});
