@@ -18,7 +18,7 @@
 						<div>
 							<img
 								v-if = 'cards[v]'
-								:src = 'cards[v].get.el.img().src'
+								v-lazy = 'cards[v].get.el.img().src'
 								:class = "{ 'defence' : cards[v].pos & POS.DEFENSE }"
 							/>
 						</div>

@@ -30,7 +30,7 @@
 					.slice((page.ct - 1) * page.size, page.ct * page.size)'
 				>
 					<div @click.stop = "page.select(i); emit('click', i);">
-						<img :src = 'mainGame.get.card(i).pic'/>
+						<img v-lazy = 'mainGame.get.card(i).pic'/>
 						<span>[{{ mainGame.get.card(i).name }}]</span>
 					</div>
 					<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>

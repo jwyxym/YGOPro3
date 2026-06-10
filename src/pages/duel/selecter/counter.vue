@@ -18,7 +18,7 @@
 			>
 				<div v-for = '(i, v) in cards'>
 					<div @click.stop = "emit('click', i)">
-						<img :src = 'mainGame.get.card(i.id).pic'/>
+						<img v-lazy = 'mainGame.get.card(i.id).pic'/>
 						<div>
 							<img :src = 'mainGame.get.counter(counter)'/>
 							{{ counts[v] }}

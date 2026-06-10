@@ -4,11 +4,11 @@
 		:style = "{
 			'--position_x' :  `${(i.index % count) * size.width + 2}px`,
 			'--position_y' :  `${(Math.trunc(i.index / count) + i.y) * size.height + i.loc}px`,
-			'--url' : `url('${mainGame.get.card(i.code).pic}')`,
 			'--card_height' : `${size.height}px`,
 			'--card_width' : `${size.width}px`
 		}"
 		ref = 'cards'
+		v-lazy:background-image = 'mainGame.get.card(i.code).pic'
 	>
 		<var-badge
 			type = 'info'
@@ -61,7 +61,6 @@
 		height: var(--card_height);
 		width: var(--card_width);
 		transform: translate(var(--position_x), var(--position_y));
-		background-image: var(--url);
 		background-size: cover;
 		z-index: 0;
 	}

@@ -289,6 +289,11 @@
 					display: flex;
 					flex-direction: column;
 					gap: 10%;
+					[media = 'mobile'] & {
+						:deep(.var-button) {
+							transform: scale(140%) !important;
+						}
+					}
 				}
 			}
 			> div:last-child {

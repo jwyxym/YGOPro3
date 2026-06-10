@@ -1,6 +1,9 @@
 <template>
 	<div class = 'about ygopro3__duel__about'>
 		<div>
+			<span v-if = 'card'>
+				{{ mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD_TITLE, [mainGame.get.card(card).name]) }}
+			</span>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
 				@click.stop = 'page.close'
@@ -10,7 +13,7 @@
 			<img
 				v-for = '(i, v) in page.cards'
 				:key = 'v'
-				:src = 'i[1]'
+				v-lazy = 'i[1]'
 				@click.stop = "emit('click', i[0])"
 			/>
 		</var-loading>
@@ -63,23 +66,34 @@
 <style scoped lang = 'scss'>
 	.about {
 		height: calc(var(--height) * 0.8);
-		width: calc(var(--width) * 0.75);
 		border-radius: 4px;
 		background-color: rgba(0, 0, 0, 0.5);
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
 		align-items: center;
+		color: white;
+		[media = 'mobile'] & {
+			width: calc(var(--width) * 0.75);
+		}
+		[media = 'pc'] & {
+			width: calc(var(--width) * 0.55);
+		}
 		> div:first-child {
 			width: 98%;
 			display: flex;
-			justify-content: flex-end;
 			align-items: center;
 			[media = 'mobile'] & {
 				height: 90px;
 			}
 			[media = 'pc'] & {
 				height: 50px;
+			}
+			span {
+				width: calc(100% - 80px);
+				[media = 'mobile'] & {
+					font-size: 24px;
+				}
 			}
 			.var-button {
 				width: 80px;

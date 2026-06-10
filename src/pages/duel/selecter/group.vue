@@ -16,14 +16,14 @@
 				<TransitionGroup tag = 'div' name = 'scale'>
 					<div v-for = 'i in select' :key = '`${i.location}${i.seq}${i.owner}`'>
 						<div @click.stop = "page.select(i); emit('click', i);" class = 'select'>
-							<img :src = 'mainGame.get.card(i.id).pic'/>
+							<img v-lazy = 'mainGame.get.card(i.id).pic'/>
 							<span>{{ page.loc(i) }}</span>
 						</div>
 						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>
 					</div>
 					<div v-for = 'i in unselect' :key = '`${i.location}${i.seq}${i.owner}`'>
 						<div @click.stop = "page.select(i); emit('click', i);">
-							<img :src = 'mainGame.get.card(i.id).pic'/>
+							<img v-lazy = 'mainGame.get.card(i.id).pic'/>
 							<span>{{ page.loc(i) }}</span>
 						</div>
 						<var-radio :checked-value = 'i' @click = 'page.select(i)' :readonly = 'true'/>

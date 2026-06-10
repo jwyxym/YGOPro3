@@ -271,9 +271,7 @@ class Game {
 		}
 	};
 
-	clear = () : void => {
-		this.cards.forEach(i => i.clear());
-	};
+	clear = () : void => this.cards.forEach(i => i.clear());
 
 	load = {
 		pic : async (deck : Deck | Array<number | string>) : Promise<Array<[number, string]>> => {
@@ -295,7 +293,10 @@ class Game {
 			d
 				.map(i => this.get.card(i))
 				.filter(i => !i.has_pic())
-				.forEach(i => i.update_pic(this.unknown.pic));
+				.forEach(i => {
+					i.update_pic(this.unknown.pic);
+					result.push([i.id, this.unknown.pic]);
+				});
 			return result;
 		}
 	};

@@ -475,11 +475,8 @@
 			page.finished = false;
 			page.loading = false;
 			await page.load_on();
-			const desc = searcher.get.desc();
-			mark?.unmark({
-				done : () => desc.length ? mark?.mark(desc) : true
-			});
-			emit('update:desc', desc);
+			mark?.unmark();
+			emit('update:desc', []);
 		}
 	});
 </script>

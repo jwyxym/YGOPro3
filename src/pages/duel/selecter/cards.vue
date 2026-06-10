@@ -19,7 +19,7 @@
 					<div @click = 'page.select(i)'
 						:class = "{ 'select' : selected.includes(i) }"
 					>
-						<img :src = 'mainGame.get.card(i.id).pic'/>
+						<img v-lazy = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
 					<var-checkbox :checked-value = 'i' :readonly = 'selected.includes(i) ?? false'/>

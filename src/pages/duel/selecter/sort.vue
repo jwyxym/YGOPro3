@@ -12,7 +12,7 @@
 			<div class = 'group'>
 				<div v-for = 'i in cards'>
 					<div @click = 'page.select(i)'>
-						<img :src = 'mainGame.get.card(i.id).pic'/>
+						<img v-lazy = 'mainGame.get.card(i.id).pic'/>
 						<span>{{ page.loc(i) }}</span>
 					</div>
 					<div>{{ page.index(i) }}</div>
