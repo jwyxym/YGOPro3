@@ -52,13 +52,18 @@
 		bottom: 0;
 		width: 300px;
 		height: 100px;
-		transform: scale(var(--scale));
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		user-select: none;
 		pointer-events: none;
 		z-index: 11;
+		[media = 'mobile'] & {
+			transform: scale(calc(var(--scale) * 1.6));
+		}
+		[media = 'pc'] & {
+			transform: scale(var(--scale));
+		}
 	}
 	.show {
 		opacity: 1;

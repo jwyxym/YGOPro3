@@ -247,6 +247,9 @@
 		color: white;
 		display: flex;
 		flex-direction: column;
+		[media = 'mobile'] & {
+			font-size: 24px;
+		}
 		> div, > p {
 			margin: 10px;
 		}
@@ -258,15 +261,25 @@
 			gap: 10px;
 			> div:first-child {
 				width: 90%;
-				aspect-ratio: 4 / 1.45;
 				display: flex;
 				justify-content: space-between;
+				[media = 'mobile'] & {
+					aspect-ratio: 2.5 / 1.45;
+				}
+				[media = 'pc'] & {
+					aspect-ratio: 4 / 1.45;
+				}
 				> div:first-child {
-					width: 25%;
 					height: 100%;
 					box-shadow: 0 0 10px white;
 					background-image: var(--url);
 					background-size: cover;
+					[media = 'mobile'] & {
+						width: 40%;
+					}
+					[media = 'pc'] & {
+						width: 25%;
+					}
 				}
 				> div:last-child {
 					height: 100%;
@@ -282,7 +295,12 @@
 				color: var(--color);
 				> span:first-child {
 					font-weight: bold;
-					font-size: 20px;
+					[media = 'mobile'] & {
+						font-size: 32px;
+					}
+					[media = 'pc'] & {
+						font-size: 20px;
+					}
 				}
 			}
 		}

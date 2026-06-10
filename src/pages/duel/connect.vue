@@ -446,6 +446,10 @@
 		position: relative;
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
+		[media = 'mobile'] & {
+			--tab-font-size: 24px;
+			--tab-active-font-size: 24px;
+		}
 		> div:first-child {
 			height: 100%;
 			width: 100%;
@@ -483,11 +487,25 @@
 			}
 			.avatar__first {
 				left: 0;
-				transform: translate(calc(-50px - var(--left) / var(--scale)), calc(var(--top) + 20px));
+				[media = 'mobile'] & {
+					transform:
+						scale(140%)
+						translate(calc(50px - var(--left) / var(--scale)), calc(var(--top) - 200px));
+				}
+				[media = 'pc'] & {
+					transform: translate(calc(-50px - var(--left) / var(--scale)), calc(var(--top) + 20px));
+				}
 			}
 			.avatar__last {
 				right: 0;
-				transform: translate(calc(var(--left) / var(--scale) + 500px), 0);
+				[media = 'mobile'] & {
+					transform:
+						scale(140%)
+						translate(calc(var(--left) / var(--scale) + 200px), 0);
+				}
+				[media = 'pc'] & {
+					transform: translate(calc(var(--left) / var(--scale) + 500px), 0);
+				}
 			}
 		}
 		> div:nth-child(2) {
@@ -496,9 +514,17 @@
 			bottom: 0;
 			display: flex;
 			flex-direction: column-reverse;
-			gap: 5px;
+			[media = 'mobile'] & {
+				gap: 25px;
+			}
+			[media = 'pc'] & {
+				gap: 5px;
+			}
 			.var-button {
 				width: 90px !important;
+				[media = 'mobile'] & {
+					transform: scale(160%);
+				}
 			}
 			.ygopro3__duel__confirm {
 				color: yellow !important;

@@ -84,9 +84,14 @@
 		transform: translateY(calc(var(--top) / var(--scale)));
 		color: white;
 		transition: all 0.1s ease;
-		height: var(--height);
 		width: var(--width);
 		left: var(--left);
+		[media = 'mobile'] & {
+			height: calc(var(--height) + 20px);
+		}
+		[media = 'pc'] & {
+			height: var(--height);
+		}
 		> div {
 			width: 100%;
 		}
@@ -94,7 +99,17 @@
 			height: 30px;
 			display: flex;
 			align-items: center;
-			gap: 5px;
+			[media = 'mobile'] & {
+				gap: 20px;
+				font-size: 24px;
+				.var-switch {
+					transform: scale(140%);
+					transform-origin: left center;
+				}
+			}
+			[media = 'pc'] & {
+				gap: 5px;
+			}
 		}
 		> div:nth-child(2) {
 			background-color: rgba(0, 0, 0, 0.5);
@@ -118,7 +133,16 @@
 		> div:last-child {
 			display: flex;
 			overflow: hidden;
-			height: var(--height);
+			[media = 'mobile'] & {
+				height: calc(var(--height) + 10px);
+				align-items: center;
+				.var-button {
+					transform: scale(160%);
+				}
+			}
+			[media = 'pc'] & {
+				height: var(--height);
+			}
 			> div {
 				flex-grow: 1;
 				display: flex;

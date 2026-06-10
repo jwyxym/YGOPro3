@@ -99,14 +99,30 @@
 		width: var(--width);
 		height: var(--height);
 		display: flex;
-		gap: 10px;
+		[media = 'mobile'] & {
+			gap: 150px;
+		}
+		[media = 'pc'] & {
+			gap: 10px;
+		}
 		.var-input {
-			width: 80%;
 			height: 70px;
 			align-self: center;
+			[media = 'mobile'] & {
+				transform: scale(140%) translateY(10px);
+				width: 50%;
+			}
+			[media = 'pc'] & {
+				width: 80%;
+			}
 		}
 		.var-menu {
-			transform: translateY(3px);
+			[media = 'mobile'] & {
+				transform: translateY(10px);
+			}
+			[media = 'pc'] & {
+				transform: translateY(3px);
+			}
 		}
 	}
 </style>

@@ -229,6 +229,12 @@
 		height: 100%;
 		width: 100%;
 		overflow-y: auto;
+		[media = 'mobile'] & {
+			:deep(.setting__loading),
+			:deep(.downloading) {
+				gap: 150px !important;
+			}
+		}
 		.var-cell {
 			.downloading {
 				height: 80px;

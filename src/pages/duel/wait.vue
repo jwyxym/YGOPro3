@@ -167,6 +167,10 @@
 		border-radius: 4px;
 		background-color: rgba(0, 0, 0, 0.2);
 		color: white;
+		[media = 'mobile'] & {
+			transform: scale(140%) translate(-50%, -50%);
+			transform-origin: left top;
+		}
 		> div {
 			width: calc(100% - 40px);
 		}

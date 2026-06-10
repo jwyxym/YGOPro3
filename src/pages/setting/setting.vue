@@ -48,6 +48,42 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		[media = 'mobile'] & {
+			--tab-font-size: 24px;
+			--tab-active-font-size: 24px;
+			--cell-font-size: 24px;
+			:deep(.var-button) {
+				transform: scale(160%);
+			}
+			:deep(.var-select),
+			:deep(.var-input),
+			:deep(.var-switch) {
+				transform: scale(140%);
+				transform-origin: left center;
+			}
+			:deep(.var-select) {
+				width: 60%;
+			}
+			:deep(.var-divider) {
+				height: 24px;
+				.var-divider__text {
+					font-size: 24px;
+				}
+			}
+			:deep(.var-cell) {
+				height: 100px;
+			}
+			:deep(.var-counter) {
+				transform: scale(140%);
+			}
+			:deep(.var-checkbox) {
+				transform: scale(120%) translateX(-20px);
+			}
+			:deep(.var-icon),
+			:deep(.var-badge) {
+				transform: scale(150%);
+			}
+		}
 		> div {
 			width: calc(100% - 20px);
 		}

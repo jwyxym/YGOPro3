@@ -247,6 +247,15 @@
 	.ygopro3__deck {
 		height: 100%;
 		width: 100%;
+		[media = 'mobile'] & {
+			:deep(.var-button) {
+				transform: scale(160%);
+			}
+			:deep(.var-input) {
+				transform: scale(140%);
+				transform-origin: left center;
+			}
+		}
 		> * {
 			top: 50%;
 			left: 50%;
@@ -264,13 +273,21 @@
 				overflow-x: hidden;
 				display: flex;
 				flex-direction: column;
+				[media = 'mobile'] & {
+					gap: 40px;
+				}
 				.input {
 					margin-top: 10px;
 					width: 50%;
 					height: 100px;
 					display: flex;
 					flex-direction: column;
-					gap: 10px;
+					[media = 'mobile'] & {
+						gap: 40px;
+					}
+					[media = 'pc'] & {
+						gap: 10px;
+					}
 					> div {
 						width: 100%;
 						display: flex;
@@ -279,11 +296,21 @@
 					}
 				}
 				> div:last-child {
-					height: calc(100% - 110px);
 					overflow-y: auto;
+					[media = 'mobile'] & {
+						height: calc(100% - 150px);
+					}
+					[media = 'pc'] & {
+						height: calc(100% - 110px);
+					}
 					h2 {
-						font-size: 18px;
 						transition: all 0.2s ease;
+						[media = 'mobile'] & {
+							font-size: 24px;
+						}
+						[media = 'pc'] & {
+							font-size: 18px;
+						}
 					}
 					.selected {
 						text-shadow:
@@ -309,8 +336,13 @@
 					width: 100%;
 					span {
 						justify-self: center;
-						font-size: 48px;
 						z-index: 1;
+						[media = 'mobile'] & {
+							font-size: 64px;
+						}
+						[media = 'pc'] & {
+							font-size: 48px;
+						}
 					}
 					.card {
 						width: 55px;
@@ -329,9 +361,14 @@
 				bottom: 0;
 				display: flex;
 				flex-direction: column;
-				gap: 5px;
+				[media = 'mobile'] & {
+					gap: 25px;
+				}
+				[media = 'pc'] & {
+					gap: 5px;
+				}
 				.var-button {
-					width: 90px !important;
+					width: 90px;
 				}
 			}
 		}

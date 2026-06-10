@@ -503,13 +503,26 @@
 			display: flex;
 			align-items: center;
 			&.search__input {
-				gap: 10px;
+				[media = 'mobile'] & {
+					gap: 125px;
+				}
+				[media = 'pc'] & {
+					gap: 10px;
+				}
 				.var-input {
-					width: 80%;
+					[media = 'mobile'] & {
+						width: 55%;
+					}
+					[media = 'pc'] & {
+						width: 80%;
+					}
 				}
 			}
 			&.about__name {
 				justify-content: space-between;
+				[media = 'mobile'] & {
+					width: calc(95% - 20px);
+				}
 				span {
 					font-weight: bold;
 				}
@@ -526,7 +539,16 @@
 				width: calc(100% - 15px);
 				> div {
 					position: relative;
-					height: var(--height);
+					[media = 'mobile'] & {
+						height: 100px;
+						> div:first-child {
+							transform: scale(140%);
+							transform-origin: left top;
+						}
+					}
+					[media = 'pc'] & {
+						height: var(--height);
+					}
 					> div:last-child {
 						position: absolute;
 						top: 0;
@@ -542,6 +564,12 @@
 							color: rgb(203, 203, 203);
 							font-size: 12px;
 						}
+						[media = 'mobile'] & {
+							transform: translateX(20px);
+							span {
+								font-size: 24px;
+							}
+						}
 					}
 				}
 			}
@@ -550,7 +578,15 @@
 			position: relative;
 			height: $foot-height;
 			display: flex;
-			gap: 5px;
+			[media = 'mobile'] & {
+				gap: 50px;
+				.var-button {
+					transform-origin: left center;
+				}
+			}
+			[media = 'pc'] & {
+				gap: 5px;
+			}
 			> p {
 				position: absolute;
 				border: 1px solid white;
@@ -558,10 +594,15 @@
 				height: 30px;
 				width: 30px;
 				right: 5px;
-				transform: translateY(- $foot-height);
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				[media = 'mobile'] & {
+					transform: scale(140%) translateY(-10px);
+				}
+				[media = 'pc'] & {
+					transform: translateY(- $foot-height);
+				}
 			}
 		}
 		.search {
@@ -576,13 +617,29 @@
 			color: white;
 			overflow-y: auto;
 			transition: all 0.2s ease;
+			[media = 'mobile'] & {
+				font-size: 24px;
+			}
 			> div {
 				margin-left: 10px;
 				max-width: calc(100% - 10px);
+				[media = 'mobile'] & {
+					.var-select,
+					.var-switch {
+						transform: scale(140%);
+						transform-origin: left center;
+					}
+				}
 			}
 			.lflist {
-				height: 120px;
-				gap: 10px;
+				[media = 'mobile'] & {
+					height: 150px;
+					gap: 20px;
+				}
+				[media = 'pc'] & {
+					height: 120px;
+					gap: 10px;
+				}
 				.var-select, .var-input {
 					width: 40%;
 				}
@@ -596,7 +653,16 @@
 					width: var(--width);
 					display: flex;
 					align-items: center;
-					gap: 5px;
+					[media = 'mobile'] & {
+						gap: 20px;
+						> span {
+							font-size: 24px;
+							height: 40px;
+						}
+					}
+					[media = 'pc'] & {
+						gap: 5px;
+					}
 					.switch {
 						color: rgb(203, 203, 203);
 						font-size: 12px;
@@ -604,25 +670,53 @@
 				}
 			}
 			.select {
+				> div:first-child {
+					[media = 'mobile'] > span:first-child {
+						height: 40px;
+					}
+				}
 				> div:last-child {
 					display: flex;
 					flex-wrap: wrap;
-					gap: 10px;
+					[media = 'mobile'] & {
+						gap: 20px;
+					}
+					[media = 'pc'] & {
+						gap: 10px;
+					}
 					> div {
 						display: flex;
 						flex-direction: column;
 						align-items: center;
 						border: 2px solid white;
-						width: 50px;
-						height: 60px;
-						border-radius: 8px;
 						transition: all 0.1s ease;
+						[media = 'mobile'] & {
+							width: 75px;
+							height: 90px;
+							border-radius: 11.2px;
+						}
+						[media = 'pc'] & {
+							width: 50px;
+							height: 60px;
+							border-radius: 8px;
+						}
 						img {
-							width: 40px;
-							height: 40px;
+							[media = 'mobile'] & {
+								width: 56px;
+								height: 56px;
+							}
+							[media = 'pc'] & {
+								width: 40px;
+								height: 40px;
+							}
 						}
 						span {
-							font-size: 12px;
+							[media = 'mobile'] & {
+								font-size: 18px;
+							}
+							[media = 'pc'] & {
+								font-size: 12px;
+							}
 						}
 					}
 					> .selected {
@@ -630,17 +724,33 @@
 						box-shadow: 0 0 10px yellow;
 					}
 					> .ot {
-						width: 60px;
+						[media = 'mobile'] & {
+							width: 90px;
+						}
+						[media = 'pc'] & {
+							width: 60px;
+						}
 						img {
-							width: 50px;
-							height: 40px;
+							[media = 'mobile'] & {
+								width: 70px;
+								height: 56px;
+							}
+							[media = 'pc'] & {
+								width: 50px;
+								height: 40px;
+							}
 						}
 					}
 				}
 			}
 			.link {
+				[media = 'mobile'] & {
+					height: 220px;
+				}
+				[media = 'pc'] & {
+					height: 150px;
+				}
 				width: 120px;
-				height: 150px;
 				position: relative;
 				> div:nth-child(2) {
 					position: absolute;
@@ -649,7 +759,13 @@
 					border: 1px solid rgba($color: white, $alpha: 1);
 					top: calc(50% + 8px);
 					left: 50%;
-					transform: translate(-50%, -50%);
+					[media = 'mobile'] & {
+						transform: scale(140%) translate(calc(-50% + 17px), calc(-50% + 4px));
+						transform-origin: left top;
+					}
+					[media = 'pc'] & {
+						transform: translate(-50%, -50%);
+					}
 				}
 				> div:last-child {
 					position: absolute;
@@ -658,6 +774,10 @@
 					display: grid;
 					grid-template-rows: repeat(3, 1fr);
 					grid-template-columns: repeat(3, 1fr);
+					[media = 'mobile'] & {
+						transform: scale(140%);
+						transform-origin: left top;
+					}
 					img {
 						width: 40px;
 						height: 40px;
@@ -677,10 +797,21 @@
 						height: 40px;
 					}
 				}
+				[media = 'mobile'] & {
+					height: 270px;
+					gap: 20px;
+					> div:last-child {
+						flex-direction: column;
+						gap: 20px;
+					}
+				}
 			}
 			> div:last-child {
 				display: flex;
 				align-items: center;
+				[media = 'mobile'] & {
+					height: 70px;
+				}
 				> div {
 					width: 50%;
 					display: flex;

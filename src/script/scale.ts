@@ -16,6 +16,9 @@ const resize = () => {
 	GLOBAL.SCALE < 0.6
 		? body.classList.add('mobile')
 		: body.classList.remove('mobile');
+	GLOBAL.SCALE < 0.6
+		? body.setAttribute('media', 'mobile')
+		: body.setAttribute('media', 'pc');
 };
 
 const GLOBAL = reactive({

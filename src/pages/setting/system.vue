@@ -189,13 +189,7 @@
 			:deep(.var-cell__extra) {
 				display: flex;
 				height: 40px;
-				.result {
-					width: 200px;
-					position: relative;
-					display: flex;
-					justify-content: right;
-					align-items: center;
-				}
+				transform: translateX(-10px);
 			}
 		}
 	}

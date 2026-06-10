@@ -562,6 +562,11 @@
 				}
 			}
 		}
+		[media = 'mobile'] .ygopro3__cards {
+			> span {
+				font-size: 24px;
+			}
+		}
 		&::-webkit-scrollbar {
 			opacity: 0;
 			height: 10px;

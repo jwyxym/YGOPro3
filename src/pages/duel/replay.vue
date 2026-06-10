@@ -147,6 +147,9 @@
 		border-radius: 4px;
 		background-color: rgba(0, 0, 0, 0.2);
 		color: white;
+		[media = 'mobile'] & {
+			--cell-font-size: 24px;
+		}
 		> div, > form {
 			height: 100%;
 			width: calc(50% - 2px);
@@ -158,6 +161,12 @@
 				font-size: 18px;
 				transition: all 0.2s ease;
 				transform: translateX(10px);
+				[media = 'mobile'] & {
+					font-size: 32px;
+				}
+				[media = 'pc'] & {
+					font-size: 18px;
+				}
 			}
 			.selected {
 				text-shadow:
@@ -178,11 +187,24 @@
 				display: flex;
 				align-items: center;
 				.var-input {
-					width: 100%;
+					[media = 'mobile'] & {
+						transform: scale(140%);
+						width: 70%;
+						transform-origin: left center;
+					}
+					[media = 'pc'] & {
+						width: 100%;
+					}
 				}
 			}
 			.var-cell {
 				width: 80%;
+				[media = 'mobile'] & {
+					height: 100px;
+					.var-button {
+						transform: scale(140%);
+					}
+				}
 				:deep(.var-cell__extra) {
 					height: 40px;
 				}

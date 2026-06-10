@@ -125,6 +125,9 @@
 		width: 250px;
 		height: 60px;
 		z-index: 10;
+		[media = 'mobile'] & {
+			transform-origin: left top;
+		}
 		.var-avatar {
 			transform: translateY(5px);
 			width: 50px;

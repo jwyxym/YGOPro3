@@ -100,10 +100,16 @@
 				top: 50%;
 				height: 50px;
 				width: 50px;
-				transform: translateY(-50%);
 				display: flex;
 				justify-content: center;
 				align-items: center;
+				[media = 'mobile'] & {
+					transform: scale(150%) translateY(-50%);
+					transform-origin: left top;
+				}
+				[media = 'pc'] & {
+					transform: translateY(-50%);
+				}
 			}
 			.var-tabs {
 				position: absolute;
@@ -135,10 +141,23 @@
 					transform: translateY(15px);
 				}
 				.var-input {
-					width: 70%;
+					[media = 'mobile'] & {
+						width: 50%;
+						transform: scale(140%) translate(-20%, 10%);
+						transform-origin: left top;
+					}
+					[media = 'pc'] & {
+						width: 70%;
+					}
 				}
 				.var-button {
-					width: 20%;
+					[media = 'mobile'] & {
+						transform: scale(140%) translate(20%, 35%);
+						transform-origin: left top;
+					}
+					[media = 'pc'] & {
+						width: 20%;
+					}
 				}
 			}
 		}

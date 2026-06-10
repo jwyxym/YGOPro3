@@ -1,17 +1,6 @@
-@use '@/pages/deck/deck.scss';
-@use '@/pages/setting/setting.scss';
-@use '@/pages/duel/duel.scss';
-@use '@/pages/menu/menu.scss';
 @use '@/pages/toast/toast.scss';
-@use '@/pages/loading/loading.scss';
-.mobile {
-	.var-popup__content {
-		transform: scale(70%);
-	}
-	.var-menu__menu {
-		transform: scale(calc(var(--scale) * 1.4));
-	}
-}
+@use '@/pages/duel/scene/scene.scss';
+
 .var-icon, .cursor {
 	&:hover {
 		cursor: pointer;
@@ -88,6 +77,12 @@
 	transform: scale(var(--scale));
 	transform-origin: center top !important;
 	background-color: rgba(0, 0, 0, 0.5) !important;
+}
+[media = 'mobile'] .var-popup__content {
+	transform: scale(70%);
+}
+[media = 'mobile'] .var-menu__menu {
+	transform: scale(calc(var(--scale) * 1.4));
 }
 :root {
 	--picker-mask-background-image: transparent !important;

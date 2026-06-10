@@ -140,11 +140,16 @@
 </script>
 <style scoped lang = 'scss'>
 	main {
+		[media = 'mobile'] & {
+			font-size: 64px;
+		}
+		[media = 'pc'] & {
+			font-size: 48px;
+		}
 		height: calc(var(--height) * 0.9);
 		width: calc(var(--width) * 0.9);
 		display: flex;
 		color: white;
-		font-size: 48px;
 		> div {
 			width: 50%;
 			display: flex;
@@ -189,7 +194,12 @@
 					0 0 40px aqua;
 				&::after {
 					opacity: 1;
-					transform: translateX(-55px);
+					[media = 'mobile'] & {
+						transform: translateX(20px);
+					}
+					[media = 'pc'] & {
+						transform: translateX(-55px);
+					}
 				}
 			}
 		}

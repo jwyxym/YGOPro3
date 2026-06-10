@@ -1,4 +1,3 @@
-import lodash from 'lodash';
 import Card, { TYPE } from '@/script/card';
 import mainGame from '@/script/game';
 import calculator from './calculator';
@@ -24,7 +23,7 @@ class Search {
 	def ?: Array<string>;
 	scale ?: Array<string>;
 	desc ?: string;
-	setcode ?: number;
+	setcode ?: Array<number>;
 	id ?: number;
 	// ture为and，false为or
 	and_or : AndOr = {
@@ -52,7 +51,7 @@ class Search {
 		def : (def : string) => { this.def = def.split('%%').filter(i => i); return this; },
 		scale : (scale : string) => { this.scale = scale.split('%%').filter(i => i); return this; },
 		desc : (desc : string) => { if (desc) this.desc = desc; return this; },
-		setcode : (setcode : Array<number>) => { this.setcode = lodash.sum(setcode); return this; },
+		setcode : (setcode : Array<number>) => { this.setcode = setcode.map(i => i & 0xfff).filter(i => i); return this; },
 		id : (id : number) => { this.id = id; return this; },
 		and_or : (and_or : AndOr) => { this.and_or = and_or; return this; }
 	};
@@ -98,7 +97,7 @@ class Search {
 		if (!this.cards) return [];
 		return this.cards.filter(card => (
 				(this.desc && card.desc.includes(this.desc))
-				|| (this.setcode && card.setcode.some(i => (i & 0xff) === (this.setcode! & 0xff)))
+				|| (this.setcode && this.setcode.some(j => card.setcode.some(i => (i & 0xfff) === j)))
 				|| (card.alias === this.id)
 			)
 			&& card.id !== this.id

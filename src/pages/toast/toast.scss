@@ -2,17 +2,27 @@
 	$info: #2196f3;
 	$warn: #ffc107;
 	$err: #ff5252;
-	> .toast {
+	> .ygopro3__toast {
 		color: white;
 		position: fixed;
 		right: 10px;
 		top: 50%;
 		width: 350px;
-		height: calc(var(--height) * 0.9);
-		transform: translate(calc(var(--left) * var(--scale)), -50%) scale(var(--scale));
 		user-select: none;
 		pointer-events: none;
 		z-index: 10;
+		[media = 'mobile'] & {
+			transform:
+				translate(calc(var(--left) * var(--scale)), -50%)
+				scale(calc(var(--scale) * 1.4));
+			height: calc(var(--height) * 0.6);
+		}
+		[media = 'pc'] & {
+			transform:
+				translate(calc(var(--left) * var(--scale)), -50%)
+				scale(var(--scale));
+			height: calc(var(--height) * 0.9);
+		}
 		> div {
 			position: absolute;
 			transition: all 0.2s ease;
@@ -87,14 +97,5 @@
 				background-color: $err;
 			}
 		}
-	}
-}
-
-.mobile {
-	.ygopro3__toast {
-		transform:
-			translate(calc(var(--left) * var(--scale)), -50%)
-			scale(calc(var(--scale) * 1.4));
-		height: calc(var(--height) * 0.6);
 	}
 }
