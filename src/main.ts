@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import YGO from './init.vue';
-import Vue3StarrySky from 'vue3-starry-sky';
-import 'vue3-starry-sky/lib/style.css';
+import StarrySkyPlugin from 'vue3-scss-starry-sky';
+import 'vue3-scss-starry-sky/style.css';
 import Varlet from '@varlet/ui';
 import '@varlet/ui/es/style.mjs';
 import { FakeQQUI } from 'fake-qq-ui';
@@ -11,7 +11,7 @@ import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 
 const ygopro = createApp(YGO);
 
-ygopro.use(Vue3StarrySky);
+ygopro.use(StarrySkyPlugin);
 ygopro.use(Varlet);
 ygopro.use(FakeQQUI);
 

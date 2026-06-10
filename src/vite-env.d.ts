@@ -5,7 +5,6 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>;
   export default component;
 }
-declare module 'vue3-starry-sky';
 declare module 'mark.js';
 
 declare const __ANDROID__: boolean;
