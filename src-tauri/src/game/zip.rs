@@ -2,9 +2,12 @@ use super::{PIC_REGEX, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
 use zip::{ZipArchive, read::ZipFile};
-use tokio::task::{JoinHandle, spawn_blocking};
+use tokio::{
+	task::{JoinHandle, spawn, spawn_blocking},
+	fs::write
+};
 use std::{
-	fs::{File, write, exists, create_dir_all},
+	fs::{File, exists, create_dir_all},
 	io::Read,
 	collections::BTreeMap,
 	path::{Path, PathBuf}
@@ -155,7 +158,7 @@ impl Zip {
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
 		let zip: ZipArchive<File> = ZipArchive::new(File::open(&assets)?)?;
-		app.emit("started", zip.len())?;
+		app.emit("started", zip.len() * 2 + 6)?;
 		let _ = Self::read(&assets, |name: String, mut file: ZipFile<'_>| {
 			app.emit("progress", 1)?;
 			let path: PathBuf = path.join(&name);
@@ -170,11 +173,11 @@ impl Zip {
 				} else if !exists(&path)? {
 					let mut content: Vec<u8> = Vec::new();
 					if file.read_to_end(&mut content).is_ok() {
-						tasks.push(spawn_blocking(move || {
+						tasks.push(spawn(async move {
 							if let Some(parent) = path.parent() {
 								let _ = create_dir_all(parent);
 							}
-							write(path, content)?;
+							write(path, content).await?;
 							Ok(None)
 						}));
 					}
@@ -182,7 +185,6 @@ impl Zip {
 			}
 			Ok(())
 		});
-		app.emit("end", 0)?;
 		Ok(tasks)
 	}
 	pub fn read<P: AsRef<Path>> (

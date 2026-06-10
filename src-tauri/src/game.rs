@@ -114,7 +114,9 @@ impl Game {
 				)?;
 				Ok(None)
 			}));
+			app.emit("progress", 1)?;
 			for task in tasks {
+				app.emit("progress", 1)?;
 				if let Some(i) = task.await?? {
 					result.push(i)
 				}
@@ -126,17 +128,25 @@ impl Game {
 	pub async fn init (app: &AppHandle, overwrite: bool) -> Result<Self, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 
-		let config: Vec<(String, String)> = Self::unzip(app, overwrite).await?;
+		let i = join!(
+			Self::unzip(app, overwrite),
+			create_dir_all(path.join("config"))
+		);
+		let config: Vec<(String, String)> = i.0?;
+		i.1?;
+		app.emit("progress", 1)?;
 
 		let (system, resource, lflist, servers, model, mut tasks) = Self::load_config(path, &config).await;
+		app.emit("progress", 1)?;
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
 			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n(), &config)
 		);
+		app.emit("progress", 1)?;
 
 		tasks.push(task);
-		for i in vec!["config", "deck", "expansions", "replay"] {
+		for i in vec!["deck", "expansions", "replay"] {
 			tasks.push(spawn(async move {
 				Ok(create_dir_all(path.join(i)).await?)
 			}));
@@ -144,10 +154,12 @@ impl Game {
 		for task in tasks {
 			let _ = task.await;
 		}
+		app.emit("progress", 1)?;
 
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let font: Font = Font::new().read_dir(path.join("font"), resource.font());
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
+		app.emit("progress", 1)?;
 		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
@@ -158,6 +170,7 @@ impl Game {
 			lflist: lflist,
 			pics: pics
 		});
+		app.emit("end", 0)?;
 		Ok(Self {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
