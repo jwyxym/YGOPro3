@@ -9,11 +9,11 @@
 				@click.stop = 'page.close'
 			/>
 		</div>
-		<var-loading :loading = '!page.cards.length' class = 'no-scrollbar'>
+		<var-loading :loading = 'page.loading' class = 'no-scrollbar'>
 			<img
 				v-for = '(i, v) in page.cards'
 				:key = 'v'
-				v-lazy = 'i[1]'
+				:src = 'i[1]'
 				@click.stop = "emit('click', i[0])"
 			/>
 		</var-loading>
@@ -29,6 +29,7 @@
 	import Search from '@/pages/deck/search';
 	const page = reactive({
 		cards : [] as Array<[number, string]>,
+		loading : false,
 		close : () => {
 			queue.clear();
 			emit('update:card', 0);
@@ -51,6 +52,7 @@
 	watch(() => props.card, (id : number) => {
 		if (id)
 			queue.add(async () => {
+				page.loading = true
 				page.cards.length = 0;
 				const c = mainGame.get.card(id);
 				const searcher = new Search()
@@ -58,8 +60,11 @@
 					.set.id(id)
 					.set.setcode(c.setcode)
 					.set.desc(c.name);
-				const codes : Array<number> = searcher.about().map(i => i.id);
+				const codes : Array<number> = searcher
+					.about()
+					.map(i => i.id);
 				page.cards = await mainGame.load.pic(codes);
+				page.loading = false;
 			});
 	}, { immediate : true });
 </script>
