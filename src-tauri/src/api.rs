@@ -77,15 +77,6 @@ pub async fn get_pic (deck: Vec<u32>) -> Response {
 }
 
 #[tauri::command]
-pub async fn get_font () -> Response {
-	Game::get_font().await
-		.ok()
-		.and_then(|i| encode_to_vec(i, CONFIG).ok())
-		.map(Response::new)
-		.unwrap_or_else(default_response)
-}
-
-#[tauri::command]
 pub async fn get_sound () -> Response {
 	Game::get_sound().await
 		.ok()

@@ -16,7 +16,6 @@ pub struct Resource {
 	counter: IndexMap<String, String>,
 	other: IndexMap<String, String>,
 	sound: IndexMap<String, String>,
-	font: IndexMap<String, String>,
 	avatar: IndexMap<String, Vec<String>>,
 	link: IndexMap<String, (String, String)>,
 	btn: IndexMap<String, (String, String)>,
@@ -50,7 +49,6 @@ impl Resource {
 			race: IndexMap::new(),
 			types: IndexMap::new(),
 			sound: IndexMap::new(),
-			font: IndexMap::new(),
 			btn: IndexMap::new(),
 			info: IndexMap::new(),
 			counter: IndexMap::new(),
@@ -129,7 +127,6 @@ impl Resource {
 		result |= merge(&mut self.counter, resource.counter);
 		result |= merge(&mut self.other, resource.other);
 		result |= merge(&mut self.sound, resource.sound);
-		result |= merge(&mut self.font, resource.font);
 		result |= merge(&mut self.recognizer, resource.recognizer);
 		result |= merge_string_vec(&mut self.avatar, resource.avatar);
 		result |= merge_string_tuple(&mut self.btn, resource.btn);
@@ -218,9 +215,6 @@ impl Resource {
 	}
 	pub fn sound (&self) -> Vec<(String, String)> {
 		self.sound.clone().into_iter().collect()
-	}
-	pub fn font (&self) -> Vec<(String, String)> {
-		self.font.clone().into_iter().collect()
 	}
 	pub fn recognizer (&self) -> IndexMap<String, String> {
 		self.recognizer.clone()

@@ -40,18 +40,18 @@
 	--checkbox-unchecked-color: #555 !important;
 	color: #555 !important;
 }
-.font-title {
-	font-family: 'TITLE' !important;
-}
-.font-menu {
-	font-family: 'MENU' !important;
+@font-face {
+	font-family: 'ATK';
+	src: url('./font/AtkDef.ttf');
+	font-weight: normal;
+	font-style: normal;
 }
 .font-atk {
 	font-family: 'ATK' !important;
 }
 .var-picker__picked {
 	border: 1px solid white !important;
-}
+}	
 .no-scrollbar {
 	&::-webkit-scrollbar {
 		display: none;

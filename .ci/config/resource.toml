@@ -252,10 +252,5 @@
 "SOUND_EFFECT_SPECIALSUMMON" = "specialsummon.ogg"
 "SOUND_EFFECT_SUMMON" = "summon.ogg"
 
-[font]
-"TITLE" = "优设标题黑.ttf"
-"MENU" = "阿里巴巴普惠体.ttf"
-"ATK" = "AtkDef.ttf"
-
 [recognizer]
 "hash" = "card_data"

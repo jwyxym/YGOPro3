@@ -5,7 +5,6 @@ mod cdb;
 mod pic;
 mod zip;
 mod resource;
-mod font;
 mod sound;
 mod card_info;
 mod lflist;
@@ -13,7 +12,6 @@ mod model;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
-	font::Font,
 	lflist::LFList,
 	pic::{Pic, PicContent},
 	resource::{Resource, Textures},
@@ -78,7 +76,6 @@ pub struct Game {
 	model: Model,
 	system: System,
 	resource: Resource,
-	font: Font,
 	sound: Sound,
 	pack: IndexMap<String, GamePack>
 }
@@ -157,7 +154,6 @@ impl Game {
 		app.emit("progress", 1)?;
 
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
-		let font: Font = Font::new().read_dir(path.join("font"), resource.font());
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
 		app.emit("progress", 1)?;
 		
@@ -175,7 +171,6 @@ impl Game {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
 			system: system,
-			font: font,
 			sound: sound,
 			resource: resource,
 			pack: pack
@@ -590,12 +585,6 @@ impl Game {
 		let buffer: Vec<(u32, Vec<u8>)> = buffer.into_iter().collect();
 		let path: Vec<(u32, String)> = path.into_iter().collect();
 		Ok((path, buffer))
-	}
-
-	pub async fn get_font () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
-		let game: RwLockReadGuard<'_, Self> = game.read().await;
-		Ok(game.font.to_array())
 	}
 
 	pub async fn get_sound () -> Result<Vec<(String, String)>, Error> {

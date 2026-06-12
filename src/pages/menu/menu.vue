@@ -1,5 +1,5 @@
 <template>
-	<main class = 'font-menu ygopro3__menu'>
+	<main class = 'ygopro3__menu'>
 		<div>
 			<div>
 				<span>
@@ -135,13 +135,14 @@
 		width: calc(var(--width) * 0.9);
 		display: flex;
 		color: white;
+		font-weight: 900;
 		> div {
-			width: 50%;
 			display: flex;
 			flex-direction: column;
 			align-items: center;
 		}
 		> div:first-child {
+			width: 70%;
 			> div:first-child {
 				width: 100%;
 				height: 50%;
@@ -157,6 +158,7 @@
 			}
 		}
 		> div:nth-child(2) {
+			width: 30%;
 			justify-content: center;
 			span {
 				width: 300px;

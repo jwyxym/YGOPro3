@@ -34,7 +34,7 @@
 				</div>
 				<TransitionGroup tag = 'div' name = 'opacity'>
 					<div v-if = 'list.selected > -1' key = '0' class = 'deck'>
-						<span class = 'font-title'>
+						<span>
 							{{ list.decks[list.selected].name }}
 						</span>
 						<div>
@@ -337,6 +337,8 @@
 					span {
 						justify-self: center;
 						z-index: 1;
+						font-weight: 900;
+						font-style: italic;
 						[media = 'mobile'] & {
 							font-size: 64px;
 						}

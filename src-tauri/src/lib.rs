@@ -46,7 +46,6 @@ pub fn run() {
 			api::chk_version,
 			api::get_srv,
 			api::get_pic,
-			api::get_font,
 			api::get_sound,
 			api::get_textures,
 			api::get_cards,

@@ -93,17 +93,6 @@ class Invoke {
 				return [];
 			}
 		},
-		get_font : async () : Promise<Array<[string, string]>> => {
-			try {
-				const result = await invoke<ArrayBuffer>('get_font');
-				return bincode.decode(
-					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
-				).value as Array<[string, string]>;
-			} catch (error) {
-				this.log.write(error);
-				return [];
-			}
-		},
 		get_sound : async () : Promise<Array<[string, string]>> => {
 			try {
 				const result = await invoke<ArrayBuffer>('get_sound');
