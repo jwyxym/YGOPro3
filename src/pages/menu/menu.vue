@@ -52,13 +52,9 @@
 		],
 		pointer : new Array(2).fill(-1000),
 		click : (v : number) : void => {
-			if (__ANDROID__)
-				page.select === v ? page.to() : page.select = v;
-			else {
-				if (page.select !== v)
-					page.select = v;
-				page.to();
-			}
+			if (page.select !== v)
+				page.select = v;
+			page.to();
 		},
 		mouseenter : (v : number) : void => {
 			if (!__ANDROID__)
@@ -69,6 +65,8 @@
 				page.select = - 1;
 		},
 		to : async () : Promise<void> => {
+			if (__ANDROID__)
+				await mainGame.sleep(200);
 			switch (page.select) {
 				case 0:
 					emit('single');
