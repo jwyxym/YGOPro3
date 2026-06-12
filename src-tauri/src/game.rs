@@ -34,7 +34,7 @@ use lazy_static::lazy_static;
 use indexmap::IndexMap;
 use tokio::{
 	task::{JoinHandle, spawn},
-	fs::{create_dir_all, read_to_string, metadata},
+	fs::{create_dir_all, read_to_string, metadata, remove_dir_all},
 	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
 	join
 };
@@ -104,6 +104,33 @@ impl Game {
 			.unwrap_or(String::new());
 		let mut result: Vec<(String, String)> = Vec::new();
 		if version != cache || overwrite {
+			if version != cache {
+				let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
+				//删除先前的文件夹
+				tasks.push(spawn(async {
+					remove_dir_all(path
+						.join("font")
+					).await?;
+					Ok(())
+				}));
+				tasks.push(spawn(async {
+					remove_dir_all(path
+						.join("pics")
+					).await?;
+					Ok(())
+				}));
+				tasks.push(spawn(async {
+					remove_dir_all(path
+						.join("textures")
+					).await?;
+					Ok(())
+				}));
+				for task in tasks {
+					if let Ok(i) = task.await {
+						i.unwrap_or(());
+					}
+				}
+			}
 			let mut tasks: Vec<JoinHandle<Result<Option<(String, String)>, Error>>> = Zip::unzip(app, path, &assets).await?;
 			tasks.push(spawn(async {
 				write(path
