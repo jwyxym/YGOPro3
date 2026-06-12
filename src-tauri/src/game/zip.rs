@@ -7,7 +7,7 @@ use tokio::{
 	fs::write
 };
 use std::{
-	fs::{File, exists, create_dir_all},
+	fs::{File, create_dir_all},
 	io::Read,
 	collections::BTreeMap,
 	path::{Path, PathBuf}
