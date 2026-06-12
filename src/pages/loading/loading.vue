@@ -99,7 +99,7 @@
 				> div {
 					width: calc(100% * var(--current));
 					height: 100%;
-					background-color: yellow;
+					background-color: white;
 				}
 				> span {
 					position: absolute;
