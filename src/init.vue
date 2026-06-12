@@ -4,6 +4,7 @@
 		<Voice v-if = 'page.show.voice'/>
 		<Loading
 			@loading = '(n) => page.loading = n'
+			:init = 'page.init'
 		/>
 		<Toast/>
 		<TransitionGroup tag = 'div' name = 'opacity'>
@@ -49,6 +50,7 @@
 
 	const page = reactive({
 		loading : false,
+		init : false,
 		duel : {
 			model : 0 as 0 | 1 | 2
 		},
@@ -130,6 +132,7 @@
 		}
 		page.show.voice = true;
 		page.show.menu = true;
+		page.init = true;
 	});
 
 	onMounted(async () => {
@@ -141,6 +144,15 @@
 <style scoped lang = 'scss'>
 	.main {
 		position: relative;
+		> .ygopro3__loading {
+			position: fixed;
+			left: 50%;
+			top: 50%;
+			height: var(--height);
+			width: var(--width);
+			transform: translate(-50%, -50%) scale(var(--scale));
+
+		}
 		> div:last-child {
 			position: fixed;
 			left: 50%;

@@ -66,6 +66,7 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+	app.emit("started", 5)?;
 	*game = Game::init(app, overwrite).await?;
 	Ok(())
 }

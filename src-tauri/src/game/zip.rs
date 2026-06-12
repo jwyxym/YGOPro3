@@ -170,7 +170,7 @@ impl Zip {
 							Ok(Some((name, content)))
 						}));
 					}
-				} else if !exists(&path)? {
+				} else {
 					let mut content: Vec<u8> = Vec::new();
 					if file.read_to_end(&mut content).is_ok() {
 						tasks.push(spawn(async move {
