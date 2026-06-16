@@ -407,7 +407,7 @@
 				};
 			});
 			await page.load_on();
-			const desc = searcher.get.desc();
+			const desc = searcher.desc ?? [];
 			mark?.unmark({
 				done : () => desc.length ? mark?.mark(desc) : true
 			});
@@ -463,11 +463,14 @@
 			page.about = c;
 			page.list = [];
 			page.loading = true;
+			const desc = [c.name];
+			for (const i of c.desc.matchAll(REG.KEY_WORDS))
+				desc.push(i[1]);
 			const searcher = new Search()
 				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
 				.set.id(c.id)
 				.set.setcode(c.setcode)
-				.set.desc(c.name);
+				.set.desc(desc.join('%%'));
 			page.result = searcher.about().map(i => ({
 				card : i,
 				pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }

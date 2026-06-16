@@ -28,7 +28,7 @@
 	import PQueue from 'p-queue';
 
 	import mainGame from '@/script/game';
-	import { KEYS } from '@/script/constant';
+	import { KEYS, REG } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import type Card from '@/script/card';
 
@@ -62,11 +62,14 @@
 				page.loading = true
 				page.cards.length = 0;
 				const c = mainGame.get.card(id);
+				const desc = [c.name];
+				for (const i of c.desc.matchAll(REG.KEY_WORDS))
+					desc.push(i[1]);
 				const searcher = new Search()
 					.set.cards(Array.from(mainGame.cards).map(i => i[1]))
 					.set.id(id)
 					.set.setcode(c.setcode)
-					.set.desc(c.name);
+					.set.desc(desc.join('%%'));
 				const cards : Array<Card> = searcher
 					.about();
 				await mainGame.load.pic(cards.map(i => i.id));

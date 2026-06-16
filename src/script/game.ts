@@ -92,8 +92,6 @@ class Game {
 					.get(i[0])
 					?.set.setcode(i[1])
 				);
-			console.log([0x8f, 0x54, 0x59, 0x82, 0x13a])
-			console.log(this.cards.get(8512558)?.setcode)
 
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
