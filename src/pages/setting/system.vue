@@ -41,7 +41,7 @@
 				<template #extra>
 					<var-switch
 						v-model = 'i.value'
-						@change = 'page.change(i.key, $event)'/>
+						@change = 'page.change(i.key, $event, i)'/>
 				</template>
 			</var-cell>
 			<var-cell
@@ -54,7 +54,20 @@
 						:min = '0'
 						:max = '999'
 						v-model = 'i.value'
-						@change = 'page.change(i.key, i.value)'/>
+						@change = 'page.change(i.key, i.value, i)'/>
+				</template>
+			</var-cell>
+			<var-cell
+				v-for = 'i in page.string'
+				:key = 'i.key'
+				:title = 'mainGame.get.text(i.i18n)'
+			>
+				<template #extra>
+					<Input
+						v-model = 'i.value'
+						:maxlength = '5'
+						:clearable = 'false'
+						@blur = 'page.change(i.key, i.value, i)'/>
 				</template>
 			</var-cell>
 		</var-list>
@@ -62,12 +75,14 @@
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, ref, watch } from 'vue';
+	import PQueue from 'p-queue';
 
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { voice } from '@/pages/voice/voice';
 	import Select from '@/pages/ui/select.vue';
+	import Input from '@/pages/ui/input.vue';
 	import Slider from '@/pages/ui/slider.vue';
 
 	class Sound_Setting {
@@ -85,6 +100,11 @@
 			};
 		}
 	};
+
+	const queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
 
 	const page = reactive({
 		i18n : {
@@ -110,6 +130,7 @@
 		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,
 		bool : [] as Array<{ i18n : number, key : string; value : boolean; }>,
+		string : [] as Array<{ i18n : number, key : string; value : string; }>,
 		sound : [
 			new Sound_Setting(
 				I18N_KEYS.SETTING_VOICE_BGM,
@@ -137,7 +158,18 @@
 				}
 			)
 		],
-		change : mainGame.set.system
+		change : (
+			k : string,
+			v : string | number | boolean | Array<string>,
+			obj : { i18n : number, key : string; value : any; }
+		) => {
+				console.log('change')
+			if (k === KEYS.SETTING_SEARCH_SPLIT && !v) {
+				obj.value = '%%';
+				return;
+			}
+			queue.add(async () => mainGame.set.system(k, v));
+		}
 	});
 
 	onBeforeMount(() => {
@@ -176,6 +208,15 @@
 				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as boolean
 			}
 		});
+		page.string = [
+			'SETTING_SEARCH_SPLIT'
+		].map(i => {
+			return {
+				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
+				key : KEYS[i as keyof typeof KEYS],
+				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as string
+			}
+		});
 	});
 
 	const emit = defineEmits<{ i18n : [boolean]; }>();
@@ -191,6 +232,15 @@
 				display: flex;
 				height: 40px;
 				transform: translateX(-10px);
+				.var-input {
+					width: 100px;
+					[media = 'mobile'] & {
+						transform: scale(140%) translate(-20px, -10px);
+					}
+					[media = 'pc'] & {
+						transform: translateY(-10px);
+					}
+				}
 			}
 		}
 	}

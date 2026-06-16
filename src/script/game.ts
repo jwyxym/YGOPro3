@@ -329,11 +329,16 @@ class Game {
 
 	set = {
 		system : async (k : string, v : string | number | boolean | Array<string>, write : boolean = true) => {
+			let change = false;
 			this.system.forEach(i => {
-				if (i.has(k))
+				const value = i.get(k);
+				if (value && value !== v) {
+					change = true;
 					i.set(k, v);
+				}
 			});
-			await invoke.game.set_system(k, this.get.system_index(k), v, write);
+			if (change)
+				await invoke.game.set_system(k, this.get.system_index(k), v, write);
 		}
 	};
 

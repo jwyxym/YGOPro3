@@ -69,7 +69,7 @@
 					.set.cards(Array.from(mainGame.cards).map(i => i[1]))
 					.set.id(id)
 					.set.setcode(c.setcode)
-					.set.desc(desc.join('%%'));
+					.set.desc(desc.join(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string));
 				const cards : Array<Card> = searcher
 					.about();
 				await mainGame.load.pic(cards.map(i => i.id));

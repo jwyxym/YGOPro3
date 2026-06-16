@@ -1,5 +1,6 @@
 import Card, { TYPE } from '@/script/card';
 import mainGame from '@/script/game';
+import { KEYS } from '@/script/constant';
 import calculator from './calculator';
 
 interface AndOr {
@@ -41,12 +42,12 @@ class Search {
 		race : (race : Array<number>) => { this.race = race; return this; },
 		link : (link : Array<number>) => { this.link = link; return this; },
 		lflist : (lflist : string) => { this.lflist = lflist; return this; },
-		forbidden : (forbidden : string) => { this.forbidden = forbidden.split('%%').filter(i => i); return this; },
-		lv : (lv : string) => { this.lv = lv.split('%%').filter(i => i); return this; },
-		atk : (atk : string) => { this.atk = atk.split('%%').filter(i => i); return this; },
-		def : (def : string) => { this.def = def.split('%%').filter(i => i); return this; },
-		scale : (scale : string) => { this.scale = scale.split('%%').filter(i => i); return this; },
-		desc : (desc : string) => { if (desc) this.desc = Array.from(new Set(desc.split('%%').filter(i => i))); return this; },
+		forbidden : (forbidden : string) => { this.forbidden = forbidden.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i); return this; },
+		lv : (lv : string) => { this.lv = lv.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i); return this; },
+		atk : (atk : string) => { this.atk = atk.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i); return this; },
+		def : (def : string) => { this.def = def.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i); return this; },
+		scale : (scale : string) => { this.scale = scale.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i); return this; },
+		desc : (desc : string) => { if (desc) this.desc = Array.from(new Set(desc.split(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string).filter(i => i))); return this; },
 		setcode : (setcode : Array<number>) => { this.setcode = setcode.map(i => i & 0xfff).filter(i => i); return this; },
 		id : (id : number) => { this.id = id; return this; },
 		and_or : (and_or : AndOr) => { this.and_or = and_or; return this; }

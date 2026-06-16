@@ -470,7 +470,7 @@
 				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
 				.set.id(c.id)
 				.set.setcode(c.setcode)
-				.set.desc(desc.join('%%'));
+				.set.desc(desc.join(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string));
 			page.result = searcher.about().map(i => ({
 				card : i,
 				pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
