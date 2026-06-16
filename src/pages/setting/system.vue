@@ -147,7 +147,8 @@
 			'SETTING_CT_DECK_EX',
 			'SETTING_CT_DECK_SIDE',
 			'SETTING_CT_DECK_PRELINE',
-			'SETTING_CT_SIDE_PRELINE'
+			'SETTING_CT_SIDE_PRELINE',
+			'SETTING_CT_ABOUT_PRELINE'
 		].map(i => {
 			return {
 				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],

@@ -145,6 +145,7 @@ Ko_KR[I18N_KEYS.SETTING_CT_DECK_EX] = '엑스트라 덱 최대 매수';
 Ko_KR[I18N_KEYS.SETTING_CT_DECK_SIDE] = '사이드 덱 최대 매수';
 Ko_KR[I18N_KEYS.SETTING_CT_DECK_PRELINE] = '덱 편집기 행당 카드 수';
 Ko_KR[I18N_KEYS.SETTING_CT_SIDE_PRELINE] = '사이드 덱 편집기 행당 카드 수';
+Ko_KR[I18N_KEYS.SETTING_CT_ABOUT_PRELINE] = '듀얼 중 관련 카드 검색 시 행당 카드 수';
 Ko_KR[I18N_KEYS.SETTING_CT_CARD] = '최대 카드 매수';
 Ko_KR[I18N_KEYS.SETTING_AVATAR_SELF] = '자신의 아바타';
 Ko_KR[I18N_KEYS.SETTING_AVATAR_OPPO] = '상대 아바타';

@@ -9,7 +9,11 @@
 				@click.stop = 'page.close'
 			/>
 		</div>
-		<var-loading :loading = 'page.loading' class = 'no-scrollbar'>
+		<var-loading
+			:loading = 'page.loading'
+			:style = "{ '--ct' : (mainGame.get.system(KEYS.SETTING_CT_ABOUT_PRELINE) as number).toString() }"
+			class = 'no-scrollbar'
+		>
 			<img
 				v-for = '(i, v) in page.cards'
 				:key = 'v'
@@ -24,7 +28,10 @@
 	import PQueue from 'p-queue';
 
 	import mainGame from '@/script/game';
+	import { KEYS } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import type Card from '@/script/card';
+
 	import Button from '@/pages/ui/button.vue';
 	import Search from '@/pages/deck/search';
 	const page = reactive({
@@ -60,10 +67,10 @@
 					.set.id(id)
 					.set.setcode(c.setcode)
 					.set.desc(c.name);
-				const codes : Array<number> = searcher
-					.about()
-					.map(i => i.id);
-				page.cards = await mainGame.load.pic(codes);
+				const cards : Array<Card> = searcher
+					.about();
+				await mainGame.load.pic(cards.map(i => i.id));
+				page.cards = cards.map(i => [i.id, i.pic]);
 				page.loading = false;
 			});
 	}, { immediate : true });
@@ -125,7 +132,7 @@
 			transform: translateX(2.5px);
 			border: 1px white solid;
 			img {
-				width: 10%;
+				width: calc(100% / var(--ct));
 				aspect-ratio: 1 / 1.45;
 			}
 		}

@@ -145,6 +145,7 @@ En_US[I18N_KEYS.SETTING_CT_DECK_EX] = 'Max Extra Deck Capacity';
 En_US[I18N_KEYS.SETTING_CT_DECK_SIDE] = 'Max Side Deck Capacity';
 En_US[I18N_KEYS.SETTING_CT_DECK_PRELINE] = 'Cards Per Row (Deck Edit)';
 En_US[I18N_KEYS.SETTING_CT_SIDE_PRELINE] = 'Cards Per Row (Side Edit)';
+En_US[I18N_KEYS.SETTING_CT_ABOUT_PRELINE] = 'Cards Per Row (In-Duel Related Card Search)';
 En_US[I18N_KEYS.SETTING_CT_CARD] = 'Max Card Copies';
 En_US[I18N_KEYS.SETTING_AVATAR_SELF] = 'Your Avatar';
 En_US[I18N_KEYS.SETTING_AVATAR_OPPO] = 'Opponent Avatar';

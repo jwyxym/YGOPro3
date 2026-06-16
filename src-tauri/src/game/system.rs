@@ -143,6 +143,9 @@ impl System {
 				.entry(String::from("CT_SIDE_PRELINE"))
 				.or_insert(9.0);
 		}
+		self.number
+			.entry(String::from("CT_ABOUT_PRELINE"))
+			.or_insert(10.0);
 		[
 			"CT_AVATAR_SELF",
 			"CT_AVATAR_OPPO",

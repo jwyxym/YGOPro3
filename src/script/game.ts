@@ -259,30 +259,28 @@ class Game {
 	clear = () : void => this.cards.forEach(i => i.clear());
 
 	load = {
-		pic : async (deck : Deck | Array<number | string>) : Promise<Array<[number, string]>> => {
+		pic : async (deck : Deck | Array<number | string>) : Promise<void> => {
 			if (deck instanceof Deck)
-				deck = deck.main.concat(deck.side, deck.extra);
-			const result : Array<[number, string]> = [];
-			const d : Array<number> = [];
-			for (const i of deck) {
-				const c = this.get.card(i);
-				const id = Number(i);
-				c.has_pic() ? result.push([id, c.pic]) : d.push(id);
-			};
-			const pics = await invoke.game.get_pic(d);
-			pics
-				.forEach(i => {
-					this.get.card(i[0]).update_pic(i[1]);
-					result.push(i);
-				});
+				deck = deck.main
+					.concat(
+						deck.side,
+						deck.extra
+					);
+			const d : Array<number> = deck
+				.map(i => {
+					const c = this.get.card(i);
+					return c.has_pic() ? 0 : c.id;
+				})
+				.filter(i => i);
+			(await invoke.game.get_pic(d))
+				.forEach(i => this
+					.get.card(i[0])
+					.update_pic(i[1])
+				);
 			d
 				.map(i => this.get.card(i))
 				.filter(i => !i.has_pic())
-				.forEach(i => {
-					i.update_pic(this.unknown.pic);
-					result.push([i.id, this.unknown.pic]);
-				});
-			return result;
+				.forEach(i => i.update_pic(this.unknown.pic));
 		}
 	};
 
