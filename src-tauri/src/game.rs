@@ -9,6 +9,7 @@ mod sound;
 mod card_info;
 mod lflist;
 mod model;
+mod extra_code;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -20,7 +21,8 @@ pub use self::{
 	strings::Strings,
 	system::System,
 	model::Model,
-	zip::Zip
+	zip::Zip,
+	extra_code::SetCode
 };
 use crate::file::{File, FileContent};
 use crate::request::Request;
@@ -78,6 +80,7 @@ pub struct Game {
 	system: System,
 	resource: Resource,
 	sound: Sound,
+	ex_code: SetCode,
 	pack: IndexMap<String, GamePack>
 }
 
@@ -134,7 +137,7 @@ impl Game {
 		i.1?;
 		app.emit("progress", 1)?;
 
-		let (system, resource, lflist, servers, model, mut tasks) = Self::load_config(path, &config).await;
+		let (system, resource, lflist, servers, model, setcode, mut tasks) = Self::load_config(path, &config).await;
 		app.emit("progress", 1)?;
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
@@ -174,11 +177,12 @@ impl Game {
 			system: system,
 			sound: sound,
 			resource: resource,
+			ex_code: setcode,
 			pack: pack
 		})
 	}
 
-	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, Vec<JoinHandle<Result<(), Error>>>) {
+	async fn load_config (path: &Path, config: &Vec<(String, String)>) -> (System, Resource, LFList, Server, Model, SetCode, Vec<JoinHandle<Result<(), Error>>>) {
 		let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 		let config_path: PathBuf = path
 			.join("config");
@@ -201,6 +205,9 @@ impl Game {
 							} else if file.name() == "room_model.toml" {
 								let text: String = read_to_string(i.path()).await?;
 								Ok(FileContent::Model(text))
+							} else if file.name() == "extra_code.toml" {
+								let text: String = read_to_string(i.path()).await?;
+								Ok(FileContent::ExCode(text))
 							} else {
 								Err(anyhow!(""))
 							}
@@ -215,6 +222,7 @@ impl Game {
 		}));
 		let mut system: Option<System> = None;
 		let mut resources: Option<Resource> = None;
+		let mut setcodes: Option<SetCode> = None;
 		let mut servers: Server = Server::new();
 		let mut lflist: LFList = LFList::new();
 		let mut model: Model = Model::new();
@@ -239,12 +247,16 @@ impl Game {
 						FileContent::Model(text) => {
 							model.init(text)
 						}
+						FileContent::ExCode(text) => {
+							setcodes.get_or_insert_with(|| SetCode::new(text));
+						}
 						_ => ()
 					};
 				}
 			}
 		}
 		let mut resources: Resource = resources.unwrap_or_else(|| { Resource::default() });
+		let mut setcodes: SetCode = setcodes.unwrap_or_else(|| { SetCode::default() });
 		let mut tasks: Vec<JoinHandle<Result<(), Error>>> = Vec::new();
 		if let Some((_, text)) = config
 			.iter()
@@ -258,6 +270,18 @@ impl Game {
 					Ok(())
 				}));
 			}
+		}
+		if let Some((_, text)) = config
+			.iter()
+			.find(|i| i.0.ends_with("extra_code.toml"))
+			&& setcodes.merge(text) {
+			let p: PathBuf = config_path
+				.join("extra_code.toml");
+			let text: String = setcodes.to_string();
+			tasks.push(spawn(async move {
+				write(p, text)?;
+				Ok(())
+			}));
 		}
 		if let Some((_, text)) = config
 			.iter()
@@ -299,7 +323,7 @@ impl Game {
 				system
 			}
 		};
-		(system, resources, lflist, servers, model, tasks)
+		(system, resources, lflist, servers, model, setcodes, tasks)
 	}
 
 	async fn load_i18n (path: &Path, i18n: String, config: &Vec<(String, String)>) -> (CardInfo, Cdb, Strings, JoinHandle<Result<(), Error>>) {
@@ -711,6 +735,14 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game
 			.model
+			.to_array())
+	}
+
+	pub async fn get_ex_code () -> Result<Vec<(u32, Vec<u16>)>, Error> {
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: RwLockReadGuard<'_, Self> = game.read().await;
+		Ok(game
+			.ex_code
 			.to_array())
 	}
 

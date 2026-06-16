@@ -15,14 +15,14 @@ impl Model {
 		}
 	}
 	pub fn init(&mut self, text: String) -> () {
-		if let Ok(i) = from_str::<Self>(&text) {
-			self.model = i.model;
+		if let Ok(model) = from_str::<IndexMap<String, String>>(&text) {
+			self.model = model;
 		}
 	}
 	pub fn merge (&mut self, text: &str) -> bool {
-		if let Ok(model) = from_str::<Self>(text) {
+		if let Ok(model) = from_str::<IndexMap<String, String>>(text) {
 			let mut result: bool = false;
-			for (key, value) in model.model {
+			for (key, value) in model {
 				match self.model.entry(key) {
 					Entry::Occupied(_) => (),
 					Entry::Vacant(entry) => {
@@ -39,6 +39,6 @@ impl Model {
 		self.model.clone().into_iter().collect()
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
-		Ok(to_string(&self)?)
+		Ok(to_string(&self.model)?)
 	}
 }

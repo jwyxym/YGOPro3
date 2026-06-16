@@ -16,6 +16,7 @@ pub enum FileContent {
 	Resource(String),
 	CardInfo(String),
 	Strings(String),
+	ExCode(String),
 	Cdb(Cdb)
 }
 

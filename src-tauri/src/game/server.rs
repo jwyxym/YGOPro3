@@ -15,7 +15,10 @@ impl Server {
 		}
 	}
 	pub fn init_by_toml(&mut self, text: String) -> () {
-		if let Ok(servers) = from_str::<Self>(&text) {
+		if let Ok(servers) = from_str::<IndexMap<String, String>>(&text) {
+			let servers: Server = Self {
+				servers: servers
+			};
 			servers.content().into_iter().for_each(|(k, v)| {
 				self.servers.insert(String::from(k), String::from(v));
 			});
@@ -76,6 +79,6 @@ impl Server {
 		&self.servers
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
-		Ok(to_string(&self)?)
+		Ok(to_string(&self.servers)?)
 	}
 }

@@ -56,6 +56,7 @@ pub fn run() {
 			api::get_lflist,
 			api::get_info,
 			api::get_model,
+			api::get_ex_code,
 			api::get_deck,
 			api::get_time,
 			api::set_system,

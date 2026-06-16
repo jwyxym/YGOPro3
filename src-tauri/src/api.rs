@@ -158,6 +158,15 @@ pub async fn get_model () -> Response {
 }
 
 #[tauri::command]
+pub async fn get_ex_code () -> Response {
+	Game::get_ex_code().await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(default_response)
+}
+
+#[tauri::command]
 pub async fn get_time (path: Vec<String>) -> Result<String, String> {
 	Game::get_time(path).await.map_err(|e| e.to_string())
 }

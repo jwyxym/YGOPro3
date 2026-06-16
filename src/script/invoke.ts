@@ -285,6 +285,17 @@ class Invoke {
 				return [];
 			}
 		},
+		get_ex_code : async () : Promise<Array<[number, Array<number>]>> => {
+			try {
+				const result = await invoke<ArrayBuffer>('get_ex_code');
+				return bincode.decode(bincode.Collection(
+					bincode.Tuple(bincode.u32, bincode.Collection(bincode.u16))
+				), result).value as any;
+			} catch (error) {
+				this.log.write(error);
+				return [];
+			}
+		},
 		get_hash : async () : Promise<ArrayBuffer | undefined> => {
 			try {
 				return await invoke<ArrayBuffer>('get_hash');

@@ -47,13 +47,15 @@ class Card {
 	hint : Array<string>;
 	pic : string;
   
-	constructor (row : Array<string | number>) {
-		const setcode = (value : string | number) : Array<number> => {
-			value = Number(value);
+	constructor (row : Array<string | number | bigint>) {
+		const setcode = (value : string | number | bigint) : Array<number> => {
+			let setcode = BigInt(value || 0);
+			if (setcode < 0n)
+				setcode = BigInt.asUintN(64, setcode);
 			const result : Array<number> = [];
-			while (value > 0) {
-				result.unshift(Number(value & 0xffff));
-				value >>= 16;
+			while (setcode > 0n) {
+				result.unshift(Number(setcode & 0xffffn));
+				setcode >>= 16n;
 			}
 			return result;
 		};
@@ -133,6 +135,10 @@ class Card {
 	set = {
 		readonly : () : Card => {
 			this.readonly = true
+			return this;
+		},
+		setcode : (setcode : Array<number>) : Card => {
+			this.setcode = Array.from(new Set([...this.setcode, ...setcode]));
 			return this;
 		}
 	}

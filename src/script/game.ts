@@ -38,7 +38,7 @@ class Game {
 		try {
 			if (!await invoke.game.init())
 				return false;
-			const [sounds, textures, cards, systems, servers, lflist, strings, model, info, hash] = await Promise.all([
+			const [sounds, textures, cards, systems, servers, lflist, strings, model, info, hash, ex_codes] = await Promise.all([
 				invoke.game.get_sound(),
 				invoke.game.get_textures(),
 				invoke.game.get_cards(),
@@ -48,7 +48,8 @@ class Game {
 				invoke.game.get_strings(),
 				invoke.game.get_model(),
 				invoke.game.get_info(),
-				invoke.game.get_hash()
+				invoke.game.get_hash(),
+				invoke.game.get_ex_code()
 			]);
 			if (hash)
 				await recognizer.init(hash);
@@ -86,6 +87,13 @@ class Game {
 			this.model = new Map(model);
 			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
+			ex_codes
+				.forEach(i => this.cards
+					.get(i[0])
+					?.set.setcode(i[1])
+				);
+			console.log([0x8f, 0x54, 0x59, 0x82, 0x13a])
+			console.log(this.cards.get(8512558)?.setcode)
 
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
