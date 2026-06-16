@@ -140,16 +140,27 @@
 				return true;
 			},
 			check : (code : number | string, deck : 0 | 1 | 2) : true | string => {
+				const get_code = (card : Card) => {
+					while (card.alias) {
+						const c = mainGame.get.card(card.alias);
+						if (c === mainGame.unknown)
+							break;
+						card = c;
+					}
+					return card.id;
+				};
 				const card : Card = mainGame.get.card(code);
-				code = Math.abs(card.alias - card.id) <= 20 ? card.alias : card.id;
+				code = get_code(card);
 				if (card.is_token())
 					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE);
 				const cards = page.deck.main.concat(page.deck.extra, page.deck.side);
 				const ct = props.lflist?.get.lflist(card.id) ?? mainGame.get.system(CONSTANT.KEYS.SETTING_CT_CARD) as number;
-				if (cards.filter(i => (() : number => {
-					const card : Card = mainGame.get.card(i.code);
-					return Math.abs(card.alias - card.id) <= 20 ? card.alias : card.id;
-				})() === code).length >= ct + (page.move.index.from > -1 ? 1 : 0))
+				if (cards
+					.filter(
+						i => get_code(mainGame.get.card(i.code)) === code
+					).length
+						>= ct + Number(page.move.index.from > -1)
+				)
 					return mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_MAX, ct.toString());
 				const chk = page.move.index.from === deck ? 0 : 1;
 				const genesys = Number(page.move.index.from < 0) * (props.lflist?.genesys ? props.lflist.get.glist(card.id) : 0);

@@ -48,18 +48,27 @@ class Card {
 	pic : string;
   
 	constructor (row : Array<string | number>) {
+		const setcode = (value : string | number) : Array<number> => {
+			value = Number(value);
+			const result : Array<number> = [];
+			while (value > 0) {
+				result.unshift(Number(value & 0xffff));
+				value >>= 16;
+			}
+			return result;
+		};
 		this.readonly = false;
 		this.pic = '';
 		this.id = Number(row[0]);
 		this.ot = Number(row[1]);
 		this.alias = Number(row[2]);
-		this.setcode = row[3].toString(16).padStart(16, '0').match(/.{1,4}/g)!.map(str => parseInt(str, 16));
+		this.setcode = setcode(row[3]);
 		this.type = Number(row[4]);
 		this.atk = Number(row[5]);
 		this.def = Number(row[6]);
-		const level = row[7].toString(16).padStart(7, '0')
-		this.level = parseInt(level.slice(-4), 16) | 0;
-		this.scale = parseInt(level.slice(-6, -4), 16) | 0;
+		const level = Number(row[7]) >>> 0;
+		this.level = level & 0xffff;
+		this.scale = (level >>> 16) & 0xff;
 		this.race = Number(row[8]);
 		this.attribute = Number(row[9]);
 		this.category = Number(row[10]);

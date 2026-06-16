@@ -23,7 +23,7 @@ class LFList {
 	get = {
 		lflist : (code : number | string) : number => {
 			let card = mainGame.get.card(code);
-			while (card.alias !== 0 && Math.abs(card.id - card.alias) <= 20) {
+			while (card.alias) {
 				const c = mainGame.get.card(card.alias);
 				if (c === mainGame.unknown)
 					break;
@@ -33,7 +33,7 @@ class LFList {
 		},
 		glist : (code : number | string) : number => {
 			let card = mainGame.get.card(code);
-			while (card.alias !== 0 && Math.abs(card.id - card.alias) <= 20) {
+			while (card.alias) {
 				const c = mainGame.get.card(card.alias);
 				if (c === mainGame.unknown)
 					break;
