@@ -1,6 +1,6 @@
 import { createYGOPicRecognizer, type YGOPicRecognizer } from 'ygopic-best';
-import ygo_pic_wasm_url from 'ygopic-best/core-wasm/core_wasm_bg.wasm?url';
-import model_url from 'ygopic-best/onnx?url';
+import WASM_URL from 'ygopic-best/core-wasm/core_wasm_bg.wasm?url';
+import MODEL_URL from 'ygopic-best/onnx?url';
 
 import Deck from './deck';
 
@@ -12,9 +12,9 @@ class Pic_Recognizer {
 	init = async (hash : ArrayBuffer) : Promise<void> => {
 		if (this.recognizer) return;
 		this.recognizer = await createYGOPicRecognizer({
-			modelUrl : model_url,
+			modelUrl : MODEL_URL,
 			hashDb : hash,
-			wasmPath : ygo_pic_wasm_url,
+			wasmPath : WASM_URL,
 			ortNumThreads : 1
 		});
 	};
