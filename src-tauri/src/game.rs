@@ -25,6 +25,7 @@ pub use self::{
 	extra_code::SetCode
 };
 use crate::file::{File, FileContent};
+use crate::progress;
 use crate::request::Request;
 use crate::{PATH, RESOURCE_PATH};
 
@@ -47,7 +48,7 @@ use std::{
 	fs::{exists, write, read},
 	path::{Path, PathBuf}
 };
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 
@@ -68,7 +69,7 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-	app.emit("started", 5)?;
+	progress::emit(app, "started", 5);
 	*game = Game::init(app, overwrite).await?;
 	Ok(())
 }
@@ -115,9 +116,9 @@ impl Game {
 				)?;
 				Ok(None)
 			}));
-			app.emit("progress", 1)?;
+			progress::emit(app, "progress", 1);
 			for task in tasks {
-				app.emit("progress", 1)?;
+				progress::emit(app, "progress", 1);
 				if let Some(i) = task.await?? {
 					result.push(i)
 				}
@@ -135,16 +136,16 @@ impl Game {
 		);
 		let config: Vec<(String, String)> = i.0?;
 		i.1?;
-		app.emit("progress", 1)?;
+		progress::emit(app, "progress", 1);
 
 		let (system, resource, lflist, servers, model, setcode, mut tasks) = Self::load_config(path, &config).await;
-		app.emit("progress", 1)?;
+		progress::emit(app, "progress", 1);
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
 			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n(), &config)
 		);
-		app.emit("progress", 1)?;
+		progress::emit(app, "progress", 1);
 
 		tasks.push(task);
 		for i in vec!["deck", "expansions", "replay"] {
@@ -155,11 +156,11 @@ impl Game {
 		for task in tasks {
 			let _ = task.await;
 		}
-		app.emit("progress", 1)?;
+		progress::emit(app, "progress", 1);
 
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
-		app.emit("progress", 1)?;
+		progress::emit(app, "progress", 1);
 		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
@@ -170,7 +171,7 @@ impl Game {
 			lflist: lflist,
 			pics: pics
 		});
-		app.emit("end", 0)?;
+		progress::emit(app, "end", 0);
 		Ok(Self {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
@@ -579,7 +580,7 @@ impl Game {
 				lflist: lflist,
 				pics: pics
 			});
-			app.emit("end", 0)?;
+			progress::emit(app, "end", 0);
 		}
 		Ok(())
 	}

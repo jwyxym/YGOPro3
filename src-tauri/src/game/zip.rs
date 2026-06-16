@@ -1,3 +1,4 @@
+use crate::progress;
 use super::{PIC_REGEX, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
@@ -12,7 +13,7 @@ use std::{
 	collections::BTreeMap,
 	path::{Path, PathBuf}
 };
-use tauri::{AppHandle, Emitter};
+use tauri::AppHandle;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct Zip {
@@ -92,7 +93,7 @@ impl Zip {
 		let file: File = File::open(&path)?;
 		let archive: ZipArchive<File> = ZipArchive::new(file)?;
 		let len: usize = archive.len();
-		app.emit("started", len)?;
+		progress::emit(app, "started", len);
 		let mut pics: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
 		let mut db: Vec<Cdb>= Vec::new();
 		let mut ini: Vec<String>= Vec::new();
@@ -100,7 +101,7 @@ impl Zip {
 		let mut strings: Vec<String>= Vec::new();
 		let mut servers: Vec<String>= Vec::new();
 		let ct: usize = Self::read(&path, |name, mut file| {
-			app.emit("progress", 1)?;
+			progress::emit(app, "progress", 1);
 			if let Some(_match) = PIC_REGEX
 				.captures(&name)
 				.and_then(|i| Some(i)?
@@ -142,7 +143,7 @@ impl Zip {
 			}
 			Ok(())
 		})?;
-		app.emit("progress", len - ct)?;
+		progress::emit(app, "progress", len - ct);
 		Ok::<Self, Error>(Self {
 			name: name,
 			pics: pics,
@@ -158,9 +159,9 @@ impl Zip {
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
 		let zip: ZipArchive<File> = ZipArchive::new(File::open(&assets)?)?;
-		app.emit("started", zip.len() * 2 + 6)?;
+		progress::emit(app, "started", zip.len() * 2 + 6);
 		let _ = Self::read(&assets, |name: String, mut file: ZipFile<'_>| {
-			app.emit("progress", 1)?;
+			progress::emit(app, "progress", 1);
 			let path: PathBuf = path.join(&name);
 			if !file.is_dir() {
 				if name.starts_with("config") {

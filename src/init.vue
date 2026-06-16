@@ -3,7 +3,7 @@
 		<starry-sky :stars-count = '1500' :distance = '800'/>
 		<Voice v-if = 'page.show.voice'/>
 		<Loading
-			@loading = '(n) => page.loading = n'
+			v-model:loading = 'page.loading'
 			:init = 'page.init'
 		/>
 		<Toast/>
@@ -34,7 +34,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, onBeforeMount, onMounted, onUnmounted } from 'vue';
+	import { reactive, onMounted, onUnmounted } from 'vue';
 
 	import YGOMenu from './pages/menu/menu.vue';
 	import Deck from './pages/deck/deck_list.vue';
@@ -73,9 +73,8 @@
 					}, 600);
 			},
 			single : () : void => {
-				if (page.loading) {
+				if (page.loading)
 					return;
-				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 0;
@@ -83,9 +82,8 @@
 				}, 600);
 			},
 			server : () : void => {
-				if (page.loading) {
+				if (page.loading)
 					return;
-				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 1;
@@ -93,9 +91,8 @@
 				}, 600);
 			},
 			replay : () : void => {
-				if (page.loading) {
+				if (page.loading)
 					return;
-				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 2;
@@ -103,9 +100,8 @@
 				}, 600);
 			},
 			deck : () : void => {
-				if (page.loading) {
+				if (page.loading)
 					return;
-				}
 				page.show.menu = false;
 				setTimeout(() => {
 					page.show.deck = true;
@@ -120,8 +116,12 @@
 		}
 	});
 
-	onBeforeMount(async () : Promise<void> => {
-		if (!await mainGame.init()) {
+	onMounted(async () : Promise<void> => {
+		if (await mainGame.init()) {
+			page.show.voice = true;
+			page.show.menu = true;
+			page.init = true;
+		} else {
 			await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),
@@ -130,12 +130,6 @@
 			}, true);
 			await mainGame.exit();
 		}
-		page.show.voice = true;
-		page.show.menu = true;
-		page.init = true;
-	});
-
-	onMounted(async () => {
 	});
 
 	onUnmounted(mainGame.clear);

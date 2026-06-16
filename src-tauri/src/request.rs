@@ -1,4 +1,5 @@
-use tauri::{AppHandle, Emitter};
+use crate::progress;
+use tauri::AppHandle;
 use anyhow::{Result, Error, anyhow};
 use content_disposition::parse_content_disposition;
 use uuid::Uuid;
@@ -51,7 +52,7 @@ impl Request {
 			let headers: &HeaderMap = response.headers();
 			let name: String = Self::name(name, headers);
 			let size: i64 = Self::size(headers);
-			app.emit("started", size)?;
+			progress::emit(app, "started", size);
 			let path: &Path = path.as_ref();
 
 			let mut body: Body = response.into_body();
@@ -64,10 +65,10 @@ impl Request {
 				if bytes == 0 {
 					break;
 				}
-				app.emit("progress", 8192)?;
+				progress::emit(app, "progress", 8192);
 				file.write_all(&buffer[..bytes]).await?;
 			}
-			app.emit("end", 0)?;
+			progress::emit(app, "end", 0);
 			Ok(name)
 		} else {
 			Err(anyhow!("{}", response.status()))

@@ -1,5 +1,5 @@
 <template>
-	<div class = 'loading ygopro3__loading' :style = "{ '--opacity' : Number(page.show) }">
+	<div class = 'loading ygopro3__loading' :style = "{ '--opacity' : Number(page.show.value) }">
 		<div v-if = 'init' class = 'load'>
 			<var-loading/>
 			<span v-show = 'page.all > 0'>{{ Math.min((page.now / page.all) * 100, 99.99).toFixed(2) }}%</span>
@@ -15,14 +15,31 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, onUnmounted, reactive, watch } from 'vue';
+	import { onBeforeMount, onUnmounted, reactive } from 'vue';
 	import { UnlistenFn } from '@tauri-apps/api/event';
 
 	import listen from '@/script/listen';
 	import mainGame from '@/script/game';
 
+	const emit = defineEmits<{ loading : [boolean]; }>();
+	const props = defineProps<{
+		loading : boolean;
+		init : boolean;
+	}>();
+
+	class Show {
+		private _value = false;
+		get value () : boolean {
+			return this._value
+		};
+		set value (value : boolean) {
+			emit('loading', value);
+			this._value = value;
+		};
+	};
+
 	const page = reactive({
-		show : false,
+		show : new Show(),
 		all : 0,
 		now : 0,
 		funcs : [] as Array<UnlistenFn>
@@ -32,12 +49,12 @@
 		page.funcs.push(await listen.start((all : number) => {
 			page.all = all;
 			page.now = 0;
-			page.show = true;
+			page.show.value = true;
 		}));
 		page.funcs.push(await listen.progress((progress : number) => page.now += progress));
 		page.funcs.push(await listen.end(async () => {
 			page.now = page.all;
-			page.show = false;
+			page.show.value = false;
 			await mainGame.sleep(100);
 			page.all = 0;
 			page.now = 0;
@@ -48,10 +65,6 @@
 		for (const i of page.funcs)
 			i();
 	});
-
-	const emit = defineEmits<{ loading : [boolean]; }>();
-	const props = defineProps<{ init : boolean }>();
-	watch(() => page.show, (n) => emit('loading', n));
 </script>
 <style scoped lang = 'scss'>
 	.loading {
