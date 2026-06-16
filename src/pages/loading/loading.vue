@@ -21,7 +21,7 @@
 	import listen from '@/script/listen';
 	import mainGame from '@/script/game';
 
-	const emit = defineEmits<{ loading : [boolean]; }>();
+	const emit = defineEmits<{ 'update:loading' : [boolean]; }>();
 	const props = defineProps<{
 		loading : boolean;
 		init : boolean;
@@ -33,7 +33,7 @@
 			return this._value
 		};
 		set value (value : boolean) {
-			emit('loading', value);
+			emit('update:loading', value);
 			this._value = value;
 		};
 	};

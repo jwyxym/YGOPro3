@@ -63,6 +63,11 @@
 			setting : false
 		},
 		select : {
+			lock : (f : () => void) : void => {
+				if (page.loading)
+					return;
+				f();
+			},
 			menu : () : void => {
 				page.show.duel = false;
 				page.show.deck = false;
@@ -72,41 +77,33 @@
 						page.show.menu = true;
 					}, 600);
 			},
-			single : () : void => {
-				if (page.loading)
-					return;
+			single : () : void => page.select.lock(() => {
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 0;
 					page.show.duel = true;
 				}, 600);
-			},
-			server : () : void => {
-				if (page.loading)
-					return;
+			}),
+			server : () : void => page.select.lock(() => {
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 1;
 					page.show.duel = true;
 				}, 600);
-			},
-			replay : () : void => {
-				if (page.loading)
-					return;
+			}),
+			replay : () : void => page.select.lock(() => {
 				page.show.menu = false;
 				setTimeout(() => {
 					page.duel.model = 2;
 					page.show.duel = true;
 				}, 600);
-			},
-			deck : () : void => {
-				if (page.loading)
-					return;
+			}),
+			deck : () : void => page.select.lock(() => {
 				page.show.menu = false;
 				setTimeout(() => {
 					page.show.deck = true;
 				}, 600);
-			},
+			}),
 			setting : () : void => {
 				page.show.menu = false;
 				setTimeout(() => {
