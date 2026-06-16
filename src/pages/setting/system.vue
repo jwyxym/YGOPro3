@@ -163,7 +163,6 @@
 			v : string | number | boolean | Array<string>,
 			obj : { i18n : number, key : string; value : any; }
 		) => {
-				console.log('change')
 			if (k === KEYS.SETTING_SEARCH_SPLIT && !v) {
 				obj.value = '%%';
 				return;
