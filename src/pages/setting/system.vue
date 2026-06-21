@@ -65,7 +65,7 @@
 				<template #extra>
 					<Input
 						v-model = 'i.value'
-						:maxlength = '5'
+						:maxlength = 'i.max'
 						:clearable = 'false'
 						@blur = 'page.change(i.key, i.value, i)'/>
 				</template>
@@ -130,7 +130,7 @@
 		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,
 		bool : [] as Array<{ i18n : number, key : string; value : boolean; }>,
-		string : [] as Array<{ i18n : number, key : string; value : string; }>,
+		string : [] as Array<{ i18n : number, key : string; value : string; max : number }>,
 		sound : [
 			new Sound_Setting(
 				I18N_KEYS.SETTING_VOICE_BGM,
@@ -208,12 +208,14 @@
 			}
 		});
 		page.string = [
-			'SETTING_SEARCH_SPLIT'
+			['SETTING_SERVER_PLAYER_NAME', 20],
+			['SETTING_SEARCH_SPLIT', 5]
 		].map(i => {
 			return {
-				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
-				key : KEYS[i as keyof typeof KEYS],
-				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as string
+				i18n : I18N_KEYS[i[0] as keyof typeof I18N_KEYS],
+				key : KEYS[i[0] as keyof typeof KEYS],
+				value : mainGame.get.system(KEYS[i[0] as keyof typeof KEYS]) as string,
+				max : i[1] as number
 			}
 		});
 	});
