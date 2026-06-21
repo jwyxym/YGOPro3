@@ -14,6 +14,7 @@ class Plaid {
 	seq : number;
 	disable : boolean;
 	forbbiden : boolean;
+	selected : boolean;
 	owner : 0 | 1;
 
 	static chk = () : boolean => connect.wait.info.duel_rule >= 0 && connect.wait.info.duel_rule <= 3;
@@ -84,22 +85,24 @@ class Plaid {
 	]);
 
 	static row_name : Map<number, (x : number, rule : boolean) => string> = new Map([
-		[3, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${- x + 2}]`],
+		[3, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${- x + 3}]`],
 		[2, (x, rule) => rule && Math.abs(x) === 2
 			? `${Plaid.text(I18N_KEYS.DUEL_LOCATION_PZONE)}[${x < 0 ? 1 : 0}]`
-			: `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${- x + 2}]`],
-		[1, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_MZONE)}[${- x + 2}]`],
-		[0, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_EX_MZONE)}[${x > 0 ? 1 : 0}]`],
-		[- 1, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_MZONE)}[${x + 2}]`],
+			: `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${- x + 3}]`],
+		[1, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_MZONE)}[${- x + 3}]`],
+		[0, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_EX_MZONE)}[${Number(x > 0)}]`],
+		[- 1, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_MZONE)}[${x + 3}]`],
 		[- 2, (x, rule) => rule && Math.abs(x) === 2
-			? `${Plaid.text(I18N_KEYS.DUEL_LOCATION_PZONE)}[${x < 0 ? 0 : 1}]`
-			: `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${x + 2}]`],
-		[- 3, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${x + 2}]`],
+			? `${Plaid.text(I18N_KEYS.DUEL_LOCATION_PZONE)}[${Number(x > 0)}]`
+			: `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${x + 3}]`],
+		[- 3, x => `${Plaid.text(I18N_KEYS.DUEL_LOCATION_SZONE)}[${x + 3}]`],
 	]);
 
 	static get = {
 		data : (x : number, y : number, rule : boolean) : number => {
 			const key = Plaid.key(x, y);
+			if (Math.abs(x) === 3 && (Math.abs(y) !== 1 || x * y <= 0))
+				return 0;
 			return (rule ? Plaid.rule_data.get(key) : undefined)
 				?? Plaid.side_data.get(key)
 				?? Plaid.row_data.get(y)?.(x)
@@ -132,6 +135,7 @@ class Plaid {
 		this.child = child;
 		this.disable = false;
 		this.forbbiden = false;
+		this.selected = false;
 		this.three = new CSS.CSS3DObject(dom);
 		this.data = Plaid.get.data(x, y, rule);
 		[this.location, this.seq, this.owner] = Plaid.get.target(x, y, rule);
@@ -151,6 +155,13 @@ class Plaid {
 			this.child.classList.contains('forbbiden')
 				? this.child.classList.remove('forbbiden')
 				: this.child.classList.add('forbbiden');
+			await mainGame.sleep(200);
+		},
+		selected: async () : Promise<void> => {
+			this.selected = !this.selected;
+			this.child.classList.contains('selected')
+				? this.child.classList.remove('selected')
+				: this.child.classList.add('selected');
 			await mainGame.sleep(200);
 		}
 	};

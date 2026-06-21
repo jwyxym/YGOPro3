@@ -31,7 +31,7 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, toRaw } from 'vue';
+	import { onBeforeUnmount, reactive, toRaw, watch } from 'vue';
 	
 	import { POS } from '@/pages/duel/ygo-protocol/network';
 	import Plaid from '@/pages/duel/scene/plaid';
@@ -60,6 +60,17 @@
 		exit : [plaid ?: Plaid];
 		click : [card : Client_Card];
 	}>();
+
+	watch(() => page.plaid, async (n, o) => {
+		await Promise.all([
+			n?.set.selected() ?? Promise.resolve(),
+			o?.set.selected() ?? Promise.resolve()
+		]);
+	});
+
+	onBeforeUnmount(async () => {
+		await page.plaid?.set.selected();
+	});
 
 </script>
 <style scoped lang = 'scss'>
