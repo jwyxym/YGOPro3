@@ -1,3 +1,5 @@
+const VERSION = 0x1362;
+
 const STOC = {
 	GAME_MSG : 0x1,				// byte array
 	ERROR_MSG : 0x2,			// STOC_ErrorMsg
@@ -368,6 +370,7 @@ const REASON = {
 };
 
 export {
+	VERSION,
 	CTOS,
 	STOC,
 	LOCATION,

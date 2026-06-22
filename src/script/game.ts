@@ -28,7 +28,7 @@ class Game {
 	cards : Map<number, Card> = new Map;
 	bgm : Array<[string, string]> = reactive(new Array());
 	avatars : Array<string> = new Array();
-	version = 0x1362;
+	version = '';
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
 	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
@@ -38,7 +38,20 @@ class Game {
 		try {
 			if (!await invoke.game.init())
 				return false;
-			const [sounds, textures, cards, systems, servers, lflist, strings, model, info, hash, ex_codes] = await Promise.all([
+			const [
+				sounds,
+				textures,
+				cards,
+				systems,
+				servers,
+				lflist,
+				strings,
+				model,
+				info,
+				hash,
+				ex_codes,
+				version
+			] = await Promise.all([
 				invoke.game.get_sound(),
 				invoke.game.get_textures(),
 				invoke.game.get_cards(),
@@ -49,10 +62,12 @@ class Game {
 				invoke.game.get_model(),
 				invoke.game.get_info(),
 				invoke.game.get_hash(),
-				invoke.game.get_ex_code()
+				invoke.game.get_ex_code(),
+				invoke.game.version()
 			]);
 			if (hash)
 				await recognizer.init(hash);
+			this.version = version;
 			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
 			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));

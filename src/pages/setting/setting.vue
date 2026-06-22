@@ -3,12 +3,14 @@
 		<var-tabs v-model:active = 'page.select.value'>
 			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_PACKS) }}</var-tab>
 			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_ITEMS) }}</var-tab>
-			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_OTHER) }}</var-tab>
+			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_RESOURCE) }}</var-tab>
+			<var-tab v-if = '!page.i18n'>{{ mainGame.get.text(I18N_KEYS.SETTING_ABOUT) }}</var-tab>
 		</var-tabs>
 		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Expansions v-if = '!page.select.value' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
 			<System v-if = 'page.select.value === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
-			<More v-if = 'page.select.value === 2' key = '1' :i18n = 'page.i18n'/>
+			<Resource v-if = 'page.select.value === 2' key = '2' :i18n = 'page.i18n'/>
+			<More v-if = 'page.select.value === 3' key = '3' :i18n = 'page.i18n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -26,7 +28,9 @@
 
 	import Expansions from './expansions.vue';
 	import System from './system.vue';
+	import Resource from './resource.vue';
 	import More from './more.vue';
+	
 	import Button from '@/pages/ui/button.vue';
 
 	class Select {

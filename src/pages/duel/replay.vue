@@ -1,5 +1,6 @@
 <template>
 	<div class = 'replay'>
+		<span>{{ mainGame.get.text(I18N_KEYS.MENU_REPLAY) }}</span>
 		<TransitionGroup tag = 'div' name = 'move_left' class = 'no-scrollbar'>
 			<h2
 				v-for = '(i, v) in page.list'
@@ -149,6 +150,16 @@
 		color: white;
 		[media = 'mobile'] & {
 			--cell-font-size: 24px;
+		}
+		> span {
+			position: absolute;
+			[media = 'mobile'] & {
+				font-size: 24px;
+				top: -40px;
+			}
+			[media = 'pc'] & {
+				top: -30px;
+			}
 		}
 		> div, > form {
 			height: 100%;

@@ -68,7 +68,7 @@
 				break;
 			case 'frame':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_FRAME);
-				select.array = FRAME.map(i => [i, i]);
+				select.array = FRAME.map(i => [i, i.toString()]) as Array<[any, any]>;
 				break;
 			case 'protocol':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_PROTOCOL);

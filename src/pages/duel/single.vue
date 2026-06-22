@@ -1,5 +1,6 @@
 <template>
 	<div class = 'single'>
+		<span>{{ mainGame.get.text(I18N_KEYS.MENU_SINGLE) }}</span>
 		<TransitionGroup tag = 'div' name = 'move_left' class = 'no-scrollbar'>
 			<h2
 				v-for = '(i, v) in page.list'
@@ -183,6 +184,16 @@
 			:deep(.var-counter),
 			:deep(.var-checkbox) {
 				transform: scale(140%);
+			}
+		}
+		> span {
+			position: absolute;
+			[media = 'mobile'] & {
+				font-size: 24px;
+				top: -40px;
+			}
+			[media = 'pc'] & {
+				top: -30px;
 			}
 		}
 		> div, > form {

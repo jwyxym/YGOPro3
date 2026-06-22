@@ -290,6 +290,7 @@ impl Game {
 			&& servers.merge(text) {
 			let p: PathBuf = config_path
 				.join("servers.toml");
+			println!("servers.toml");
 			if let Ok(text) = servers.to_string() {
 				tasks.push(spawn(async move {
 					write(p, text)?;

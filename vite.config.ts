@@ -40,7 +40,18 @@ export default defineConfig(async () => ({
     },
   },
   build: {
-    target: "esnext"
+    target: "esnext",
+    rollupOptions: {
+      output: {
+        manualChunks(id : string) {
+          if (
+            id.includes('node_modules')
+            && (id.endsWith('.js') || id.endsWith('.ts'))) {
+              return 'vendor';
+          }
+        }
+      }
+    }
   },
   optimizeDeps: {
     exclude: ["ygopic-best"]

@@ -41,6 +41,9 @@ class Invoke {
 				return undefined;
 			}
 		},
+		version : async () : Promise<string> => await invoke<string>(
+			'get_version'
+		),
 		chk_version : async () : Promise<boolean> => {
 			try {
 				return await invoke<boolean>('chk_version');

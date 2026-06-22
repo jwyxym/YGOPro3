@@ -172,6 +172,11 @@ pub async fn get_time (path: Vec<String>) -> Result<String, String> {
 }
 
 #[tauri::command]
+pub async fn get_version (app: AppHandle) -> String {
+	app.package_info().version.to_string()
+}
+
+#[tauri::command]
 pub async fn write_deck (name: String, deck: String) -> Result<(), String> {
 	Deck::write(name, deck).await.map_err(|e| e.to_string())
 }

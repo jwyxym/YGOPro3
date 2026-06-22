@@ -25,10 +25,16 @@ class Voice {
 	};
 
 	update = {
-		bgm : () : void => this.audio.bgm
-			.forEach(i => i.volume = Math.min(1, mainGame.get.system(KEYS.SETTING_VOICE_BGM) as number)),
-		sound_effect : () : void => this.audio.sound_effect
-			.forEach(i => i.volume = Math.min(1, mainGame.get.system(KEYS.SETTING_VOICE_SOUND_EFFECT) as number)),
+		bgm : (v ?: number) : void => this.audio.bgm
+			.forEach(i => i.volume = Math.min(1, v !== undefined
+				? v
+				: mainGame.get.system(KEYS.SETTING_VOICE_BGM) as number)
+			),
+		sound_effect : (v ?: number) : void => this.audio.sound_effect
+			.forEach(i => i.volume = Math.min(1, v !== undefined
+				? v
+				: mainGame.get.system(KEYS.SETTING_VOICE_SOUND_EFFECT) as number)
+			)
 	};
 
 	play = {

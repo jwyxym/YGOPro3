@@ -14,7 +14,7 @@ import ws, { Ws } from './ygo-protocol/ws';
 import tcp, { Tcp } from './ygo-protocol/tcp';
 import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
 import Msg from './ygo-protocol/msg';
-import { CTOS } from './ygo-protocol/network';
+import { CTOS, VERSION } from './ygo-protocol/network';
 
 import * as Selecter from './selecter/selecter';
 
@@ -269,7 +269,7 @@ const connect = reactive({
 										.write.str(name, 40));
 									await send(new Msg()
 										.write.uint8(CTOS.JOIN_GAME)
-										.write.uint16(mainGame.version)
+										.write.uint16(VERSION)
 										.write.uint16(0)
 										.write.uint32(0)
 										.write.str(pass, 40));

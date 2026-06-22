@@ -136,8 +136,7 @@
 				I18N_KEYS.SETTING_VOICE_BGM,
 				mainGame.get.system(KEYS.SETTING_VOICE_BGM) as number,
 				async (v : number) => {
-					mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE_BGM, v);
-					voice.update.bgm();
+					voice.update.bgm(v);
 				},
 				async (v : number) => {
 					await mainGame.set.system(KEYS.SETTING_VOICE_BGM, v);

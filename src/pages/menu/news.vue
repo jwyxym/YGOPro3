@@ -18,8 +18,6 @@
 	import http from '@/script/http';
 	import invoke from '@/script/invoke';
 	
-	import { toast } from '@/pages/toast/toast';
-
 	interface swipe {
 		url : string;
 		image : string;
@@ -35,7 +33,6 @@
 				await Opener.openUrl(url);
 				return true;
 			} catch (e) {
-				toast.error(e);
 				invoke.log.write(e);
 			}
 		}

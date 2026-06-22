@@ -60,6 +60,7 @@ pub fn run() {
 			api::get_ex_code,
 			api::get_deck,
 			api::get_time,
+			api::get_version,
 			api::set_system,
 			api::write_deck,
 			api::rename_deck,

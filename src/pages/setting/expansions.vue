@@ -130,7 +130,7 @@
 			new Version({
 				title : I18N_KEYS.SETTING_GAME_VERSION,
 				chk : mainGame.chk.version.game,
-				update : async () => await Opener.openUrl(URL.YGOPRO3)
+				update : async () => await Opener.openUrl(URL.GIT_RELEASE)
 			}),
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,

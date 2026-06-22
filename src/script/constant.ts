@@ -30,7 +30,12 @@ const URL = {
 	SUPER_PRE_VERSION : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/version.txt',
 	MYCARD_NEWS : 'https://sapi.moecube.com:444/apps.json',
 	NEWS_URL : 'https://ygobbs2.com/t/',
-	YGOPRO3 : 'https://github.com/jwyxym/YGOPro3/releases/release-latest'
+	GIT_RELEASE : 'https://github.com/jwyxym/YGOPro3/releases/release-latest',
+	GIT_HOME : 'https://github.com/jwyxym/YGOPro3',
+	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
+	HOME_OTHER : new Map([
+		['乌鸦Producer', 'https://b23.tv/STgl276']
+	])
 }
 
 const KEYS = {
