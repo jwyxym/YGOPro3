@@ -97,17 +97,17 @@ class Activate {
 			}
 		};
 		for (const j of [
-			{ key : KEYS.ACTIVATE, command : COMMAND.ACTIVATE },
-			{ key : KEYS.ATTACK, command : COMMAND.ATTACK },
-			{ key : KEYS.MSET, command : COMMAND.MSET },
-			{ key : KEYS.SSET, command : COMMAND.SSET },
-			{ key : KEYS.POS_ATTACK, command : COMMAND.REPOS },
-			{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS },
-			{ key : KEYS.FLIP, command : COMMAND.REPOS },
-			{ key : KEYS.SUMMON, command : COMMAND.SUMMON },
-			{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON },
-			{ key : KEYS.SPSUMMON, command : COMMAND.SPSUMMON },
-			{ key : KEYS.SCALE, command : COMMAND.ACTIVATE }
+			{ key : KEYS.ACTIVATE, command : COMMAND.ACTIVATE, title : 566 },
+			{ key : KEYS.ATTACK, command : COMMAND.ATTACK, title : 555 },
+			{ key : KEYS.MSET, command : COMMAND.MSET, title : 510 },
+			{ key : KEYS.SSET, command : COMMAND.SSET, title : 510 },
+			{ key : KEYS.POS_ATTACK, command : COMMAND.REPOS, title : 528 },
+			{ key : KEYS.POS_DEFENCE, command : COMMAND.REPOS, title : 528 },
+			{ key : KEYS.FLIP, command : COMMAND.REPOS, title : 528 },
+			{ key : KEYS.SUMMON, command : COMMAND.SUMMON, title : 508 },
+			{ key : KEYS.PSUMMON, command : COMMAND.SPSUMMON, title : 509 },
+			{ key : KEYS.SPSUMMON, command : COMMAND.SPSUMMON, title : 509 },
+			{ key : KEYS.SCALE, command : COMMAND.ACTIVATE, title : 566 }
 		])
 			if (target.classList.contains(j.key)) {
 				if (this.cards[0].location & (LOCATION.ONFIELD | LOCATION.HAND)) {
@@ -119,6 +119,7 @@ class Activate {
 					const c = this.cards
 						.filter(i => i.get.activate(j.key).length > 0);
 					connect.duel.select.cards.cancelable = true;
+					connect.duel.select.cards.title = mainGame.get.strings.system(j.title);
 					connect.duel.select.cards.min = 1;
 					connect.duel.select.cards.max = 1;
 					connect.duel.select.cards.cards = c;

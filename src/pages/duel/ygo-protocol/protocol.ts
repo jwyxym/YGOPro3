@@ -1869,7 +1869,7 @@ class Protocol {
 			const pre_plaids = duel.get.plaids().filter(i => i.forbbiden);
 			const plaids = duel.get.plaids().filter(i => i.data & place);
 			await Promise.all(lodash.xor(pre_plaids, plaids)
-				.map(i => i.set.disable())
+				.map(i => i.set.forbbiden())
 			);
 		}],
 		[MSG.SUMMONING, async (msg : Msg) => {
