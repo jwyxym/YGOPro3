@@ -25,9 +25,9 @@ impl Server {
 		}
 	}
 	pub fn merge (&mut self, text: &str) -> bool {
-		if let Ok(servers) = from_str::<Self>(text) {
+		if let Ok(servers) = from_str::<IndexMap<String, String>>(text) {
 			let mut result: bool = false;
-			for (key, value) in servers.servers {
+			for (key, value) in servers {
 				match self.servers.entry(key) {
 					Entry::Occupied(_) => (),
 					Entry::Vacant(entry) => {
