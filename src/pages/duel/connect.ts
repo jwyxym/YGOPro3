@@ -57,27 +57,27 @@ class Wait {
 		current : undefined as undefined | Deck,
 		send : async (deck ?: Deck) : Promise<void> => {
 			const player = this.players[this.self.position];
-			if (player)
-				if (deck) {
-					this.deck.current = deck;
-					if (player.status)
-						await connect.send?.(new Msg()
-							.write.uint8(CTOS.HS_NOTREADY));
-					const msg = new Msg()
-						.write.uint8(CTOS.UPDATE_DECK)
-						.write.uint32(deck.main.length + deck.extra.length)
-						.write.uint32(deck.side.length);
-					for (const i of deck.main
-						.concat(deck.extra)
-						.concat(deck.side)
-					)
-						msg.write.uint32(i);
-					await connect.send?.(msg);
-					await connect.send?.(new Msg()
-						.write.uint8(CTOS.HS_READY));
-				} else
+			if (!player) return;
+			if (deck) {
+				this.deck.current = deck;
+				if (player.status)
 					await connect.send?.(new Msg()
 						.write.uint8(CTOS.HS_NOTREADY));
+				const msg = new Msg()
+					.write.uint8(CTOS.UPDATE_DECK)
+					.write.uint32(deck.main.length + deck.extra.length)
+					.write.uint32(deck.side.length);
+				for (const i of deck.main
+					.concat(deck.extra)
+					.concat(deck.side)
+				)
+					msg.write.uint32(i);
+				await connect.send?.(msg);
+				await connect.send?.(new Msg()
+					.write.uint8(CTOS.HS_READY));
+			} else
+				await connect.send?.(new Msg()
+					.write.uint8(CTOS.HS_NOTREADY));
 		},
 		chk : async (
 			result ?: (value : string | true | PromiseLike<string | true>) => void
