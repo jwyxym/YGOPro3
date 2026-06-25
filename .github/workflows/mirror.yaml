@@ -1,0 +1,50 @@
+name: Mirror
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: pics
+            source_secret: PICS_REPO_FROM
+            target_secret: PICS_REPO_TO
+          - name: hd-arts
+            source_secret: PICS_HDARTS_FROM
+            target_secret: PICS_HDARTS_TO
+          - name: irrlicht
+            source_secret: PICS_IRRLICHT_FROM
+            target_secret: PICS_IRRLICHT_TO
+
+    name: Mirror ${{ matrix.name }}
+    steps:
+      - name: Git Config
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "github-actions@github.com"
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          ssh-keyscan gitee.com >> ~/.ssh/known_hosts
+
+      - name: Mirror repository
+        env:
+          SOURCE_REPO: ${{ secrets[matrix.source_secret] }}
+          TARGET_REPO: ${{ secrets[matrix.target_secret] }}
+        run: |
+          git clone --mirror "$SOURCE_REPO" repo.git
+          cd repo.git
+          git remote set-url --push origin "$TARGET_REPO"
+          git push --mirror
