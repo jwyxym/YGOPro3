@@ -67,7 +67,7 @@ class Pic_Recognizer {
 					.push(id);
 			}
 		} catch (e) {
-			invoke.log.write(e);
+			await invoke.log.write(e);
 		}
 		return deck;
 	}

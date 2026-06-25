@@ -65,7 +65,7 @@
 					try {
 						await Opener.openUrl(URL.GIT_HOME);
 					} catch (e) {
-						invoke.log.write(e);
+						await invoke.log.write(e);
 					}
 				}
 			}, {
@@ -77,7 +77,7 @@
 					try {
 						await Opener.openUrl(URL.AUTHOR_HOME);
 					} catch (e) {
-						invoke.log.write(e);
+						await invoke.log.write(e);
 					}
 				}
 			}
@@ -96,7 +96,7 @@
 					try {
 						await Opener.openUrl(URL.HOME_OTHER.get('幽影櫻')!);
 					} catch (e) {
-						invoke.log.write(e);
+						await invoke.log.write(e);
 					}
 				}
 			}, {
@@ -108,7 +108,7 @@
 					try {
 						await Opener.openUrl(URL.HOME_OTHER.get('乌鸦Producer')!);
 					} catch (e) {
-						invoke.log.write(e);
+						await invoke.log.write(e);
 					}
 				}
 			},

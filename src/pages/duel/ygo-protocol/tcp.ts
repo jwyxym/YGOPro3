@@ -27,7 +27,7 @@ class Tcp {
 			await tcp.connect(this.cid, this.address);
 			await call_back.on_connect?.(this.send);
 		} catch (e) {
-			invoke.log.write(e);
+			await invoke.log.write(e);
 			return false;
 		}
 		return true;

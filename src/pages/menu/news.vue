@@ -33,7 +33,7 @@
 				await Opener.openUrl(url);
 				return true;
 			} catch (e) {
-				invoke.log.write(e);
+				await invoke.log.write(e);
 			}
 		}
 	});
