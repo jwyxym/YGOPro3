@@ -34,7 +34,8 @@ const URL = {
 	GIT_HOME : 'https://github.com/jwyxym/YGOPro3',
 	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
 	HOME_OTHER : new Map([
-		['乌鸦Producer', 'https://b23.tv/STgl276']
+		['乌鸦Producer', 'https://b23.tv/STgl276'],
+		['幽影櫻', 'https://home.barian.moe'],
 	])
 }
 

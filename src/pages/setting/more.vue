@@ -68,8 +68,7 @@
 						invoke.log.write(e);
 					}
 				}
-			},
-			{
+			}, {
 				title : '今晚有宵夜吗',
 				desc : mainGame.get.text(I18N_KEYS.SETTING_AUTHOR_DESCRIPTION),
 				src : './pics/xiaoye.webp',
@@ -88,8 +87,19 @@
 				title : '每日逃避tx追捕的可怜鼠鼠',
 				desc : mainGame.get.text(I18N_KEYS.SETTING_CONTRIBUTOR_DESCRIPTION),
 				src : './pics/rat.webp'
-			},
-			{
+			}, {
+				title : '幽影櫻',
+				desc : mainGame.get.text(I18N_KEYS.SETTING_CONTRIBUTOR_DESCRIPTION),
+				src : './pics/sakura.webp',
+				btn : mainGame.get.text(I18N_KEYS.SETTING_GOTO_HOME),
+				click : async () => {
+					try {
+						await Opener.openUrl(URL.HOME_OTHER.get('幽影櫻')!);
+					} catch (e) {
+						invoke.log.write(e);
+					}
+				}
+			}, {
 				title : '乌鸦Producer',
 				desc : mainGame.get.text(I18N_KEYS.SETTING_BGM_DESCRIPTION),
 				src : './pics/producer.webp',
