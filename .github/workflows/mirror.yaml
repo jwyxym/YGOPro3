@@ -5,6 +5,10 @@ on:
     - cron: '0 0 * * *'
   workflow_dispatch:
 
+permissions:
+  actions: write
+  contents: read
+
 jobs:
   mirror:
     runs-on: ubuntu-latest
@@ -39,12 +43,42 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts
           ssh-keyscan gitee.com >> ~/.ssh/known_hosts
 
+      - name: Restore mirror cache
+        uses: actions/cache/restore@v4
+        with:
+          path: repo.git
+          key: mirror-${{ matrix.name }}
+
       - name: Mirror repository
         env:
           SOURCE_REPO: ${{ secrets[matrix.source_secret] }}
           TARGET_REPO: ${{ secrets[matrix.target_secret] }}
         run: |
-          git clone --mirror "$SOURCE_REPO" repo.git
-          cd repo.git
+          if [ -d repo.git ]; then
+            cd repo.git
+            git remote set-url origin "$SOURCE_REPO"
+            git remote update --prune
+          else
+            git clone --mirror "$SOURCE_REPO" repo.git
+            cd repo.git
+          fi
+
           git remote set-url --push origin "$TARGET_REPO"
           git push --mirror
+
+      - name: Clean cached remotes
+        run: |
+          git -C repo.git remote set-url origin https://example.invalid/source.git
+          git -C repo.git remote set-url --push origin https://example.invalid/target.git
+
+      - name: Delete previous mirror cache
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh cache delete "mirror-${{ matrix.name }}" || true
+
+      - name: Save mirror cache
+        uses: actions/cache/save@v4
+        with:
+          path: repo.git
+          key: mirror-${{ matrix.name }}
