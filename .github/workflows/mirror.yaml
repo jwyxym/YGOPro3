@@ -17,14 +17,14 @@ jobs:
       matrix:
         include:
           - name: pics
-            source_secret: PICS_REPO_FROM
-            target_secret: PICS_REPO_TO
+            source_secret: PICS_FROM
+            target_secret: PICS_TO
           - name: hd-arts
-            source_secret: PICS_HDARTS_FROM
-            target_secret: PICS_HDARTS_TO
+            source_secret: HDARTS_FROM
+            target_secret: HDARTS_TO
           - name: irrlicht
-            source_secret: PICS_IRRLICHT_FROM
-            target_secret: PICS_IRRLICHT_TO
+            source_secret: IRRLICHT_FROM
+            target_secret: IRRLICHT_TO
 
     name: Mirror ${{ matrix.name }}
     steps:

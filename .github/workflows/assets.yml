@@ -39,7 +39,7 @@ jobs:
     - name: Magick Pics
       run: |
         cd .ci
-        git clone git@github.com:jwyxym/pics.git --depth 1 pics_jpg
+        git clone ${{ secrets.PICS_REPO_TO }} --depth 1 pics_jpg
         find ./pics_jpg -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
         find ./pics_jpg -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
         mkdir pics
@@ -79,7 +79,7 @@ jobs:
         cp ygopro-database-master/locales/en-US_mdpro3/strings.conf strings/strings-en-US.conf
 
         cd strings
-        wget https://github.com/salix5/CardEditor/releases/latest/download/strings.conf -O strings-zh-TW.conf
+        wget https://github.com/salix5/CardEditor/raw/refs/heads/master/strings.conf -O strings-zh-TW.conf
 
     - name: Cdb
       run: |
