@@ -39,7 +39,7 @@ jobs:
     - name: Magick Pics
       run: |
         cd .ci
-        git clone ${{ secrets.PICS_REPO_TO }} --depth 1 pics_jpg
+        git clone ${{ secrets.PICS_TO }} --depth 1 pics_jpg
         find ./pics_jpg -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
         find ./pics_jpg -type f ! \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" -o -name "*.jpg" \) -delete
         mkdir pics
