@@ -536,3 +536,49 @@ jobs:
           pip install requests
           python write_version.py ${{ github.ref_name }}
           python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
+
+  update-s3:
+    needs: [build-android, build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fileName: YGOPro3-linux-aarch64.AppImage
+          - fileName: YGOPro3-linux-aarch64.deb
+          - fileName: YGOPro3-linux-aarch64.rpm
+          - fileName: YGOPro3-linux-x86_64.AppImage
+          - fileName: YGOPro3-linux-x86_64.deb
+          - fileName: YGOPro3-linux-x86_64.rpm
+          - fileName: YGOPro3-macos-aarch64.app.zip
+          - fileName: YGOPro3-macos-aarch64.dmg
+          - fileName: YGOPro3-macos-x86_64.app.zip
+          - fileName: YGOPro3-macos-x86_64.dmg
+          - fileName: YGOPro3-windows-aarch64.exe
+          - fileName: YGOPro3-windows-aarch64.msi
+          - fileName: YGOPro3-windows-x86_64.exe
+          - fileName: YGOPro3-windows-x86_64.msi
+          - fileName: YGOPro3.apk
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Rename
+        run: |
+          cd build
+          sh ../.ci/rename.sh
+
+      - name: Upload to Bucket
+        run: |
+          pip install boto3
+          python ./ci/update_ygopro3.py ${{ secrets.UPDATE_ARGV }}${{ matrix.fileName }} ./build/${{ matrix.fileName }}/${{ matrix.fileName }}
