@@ -198,6 +198,7 @@ En_US[I18N_KEYS.DUEL_WIN] = 'You Win!';
 En_US[I18N_KEYS.DUEL_LOSE] = 'You Lose!';
 En_US[I18N_KEYS.DUEL_GAME] = 'DUEL Game';
 En_US[I18N_KEYS.DUEL_CHAIN] = 'Chain';
+En_US[I18N_KEYS.DUEL_CAHIN_AT] = 'Activated at Chain {:?}';
 En_US[I18N_KEYS.DUEL_CHAT] = 'Chat';
 En_US[I18N_KEYS.DUEL_HISTORY] = 'Log';
 En_US[I18N_KEYS.DUEL_CHAIN_SELECT_ALL] = 'All timings';

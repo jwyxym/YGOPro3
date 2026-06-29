@@ -112,6 +112,8 @@
 					: i.location & LOCATION.OVERLAY ? i.overlay : i.seq;
 				str += `${mainGame.get.text(loc)}[${index}]`;
 			}
+			if (i.chain)
+				str += `\n${mainGame.get.text(I18N_KEYS.DUEL_CAHIN_AT, i.chain)}`;
 			return str;
 		},
 		confirmable : computed(() : boolean => {
@@ -155,12 +157,15 @@
 					> img {
 						height: calc(100% - 40px);
 					}
+					> span {
+						white-space: pre-wrap;
+					}
 				}
 				.select {
-					img {
+					> img {
 						border: 2px solid yellow;
 					}
-					span {
+					> span {
 						color: yellow;
 					}
 				}
