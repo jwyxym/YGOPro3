@@ -9,8 +9,7 @@ access_key = args[1]
 secret_key = args[2]
 bucket = args[3]
 key = args[4]
-content_type = args[5]
-body = args[6]
+body = args[5]
 
 s3 = boto3.client(
     "s3",
@@ -25,5 +24,5 @@ s3.put_object(
     Bucket=bucket,
     Key=key,
     Body=body,
-    ContentType=content_type
+    ContentType="application/octet-stream"
 )
