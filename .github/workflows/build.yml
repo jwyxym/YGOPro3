@@ -581,4 +581,4 @@ jobs:
       - name: Upload to Bucket
         run: |
           pip install boto3
-          python .ci/update_ygopro3.py ${{ secrets.S3_ENDPOINT }} ${{ secrets.S3_ACCECSS_KEY }} ${{ secrets.S3_SECRET_KEY }} ${{ secrets.S3_BUCKET }} "./${{ matrix.fileName }}" ./build/${{ matrix.fileName }}/${{ matrix.fileName }}
+          python .ci/update_ygopro3.py ${{ secrets.S3_ENDPOINT }} ${{ secrets.S3_ACCECSS_KEY }} ${{ secrets.S3_SECRET_KEY }} ${{ secrets.S3_BUCKET }} ${{ matrix.fileName }} ./build/${{ matrix.fileName }}/${{ matrix.fileName }}
