@@ -9,7 +9,7 @@ access_key = args[1]
 secret_key = args[2]
 bucket = args[3]
 key = args[4]
-body = args[5]
+file_path = args[5]
 
 s3 = boto3.client(
     "s3",
@@ -20,9 +20,10 @@ s3 = boto3.client(
     config=Config(signature_version="s3v4")
 )
 
-s3.put_object(
-    Bucket=bucket,
-    Key=key,
-    Body=body,
-    ContentType="application/octet-stream"
-)
+with open(file_path, "rb") as file:
+    s3.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=file,
+        ContentType="application/octet-stream"
+    )
