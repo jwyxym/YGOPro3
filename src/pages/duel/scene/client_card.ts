@@ -35,6 +35,7 @@ class Client_Card {
 	overlays : Array<Client_Card>;
 	status : number;
 	equip ?: Client_Card;
+	chain : number;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
 	desc : Map<number, number>;
 	hint_msg : string;
@@ -46,6 +47,7 @@ class Client_Card {
 		z : false,
 		pos : false,
 		loc : false,
+		chain : false
 	};
 	counter : Map<number, number>;
 	clicked : boolean;
@@ -70,6 +72,7 @@ class Client_Card {
 		this.overlay = 0;
 		this.overlays = [];
 		this.status = 0;
+		this.chain = 0;
 		this.pos = POS.FACEDOWN_ATTACK;
 		this.three = this.init.on();
 		this.activatable = new Map([
@@ -104,11 +107,16 @@ class Client_Card {
 			child.classList.add('ygopro3__duel__card__border');
 			return child;
 		},
-		img : (src : string) : HTMLImageElement => {
-			const child = document.createElement('img');
-			child.classList.add('ygopro3__duel__card__img');
-			child.src = src;
-			return child;
+		img : (src : string) : HTMLDivElement => {
+			const div = document.createElement('div');
+			div.classList.add('ygopro3__duel__card__img');
+			const img = document.createElement('img');
+			img.src = src;
+			const chain = document.createElement('div');
+			chain.appendChild(document.createElement('span'));
+			div.appendChild(img);
+			div.appendChild(chain);
+			return div;
 		},
 		atk : () : HTMLDivElement => {
 			const child = document.createElement('div');
@@ -149,11 +157,12 @@ class Client_Card {
 	get = {
 		el : {
 			border : () : HTMLDivElement => this.three.element.children[0] as HTMLDivElement,
-			img : () : HTMLImageElement => this.three.element.children[1] as HTMLImageElement,
+			img : () : HTMLImageElement => this.three.element.children[1].children[0] as HTMLImageElement,
 			atk : () : HTMLDivElement => this.three.element.children[2] as HTMLDivElement,
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
 				: this.three.element.children[3] as HTMLDivElement,
-			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement
+			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
+			chain : () : HTMLDivElement => this.three.element.children[1].children[1] as HTMLDivElement
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -295,6 +304,12 @@ class Client_Card {
 		},
 		equip : (c : Client_Card) : Client_Card => {
 			this.equip = c;
+			return this;
+		},
+		chain : (ct : number) : Client_Card => {
+			this.need_change.chain = this.need_change.chain || this.chain !== ct;
+			console.log(this, this.chain)
+			this.chain = ct;
 			return this;
 		}
 	};
@@ -596,6 +611,21 @@ class Client_Card {
 			});
 			return tl;
 		};
+		const chain = async () : Promise<void> => {
+			if (!this.need_change.chain) return;
+			this.need_change.chain = false;
+			const tl = gsap.timeline();
+			const chain = this.get.el.chain();
+			const span = chain.children[0] as HTMLSpanElement;
+			if (this.chain) {
+				span.innerText = this.chain.toString();
+				chain.classList.add('show');
+			} else {
+				span.innerText = '';
+				chain.classList.remove('show');
+			}
+			return await mainGame.sleep(100);
+		};
 		if (this.pos & POS.FACEUP
 			&& (this.location & LOCATION.ONFIELD)
 			&& !(this.location & LOCATION.OVERLAY)
@@ -642,7 +672,8 @@ class Client_Card {
 		await Promise.all([
 			run(),
 			activate(),
-			status()
+			status(),
+			chain()
 		]);
 	};
 
@@ -763,8 +794,7 @@ class Client_Card {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
 				const z = Axis.computed.card(this).z ?? 0;
-				const img = this.get.el.img();
-
+				const img = this.get.el.img().parentElement!;
 				img.classList.contains('selected')
 					? img.classList.remove('selected')
 					: img.classList.add('selected');

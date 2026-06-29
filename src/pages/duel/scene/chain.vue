@@ -8,7 +8,7 @@
 			@click.stop = "emit('click', i);"
 			ref = 'el'
 		>
-			{{ mainGame.get.text(I18N_KEYS.DUEL_CHAIN) }} : {{ v }}
+			{{ mainGame.get.text(I18N_KEYS.DUEL_CHAIN) }} : {{ v + 1 }}
 			<img :src = 'mainGame.get.card(i.id).pic'/>
 		</div>
 	</TransitionGroup>

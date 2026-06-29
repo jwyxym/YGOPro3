@@ -1921,7 +1921,9 @@ class Protocol {
 			const card = this.get.card(tp, loc, seq, ct);
 			if (card) {
 				await mainGame.load.pic([code]);
-				card.set.id(code);
+				card
+					.set.id(code)
+					.set.chain(connect.duel.chain.length + 1);
 				await card.update();
 				this.chain_code = code;
 				connect.duel.chain.push(card);
@@ -1944,12 +1946,19 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1609, mainGame.get.name(this.chain_code));
 		}],
 		[MSG.CHAIN_SOLVED, async () => {
-			connect.duel.chain.pop();
+			const card = connect.duel.chain.pop();
+			if (card) {
+				card.set.chain(0);
+				await card.update();
+			}
 			if (!connect.duel.chain.length)
 				this.chain_code = 0;
 		}],
 		[MSG.CHAIN_END, async () => {
+			connect.duel.chain.forEach(i => i.set.chain(0));
+			const cards = connect.duel.chain.slice();
 			connect.duel.chain.length = 0;
+			await duel.update(cards);
 			this.chain_code = 0;
 		}],
 		[MSG.CHAIN_NEGATED, async (msg : Msg) => {
@@ -2545,7 +2554,7 @@ class Protocol {
 			}
 			const codes : Array<[Client_Card, number]> = [];
 			const ct = msg.read.uint8() ?? 0;
-			for (let seq = 0; seq < ct; seq ++) {
+			for (let i = 0; i < ct; i ++) {
 				const code = msg.read.int32();
 				const tp = this.to.player(msg.read.uint8() ?? 0);
 				const loc = msg.read.uint8();
@@ -2560,7 +2569,7 @@ class Protocol {
 				msg.index += 7;
 				const card = this.get.card(tp, loc, seq, ct);
 				if (card)
-					codes.push([card, code]);
+					codes.push([card.set.chain(i + 1), code]);
 			}
 			await this.update.codes(codes);
 			await duel.update();
