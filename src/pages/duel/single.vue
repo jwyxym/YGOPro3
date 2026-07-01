@@ -87,6 +87,7 @@
 						v-model = 'page.deck'
 						:rules = 'page.rule'
 						:clearable = 'true'
+						:disable = "page.list[page.selected]?.[1] !== 'Lucky'"
 					/>
 				</div>
 				<div>
