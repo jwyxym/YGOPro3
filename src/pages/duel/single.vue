@@ -83,11 +83,11 @@
 					:class = "{ 'unshow' : page.list[page.selected]?.[1] !== 'Lucky' }"
 				>
 					<Select
+						v-if = "page.list[page.selected]?.[1] === 'Lucky'"
 						name = 'deck'
 						v-model = 'page.deck'
 						:rules = 'page.rule'
 						:clearable = 'true'
-						:disable = "page.list[page.selected]?.[1] !== 'Lucky'"
 					/>
 				</div>
 				<div>

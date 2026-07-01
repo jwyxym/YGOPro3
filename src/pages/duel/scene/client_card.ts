@@ -94,7 +94,6 @@ class Client_Card {
 		on : () : CSS.CSS3DObject => {
 			const dom = document.createElement('div');
 			dom.classList.add('ygopro3__duel__card', 'font-atk');
-			dom.appendChild(this.init.border());
 			dom.appendChild(this.init.img(mainGame.back.pic));
 			dom.appendChild(this.init.atk());
 			dom.appendChild(this.init.info());
@@ -102,20 +101,17 @@ class Client_Card {
 			setTimeout(() => dom.classList.add('show'), 0);
 			return new CSS.CSS3DObject(dom);
 		},
-		border : () : HTMLDivElement => {
-			const child = document.createElement('div');
-			child.classList.add('ygopro3__duel__card__border');
-			return child;
-		},
 		img : (src : string) : HTMLDivElement => {
 			const div = document.createElement('div');
 			div.classList.add('ygopro3__duel__card__img');
-			const img = document.createElement('img');
-			img.src = src;
+			div.style.backgroundImage = `url("${src}")`;
 			const chain = document.createElement('div');
+			chain.classList.add('ygopro3__duel__card__chain');
 			chain.appendChild(document.createElement('span'));
-			div.appendChild(img);
 			div.appendChild(chain);
+			const boder = document.createElement('div');
+			boder.classList.add('ygopro3__duel__card__border');
+			div.appendChild(boder);
 			return div;
 		},
 		atk : () : HTMLDivElement => {
@@ -156,13 +152,13 @@ class Client_Card {
 
 	get = {
 		el : {
-			border : () : HTMLDivElement => this.three.element.children[0] as HTMLDivElement,
-			img : () : HTMLImageElement => this.three.element.children[1].children[0] as HTMLImageElement,
-			atk : () : HTMLDivElement => this.three.element.children[2] as HTMLDivElement,
+			img : () : HTMLDivElement => this.three.element.children[0] as HTMLDivElement,
+			chain : () : HTMLDivElement => this.three.element.children[0].children[0] as HTMLDivElement,
+			border : () : HTMLDivElement => this.three.element.children[0].children[1] as HTMLDivElement,
+			atk : () : HTMLDivElement => this.three.element.children[1] as HTMLDivElement,
 			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
-				: this.three.element.children[3] as HTMLDivElement,
-			counter : () : HTMLDivElement => this.three.element.children[4] as HTMLDivElement,
-			chain : () : HTMLDivElement => this.three.element.children[1].children[1] as HTMLDivElement
+				: this.three.element.children[2] as HTMLDivElement,
+			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -449,19 +445,19 @@ class Client_Card {
 		const position = () : gsap.core.Timeline | void => {
 			if (!this.need_change.pos) {
 				if (this.pos & POS.FACEUP)
-					this.get.el.img().src = mainGame.get.card(this.id).pic;
+					this.get.el.img().style.backgroundImage = `url("${mainGame.get.card(this.id).pic}")`;;
 				return;
 			}
 			this.need_change.pos = false;
 			const tl = gsap.timeline();
-			const turn = (el : HTMLImageElement, pic : string) => {
+			const turn = (el : HTMLDivElement, pic : string) => {
 				tl.set(el, {
 					rotationY : 0
 				}, 0);
 				tl.to(el, {
 					rotationY : 90,
 					duration : 0.1,
-					onComplete : () => (el.src = pic ?? '') as unknown as void
+					onComplete : () => (el.style.backgroundImage = pic ?? '') as unknown as void
 				}, 0);
 				tl.set(el, {
 					rotationY : -90
@@ -472,11 +468,11 @@ class Client_Card {
 				}, 0.25);
 			};
 			const img = this.get.el.img();
-			const back = mainGame.back.pic;
-			const is_back = img.src === back;
-			const pic = mainGame.get.card(this.id).pic;
-			if (this.id && img.src !== pic && (this.pos & POS.FACEUP) && !is_back)
-				img.src = pic;
+			const back = `url("${mainGame.back.pic}")`;
+			const is_back = img.style.backgroundImage === back;
+			const pic = `url("${mainGame.get.card(this.id).pic}")`;
+			if (this.id && img.style.backgroundImage !== pic && (this.pos & POS.FACEUP) && !is_back)
+				img.style.backgroundImage = pic;
 			else if ((this.pos & POS.FACEDOWN) && !is_back)
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
@@ -614,7 +610,6 @@ class Client_Card {
 		const chain = async () : Promise<void> => {
 			if (!this.need_change.chain) return;
 			this.need_change.chain = false;
-			const tl = gsap.timeline();
 			const chain = this.get.el.chain();
 			const span = chain.children[0] as HTMLSpanElement;
 			if (this.chain) {
@@ -794,7 +789,7 @@ class Client_Card {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
 				const z = Axis.computed.card(this).z ?? 0;
-				const img = this.get.el.img().parentElement!;
+				const img = this.get.el.img();
 				img.classList.contains('selected')
 					? img.classList.remove('selected')
 					: img.classList.add('selected');
