@@ -3,6 +3,7 @@ import PQueue from 'p-queue';
 
 import invoke from '@/script/invoke';
 import Msg from './msg';
+import mainGame from '@/script/game';
 class Tcp {
 	cid = 'YGOPro3';
 	address = '';
@@ -24,6 +25,8 @@ class Tcp {
 			this.address = address;
 			this.on_message = call_back.on_message;
 			this.on_disconnect = call_back.on_disconnect;
+			if (__ANDROID__)
+				await mainGame.sleep(100);
 			await tcp.connect(this.cid, this.address);
 			await call_back.on_connect?.(this.send);
 		} catch (e) {

@@ -17,7 +17,7 @@ import * as SIZE from './scene-size';
 import Axis from './axis';
 import Plaid from './plaid';
 import Btn from './btn';
-import Client_Card from './client_card';
+import Client_Card, { type HTMLCardsElement } from './client_card';
 import Activate from './activate';
 
 
@@ -86,7 +86,7 @@ class _Duel {
 	confrim = {
 		hand : async (cards : Array<Client_Card>) : Promise<void> => {
 			const tls = gsap.timeline();
-			const turn = (el : HTMLImageElement, pic : string) : gsap.core.Timeline => {
+			const turn = (el : HTMLCardsElement, pic : string) : gsap.core.Timeline => {
 				const tl = gsap.timeline();
 				tl.set(el, {
 					rotationY : 0

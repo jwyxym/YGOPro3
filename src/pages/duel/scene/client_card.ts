@@ -13,6 +13,10 @@ import * as SIZE from './scene-size';
 import Axis from './axis';
 import { duel } from './scene';
 
+interface HTMLCardsElement extends HTMLDivElement {
+	src : string
+};
+
 class Client_Card {
 	three : CSS.CSS3DObject;
 	location : number;
@@ -152,7 +156,19 @@ class Client_Card {
 
 	get = {
 		el : {
-			img : () : HTMLDivElement => this.three.element.children[0] as HTMLDivElement,
+			img : () : HTMLCardsElement => {
+				const el : HTMLCardsElement = this.three.element.children[0] as HTMLCardsElement;
+				Object.defineProperty(el, 'src', {
+					get () {
+						return this.style.backgroundImage;
+					},
+					set (src : string) {
+						this.style.backgroundImage = `url("${src}")`;
+					},
+					configurable : true
+				});
+				return el;
+			},
 			chain : () : HTMLDivElement => this.three.element.children[0].children[0] as HTMLDivElement,
 			border : () : HTMLDivElement => this.three.element.children[0].children[1] as HTMLDivElement,
 			atk : () : HTMLDivElement => this.three.element.children[1] as HTMLDivElement,
@@ -445,19 +461,19 @@ class Client_Card {
 		const position = () : gsap.core.Timeline | void => {
 			if (!this.need_change.pos) {
 				if (this.pos & POS.FACEUP)
-					this.get.el.img().style.backgroundImage = `url("${mainGame.get.card(this.id).pic}")`;;
+					this.get.el.img().src = mainGame.get.card(this.id).pic;
 				return;
 			}
 			this.need_change.pos = false;
 			const tl = gsap.timeline();
-			const turn = (el : HTMLDivElement, pic : string) => {
+			const turn = (el : HTMLCardsElement, pic : string) => {
 				tl.set(el, {
 					rotationY : 0
 				}, 0);
 				tl.to(el, {
 					rotationY : 90,
 					duration : 0.1,
-					onComplete : () => (el.style.backgroundImage = pic ?? '') as unknown as void
+					onComplete : () => (el.src = pic ?? '') as unknown as void
 				}, 0);
 				tl.set(el, {
 					rotationY : -90
@@ -468,11 +484,11 @@ class Client_Card {
 				}, 0.25);
 			};
 			const img = this.get.el.img();
-			const back = `url("${mainGame.back.pic}")`;
-			const is_back = img.style.backgroundImage === back;
-			const pic = `url("${mainGame.get.card(this.id).pic}")`;
-			if (this.id && img.style.backgroundImage !== pic && (this.pos & POS.FACEUP) && !is_back)
-				img.style.backgroundImage = pic;
+			const back = mainGame.back.pic;
+			const is_back = img.src === back;
+			const pic = mainGame.get.card(this.id).pic;
+			if (this.id && img.src !== pic && (this.pos & POS.FACEUP) && !is_back)
+				img.src = pic;
 			else if ((this.pos & POS.FACEDOWN) && !is_back)
 				turn(img, back);
 			else if ((this.pos & POS.FACEUP) && is_back)
@@ -803,3 +819,4 @@ class Client_Card {
 };
 
 export default Client_Card;
+export type { HTMLCardsElement };

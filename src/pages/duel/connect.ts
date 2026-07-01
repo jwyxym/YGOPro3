@@ -255,7 +255,7 @@ const connect = reactive({
 						});
 					} else {
 						const local_server = i && 'args' in i;
-						const callback = async (name : string, pass : string, address : string) => {
+						const callback = (name : string, pass : string, address : string) => {
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
@@ -293,7 +293,7 @@ const connect = reactive({
 						if (local_server) {
 							const address = 'localhost:7911';
 							await invoke.server.start(i.args[0]);
-							const p = await callback(i.name, '', address);
+							const p = callback(i.name, '', address);
 							connect.protocol = tcp;
 							await Promise.all([
 								connect.protocol.connect(address, p),
@@ -311,7 +311,7 @@ const connect = reactive({
 							else if (!para.address)
 								throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
 							const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
-							const p = await callback(para.name, pass, para.address);
+							const p = callback(para.name, pass, para.address);
 							const get_srv = async () : Promise<string> => {
 								const address = para.address;
 								if (!address.includes(':') && !para.protocal)
