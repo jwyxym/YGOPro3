@@ -167,7 +167,7 @@ uint8 CTOS.SURRENDER
 | `STOC.JOIN_GAME` | `0x12` | 见下文 | 更新房间规则信息 |
 | `STOC.TYPE_CHANGE` | `0x13` | `uint8 type` | 高 4 位为房主标记，低 4 位为自身座位 |
 | `STOC.DUEL_START` | `0x15` | 无 | 进入决斗状态 |
-| `STOC.TIME_LIMIT` | `0x18` | `uint8 player`, `uint8 reserved`, `uint16 seconds` | 更新时间；轮到自己时回 `CTOS.TIME_CONFIRM` |
+| `STOC.TIME_LIMIT` | `0x18` | `uint8 player`, `byte[1] reserved`, `uint16 seconds` | 更新时间；轮到自己时回 `CTOS.TIME_CONFIRM` |
 | `STOC.CHAT` | `0x19` | `uint16 player`, `str message` | 显示玩家、观察者或脚本错误消息 |
 | `STOC.HS_PLAYER_ENTER` | `0x20` | `str name[40]`, `uint8 player` | 更新大厅玩家名 |
 | `STOC.HS_PLAYER_CHANGE` | `0x21` | `uint8 packed` | 更新准备、离开、观察或换位状态 |
@@ -232,7 +232,7 @@ STOC.GAME_MSG:
 uint8 controller
 uint8 location
 uint8 sequence
-uint8 overlay_sequence_or_reserved
+uint8 overlay_sequence
 ```
 
 客户端会通过 `to.player()` 把服务端玩家编号映射到本地视角：
@@ -396,7 +396,7 @@ int32 query_flag
 | `QUERY.DEFENSE` | `int32 defense` |
 | `QUERY.BASE_ATTACK` / `BASE_DEFENSE` | 各跳过 `int32` |
 | `QUERY.REASON` / `REASON_CARD` | 各跳过 `int32` |
-| `QUERY.EQUIP_CARD` | `uint8 player`, `uint8 location`, `uint8 sequence`, `uint8 reserved` |
+| `QUERY.EQUIP_CARD` | `uint8 player`, `uint8 location`, `uint8 sequence`, `byte[1] reserved` |
 | `QUERY.TARGET_CARD` | `int32 count`, 跳过 `int32[count]` |
 | `QUERY.OVERLAY_CARD` | `int32 count`, `int32 code[count]` |
 | `QUERY.COUNTERS` | `int32 count`, 然后 `uint16 counter_type`, `uint16 counter_count` |
@@ -423,11 +423,11 @@ repeat activatable_count:
   uint32 desc
 uint8 attackable_count
 repeat attackable_count:
-  int32  reserved_code
+  byte[4] reserved
   uint8  player
   uint8  location
   uint8  sequence
-  uint8  reserved
+  byte[1] reserved
 uint8 can_main2
 uint8 can_end
 ```
@@ -467,7 +467,7 @@ int32  code
 uint8  player
 uint8  location
 uint8  sequence
-uint8  reserved
+byte[1] reserved
 uint32 desc
 ```
 
@@ -584,7 +584,7 @@ uint16 counter_type
 uint16 required_count
 uint8 card_count
 repeat card_count:
-  int32 reserved
+  byte[4] reserved
   uint8 player
   uint8 location
   uint8 sequence
@@ -615,16 +615,16 @@ repeat count:
 
 | 消息 | payload 摘要 | 行为 |
 | --- | --- | --- |
-| `MSG.CONFIRM_DECKTOP` `30` | `uint8 player`, `uint8 count`, 每项 `int32 code` 后跳过 3 字节 | 展示卡组顶若干张 |
-| `MSG.CONFIRM_CARDS` `31` | 跳过 2 字节，`uint8 count`, 每项 `int32 code`, `uint8 player`, `uint8 location`, `uint8 sequence` | 确认一组卡 |
+| `MSG.CONFIRM_DECKTOP` `30` | `uint8 player`, `uint8 count`, 每项 `int32 code`, `byte[3] reserved` | 展示卡组顶若干张 |
+| `MSG.CONFIRM_CARDS` `31` | `byte[2] reserved`, `uint8 count`, 每项 `int32 code`, `uint8 player`, `uint8 location`, `uint8 sequence` | 确认一组卡 |
 | `MSG.SHUFFLE_DECK` `32` | `uint8 player` | 洗卡组动画 |
-| `MSG.SHUFFLE_HAND` `33` | `uint8 player`, `byte reserved`, `int32 code[count]` | 洗手牌并更新可见 code |
+| `MSG.SHUFFLE_HAND` `33` | `uint8 player`, `byte[1] reserved`, `int32 code[count]` | 洗手牌并更新可见 code |
 | `MSG.REFRESH_DECK` `34` | 当前未实现处理 | 保留 |
 | `MSG.SWAP_GRAVE_DECK` `35` | `uint8 player` | 墓地与卡组交换 |
 | `MSG.SHUFFLE_SET_CARD` `36` | `uint8 location`, `uint8 count`, 旧坐标组 + 新坐标组 | 洗切盖放卡 |
 | `MSG.REVERSE_DECK` `37` | 无 | 设置卡组反转状态 |
 | `MSG.DECK_TOP` `38` | `uint8 player`, `uint8 sequence`, `int32 code` | 更新卡组顶信息 |
-| `MSG.SHUFFLE_EXTRA` `39` | `uint8 player`, `byte reserved`, `int32 code[count]` | 洗额外卡组并更新可见 code |
+| `MSG.SHUFFLE_EXTRA` `39` | `uint8 player`, `byte[1] reserved`, `int32 code[count]` | 洗额外卡组并更新可见 code |
 
 ### 6.5 回合、阶段与移动
 
@@ -719,8 +719,8 @@ int32 disabled_mask
 | `MSG.CHAIN_NEGATED` `75` | `uint8 chain_index` | 显示连锁被无效 |
 | `MSG.CHAIN_DISABLED` `76` | 映射到 `CHAIN_NEGATED` | 同上 |
 | `MSG.CARD_SELECTED` `80` | 当前未实现处理 | 保留 |
-| `MSG.RANDOM_SELECTED` `81` | `byte reserved`, `uint8 count`, `card_ref[count]` | 随机选中提示 |
-| `MSG.BECOME_TARGET` `83` | `uint8 count`, 每项 `uint8 player`, `uint8 location`, `uint8 sequence`, `uint8 reserved` | 成为对象提示 |
+| `MSG.RANDOM_SELECTED` `81` | `byte[1] reserved`, `uint8 count`, `card_ref[count]` | 随机选中提示 |
+| `MSG.BECOME_TARGET` `83` | `uint8 count`, 每项 `uint8 player`, `uint8 location`, `uint8 sequence`, `byte[1] reserved` | 成为对象提示 |
 
 ### 6.7 LP、战斗与计数器
 
@@ -747,7 +747,7 @@ int32 disabled_mask
 
 | 消息 | payload | 行为 |
 | --- | --- | --- |
-| `MSG.MISSED_EFFECT` `120` | 跳过 `int32`, 读取 `int32 code` | 当前 TODO |
+| `MSG.MISSED_EFFECT` `120` | `byte[4] reserved`, `int32 code` | 当前 TODO |
 | `MSG.BE_CHAIN_TARGET` `121` | 当前未实现处理 | 保留 |
 | `MSG.CREATE_RELATION` `122` | 当前未实现处理 | 保留 |
 | `MSG.RELEASE_RELATION` `123` | 当前未实现处理 | 保留 |
@@ -755,11 +755,11 @@ int32 disabled_mask
 | `MSG.TOSS_DICE` `131` | `uint8 count`, `uint8 result[count]` | 显示骰子结果 |
 | `MSG.ROCK_PAPER_SCISSORS` `132` | 无 | 显示猜拳，响应 `CTOS.RESPONSE` |
 | `MSG.HAND_RES` `133` | `uint8 packed_result` | 显示猜拳结果 |
-| `MSG.ANNOUNCE_RACE` `140` | `byte reserved`, `uint8 count`, `int32 available_mask` | 选择种族 |
+| `MSG.ANNOUNCE_RACE` `140` | `byte[1] reserved`, `uint8 count`, `int32 available_mask` | 选择种族 |
 | `MSG.ANNOUNCE_ATTRIB` `141` | 同上 | 选择属性 |
-| `MSG.ANNOUNCE_CARD` `142` | `byte reserved`, `uint8 count`, `uint32 code_or_opcode[count]` | 从卡库中按表达式筛选并宣言卡名 |
-| `MSG.ANNOUNCE_NUMBER` `143` | `byte reserved`, `uint8 count`, `uint32 number[count]` | 宣言数字 |
-| `MSG.CARD_HINT` `160` | `uint8 player`, `uint8 location`, `uint8 sequence`, `uint8 reserved`, `uint8 desc_type`, `int32 key` | 更新卡片提示 |
+| `MSG.ANNOUNCE_CARD` `142` | `byte[1] reserved`, `uint8 count`, `uint32 code_or_opcode[count]` | 从卡库中按表达式筛选并宣言卡名 |
+| `MSG.ANNOUNCE_NUMBER` `143` | `byte[1] reserved`, `uint8 count`, `uint32 number[count]` | 宣言数字 |
+| `MSG.CARD_HINT` `160` | `uint8 player`, `uint8 location`, `uint8 sequence`, `byte[1] reserved`, `uint8 desc_type`, `int32 key` | 更新卡片提示 |
 | `MSG.PLAYER_HINT` `165` | `uint8 player`, `uint8 desc_type`, `int32 key` | 更新玩家提示 |
 | `MSG.MATCH_KILL` `170` | `int32 code` | 记录特殊胜利卡 |
 | `MSG.CUSTOM_MSG` `180` | 当前未实现处理 | 保留 |

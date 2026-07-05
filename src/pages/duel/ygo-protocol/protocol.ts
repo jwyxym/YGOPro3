@@ -2165,7 +2165,7 @@ class Protocol {
 		}],
 		[MSG.MISSED_EFFECT, async (msg : Msg) => {
 			msg.index += 4;
-			const code = msg.read.int32();
+			// const code = msg.read.int32();
 			//todo
 		}],
 		[MSG.TOSS_COIN, async (msg : Msg) => {
