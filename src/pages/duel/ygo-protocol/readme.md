@@ -24,24 +24,17 @@
 
 ```text
 uint16 length
-uint8 payload
+uint8 head
 byte[length - 1] content
-```
-
-协议头固定为 3 字节：
-
-```text
-uint16 length
-uint8 payload
 ```
 
 | 字段 | 长度 | 说明 |
 | --- | ---: | --- |
-| `length` | 2 | 后续消息体长度，包含 `payload` 本身，不包含 `length` 字段 |
-| `payload` | 1 | 外层协议号，例如 `STOC.GAME_MSG` 或 `CTOS.JOIN_GAME` |
+| `length` | 2 | 后续消息体长度，包含 `head` 本身，不包含 `length` 字段 |
+| `head` | 1 | 外层协议号，例如 `STOC.GAME_MSG` 或 `CTOS.JOIN_GAME` |
 | `content` | `length - 1` | 当前外层协议的内容；无内容时长度为 0 |
 
-`Msg.buffer()` 会自动生成上述结构；`Msg` 写入的第一个 `uint8` 会成为业务包的 `payload` 字段。
+`Msg.buffer()` 会自动生成上述结构；`Msg` 写入的第一个 `uint8` 会成为业务包的 `head` 字段。
 
 TCP 和 WebSocket 都使用同样的业务包格式：
 
