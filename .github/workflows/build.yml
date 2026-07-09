@@ -140,9 +140,23 @@ jobs:
       run: |
         npm run tauri:android:build:sh
 
+    - name: Git Config
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "github-actions@github.com"
+
+    - name: Set SSH Key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+
     - name: Decode Keystore File
       run: |
-        echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > YGOPro3.jks
+        git clone ${{ secrets.KEYSTORE_REPO }} --depth 1 jks
+        mv jks/ygopro3.jks ./YGOPro3.jks
 
     - name: Sign apk
       run: |

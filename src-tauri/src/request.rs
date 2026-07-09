@@ -43,11 +43,10 @@ impl Request {
 		}()
 			.await
 			.unwrap_or(false)
-		
 	}
-    pub async fn download<P: AsRef<Path>> (app: &AppHandle, path: P, url: &str, name: &str) -> Result<String, Error> {
+	pub async fn download<P: AsRef<Path>> (app: &AppHandle, path: P, url: &str, name: &str) -> Result<String, Error> {
 		create_dir_all(&path)?;
-        let response: Response<Body> = get(url).call()?;
+		let response: Response<Body> = get(url).call()?;
 		if response.status().is_success() {
 			let headers: &HeaderMap = response.headers();
 			let name: String = Self::name(name, headers);
@@ -73,7 +72,7 @@ impl Request {
 		} else {
 			Err(anyhow!("{}", response.status()))
 		}
-    }
+	}
 	pub fn srv(url: String) -> Result<Srv, Error> {
 		let resolver: &Resolver = RESOLVER.get_or_init(|| {
 			Resolver::new(ResolverConfig::default(), ResolverOpts::default())
