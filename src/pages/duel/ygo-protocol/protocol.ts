@@ -1948,7 +1948,7 @@ class Protocol {
 		[MSG.CHAIN_SOLVED, async () => {
 			const card = connect.duel.chain.pop();
 			if (card) {
-				card.set.chain(0);
+				card.set.chain(connect.duel.chain.indexOf(card) + 1);
 				await card.update();
 			}
 			if (!connect.duel.chain.length)
