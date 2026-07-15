@@ -530,6 +530,6 @@ class Invoke {
 	};
 };
 
-const _Invoke = new Invoke();
-export default _Invoke;
+const invoker = new Invoke();
+export default invoker;
 export type { Srv };

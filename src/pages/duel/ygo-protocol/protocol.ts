@@ -19,6 +19,7 @@ import { voice } from '@/pages/voice/voice';
 
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
+import extend from './extend';
 
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -287,7 +288,10 @@ class Protocol {
 				await duel.update();
 				this.need_update = false;
 			}
-			await this.msg.get(protocol)?.(msg, send);
+			await Promise.all([
+				this.msg.get(protocol)?.(msg, send),
+				extend.get(protocol)?.(msg)
+			]);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();

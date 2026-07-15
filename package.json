@@ -41,6 +41,7 @@
 		"@varlet/ui": "^3.11.3",
 		"bincode-ts": "^1.0.0",
 		"buffer": "^6.0.3",
+		"dglab-kit": "^1.0.2",
 		"fake-qq-ui": "^0.3.4",
 		"gsap": "^3.13.0",
 		"hotkeys-js": "^4.0.3",
