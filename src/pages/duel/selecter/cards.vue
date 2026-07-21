@@ -81,7 +81,7 @@
 	onBeforeMount(() => {
 		if (props.selected.length > 0)
 			page.cards = props.selected.slice();
-		else if (props.min > 1)
+		else if (props.max > 1)
 			page.cards = [];
 	});
 
