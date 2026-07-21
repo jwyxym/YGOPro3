@@ -347,7 +347,7 @@ class Game {
 			let change = false;
 			this.system.forEach(i => {
 				const value = i.get(k);
-				if (value && value !== v) {
+				if (value !== undefined && value !== v) {
 					change = true;
 					i.set(k, v);
 				}
