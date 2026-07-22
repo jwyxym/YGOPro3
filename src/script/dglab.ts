@@ -6,6 +6,7 @@ import {
 	DglabSocket,
 	V4Channel,
 	DGLAB_SOCKET_STATE,
+	type DglabSocketV4Client,
 	type DglabSocketOutgoing,
 	type DglabManualSocket,
 	type DglabSocketDeviceEventPayload
@@ -14,7 +15,7 @@ import {
 class DG {
 	address ?: string;
 	ws ?: WebSocket;
-	socket ?: DglabManualSocket;
+	socket ?: DglabManualSocket | DglabSocketV4Client;
 	target_id ?: string;
 	client_id ?: string;
 	secret ?: string;
@@ -23,30 +24,31 @@ class DG {
     on = async (address : string) => {
 		if (address)
 			this.address = address;
-		const ws = await WebSocket.connect(address);
-		const socket = new DglabSocket();
-		socket.setSender((data : DglabSocketOutgoing) => ws.send(
-			typeof data === 'string'
-				? data : Array.from(
-					data instanceof ArrayBuffer
-						? new Uint8Array(data)
-						: new Uint8Array(
-							data.buffer,
-							data.byteOffset,
-							data.byteLength
-						)
-				)
-		));
-		ws.addListener((i : Message) => {
-			switch (i.type) {
-				case 'Text':
-				case 'Binary':
-					socket.handleMessage(i.data);
-					break;
-				case 'Close': 
-					socket.handleClose(i.data);
-			};
-		});
+		// const ws = await WebSocket.connect(address);
+		// const socket = new DglabSocket();
+		// socket.setSender((data : DglabSocketOutgoing) => ws.send(
+		// 	typeof data === 'string'
+		// 		? data : Array.from(
+		// 			data instanceof ArrayBuffer
+		// 				? new Uint8Array(data)
+		// 				: new Uint8Array(
+		// 					data.buffer,
+		// 					data.byteOffset,
+		// 					data.byteLength
+		// 				)
+		// 		)
+		// ));
+		// ws.addListener((i : Message) => {
+		// 	switch (i.type) {
+		// 		case 'Text':
+		// 		case 'Binary':
+		// 			socket.handleMessage(i.data);
+		// 			break;
+		// 		case 'Close': 
+		// 			socket.handleClose(i.data);
+		// 	};
+		// });
+		const socket = new DglabSocket({ url: address });
 
 		socket.on('state', (state, previous) => {
 			this.state.value = state;
@@ -70,11 +72,11 @@ class DG {
 		const result = await socket.connect();
 		console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
 		console.log('HTTP 鉴权密钥:', result.secret);
-		const appSocketUrl = `ws://localhost:9998/?tid=${result.targetId}`;
+		const appSocketUrl = `${address}/?tid=${result.targetId}`;
 		const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(appSocketUrl)}`;
 		console.log(appSocketUrl, qrcode)
 
-		this.ws = ws;
+		// this.ws = ws;
 		this.socket = socket;
 		this.target_id = result.targetId;
 		this.secret = result.secret;
