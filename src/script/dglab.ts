@@ -10,6 +10,7 @@ import {
 	type DglabManualSocket,
 	type DglabSocketDeviceEventPayload
 } from 'dglab-kit';
+import { connect } from './websocket';
 
 class DG {
 	address ?: string;
@@ -23,8 +24,17 @@ class DG {
     on = async (address : string) => {
 		if (address)
 			this.address = address;
-		const ws = await WebSocket.connect(address);
 		const socket = new DglabSocket();
+		const ws = await connect(address, (i : Message) => {
+			switch (i.type) {
+				case 'Text':
+				case 'Binary':
+					socket.handleMessage(i.data);
+					break;
+				case 'Close': 
+					socket.handleClose(i.data);
+			};
+		});
 		socket.setSender((data : DglabSocketOutgoing) => ws.send(
 			typeof data === 'string'
 				? data : Array.from(
@@ -37,16 +47,6 @@ class DG {
 						)
 				)
 		));
-		ws.addListener((i : Message) => {
-			switch (i.type) {
-				case 'Text':
-				case 'Binary':
-					socket.handleMessage(i.data);
-					break;
-				case 'Close': 
-					socket.handleClose(i.data);
-			};
-		});
 
 		socket.on('state', (state, previous) => {
 			this.state.value = state;

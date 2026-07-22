@@ -2,6 +2,7 @@ import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
 import PQueue from 'p-queue';
 
 import invoke from '@/script/invoke';
+import { connect } from '@/script/websocket';
 import Msg from './msg';
 
 class Ws {
@@ -19,10 +20,7 @@ class Ws {
 		try {
 			if (this.ws)
 				return false;
-			this.ws = await WebSocket.connect(address);
-			this.on_disconnect = call_back.on_disconnect;
-			await call_back.on_connect?.(this.send);
-			this.ws.addListener((i : Message) => {
+			this.ws = await connect(address, (i : Message) => {
 				switch (i.type) {
 					case 'Binary':
 						const msg = new Msg(i.data);
@@ -45,6 +43,8 @@ class Ws {
 						);
 				};
 			});
+			this.on_disconnect = call_back.on_disconnect;
+			await call_back.on_connect?.(this.send);
 		} catch (e) {
 			await invoke.log.write(e);
 			return false;
