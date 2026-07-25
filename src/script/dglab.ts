@@ -70,7 +70,7 @@ class DG {
 		const result = await socket.connect();
 		console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
 		console.log('HTTP 鉴权密钥:', result.secret);
-		const appSocketUrl = `ws://localhost:9998/?tid=${result.targetId}`;
+		const appSocketUrl = `${address}/?tid=${result.targetId}`;
 		const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(appSocketUrl)}`;
 		console.log(appSocketUrl, qrcode)
 
@@ -89,24 +89,30 @@ class DG {
 		const channels = [V4Channel.A, V4Channel.B];
 		for (const device of devices) {
 			const slot_id = device.slotId;
-			await Promise.all(channels
-				.map(channel => socket.setTempIntensity(
-					client_id,
-					slot_id,
-					channel,
-					30,
-					1000
-				))
-			);
-			await Promise.all(channels
-				.map(channel => socket.sendPulse(
-					client_id,
-					slot_id,
-					channel,
-					1000,
-					COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
-				))
-			);
+			const jobs: Array<Promise<unknown>> = [];
+			for (const channel of channels) {
+				jobs.push(
+					socket.setTempIntensity(
+						client_id,
+						slot_id,
+						channel,
+						10,
+						1000,
+						{ immediate: true }
+					)
+				);
+				jobs.push(
+					socket.sendPulse(
+						client_id,
+						slot_id,
+						channel,
+						1000,
+						COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
+						{ immediate: true }
+					)
+				);
+			}
+			await Promise.all(jobs);
 		}
 	};
 
