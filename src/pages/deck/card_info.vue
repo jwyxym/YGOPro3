@@ -90,7 +90,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted, reactive, watch, ref, nextTick } from 'vue';
+	import { onMounted, onUnmounted, reactive, watch, nextTick, useTemplateRef } from 'vue';
 	import Mark from 'mark.js';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -100,7 +100,7 @@
 	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
 	let mark : InstanceType<typeof Mark> | undefined;
-	const info = ref<HTMLElement | null>(null);
+	const info = useTemplateRef('info');
 
 	const emit = defineEmits<{
 		'update:modelValue' : [];

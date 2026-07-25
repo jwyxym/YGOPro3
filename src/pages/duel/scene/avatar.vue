@@ -62,16 +62,11 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, watch, ref } from 'vue';
+	import { reactive, watch, useTemplateRef } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
-	interface VarCountdown extends HTMLElement {
-		start : Function;
-		pause : Function;
-	};
-
-	const countdown = ref<VarCountdown | null>(null);
+	const countdown = useTemplateRef('countdown');
 	const lp = reactive({
 		from : 0,
 		to : 0,

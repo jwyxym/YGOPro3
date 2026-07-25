@@ -8,7 +8,6 @@
 			'--card_height' : `${size.height}px`,
 			'--card_width' : `${size.width}px`
 		}"
-		ref = 'cards'
 	>
 		<var-badge
 			type = 'info'

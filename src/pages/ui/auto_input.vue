@@ -13,11 +13,11 @@
 	/>
 </template>
 <script setup lang = 'ts'>
-	import { ref, onMounted, ComponentPublicInstance, onUnmounted } from 'vue';
+	import { onMounted, ComponentPublicInstance, onUnmounted, useTemplateRef } from 'vue';
 	import { _AutoCompleteComponent, Rules } from '@varlet/ui';
 
 	type AutoComplete = ComponentPublicInstance & _AutoCompleteComponent;
-	const input = ref<AutoComplete | null>(null);
+	const input = useTemplateRef<AutoComplete>('input');
 
 	let chk = false;
 

@@ -13,7 +13,6 @@
 			<span
 				v-for = '(i, v) in page.menu'
 				:class = "{ 'select' : page.select === v }"
-				ref = 'items'
 				@click = 'page.click(v)'
 				@mouseenter = 'page.mouseenter(v)'
 				@mouseleave = 'page.mouseleave'

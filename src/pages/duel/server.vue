@@ -49,7 +49,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { ref, computed, onBeforeMount, reactive } from 'vue';
+	import { computed, onBeforeMount, reactive, useTemplateRef } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -59,7 +59,7 @@
 	import Select from '@/pages//ui/select.vue';
 	import Button from '@/pages//ui/button.vue';
 
-	const input = ref<any>(null);
+	const input = useTemplateRef('input');
 	let lock : boolean = false;
 	const options = Array.from(mainGame.servers).map(([k, v]) => ({ label : v, value : k }));
 
