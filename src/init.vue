@@ -4,7 +4,6 @@
 		<Voice v-if = 'page.show.voice'/>
 		<Loading
 			v-model:loading = 'page.loading'
-			:init = 'page.init'
 		/>
 		<Toast/>
 		<TransitionGroup tag = 'div' name = 'opacity'>
@@ -50,7 +49,6 @@
 
 	const page = reactive({
 		loading : false,
-		init : false,
 		duel : {
 			model : 0 as 0 | 1 | 2
 		},
@@ -117,7 +115,6 @@
 		if (await mainGame.init()) {
 			page.show.voice = true;
 			page.show.menu = true;
-			page.init = true;
 		} else {
 			await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),

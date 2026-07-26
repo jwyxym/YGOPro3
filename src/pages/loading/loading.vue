@@ -1,12 +1,8 @@
 <template>
 	<div class = 'loading ygopro3__loading' :style = "{ '--opacity' : Number(page.show.value) }">
-		<div v-if = 'init' class = 'load'>
-			<var-loading/>
-			<span v-show = 'page.all > 0'>{{ Math.min((page.now / page.all) * 100, 99.99).toFixed(2) }}%</span>
-		</div>
-		<div v-else class = 'init'>
+		<div>
 			<div :style = "{
-				'--current' : (page.now / page.all).toString()
+				'--current' : Math.min((page.now / page.all), 1).toString()
 			}">
 				<div/>
 				<span v-show = 'page.all > 0'>{{ Math.min((page.now / page.all) * 100, 99.99).toFixed(2) }}%</span>
@@ -24,7 +20,6 @@
 	const emit = defineEmits<{ 'update:loading' : [boolean]; }>();
 	const props = defineProps<{
 		loading : boolean;
-		init : boolean;
 	}>();
 
 	class Show {
@@ -75,21 +70,7 @@
 		z-index: 11;
 		user-select: none;
 		pointer-events: none;
-		.load {
-			position: fixed;
-			right: 0;
-			bottom: 0;
-			width: 300px;
-			height: 100px;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			font-size: 20px;
-			[media = 'mobile'] & {
-				transform: scale(1.6);
-			}
-		}
-		.init {
+		> div {
 			position: absolute;
 			height: 100%;
 			width: 100%;
