@@ -1,6 +1,6 @@
 
 use crate::game::{self, Game};
-use crate::{deck::Deck, log, ypk::Ypk};
+use crate::{log, ypk::Ypk};
 use crate::request::{Request as NetWork, Srv};
 use crate::ygoserver::YgoServer;
 use crate::yrp::Yrp;
@@ -178,22 +178,22 @@ pub async fn get_version (app: AppHandle) -> String {
 
 #[tauri::command]
 pub async fn write_deck (name: String, deck: String) -> Result<(), String> {
-	Deck::write(name, deck).await.map_err(|e| e.to_string())
+	Game::write_deck(name, deck).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn rename_deck (old_name: String, new_name: String) -> Result<(), String> {
-	Deck::rename(old_name, new_name).await.map_err(|e| e.to_string())
+	Game::rename_deck(old_name, new_name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn del_deck (name: String) -> Result<(), String> {
-	Deck::del(name).await.map_err(|e| e.to_string())
+	Game::del_deck(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_deck () -> Response {
-	Deck::get().await
+	Game::get_deck().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)

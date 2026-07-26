@@ -1,6 +1,5 @@
 mod api;
 mod game;
-mod deck;
 mod log;
 mod ypk;
 mod yrp;

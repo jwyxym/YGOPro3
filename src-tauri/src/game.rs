@@ -10,6 +10,7 @@ mod card_info;
 mod lflist;
 mod model;
 mod extra_code;
+mod deck;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -22,7 +23,8 @@ pub use self::{
 	system::System,
 	model::Model,
 	zip::Zip,
-	extra_code::SetCode
+	extra_code::SetCode,
+	deck::Deck
 };
 use crate::file::{File, FileContent};
 use crate::progress;
@@ -815,5 +817,21 @@ impl Game {
 			.join("recognizer")
 			.join(hash);
 		Ok(read(path)?)
+	}
+
+	pub async fn write_deck (name: String, deck: String) -> Result<(), Error> {
+		Deck::write(name, deck).await
+	}
+
+	pub async fn get_deck () -> Result<Vec<(String, String)>, Error> {
+		Deck::get().await
+	}
+
+	pub async fn rename_deck (old_name: String, new_name: String) -> Result<(), Error> {
+		Deck::rename(old_name, new_name).await
+	}
+
+	pub async fn del_deck (name: String) -> Result<(), Error> {
+		Deck::del(name).await
 	}
 }
