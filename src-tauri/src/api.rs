@@ -1,6 +1,6 @@
 
 use crate::game::{self, Game};
-use crate::{log, ypk::Ypk};
+use crate::log;
 use crate::request::{Request as NetWork, Srv};
 use crate::ygoserver::YgoServer;
 use crate::yrp::Yrp;
@@ -35,7 +35,7 @@ pub async fn download (app: AppHandle, url: String, name: String) -> Result<Stri
 
 #[tauri::command]
 pub async fn get_ypk () -> Response {
-	Ypk::get().await
+	Game::get_ypk().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -207,12 +207,12 @@ pub async fn write_log (line: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn del_ypk (name: String) -> Result<(), String> {
-	Ypk::del(name).await.map_err(|e| e.to_string())
+	Game::del_ypk(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn exists_ypk (name: String) -> Result<bool, String> {
-	Ypk::exists(name).await.map_err(|e| e.to_string())
+	Game::exists_ypk(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

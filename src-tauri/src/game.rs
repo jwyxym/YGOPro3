@@ -11,6 +11,7 @@ mod lflist;
 mod model;
 mod extra_code;
 mod deck;
+mod ypk;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -24,7 +25,8 @@ pub use self::{
 	model::Model,
 	zip::Zip,
 	extra_code::SetCode,
-	deck::Deck
+	deck::Deck,
+	ypk::Ypk
 };
 use crate::file::{File, FileContent};
 use crate::progress;
@@ -833,5 +835,17 @@ impl Game {
 
 	pub async fn del_deck (name: String) -> Result<(), Error> {
 		Deck::del(name).await
+	}
+
+	pub async fn del_ypk (name: String) -> Result<(), Error> {
+		Ypk::del(name).await
+	}
+
+	pub async fn exists_ypk (name: String) -> Result<bool, Error> {
+		Ypk::exists(name).await
+	}
+
+	pub async fn get_ypk () -> Result<Vec<String>, Error> {
+		Ypk::get().await
 	}
 }
