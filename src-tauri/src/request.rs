@@ -1,4 +1,4 @@
-use crate::progress;
+use crate::progress::{self, Event};
 use tauri::AppHandle;
 use anyhow::{Result, Error, anyhow};
 use content_disposition::parse_content_disposition;
@@ -50,8 +50,8 @@ impl Request {
 		if response.status().is_success() {
 			let headers: &HeaderMap = response.headers();
 			let name: String = Self::name(name, headers);
-			let size: i64 = Self::size(headers);
-			progress::emit(app, "started", size);
+			let size: usize = Self::size(headers);
+			progress::emit(app, Event::Start, size);
 			let path: &Path = path.as_ref();
 
 			let mut body: Body = response.into_body();
@@ -64,10 +64,10 @@ impl Request {
 				if bytes == 0 {
 					break;
 				}
-				progress::emit(app, "progress", 8192);
+				progress::emit(app, Event::Progress, 8192);
 				file.write_all(&buffer[..bytes]).await?;
 			}
-			progress::emit(app, "end", 0);
+			progress::emit(app, Event::End, 0);
 			Ok(name)
 		} else {
 			Err(anyhow!("{}", response.status()))
@@ -119,13 +119,13 @@ impl Request {
 				id.to_string()
 			})
 	}
-	fn size (headers: &HeaderMap) -> i64 {
+	fn size (headers: &HeaderMap) -> usize {
 		headers
 			.get("content-length")
 			.and_then(|len|
 				len.to_str()
 					.ok()
-					.and_then(|s| s.parse::<i64>().ok())
+					.and_then(|s| s.parse::<usize>().ok())
 			)
 			.unwrap_or(0)
 	}

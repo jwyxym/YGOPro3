@@ -1,4 +1,4 @@
-use crate::progress;
+use crate::progress::{self, Event};
 use super::{PIC_REGEX, cdb::Cdb};
 use serde::Serialize;
 use anyhow::{Result, Error};
@@ -93,7 +93,7 @@ impl Zip {
 		let file: File = File::open(&path)?;
 		let archive: ZipArchive<File> = ZipArchive::new(file)?;
 		let len: usize = archive.len();
-		progress::emit(app, "started", len);
+		progress::emit(app, Event::Start, len);
 		let mut pics: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
 		let mut db: Vec<Cdb>= Vec::new();
 		let mut ini: Vec<String>= Vec::new();
@@ -101,7 +101,7 @@ impl Zip {
 		let mut strings: Vec<String>= Vec::new();
 		let mut servers: Vec<String>= Vec::new();
 		let ct: usize = Self::read(&path, |name, mut file| {
-			progress::emit(app, "progress", 1);
+			progress::emit(app, Event::Progress, 1);
 			if let Some(_match) = PIC_REGEX
 				.captures(&name)
 				.and_then(|i| Some(i)?
@@ -143,7 +143,7 @@ impl Zip {
 			}
 			Ok(())
 		})?;
-		progress::emit(app, "progress", len - ct);
+		progress::emit(app, Event::Progress, len - ct);
 		Ok::<Self, Error>(Self {
 			name: name,
 			pics: pics,
@@ -159,9 +159,9 @@ impl Zip {
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
 		let zip: ZipArchive<File> = ZipArchive::new(File::open(&assets)?)?;
-		progress::emit(app, "started", zip.len() * 2 + 6);
+		progress::emit(app, Event::Start, zip.len() * 2 + 6);
 		let _ = Self::read(&assets, |name: String, mut file: ZipFile<'_>| {
-			progress::emit(app, "progress", 1);
+			progress::emit(app, Event::Progress, 1);
 			let path: PathBuf = path.join(&name);
 			if !file.is_dir() {
 				if name.starts_with("config") {

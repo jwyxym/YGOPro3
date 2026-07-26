@@ -36,10 +36,19 @@ pub use self::{
 };
 #[cfg(not(target_arch = "x86"))]
 pub use windbot::WindBot;
-use crate::file::{File, FileContent};
-use crate::progress;
-use crate::request::Request;
-use crate::{PATH, RESOURCE_PATH};
+use crate::{
+	PATH,
+	RESOURCE_PATH,
+	progress::{
+		self,
+		Event
+	},
+	request::Request,
+	file::{
+		File,
+		FileContent
+	}
+};
 
 use serde::Serialize;
 use anyhow::{Error, Result, anyhow};
@@ -81,7 +90,7 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-	progress::emit(app, "started", 5);
+	progress::emit(app, Event::Start, 5);
 	*game = Game::init(app, overwrite).await?;
 	Ok(())
 }
@@ -128,9 +137,9 @@ impl Game {
 				)?;
 				Ok(None)
 			}));
-			progress::emit(app, "progress", 1);
+			progress::emit(app, Event::Progress, 1);
 			for task in tasks {
-				progress::emit(app, "progress", 1);
+				progress::emit(app, Event::Progress, 1);
 				if let Some(i) = task.await?? {
 					result.push(i)
 				}
@@ -148,16 +157,16 @@ impl Game {
 		);
 		let config: Vec<(String, String)> = i.0?;
 		i.1?;
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		let (system, resource, lflist, servers, model, setcode, mut tasks) = Self::load_config(path, &config).await;
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
 			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n(), &config)
 		);
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		tasks.push(task);
 		for i in vec!["deck", "expansions", "replay"] {
@@ -168,11 +177,11 @@ impl Game {
 		for task in tasks {
 			let _ = task.await;
 		}
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
@@ -183,7 +192,7 @@ impl Game {
 			lflist: lflist,
 			pics: pics
 		});
-		progress::emit(app, "end", 0);
+		progress::emit(app, Event::End, 0);
 		Ok(Self {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
@@ -592,7 +601,7 @@ impl Game {
 				lflist: lflist,
 				pics: pics
 			});
-			progress::emit(app, "end", 0);
+			progress::emit(app, Event::End, 0);
 		}
 		Ok(())
 	}
