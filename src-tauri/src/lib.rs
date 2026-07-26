@@ -4,9 +4,6 @@ mod log;
 mod file;
 mod request;
 mod progress;
-mod ygoserver;
-#[cfg(not(target_arch = "x86"))]
-mod windbot;
 
 use std::{
 	path::PathBuf,

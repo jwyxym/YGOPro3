@@ -13,6 +13,9 @@ mod extra_code;
 mod deck;
 mod ypk;
 mod yrp;
+mod ygoserver;
+#[cfg(not(target_arch = "x86"))]
+mod windbot;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -28,8 +31,11 @@ pub use self::{
 	extra_code::SetCode,
 	deck::Deck,
 	ypk::Ypk,
-	yrp::Yrp
+	yrp::Yrp,
+	ygoserver::YgoServer
 };
+#[cfg(not(target_arch = "x86"))]
+pub use windbot::WindBot;
 use crate::file::{File, FileContent};
 use crate::progress;
 use crate::request::Request;

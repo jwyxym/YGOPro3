@@ -1,10 +1,9 @@
 
-use crate::game::{self, Game};
+use crate::game::{self, Game, YgoServer};
 use crate::log;
 use crate::request::{Request as NetWork, Srv};
-use crate::ygoserver::YgoServer;
 #[cfg(not(target_arch = "x86"))]
-use crate::windbot::WindBot;
+use crate::game::WindBot;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use tauri::{
