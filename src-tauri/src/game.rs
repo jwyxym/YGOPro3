@@ -12,6 +12,7 @@ mod model;
 mod extra_code;
 mod deck;
 mod ypk;
+mod yrp;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -26,7 +27,8 @@ pub use self::{
 	zip::Zip,
 	extra_code::SetCode,
 	deck::Deck,
-	ypk::Ypk
+	ypk::Ypk,
+	yrp::Yrp
 };
 use crate::file::{File, FileContent};
 use crate::progress;
@@ -847,5 +849,25 @@ impl Game {
 
 	pub async fn get_ypk () -> Result<Vec<String>, Error> {
 		Ypk::get().await
+	}
+
+	pub async fn save_yrp (name: String, content: &[u8]) -> Result<String, Error> {
+		Yrp::save(name, content).await
+	}
+
+	pub async fn get_yrp () -> Result<Vec<String>, Error> {
+		Yrp::get().await
+	}
+
+	pub async fn rename_yrp (old_name: String, new_name: String) -> Result<(), Error> {
+		Yrp::rename(old_name, new_name).await
+	}
+
+	pub async fn del_yrp (name: String) -> Result<(), Error> {
+		Yrp::del(name).await
+	}
+
+	pub async fn read_yrp (name: String) -> Result<Vec<u8>, Error> {
+		Yrp::read(name).await
 	}
 }

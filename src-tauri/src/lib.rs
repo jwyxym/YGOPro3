@@ -1,7 +1,6 @@
 mod api;
 mod game;
 mod log;
-mod yrp;
 mod file;
 mod request;
 mod progress;

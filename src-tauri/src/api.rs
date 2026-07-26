@@ -3,7 +3,6 @@ use crate::game::{self, Game};
 use crate::log;
 use crate::request::{Request as NetWork, Srv};
 use crate::ygoserver::YgoServer;
-use crate::yrp::Yrp;
 #[cfg(not(target_arch = "x86"))]
 use crate::windbot::WindBot;
 
@@ -268,7 +267,7 @@ pub async fn windbot_list () -> Response {
 
 #[tauri::command]
 pub async fn replay_read (name: String) -> Response {
-	Yrp::read(name).await
+	Game::read_yrp(name).await
 		.ok()
 		.map(Response::new)
 		.unwrap_or(Response::new(Vec::new()))
@@ -282,12 +281,12 @@ pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
 		.map_err(|e| e.to_string())?;
 	let content: &[u8] = &bytes[256..];
-	Yrp::save(name, content).await.map_err(|e| e.to_string())
+	Game::save_yrp(name, content).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn replay_list () -> Response {
-	Yrp::get().await
+	Game::get_yrp().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -296,12 +295,12 @@ pub async fn replay_list () -> Response {
 
 #[tauri::command]
 pub async fn replay_rename (from: String, to: String) -> Result<(), String>{
-	Yrp::rename(from, to).await.map_err(|e| e.to_string())
+	Game::rename_yrp(from, to).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn replay_del (name: String) -> Result<(), String>{
-	Yrp::del(name).await.map_err(|e| e.to_string())
+	Game::del_yrp(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
