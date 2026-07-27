@@ -27,8 +27,8 @@ pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn download (app: AppHandle, url: String, name: String) -> Result<String, String> {
-	Game::download(&app, url, name).await.map_err(|e| e.to_string())
+pub async fn download (app: AppHandle, url: String, name: String, chunk: usize) -> Result<String, String> {
+	Game::download(&app, url, name, chunk).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -66,12 +66,17 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 }
 
 #[tauri::command]
-pub async fn get_pic (deck: Vec<u32>) -> Response {
-	Game::get_pic(deck).await
+pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
+	let Raw(bytes) = request.body() else {
+		return Err("expected raw body".into());
+	};
+	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
+		.map_err(|e| e.to_string())?;
+	Ok(Game::get_pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(default_response)
+		.unwrap_or_else(default_response))
 }
 
 #[tauri::command]

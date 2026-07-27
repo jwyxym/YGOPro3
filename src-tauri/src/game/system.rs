@@ -125,6 +125,9 @@ impl System {
 		self.number
 			.entry(String::from("CT_DECK_SIDE"))
 			.or_insert(15.0);
+		self.number
+			.entry(String::from("CT_DOWNLOADCHUNKS_RETRIES"))
+			.or_insert(8.0);
 		#[cfg(not(target_os = "android"))]
 		{
 			self.number

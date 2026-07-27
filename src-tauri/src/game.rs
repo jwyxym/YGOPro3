@@ -789,9 +789,9 @@ impl Game {
 		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
 
-	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
+	pub async fn download (app: &AppHandle, url: String, name: String, chunk: usize) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Request::download(app, path.join("expansions"), &url, &name).await
+		Request::download(app, path.join("expansions"), &url, &name, chunk).await
 	}
 
 	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
