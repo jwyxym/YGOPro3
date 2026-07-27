@@ -118,9 +118,9 @@
 			};
 			this.update = async () : Promise<void> => {
 				this.loading.value = 'loading';
-				await obj.update();
+				const res = await obj.update();
 				if (this.to_true)
-					this.loading.value = true;
+					this.loading.value = Boolean(res);
 			};
 		};
 		
@@ -135,7 +135,16 @@
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
-				update : async () => await invoke.game.download(URL.SUPER_PRE),
+				update : async () : Promise<string> => {
+					const ypk = await invoke.game.download(URL.SUPER_PRE);
+					console.log("ypk: ", ypk)
+					if (ypk) {
+						await page.change(ypk);
+						if (!page.expansion.includes(ypk))
+							page.expansion.push(ypk);
+					}
+					return ypk;
+				},
 				to_true : true
 			}),
 		],
@@ -164,17 +173,19 @@
 			if (typeof value === 'string') {
 				if (!expansions.includes(value))
 					expansions.push(value);
-				await Promise.all([
+				const [res] = await Promise.all([
 					invoke.ypk.load(value),
-					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions, true)
 				]);
+				if (res && v === undefined)
+					page.loaded_expansion.push(value);
 			} else {
 				const ct = expansions.indexOf(page.expansion[v!]);
 				if (ct > -1)
 					expansions.splice(ct, 1);
 				await Promise.all([
 					mainGame.unload.ypk(page.expansion[v!]),
-					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions, true)
 				]);
 			}
 			await mainGame.reload();
