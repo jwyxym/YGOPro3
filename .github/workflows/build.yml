@@ -586,8 +586,7 @@ jobs:
         run: |
           cd build
           sh ../.ci/rename.sh
-    
-      steps:
+
       - name: proxy
         uses: jwyxym/jwyxym/shadowsocks@master
         with:
