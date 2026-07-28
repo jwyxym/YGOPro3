@@ -6,7 +6,7 @@ use walkdir::WalkDir;
 #[derive(Serialize, Clone, Debug)]
 pub enum PicContent {
 	Path(String),
-	Buffer(Vec<u8>)
+	ZipFile(usize)
 }
 #[derive(Serialize, Clone, Debug)]
 pub struct Pic {
