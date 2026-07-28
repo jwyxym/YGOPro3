@@ -320,7 +320,6 @@ class Client_Card {
 		},
 		chain : (ct : number) : Client_Card => {
 			this.need_change.chain = this.need_change.chain || this.chain !== ct;
-			console.log(this, this.chain)
 			this.chain = ct;
 			return this;
 		}

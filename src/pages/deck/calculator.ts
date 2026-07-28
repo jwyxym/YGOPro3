@@ -1,4 +1,4 @@
-import { all, create } from 'mathjs'
+import { all, create } from 'mathjs';
 
 class Calculator {
 	math = create(all);

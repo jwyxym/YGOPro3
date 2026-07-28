@@ -1,8 +1,6 @@
-use crate::progress;
+use crate::progress::{self, Event};
 use super::{PIC_REGEX, cdb::Cdb};
-use serde::Serialize;
 use anyhow::{Result, Error};
-use zip::{ZipArchive, read::ZipFile};
 use tokio::{
 	task::{JoinHandle, spawn, spawn_blocking},
 	fs::write
@@ -14,37 +12,39 @@ use std::{
 	path::{Path, PathBuf}
 };
 use tauri::AppHandle;
+use zip::{ZipArchive as Archive, read::ZipFile};
 
-#[derive(Serialize, Clone, Debug)]
+pub type ZipArchive = Archive<File>;
+
+#[derive(Debug)]
 pub struct Zip {
 	name: String,
-	pics: BTreeMap<u32, Vec<u8>>,
+	pics: BTreeMap<u32, usize>,
 	db: Vec<Cdb>,
 	ini: Vec<String>,
 	lflist: Vec<String>,
 	strings: Vec<String>,
-	servers: Vec<String>
+	servers: Vec<String>,
+	archive: ZipArchive
 }
 
 impl Zip {
 	pub fn new (path: String, name: String) -> JoinHandle<Result<Self, Error>> {
 		spawn_blocking(move || {
-			let mut pics: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
+			let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
 			let mut db: Vec<Cdb>= Vec::new();
 			let mut ini: Vec<String>= Vec::new();
 			let mut lflist: Vec<String>= Vec::new();
 			let mut strings: Vec<String>= Vec::new();
 			let mut servers: Vec<String>= Vec::new();
-			let _ = Self::read(&path, |name, mut file| {
+			let archive: ZipArchive = Self::read(&path, |index: usize, name, mut file| {
 				if let Some(_match) = PIC_REGEX
 					.captures(&name)
 					.and_then(|i| Some(i)?
 					.get(1))
 				{
-					let mut content: Vec<u8> = Vec::new();
-					if let Ok(code) = _match.as_str().parse::<u32>()
-						&& file.read_to_end(&mut content).is_ok() {
-						pics.insert(code, content);
+					if let Ok(code) = _match.as_str().parse::<u32>() {
+						pics.insert(code, index);
 					}
 				} else if name.ends_with("ini") {
 					let mut content: String = String::new();
@@ -77,7 +77,7 @@ impl Zip {
 				}
 			
 				Ok(())
-			});
+			})?;
 			Ok::<Self, Error>(Self {
 				name: name,
 				pics: pics,
@@ -85,32 +85,31 @@ impl Zip {
 				ini: ini,
 				lflist: lflist,
 				strings: strings,
-				servers: servers
+				servers: servers,
+				archive: archive
 			})
 		})
 	}
 	pub fn new_with_emit (app: &AppHandle, path: String, name: String) -> Result<Self, Error> {
 		let file: File = File::open(&path)?;
-		let archive: ZipArchive<File> = ZipArchive::new(file)?;
+		let archive: ZipArchive = Archive::new(file)?;
 		let len: usize = archive.len();
-		progress::emit(app, "started", len);
-		let mut pics: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
+		progress::emit(app, Event::Start, len);
+		let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
 		let mut db: Vec<Cdb>= Vec::new();
 		let mut ini: Vec<String>= Vec::new();
 		let mut lflist: Vec<String>= Vec::new();
 		let mut strings: Vec<String>= Vec::new();
 		let mut servers: Vec<String>= Vec::new();
-		let ct: usize = Self::read(&path, |name, mut file| {
-			progress::emit(app, "progress", 1);
+		let archive: ZipArchive = Self::read(&path, |index: usize, name, mut file| {
+			progress::emit(app, Event::Progress, 1);
 			if let Some(_match) = PIC_REGEX
 				.captures(&name)
 				.and_then(|i| Some(i)?
 				.get(1))
 			{
-				let mut content: Vec<u8> = Vec::new();
-				if let Ok(code) = _match.as_str().parse::<u32>()
-					&& file.read_to_end(&mut content).is_ok() {
-					pics.insert(code, content);
+				if let Ok(code) = _match.as_str().parse::<u32>() {
+					pics.insert(code, index);
 				}
 			} else if name.ends_with("ini") {
 				let mut content: String = String::new();
@@ -143,7 +142,7 @@ impl Zip {
 			}
 			Ok(())
 		})?;
-		progress::emit(app, "progress", len - ct);
+		progress::emit(app, Event::Progress, len - archive.len());
 		Ok::<Self, Error>(Self {
 			name: name,
 			pics: pics,
@@ -151,17 +150,18 @@ impl Zip {
 			ini: ini,
 			lflist: lflist,
 			strings: strings,
-			servers: servers
+			servers: servers,
+			archive: archive
 		})
 	}
 	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P) -> Result<Vec<JoinHandle<Result<Option<(String, String)>, Error>>>, Error> {
 		let mut tasks: Vec<JoinHandle<Result<Option<(String, String)>, Error>>> = Vec::new();
 		let path: &Path = path.as_ref();
 		let assets: &Path = assets.as_ref();
-		let zip: ZipArchive<File> = ZipArchive::new(File::open(&assets)?)?;
-		progress::emit(app, "started", zip.len() * 2 + 6);
-		let _ = Self::read(&assets, |name: String, mut file: ZipFile<'_>| {
-			progress::emit(app, "progress", 1);
+		let zip: ZipArchive = Archive::new(File::open(&assets)?)?;
+		progress::emit(app, Event::Start, zip.len() * 2 + 6);
+		let _ = Self::read(&assets, |_: usize, name: String, mut file: ZipFile<'_>| {
+			progress::emit(app, Event::Progress, 1);
 			let path: PathBuf = path.join(&name);
 			if !file.is_dir() {
 				if name.starts_with("config") {
@@ -190,25 +190,23 @@ impl Zip {
 	}
 	pub fn read<P: AsRef<Path>> (
 		path: P,
-		mut callback: impl FnMut(String, ZipFile) -> Result<(), Error>
-	) -> Result<usize, Error> {
+		mut callback: impl FnMut(usize, String, ZipFile) -> Result<(), Error>
+	) -> Result<ZipArchive, Error> {
 		let file: File = File::open(path)?;
-		let mut archive: ZipArchive<File> = ZipArchive::new(file)?;
-		let mut ct: usize = 0;
+		let mut archive: ZipArchive = Archive::new(file)?;
 		for i in 0..archive.len() {
 			let file: ZipFile<'_> = archive.by_index(i)?;
 			if !file.is_dir() {
 				let name: String = String::from(file.name());
-				let _ = callback(name, file);
-				ct += 1;
+				let _ = callback(i, name, file);
 			}
 		}
-		Ok(ct)
+		Ok(archive)
 	}
 	pub fn name (&self) -> String {
 		String::from(&self.name)
 	}
-	pub fn pics (&self) -> Vec<(u32, Vec<u8>)> {
+	pub fn pics (&self) -> Vec<(u32, usize)> {
 		self.pics.clone().into_iter().collect()
 	}
 	pub fn db (&self) -> Vec<Cdb> {
@@ -225,5 +223,8 @@ impl Zip {
 	}
 	pub fn servers (&self) -> Vec<String> {
 		self.servers.clone()
+	}
+	pub fn archive (self) -> ZipArchive {
+		self.archive
 	}
 }

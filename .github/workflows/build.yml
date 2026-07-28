@@ -582,17 +582,17 @@ jobs:
         with:
           path: build
 
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
       - name: Rename
         run: |
           cd build
           sh ../.ci/rename.sh
 
       - name: Upload to Bucket
-        run: |
-          pip install boto3
-          python .ci/update_ygopro3.py ${{ secrets.S3_ENDPOINT }} ${{ secrets.S3_ACCECSS_KEY }} ${{ secrets.S3_SECRET_KEY }} ${{ secrets.S3_BUCKET }} ${{ matrix.fileName }} ./build/${{ matrix.fileName }}/${{ matrix.fileName }}
+        uses: jwyxym/jwyxym/s3@master
+        with:
+          s3_endpoint: ${{ secrets.S3_ENDPOINT }}
+          access_key: ${{ secrets.S3_ACCESS_KEY }}
+          secret_key: ${{ secrets.S3_SECRET_KEY }}
+          bucket: ${{ secrets.S3_BUCKET }}
+          file_name: ${{ matrix.fileName }}
+          file_path: ./build/${{ matrix.fileName }}/${{ matrix.fileName }}

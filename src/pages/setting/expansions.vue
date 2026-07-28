@@ -35,19 +35,30 @@
 				/>
 			</template>
 		</var-cell>
-		<var-cell>
+		<var-cell class = 'downloading-cell'>
 			<template #default>
 				<div class = 'downloading'>
-					<Input
-						:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_CUSTOM)'
-						v-model = 'page.download.url'
-						:rules = 'page.download.url_rule'
-					/>
-					<Input
-						:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_NAME)'
-						v-model = 'page.download.name'
-						:rules = 'page.download.name_rule'
-					/>
+					<div>
+						<Input
+							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_CUSTOM)'
+							v-model = 'page.download.url'
+							:rules = 'page.download.rule.url'
+						/>
+					</div>
+					<div>
+						<Input
+							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_NAME)'
+							v-model = 'page.download.name'
+							:rules = 'page.download.rule.name'
+						/>
+					</div>
+					<div>
+						<Input
+							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_CHUNK)'
+							v-model = 'page.download.chunk'
+							:rules = 'page.download.rule.chunk'
+						/>
+					</div>
 				</div>
 			</template>
 			<template #extra>
@@ -55,7 +66,7 @@
 				<var-icon
 					v-else
 					name = 'arrow-down'
-					@click = 'page.download.start'
+					@click = 'page.download.start()'
 				/>
 			</template>
 		</var-cell>
@@ -89,6 +100,7 @@
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, ref } from 'vue';
 	import * as Opener from '@tauri-apps/plugin-opener';
+	import { all, create } from 'mathjs';
 
 	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
@@ -118,13 +130,15 @@
 			};
 			this.update = async () : Promise<void> => {
 				this.loading.value = 'loading';
-				await obj.update();
+				const res = await obj.update();
 				if (this.to_true)
-					this.loading.value = true;
+					this.loading.value = Boolean(res);
 			};
 		};
-		
 	}
+
+	const math = create(all);
+
 	const page = reactive({
 		versions : [
 			new Version({
@@ -135,7 +149,16 @@
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
-				update : async () => await invoke.game.download(URL.SUPER_PRE),
+				update : async () : Promise<string> => {
+					const ypk = await invoke.game.download(URL.SUPER_PRE, undefined, 10240);
+					console.log("ypk: ", ypk)
+					if (ypk) {
+						await page.change(ypk);
+						if (!page.expansion.includes(ypk))
+							page.expansion.push(ypk);
+					}
+					return ypk;
+				},
 				to_true : true
 			}),
 		],
@@ -164,17 +187,19 @@
 			if (typeof value === 'string') {
 				if (!expansions.includes(value))
 					expansions.push(value);
-				await Promise.all([
+				const [res] = await Promise.all([
 					invoke.ypk.load(value),
-					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions, true)
 				]);
+				if (res && v === undefined)
+					page.loaded_expansion.push(value);
 			} else {
 				const ct = expansions.indexOf(page.expansion[v!]);
 				if (ct > -1)
 					expansions.splice(ct, 1);
 				await Promise.all([
 					mainGame.unload.ypk(page.expansion[v!]),
-					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions)
+					mainGame.set.system(KEYS.SETTING_LOADING_EXPANSION, expansions, true)
 				]);
 			}
 			await mainGame.reload();
@@ -182,34 +207,51 @@
 		download : {
 			name : '',
 			url : '',
-			start : async () => {
-				const name = page.download.name;
-				const url = page.download.url;
+			chunk : '',
+			rule : {
+				name : (name ?: string) : string | true => {
+					if (name === undefined || name.length === 0)
+						return true;
+					if (name.match(REG.NAME))
+						return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
+					return true;
+				},
+				url : (url ?: string) : string | true => {
+					if (url === undefined || url.length === 0)
+						return true;
+					if (!url.startsWith('http'))
+						return mainGame.get.text(I18N_KEYS.RULE_URL_UNLAWFUL);
+					return true;
+				},
+				chunk : (chunk ?: string) : string | true => {
+					if (chunk === undefined || chunk.length === 0)
+						return true;
+					try {
+						const i = math.evaluate(chunk);
+						if (i < 0)
+							return mainGame.get.text(I18N_KEYS.RULE_CHUNK_NEGATIVE);
+					} catch {
+						return mainGame.get.text(I18N_KEYS.RULE_CHUNK_UNLAWFUL);
+					}
+					return true;
+				}
+			},
+			start : async function () {
+				const name = this.name;
+				const url = this.url;
+				const chunk = this.chunk;
 				if (url.startsWith('http')
-					&& typeof page.download.name_rule(name) === 'boolean') {
-					page.download.name = '';
-					page.download.url = '';
-					const ypk = await invoke.game.download(url, name);
+					&& typeof this.rule.name(name) === 'boolean'
+					&& typeof this.rule.chunk(chunk) === 'boolean') {
+					this.name = '';
+					this.url = '';
+					const ypk = await invoke.game.download(url, name, math.evaluate(chunk));
 					if (ypk) {
 						await page.change(ypk);
 						if (!page.expansion.includes(ypk))
 							page.expansion.push(ypk);
 					}
 				}
-			},
-			name_rule : (name ?: string) : string | true => {
-				if (name === undefined || name.length === 0)
-					return true;
-				if (name.match(REG.NAME))
-					return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
-				return true;
-			},
-			url_rule : (url ?: string) : string | true => {
-				if (url === undefined || url.length === 0)
-					return true;
-				if (!url.startsWith('http'))
-					return mainGame.get.text(I18N_KEYS.RULE_URL_UNLAWFUL);
-				return true;
 			}
 		}
 	});
@@ -230,20 +272,24 @@
 		width: 100%;
 		overflow-y: auto;
 		[media = 'mobile'] & {
-			:deep(.setting__loading),
-			:deep(.downloading) {
+			:deep(.setting__loading){
 				gap: 150px !important;
+			}
+			> .downloading-cell {
+				height: 280px !important;
 			}
 		}
 		.var-cell {
 			.downloading {
-				height: 80px;
-				width: 800px;
+				width: 750px;
 				display: flex;
-				gap: 20px;
-				align-items: center;
-				.var-input {
-					width: 350px;
+				flex-direction: column;
+				> div {
+					height: 80px;
+					width: 100%;
+					.var-input {
+						width: 350px;
+					}
 				}
 			}
 			:deep(.var-cell__extra) {

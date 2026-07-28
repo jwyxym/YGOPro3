@@ -1,11 +1,9 @@
 
-use crate::game::{self, Game};
-use crate::{deck::Deck, log, ypk::Ypk};
+use crate::game::{self, Game, YgoServer};
+use crate::log;
 use crate::request::{Request as NetWork, Srv};
-use crate::ygoserver::YgoServer;
-use crate::yrp::Yrp;
 #[cfg(not(target_arch = "x86"))]
-use crate::windbot::WindBot;
+use crate::game::WindBot;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use tauri::{
@@ -29,13 +27,13 @@ pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn download (app: AppHandle, url: String, name: String) -> Result<String, String> {
-	Game::download(&app, url, name).await.map_err(|e| e.to_string())
+pub async fn download (app: AppHandle, url: String, name: String, chunk: usize) -> Result<String, String> {
+	Game::download(&app, url, name, chunk).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_ypk () -> Response {
-	Ypk::get().await
+	Game::get_ypk().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -68,12 +66,17 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 }
 
 #[tauri::command]
-pub async fn get_pic (deck: Vec<u32>) -> Response {
-	Game::get_pic(deck).await
+pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
+	let Raw(bytes) = request.body() else {
+		return Err("expected raw body".into());
+	};
+	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
+		.map_err(|e| e.to_string())?;
+	Ok(Game::get_pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(default_response)
+		.unwrap_or_else(default_response))
 }
 
 #[tauri::command]
@@ -178,22 +181,22 @@ pub async fn get_version (app: AppHandle) -> String {
 
 #[tauri::command]
 pub async fn write_deck (name: String, deck: String) -> Result<(), String> {
-	Deck::write(name, deck).await.map_err(|e| e.to_string())
+	Game::write_deck(name, deck).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn rename_deck (old_name: String, new_name: String) -> Result<(), String> {
-	Deck::rename(old_name, new_name).await.map_err(|e| e.to_string())
+	Game::rename_deck(old_name, new_name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn del_deck (name: String) -> Result<(), String> {
-	Deck::del(name).await.map_err(|e| e.to_string())
+	Game::del_deck(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_deck () -> Response {
-	Deck::get().await
+	Game::get_deck().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -207,12 +210,12 @@ pub async fn write_log (line: String) -> Result<(), String> {
 
 #[tauri::command]
 pub async fn del_ypk (name: String) -> Result<(), String> {
-	Ypk::del(name).await.map_err(|e| e.to_string())
+	Game::del_ypk(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn exists_ypk (name: String) -> Result<bool, String> {
-	Ypk::exists(name).await.map_err(|e| e.to_string())
+	Game::exists_ypk(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -268,7 +271,7 @@ pub async fn windbot_list () -> Response {
 
 #[tauri::command]
 pub async fn replay_read (name: String) -> Response {
-	Yrp::read(name).await
+	Game::read_yrp(name).await
 		.ok()
 		.map(Response::new)
 		.unwrap_or(Response::new(Vec::new()))
@@ -282,12 +285,12 @@ pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
 		.map_err(|e| e.to_string())?;
 	let content: &[u8] = &bytes[256..];
-	Yrp::save(name, content).await.map_err(|e| e.to_string())
+	Game::save_yrp(name, content).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn replay_list () -> Response {
-	Yrp::get().await
+	Game::get_yrp().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -296,12 +299,12 @@ pub async fn replay_list () -> Response {
 
 #[tauri::command]
 pub async fn replay_rename (from: String, to: String) -> Result<(), String>{
-	Yrp::rename(from, to).await.map_err(|e| e.to_string())
+	Game::rename_yrp(from, to).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn replay_del (name: String) -> Result<(), String>{
-	Yrp::del(name).await.map_err(|e| e.to_string())
+	Game::del_yrp(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]

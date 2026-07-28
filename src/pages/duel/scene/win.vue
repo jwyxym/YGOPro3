@@ -22,7 +22,6 @@
 			</p>
 			<Input
 				v-if = '!page.replay'
-				ref = 'input'
 				variant = 'outlined'
 				:placeholder = 'mainGame.get.text(I18N_KEYS.REPLAY_NAME)'
 				v-model = 'page.name'

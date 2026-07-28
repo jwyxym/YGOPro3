@@ -52,9 +52,9 @@ class Invoke {
 				return true;
 			}
 		},
-		download : async (url : string, name ?: string) : Promise<string> => {
+		download : async (url : string, name ?: string, chunk ?: number) : Promise<string> => {
 			try {
-				return await invoke<string>('download', { url : url, name : name ?? ''});
+				return await invoke<string>('download', { url : url, name : name ?? '', chunk : chunk ?? 0});
 			} catch (error) {
 				this.log.write(error);
 				return '';
@@ -81,7 +81,10 @@ class Invoke {
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
 				if (!deck.length) return [];
-				const result = await invoke<ArrayBuffer>('get_pic', { deck : deck });
+				const buffer = new ArrayBuffer(Math.max(1024, deck.length * 5 + 1));
+				const size = bincode.encode(bincode.Collection(bincode.u32), deck, buffer);
+				const encoded = new Uint8Array(buffer.slice(0, size));
+				const result = await invoke<ArrayBuffer>('get_pic', encoded);
 				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] = bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))

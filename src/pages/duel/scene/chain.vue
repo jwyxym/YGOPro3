@@ -1,12 +1,11 @@
 <template>
-	<TransitionGroup class = 'chain no-scrollbar' tag = 'div' name = 'move_up'>
+	<TransitionGroup class = 'chain no-scrollbar' tag = 'div' name = 'move_up' ref = 'chain'>
 		<div
 			v-for = '(i, v) in cards'
 			:key = 'v'
 			:style = "{ '--color' : i.owner ? 'red' : 'blue' }"
 			:id = 'i.id.toString()'
 			@click.stop = "emit('click', i);"
-			ref = 'el'
 		>
 			{{ mainGame.get.text(I18N_KEYS.DUEL_CHAIN) }} : {{ v + 1 }}
 			<img :src = 'mainGame.get.card(i.id).pic'/>
@@ -14,12 +13,12 @@
 	</TransitionGroup>
 </template>
 <script setup lang = 'ts'>
-	import { ref, watch } from 'vue';
+	import { useTemplateRef, watch } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Client_Card from './client_card';
-	const el = ref<HTMLElement | null>(null);
 
+	const el = useTemplateRef('chain');
 	const props  = defineProps<{
 		cards : Array<Client_Card>
 	}>();

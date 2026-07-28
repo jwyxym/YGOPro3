@@ -1447,7 +1447,7 @@ class Protocol {
 				}
 			}
 			await this.update.codes(codes);
-			connect.duel.select.sort.cards = codes.map(i => i[0]);
+			connect.duel.select.sort.cards = cards;
 			connect.duel.select.sort.title = mainGame.get.strings.system(205);
 			connect.duel.select.sort.confirm = undefined;
 			connect.response = async (i : Array<number>) => {
@@ -1455,7 +1455,7 @@ class Protocol {
 				const msg = new Msg()
 					.write.uint8(CTOS.RESPONSE);
 				for (const ct of i)
-					msg.write.uint32(ct);
+					msg.write.uint8(ct);
 				await send(msg);
 			};
 			connect.duel.select.sort.show = true;

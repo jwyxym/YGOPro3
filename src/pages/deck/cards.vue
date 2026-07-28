@@ -75,7 +75,7 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { computed, onMounted, onUnmounted, reactive, ref, watch, ComponentPublicInstance } from 'vue';
+	import { computed, onMounted, onUnmounted, reactive, watch, ComponentPublicInstance, useTemplateRef } from 'vue';
 	import mainGame from '@/script/game';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -86,11 +86,11 @@
 	import { toast } from '@/pages/toast/toast';
 	import Pic, { CardPic, CardPics } from '@/pages/deck/pic.vue';
 
-	const deck = ref<HTMLElement | null>(null);
-	const main_title = ref<HTMLElement | null>(null);
-	const extra_title = ref<HTMLElement | null>(null);
-	const side_title = ref<HTMLElement | null>(null);
-	const cards = ref<Array<ComponentPublicInstance> | null>(null);
+	const deck = useTemplateRef('deck');
+	const main_title = useTemplateRef('main_title');
+	const extra_title = useTemplateRef('extra_title');
+	const side_title = useTemplateRef('side_title');
+	const cards = useTemplateRef<Array<ComponentPublicInstance>>('cards');
 	
 	const page = reactive({
 		deck : {

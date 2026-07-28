@@ -10,6 +10,12 @@ mod card_info;
 mod lflist;
 mod model;
 mod extra_code;
+mod deck;
+mod ypk;
+mod yrp;
+mod ygoserver;
+#[cfg(not(target_arch = "x86"))]
+mod windbot;
 pub use self::{
 	card_info::CardInfo,
 	cdb::Cdb,
@@ -21,15 +27,29 @@ pub use self::{
 	strings::Strings,
 	system::System,
 	model::Model,
-	zip::Zip,
-	extra_code::SetCode
+	zip::{Zip, ZipArchive},
+	extra_code::SetCode,
+	deck::Deck,
+	ypk::Ypk,
+	yrp::Yrp,
+	ygoserver::YgoServer
 };
-use crate::file::{File, FileContent};
-use crate::progress;
-use crate::request::Request;
-use crate::{PATH, RESOURCE_PATH};
+#[cfg(not(target_arch = "x86"))]
+pub use windbot::WindBot;
+use crate::{
+	PATH,
+	RESOURCE_PATH,
+	progress::{
+		self,
+		Event
+	},
+	request::Request,
+	file::{
+		File,
+		FileContent
+	}
+};
 
-use serde::Serialize;
 use anyhow::{Error, Result, anyhow};
 use regex::Regex;
 use walkdir::WalkDir;
@@ -46,7 +66,8 @@ use chrono::{DateTime, Utc};
 use std::{
 	collections::BTreeMap,
 	fs::{exists, write, read},
-	path::{Path, PathBuf}
+	path::{Path, PathBuf},
+	io::Read
 };
 use tauri::AppHandle;
 
@@ -69,12 +90,12 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
 	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
-	progress::emit(app, "started", 5);
+	progress::emit(app, Event::Start, 5);
 	*game = Game::init(app, overwrite).await?;
 	Ok(())
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Debug)]
 pub struct Game {
 	version: String,
 	model: Model,
@@ -85,7 +106,7 @@ pub struct Game {
 	pack: IndexMap<String, GamePack>
 }
 
-#[derive(Serialize, Clone, Debug)]
+#[derive(Debug)]
 pub struct GamePack {
 	on: bool,
 	card_info: CardInfo,
@@ -93,7 +114,8 @@ pub struct GamePack {
 	db: Cdb,
 	server: Server,
 	lflist: LFList,
-	pics: Pic
+	pics: Pic,
+	archive: Option<ZipArchive>
 }
 
 impl Game {
@@ -116,9 +138,9 @@ impl Game {
 				)?;
 				Ok(None)
 			}));
-			progress::emit(app, "progress", 1);
+			progress::emit(app, Event::Progress, 1);
 			for task in tasks {
-				progress::emit(app, "progress", 1);
+				progress::emit(app, Event::Progress, 1);
 				if let Some(i) = task.await?? {
 					result.push(i)
 				}
@@ -136,16 +158,16 @@ impl Game {
 		);
 		let config: Vec<(String, String)> = i.0?;
 		i.1?;
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		let (system, resource, lflist, servers, model, setcode, mut tasks) = Self::load_config(path, &config).await;
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
 			Self::load_expansion(path, &system),
 			Self::load_i18n(path, system.i18n(), &config)
 		);
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		tasks.push(task);
 		for i in vec!["deck", "expansions", "replay"] {
@@ -156,11 +178,11 @@ impl Game {
 		for task in tasks {
 			let _ = task.await;
 		}
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
-		progress::emit(app, "progress", 1);
+		progress::emit(app, Event::Progress, 1);
 		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
@@ -169,9 +191,10 @@ impl Game {
 			db: db,
 			server: servers,
 			lflist: lflist,
-			pics: pics
+			pics: pics,
+			archive: None
 		});
-		progress::emit(app, "end", 0);
+		progress::emit(app, Event::End, 0);
 		Ok(Self {
 			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
 			model: model,
@@ -457,7 +480,7 @@ impl Game {
 								db.init_by_db(i);
 							});
 							zip.pics().into_iter().for_each(|(k, v)| {
-								pics.insert(k, PicContent::Buffer(v.clone()));
+								pics.insert(k, PicContent::ZipFile(v));
 							});
 							zip.servers().into_iter().for_each(|text: String| {
 								server.init_by_conf(text);
@@ -472,7 +495,8 @@ impl Game {
 								db: db,
 								server: server,
 								lflist: lflist,
-								pics: pics
+								pics: pics,
+								archive: Some(zip.archive())
 							});
 						}
 					}
@@ -514,7 +538,8 @@ impl Game {
 					db: db,
 					server: server,
 					lflist: lflist,
-					pics: Pic::new().read_dir(path.join("expansions").join("pics"))
+					pics: Pic::new().read_dir(path.join("expansions").join("pics")),
+					archive: None
 				}
 			}
 		);
@@ -563,7 +588,7 @@ impl Game {
 				db.push(i);
 			});
 			zip.pics().into_iter().for_each(|(k, v)| {
-				pics.insert(k, PicContent::Buffer(v.clone()));
+				pics.insert(k, PicContent::ZipFile(v));
 			});
 			zip.servers().into_iter().for_each(|text: String| {
 				server.init_by_conf(text);
@@ -578,43 +603,53 @@ impl Game {
 				db: Cdb::new(),
 				server: server,
 				lflist: lflist,
-				pics: pics
+				pics: pics,
+				archive: Some(zip.archive())
 			});
-			progress::emit(app, "end", 0);
+			progress::emit(app, Event::End, 0);
 		}
 		Ok(())
 	}
 
 	pub async fn get_pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!("get game error"))?;
-		let game: RwLockReadGuard<'_, Self> = game.read().await;
+		let mut game: RwLockWriteGuard<'_, Self> = game.write().await;
 		let mut buffer: BTreeMap<u32, Vec<u8>> = BTreeMap::new();
 		let mut path: BTreeMap<u32, String> = BTreeMap::new();
-		game.pack
-			.clone()
-			.into_values()
-			.filter(|pack: &GamePack| pack.on)
-			.for_each(|pack: GamePack| {
-				pack.pics.to_array().into_iter().for_each(|(k, v)| {
-					if deck.contains(&k) {
-						match v {
-							PicContent::Buffer(v) => {
-								buffer.insert(k, v.clone());
-							}
-							PicContent::Path(v) => {
-								path.insert(k, v.clone());
+		for pack in game.pack.values_mut() {
+			if !pack.on {
+				continue;
+			}
+			for (k, v) in pack.pics.to_array().into_iter() {
+				if !deck.contains(&k)
+					|| path.contains_key(&k)
+					|| buffer.contains_key(&k) {
+					continue;
+				}
+				match v {
+					PicContent::ZipFile(v) => {
+						if let Some(archive) = pack.archive.as_mut() {
+							let mut content: Vec<u8> = Vec::new();
+							if let Ok(mut file) = archive.by_index(v)
+								&& file.read_to_end(&mut content).is_ok()
+							{
+								buffer.insert(k, content);
 							}
 						}
 					}
-				});
-			});
+					PicContent::Path(v) => {
+						path.insert(k, v);
+					}
+				}
+			}
+		}
 		let buffer: Vec<(u32, Vec<u8>)> = buffer.into_iter().collect();
 		let path: Vec<(u32, String)> = path.into_iter().collect();
 		Ok((path, buffer))
 	}
 
 	pub async fn get_sound () -> Result<Vec<(String, String)>, Error> {
-		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
+		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!("" ))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		Ok(game.sound.to_array())
 	}
@@ -631,10 +666,9 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut cards: BTreeMap<u32, (Vec<i64>, Vec<String>)> = BTreeMap::new();
 		game.pack
-			.clone()
-			.into_values()
-			.filter(|pack: &GamePack| pack.on)
-			.for_each(|pack: GamePack| {
+			.values()
+			.filter(|pack: &&GamePack| pack.on)
+			.for_each(|pack: &GamePack| {
 				pack.db.content().into_iter().for_each(|(k, v)| {
 					cards.insert(*k, v.clone());
 				});
@@ -652,11 +686,10 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut servers: BTreeMap<String, String> = BTreeMap::new();
 		game.pack
-			.clone()
-			.into_values()
-			.filter(|pack: &GamePack| pack.on)
+			.values()
+			.filter(|pack: &&GamePack| pack.on)
 			.rev()
-			.for_each(|pack: GamePack| {
+			.for_each(|pack: &GamePack| {
 				pack.server.content().into_iter().for_each(|(k, v)| {
 					servers.insert(String::from(k), String::from(v));
 				});
@@ -669,10 +702,9 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let mut lflist: IndexMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = IndexMap::new();
 		game.pack
-			.clone()
-			.into_values()
-			.filter(|pack: &GamePack| pack.on)
-			.for_each(|pack: GamePack| {
+			.values()
+			.filter(|pack: &&GamePack| pack.on)
+			.for_each(|pack: &GamePack| {
 				pack.lflist.content().into_iter().for_each(|(k, v)| {
 					lflist.insert(String::from(k), v.to_array());
 				});
@@ -688,11 +720,10 @@ impl Game {
 		let mut counter: BTreeMap<u32, String> = BTreeMap::new();
 		let mut setname: BTreeMap<u32, String> = BTreeMap::new();
 		game.pack
-			.clone()
-			.into_values()
-			.filter(|pack: &GamePack| pack.on)
+			.values()
+			.filter(|pack: &&GamePack| pack.on)
 			.rev()
-			.for_each(|pack: GamePack| {
+			.for_each(|pack: &GamePack| {
 				pack.strings.system().into_iter().for_each(|(k, v)| {
 					system.insert(*k, String::from(v));
 				});
@@ -726,8 +757,8 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let pack: &GamePack = game.pack.get("./").ok_or(anyhow!(""))?;
 		Ok(pack
-			.clone()
 			.card_info
+			.clone()
 			.to_array())
 	}
 
@@ -768,9 +799,9 @@ impl Game {
 		Ok(Request::version(URL_GAME_VERSION, &game.version).await)
 	}
 
-	pub async fn download (app: &AppHandle, url: String, name: String) -> Result<String, Error> {
+	pub async fn download (app: &AppHandle, url: String, name: String, chunk: usize) -> Result<String, Error> {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-		Request::download(app, path.join("expansions"), &url, &name).await
+		Request::download(app, path.join("expansions"), &url, &name, chunk).await
 	}
 
 	pub async fn get_time (p: Vec<String>) -> Result<String, Error> {
@@ -792,9 +823,8 @@ impl Game {
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let i18n: String = game.system.i18n();
 		let pack: String = game.pack
-			.clone()
-			.into_iter()
-			.filter_map(|i: (String, GamePack)| {
+			.iter()
+			.filter_map(|i: (&String, &GamePack)| {
 				if i.1.on && !["./expansions", "./"].contains(&i.0.as_str()) {
 					return Some(i.0.clone())
 				}
@@ -815,5 +845,53 @@ impl Game {
 			.join("recognizer")
 			.join(hash);
 		Ok(read(path)?)
+	}
+
+	pub async fn write_deck (name: String, deck: String) -> Result<(), Error> {
+		Deck::write(name, deck).await
+	}
+
+	pub async fn get_deck () -> Result<Vec<(String, String)>, Error> {
+		Deck::get().await
+	}
+
+	pub async fn rename_deck (old_name: String, new_name: String) -> Result<(), Error> {
+		Deck::rename(old_name, new_name).await
+	}
+
+	pub async fn del_deck (name: String) -> Result<(), Error> {
+		Deck::del(name).await
+	}
+
+	pub async fn del_ypk (name: String) -> Result<(), Error> {
+		Ypk::del(name).await
+	}
+
+	pub async fn exists_ypk (name: String) -> Result<bool, Error> {
+		Ypk::exists(name).await
+	}
+
+	pub async fn get_ypk () -> Result<Vec<String>, Error> {
+		Ypk::get().await
+	}
+
+	pub async fn save_yrp (name: String, content: &[u8]) -> Result<String, Error> {
+		Yrp::save(name, content).await
+	}
+
+	pub async fn get_yrp () -> Result<Vec<String>, Error> {
+		Yrp::get().await
+	}
+
+	pub async fn rename_yrp (old_name: String, new_name: String) -> Result<(), Error> {
+		Yrp::rename(old_name, new_name).await
+	}
+
+	pub async fn del_yrp (name: String) -> Result<(), Error> {
+		Yrp::del(name).await
+	}
+
+	pub async fn read_yrp (name: String) -> Result<Vec<u8>, Error> {
+		Yrp::read(name).await
 	}
 }
