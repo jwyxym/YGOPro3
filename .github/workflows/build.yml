@@ -507,7 +507,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  upload-gitcode:
+  upload-version:
     runs-on: ubuntu-latest
     needs: [build-android, build-windows, build-macos, build-linux]
     steps:
@@ -523,33 +523,25 @@ jobs:
       - name: Upload to GitCode
         run: |
           cd .ci
-          pip install requests
-          python update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
-
-  upload-version:
-    runs-on: ubuntu-latest
-    needs: [upload-gitcode]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Upload to GitCode
-        run: |
-          cd .ci
-          pip install requests
           python write_version.py ${{ github.ref_name }}
-          python upload.py ${{ secrets.GITCODE_ACCESS_TOKEN }} version.txt
+
+      - name: proxy
+        uses: jwyxym/jwyxym/shadowsocks@master
+        with:
+          ss_server: ${{ secrets.SS_SERVER }}
+          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
+          ss_pass: ${{ secrets.SS_PASS }}
+
+      - name: Upload to Bucket
+        uses: jwyxym/jwyxym/s3@master
+        with:
+          proxy: http://127.0.0.1:1081
+          s3_endpoint: ${{ secrets.S3_ENDPOINT }}
+          access_key: ${{ secrets.S3_ACCESS_KEY }}
+          secret_key: ${{ secrets.S3_SECRET_KEY }}
+          bucket: ${{ secrets.S3_BUCKET }}
+          file_name: ${{ matrix.fileName }}
+          file_path: ./ci/version.txt
 
   update-s3:
     needs: [build-android, build-windows, build-macos, build-linux]
@@ -590,9 +582,9 @@ jobs:
       - name: proxy
         uses: jwyxym/jwyxym/shadowsocks@master
         with:
-            ss_server: ${{ secrets.SS_SERVER }}
-            ss_server_port: ${{ secrets.SS_SERVER_PORT }}
-            ss_pass: ${{ secrets.SS_PASS }}
+          ss_server: ${{ secrets.SS_SERVER }}
+          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
+          ss_pass: ${{ secrets.SS_PASS }}
 
       - name: Upload to Bucket
         uses: jwyxym/jwyxym/s3@master

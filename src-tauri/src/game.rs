@@ -73,7 +73,7 @@ use tauri::AppHandle;
 
 static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 
-const URL_GAME_VERSION: &str = "https://api.gitcode.com/api/v5/repos/jwyxym/ygopro3/releases/release-latest/attach_files/version.txt/download";
+const URL_GAME_VERSION: &str = "https://s3-1.nexusmc.cn/ygopro3/version.txt";
 
 lazy_static! {
 	pub static ref PIC_REGEX: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$").unwrap();
@@ -421,12 +421,13 @@ impl Game {
 			.for_each(|i| {
 				if let Ok(i) = i {
 					if let Some(file) = File::new(i.path()) {
+						let file_name: String = String::from(file.name());
 						if system
 							.array()
 							.get("LOADING_EXPANSION")
 							.unwrap_or(&Vec::new())
-							.contains(&String::from(file.name())) {
-							zip_tasks.push(Zip::new(String::from(file.path()), String::from(file.name())));
+							.contains(&file_name) {
+							zip_tasks.push(Zip::new(String::from(file.path()), file_name));
 						} else if file.ext() == "cdb" {
 							tasks.push(spawn(async move {
 								let mut db: Cdb = Cdb::new();
