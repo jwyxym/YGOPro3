@@ -603,8 +603,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: proxy
-        uses: jwyxym/jwyxym/edgeone-cache@master
+      - uses: jwyxym/jwyxym/edgeone-cache@master
         with:
           secret_id: ${{ secrets.EDGE_ID }}
           secret_key: ${{ secrets.EDGE_KEY }}
