@@ -603,8 +603,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: proxy
+        uses: jwyxym/jwyxym/shadowsocks@master
+        with:
+          ss_server: ${{ secrets.SS_SERVER }}
+          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
+          ss_pass: ${{ secrets.SS_PASS }}
+
       - uses: jwyxym/jwyxym/edgeone-cache@master
         with:
+          proxy: http://127.0.0.1:1081
           secret_id: ${{ secrets.EDGE_ID }}
           secret_key: ${{ secrets.EDGE_KEY }}
           zone_id: ${{ secrets.EDGE_ZONE_ID }}
