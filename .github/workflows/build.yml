@@ -541,7 +541,7 @@ jobs:
           secret_key: ${{ secrets.S3_SECRET_KEY }}
           bucket: ${{ secrets.S3_BUCKET }}
           file_name: ${{ matrix.fileName }}
-          file_path: ./ci/version.txt
+          file_path: ./.ci/version.txt
 
   update-s3:
     needs: [build-android, build-windows, build-macos, build-linux]
