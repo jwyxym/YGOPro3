@@ -132,14 +132,14 @@ jobs:
         with:
           path: build
 
-      - name: Create release-latest
+      - name: Create assets-latest
         run: |
           cd build
-          gh release delete release-latest --cleanup-tag -y || true
-          gh release create release-latest $(find . -type f) \
+          gh release delete assets-latest --cleanup-tag -y || true
+          gh release create assets-latest $(find . -type f) \
             --target "$GITHUB_SHA" \
-            --title "release-latest" \
-            --notes "Latest build for ${{ github.ref_name }}" \
+            --title "assets-latest" \
+            --notes "${{ github.ref_name }}" \
             --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
