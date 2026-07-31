@@ -1,5 +1,8 @@
 name: build assets
 
+permissions:
+  contents: write
+
 on:
   push:
     tags:
@@ -129,49 +132,14 @@ jobs:
         with:
           path: build
 
-      - name: Delete old Release
+      - name: Create release-latest
         run: |
-          TAG_NAME=assets-latest
-          gh release delete "$TAG_NAME" --yes || true
+          cd build
+          gh release delete release-latest --cleanup-tag -y || true
+          gh release create release-latest $(find . -type f) \
+            --target "$GITHUB_SHA" \
+            --title "release-latest" \
+            --notes "Latest build for ${{ github.ref_name }}" \
+            --latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Delete old tag
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git fetch --tags
-          git tag -d assets-latest || true
-          git push origin :refs/tags/assets-latest || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create tag
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git tag assets-latest
-          git push origin assets-latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: assets-latest
-          release_name: assets-latest
-          draft: false
-          prerelease: false
-
-      - name: Upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./build/assets.zip/assets.zip
-          asset_name: assets.zip
-          asset_content_type: application/octet-stream
