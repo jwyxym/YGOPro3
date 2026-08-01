@@ -668,10 +668,11 @@ impl Game {
 		let mut cards: BTreeMap<u32, (Vec<i64>, Vec<String>)> = BTreeMap::new();
 		game.pack
 			.values()
-			.filter(|pack: &&GamePack| pack.on)
 			.for_each(|pack: &GamePack| {
 				pack.db.content().into_iter().for_each(|(k, v)| {
-					cards.insert(*k, v.clone());
+					if pack.on && !cards.contains_key(k) {
+						cards.insert(*k, v.clone());
+					}
 				});
 			});
 		Ok(cards.values().cloned().collect())
@@ -823,13 +824,15 @@ impl Game {
 		let game: &RwLock<Self> = GAME.get().ok_or(anyhow!(""))?;
 		let game: RwLockReadGuard<'_, Self> = game.read().await;
 		let i18n: String = game.system.i18n();
+		let array: [&str; 2] = ["./expansions", "./"];
 		let pack: String = game.pack
 			.iter()
 			.filter_map(|i: (&String, &GamePack)| {
-				if i.1.on && !["./expansions", "./"].contains(&i.0.as_str()) {
-					return Some(i.0.clone())
+				if i.1.on && !array.contains(&i.0.as_str()) {
+					Some(i.0.clone())
+				} else {
+					None
 				}
-				None
 			})
 			.collect::<Vec<String>>()
 			.join("/");
