@@ -6,8 +6,10 @@ use crate::request::{Request as NetWork, Srv};
 use crate::game::WindBot;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
+use serde_json::Value::Array;
+use std::borrow::Cow;
 use tauri::{
-	AppHandle, ipc::{Response, Request, InvokeBody::Raw}
+	AppHandle, ipc::{Response, Request, InvokeBody::{Raw, Json}}
 };
 
 static CONFIG : Configuration = standard();
@@ -67,8 +69,14 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 
 #[tauri::command]
 pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
-	let Raw(bytes) = request.body() else {
-		return Err("expected raw body".into());
+	let bytes: Cow<'_, Vec<u8>> = match request.body() {
+		Raw(data) => Cow::Borrowed(data),
+		Json(Array(data)) => Cow::Owned(
+			data.iter()
+				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.collect(),
+		),
+		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
 		.map_err(|e| e.to_string())?;
@@ -279,8 +287,14 @@ pub async fn replay_read (name: String) -> Response {
 
 #[tauri::command]
 pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
-	let Raw(bytes) = request.body() else {
-		return Err("expected raw body".into());
+	let bytes: Cow<'_, Vec<u8>> = match request.body() {
+		Raw(data) => Cow::Borrowed(data),
+		Json(Array(data)) => Cow::Owned(
+			data.iter()
+				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.collect(),
+		),
+		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
 		.map_err(|e| e.to_string())?;
