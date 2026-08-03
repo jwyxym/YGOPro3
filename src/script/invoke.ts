@@ -81,15 +81,10 @@ class Invoke {
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
 				if (!deck.length) return [];
-				let result;
-				if (__ANDROID__)
-					result = await invoke<ArrayBuffer>('get_pic', { deck : deck });
-				else {
-					const buffer = new ArrayBuffer(Math.max(1024, deck.length * 5 + 1));
-					const size = bincode.encode(bincode.Collection(bincode.u32), deck, buffer);
-					const encoded = new Uint8Array(buffer.slice(0, size));
-					result = await invoke<ArrayBuffer>('get_pic', encoded);
-				}
+				const buffer = new ArrayBuffer(Math.max(1024, deck.length * 5 + 1));
+				const size = bincode.encode(bincode.Collection(bincode.u32), deck, buffer);
+				const encoded = new Uint8Array(buffer.slice(0, size));
+				const result = await invoke<ArrayBuffer>('get_pic', encoded);
 				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] = bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))
@@ -478,21 +473,17 @@ class Invoke {
 		},
 		save : async (name : string, content : Uint8Array) : Promise<string | void> => {
 			try {
-				if (__ANDROID__)
-					return await invoke<string>('replay_save', { name : name, content : content });
-				else {
-					const buffer = new ArrayBuffer(256);
-					bincode.encode(
-						bincode.String,
-						name,
-						buffer
-					);
-					const encoded = new Uint8Array(buffer);
-					const bytes = new Uint8Array(encoded.length + content.length);
-					bytes.set(encoded, 0);
-					bytes.set(content, encoded.length);
-					return await invoke<string>('replay_save', bytes);
-				}
+				const buffer = new ArrayBuffer(256);
+				bincode.encode(
+					bincode.String,
+					name,
+					buffer
+				);
+				const encoded = new Uint8Array(buffer);
+				const bytes = new Uint8Array(encoded.length + content.length);
+				bytes.set(encoded, 0);
+				bytes.set(content, encoded.length);
+				return await invoke<string>('replay_save', bytes);
 			} catch (error) {
 				this.log.write(error);
 			}
