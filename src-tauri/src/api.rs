@@ -7,8 +7,10 @@ use crate::game::WindBot;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use tauri::{
-	AppHandle, ipc::{Response, Request, InvokeBody::Raw}
+	AppHandle, ipc::Response
 };
+#[cfg(not(target_os = "android"))]
+use tauri::ipc::{Request, InvokeBody::Raw};
 
 static CONFIG : Configuration = standard();
 
@@ -65,6 +67,17 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 	NetWork::srv(url).map_err(|e| e.to_string())
 }
 
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn get_pic (deck: Vec<u32>) -> Result<Response, String> {
+	Ok(Game::get_pic(deck).await
+		.ok()
+		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.map(Response::new)
+		.unwrap_or_else(default_response))
+}
+
+#[cfg(not(target_os = "android"))]
 #[tauri::command]
 pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 	let Raw(bytes) = request.body() else {
@@ -277,6 +290,13 @@ pub async fn replay_read (name: String) -> Response {
 		.unwrap_or(Response::new(Vec::new()))
 }
 
+#[cfg(target_os = "android")]
+#[tauri::command]
+pub async fn replay_save (name: String, content: Vec<u8>) -> Result<String, String> {
+	Game::save_yrp(name, &content).await.map_err(|e| e.to_string())
+}
+
+#[cfg(not(target_os = "android"))]
 #[tauri::command]
 pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 	let Raw(bytes) = request.body() else {
