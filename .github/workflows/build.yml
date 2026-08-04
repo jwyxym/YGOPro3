@@ -594,7 +594,7 @@ jobs:
           access_key: ${{ secrets.S3_ACCESS_KEY }}
           secret_key: ${{ secrets.S3_SECRET_KEY }}
           bucket: ${{ secrets.S3_BUCKET }}
-          file_name: ${{ matrix.fileName }}
+          file_name: version.txt
           file_path: ./.ci/version.txt
 
   flush-cdn:
