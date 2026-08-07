@@ -29,8 +29,11 @@
 					:title = 'mainGame.get.text(I18N_KEYS.SINGLE_LP)'
 				>
 					<template #extra>
-						<Input
-							type = 'number'
+						<var-counter
+							:min = '0'
+							:max = '100000'
+							:step = '1000'
+							input-width = '60px'
 							v-model = 'page.start_lp'
 						/>
 					</template>
