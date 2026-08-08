@@ -146,9 +146,10 @@ class Game {
 	get = {
 		textures : (type : string, key : string | number) : [string, string] | string => this.textures.get(type)?.get(key) ?? '',
 		lflist : (key : string | number) : LFList => (typeof key === 'string'
-				? this.lflist.get(key) : Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
+				? this.lflist.get(key)
+				: Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
 			)
-			?? this.lflist.get(CONSTANT.KEYS.NA)!,
+			?? new LFList(this.get.text(I18N_KEYS.UNKNOW), { hash : 0, genesys : 0, lflist : [], glist : [] }),
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:
