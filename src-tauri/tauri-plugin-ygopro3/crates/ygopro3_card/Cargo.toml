@@ -1,0 +1,9 @@
+[package]
+name = "ygopro3_card"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+anyhow.workspace = true
+ygopro_cdb_reader.workspace = true

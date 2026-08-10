@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke as tauriInvoke, type InvokeArgs } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
 import Card from './card';
@@ -11,6 +11,10 @@ interface Srv {
 	port : number;
 	target : string;
 };
+
+const invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
+	tauriInvoke<T>(`plugin:ygopro3|${command}`, args)
+);
 
 class Invoke {
 	game = {
@@ -280,9 +284,9 @@ class Invoke {
 				};
 			}
 		},
-		get_model : async () : Promise<Array<[string, string]>> => {
+		get_room : async () : Promise<Array<[string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_model');
+				const result = await invoke<ArrayBuffer>('get_room');
 				return bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;

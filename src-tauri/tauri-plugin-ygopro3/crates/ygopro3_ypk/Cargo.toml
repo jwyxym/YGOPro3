@@ -1,0 +1,11 @@
+[package]
+name = "ygopro3_ypk"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+walkdir.workspace = true
+
+ygopro3_fs.workspace = true
+ygopro3_const.workspace = true

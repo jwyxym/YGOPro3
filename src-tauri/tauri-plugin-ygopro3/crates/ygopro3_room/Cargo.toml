@@ -1,0 +1,10 @@
+[package]
+name = "ygopro3_room"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+indexmap.workspace = true
+basic-toml.workspace = true
+serde.workspace = true
+anyhow.workspace = true

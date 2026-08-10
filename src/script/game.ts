@@ -46,7 +46,7 @@ class Game {
 				servers,
 				lflist,
 				strings,
-				model,
+				room,
 				info,
 				hash,
 				ex_codes,
@@ -59,7 +59,7 @@ class Game {
 				invoke.game.get_server(),
 				invoke.game.get_lflist(),
 				invoke.game.get_strings(),
-				invoke.game.get_model(),
+				invoke.game.get_room(),
 				invoke.game.get_info(),
 				invoke.game.get_hash(),
 				invoke.game.get_ex_code(),
@@ -99,7 +99,7 @@ class Game {
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
 			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
-			this.model = new Map(model);
+			this.model = new Map(room);
 			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 			ex_codes

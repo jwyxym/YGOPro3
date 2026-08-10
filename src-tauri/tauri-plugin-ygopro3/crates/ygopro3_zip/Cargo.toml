@@ -1,0 +1,14 @@
+[package]
+name = "ygopro3_zip"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tauri.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+zip.workspace = true
+
+ygopro3_emit.workspace = true
+ygopro3_card.workspace = true
+ygopro3_const.workspace = true

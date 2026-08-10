@@ -1,0 +1,87 @@
+[package]
+name = "tauri-plugin-ygopro3"
+version = "0.1.0"
+edition = "2024"
+build = "src/build.rs"
+links = "tauri-plugin-ygopro3"
+
+[build-dependencies]
+tauri-plugin = { version = "2", features = ["build"] }
+
+[dependencies]
+ygopro3_api.workspace = true
+
+[workspace.dependencies]
+tauri = { version = "2", features = ["protocol-asset"] }
+serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.143"
+anyhow = "1.0.100"
+tokio = { version = "1.49.0", features = ["full"] }
+bincode = "2.0.0-rc.3"
+zip = "0.6"
+walkdir = "2.5.0"
+ureq = "3.1.2"
+trust-dns-resolver = "0.23.2"
+content_disposition = "0.4.0"
+regex = "1.11.2"
+chrono = "0.4.42"
+urlencoding = "2.1.3"
+basic-toml = "0.1.10"
+futures = "0.3.31"
+lazy_static = "1.5.0"
+indexmap = { version = "2.13.0", features = ["serde"] }
+uuid = { version = "1.21.0", features = ["v4"] }
+libloading = "0.9.0"
+ygopro_cdb_reader = "0.1.1"
+
+ygopro3_api = { path = "./crates/ygopro3_api" }
+ygopro3_card = { path = "./crates/ygopro3_card" }
+ygopro3_const = { path = "./crates/ygopro3_const" }
+ygopro3_deck = { path = "./crates/ygopro3_deck" }
+ygopro3_emit = { path = "./crates/ygopro3_emit" }
+ygopro3_ex_code = { path = "./crates/ygopro3_ex_code" }
+ygopro3_fs = { path = "./crates/ygopro3_fs" }
+ygopro3_game = { path = "./crates/ygopro3_game" }
+ygopro3_info = { path = "./crates/ygopro3_info" }
+ygopro3_lflist = { path = "./crates/ygopro3_lflist" }
+ygopro3_log = { path = "./crates/ygopro3_log" }
+ygopro3_network = { path = "./crates/ygopro3_network" }
+ygopro3_picture = { path = "./crates/ygopro3_picture" }
+ygopro3_resource = { path = "./crates/ygopro3_resource" }
+ygopro3_room = { path = "./crates/ygopro3_room" }
+ygopro3_server_list = { path = "./crates/ygopro3_server_list" }
+ygopro3_sound = { path = "./crates/ygopro3_sound" }
+ygopro3_strings = { path = "./crates/ygopro3_strings" }
+ygopro3_system = { path = "./crates/ygopro3_system" }
+ygopro3_windbot = { path = "./crates/ygopro3_windbot" }
+ygopro3_ypk = { path = "./crates/ygopro3_ypk" }
+ygopro3_yrp = { path = "./crates/ygopro3_yrp" }
+ygopro3_zip = { path = "./crates/ygopro3_zip" }
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/ygopro3_api",
+    "crates/ygopro3_card",
+    "crates/ygopro3_const",
+    "crates/ygopro3_deck",
+    "crates/ygopro3_emit",
+    "crates/ygopro3_ex_code",
+    "crates/ygopro3_fs",
+    "crates/ygopro3_game",
+    "crates/ygopro3_info",
+    "crates/ygopro3_lflist",
+    "crates/ygopro3_log",
+    "crates/ygopro3_network",
+    "crates/ygopro3_picture",
+    "crates/ygopro3_resource",
+    "crates/ygopro3_room",
+    "crates/ygopro3_server_list",
+    "crates/ygopro3_sound",
+    "crates/ygopro3_strings",
+    "crates/ygopro3_system",
+    "crates/ygopro3_windbot",
+    "crates/ygopro3_ypk",
+    "crates/ygopro3_yrp",
+    "crates/ygopro3_zip",
+]
