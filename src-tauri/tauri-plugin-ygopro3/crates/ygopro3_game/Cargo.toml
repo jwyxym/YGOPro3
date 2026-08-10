@@ -10,7 +10,6 @@ tokio.workspace = true
 futures.workspace = true
 indexmap.workspace = true
 anyhow.workspace = true
-chrono.workspace = true
 
 ygopro3_strings.workspace = true
 ygopro3_system.workspace = true
@@ -25,6 +24,5 @@ ygopro3_lflist.workspace = true
 ygopro3_room.workspace = true
 ygopro3_ex_code.workspace = true
 ygopro3_emit.workspace = true
-ygopro3_network.workspace = true
 ygopro3_fs.workspace = true
 ygopro3_const.workspace = true

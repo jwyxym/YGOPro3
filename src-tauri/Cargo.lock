@@ -6591,6 +6591,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "chrono",
  "serde",
  "serde_json",
  "tauri",
@@ -6664,7 +6665,6 @@ name = "ygopro3_game"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
  "futures",
  "indexmap 2.13.0",
  "tauri",
@@ -6677,7 +6677,6 @@ dependencies = [
  "ygopro3_fs",
  "ygopro3_info",
  "ygopro3_lflist",
- "ygopro3_network",
  "ygopro3_picture",
  "ygopro3_resource",
  "ygopro3_room",

@@ -1,11 +1,10 @@
-use ygopro3_game::{self as game, Game};
+use ygopro3_const::*;
+use ygopro3_game::{game::{self, Game}, GAME};
 use ygopro3_log::log;
 use ygopro3_network::{Srv, srv};
 use ygopro3_deck::deck;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
-#[cfg(not(target_arch = "x86"))]
-use ygopro3_windbot::WindBot;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use serde_json::Value::Array;
@@ -13,6 +12,9 @@ use std::borrow::Cow;
 use tauri::{
 	AppHandle, ipc::{Response, Request, InvokeBody::{Raw, Json}}
 };
+use tokio::{sync::{RwLock, RwLockReadGuard}, fs::metadata};
+use std::{path::PathBuf, fs::exists};
+use chrono::{DateTime, Utc};
 
 static CONFIG : Configuration = standard();
 
@@ -22,17 +24,29 @@ fn default_response () -> Response {
 
 #[tauri::command]
 pub async fn init (app: AppHandle) -> Result<(), String> {
-	game::init(&app).await.map_err(|e| e.to_string())
+	ygopro3_game::init(&app).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn reload (app: AppHandle, overwrite: bool) -> Result<(), String> {
-	game::reload(&app, overwrite).await.map_err(|e| e.to_string())
+	ygopro3_game::reload(&app, overwrite).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn download (app: AppHandle, url: String, name: String, chunk: usize) -> Result<String, String> {
-	Game::download(&app, url, name, chunk).await.map_err(|e| e.to_string())
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	let (_, max_retries) = ygopro3_game::get::system()
+		.await
+		.map_err(|e| e.to_string())?
+		.2
+		.into_iter()
+		.find(|i|
+			i.0 == "CT_DOWNLOADCHUNKS_RETRIES"
+		)
+		.unwrap_or((String::new(), 8.0));
+	ygopro3_network::download(&app, path.join("expansions"), &url, &name, chunk, max_retries)
+		.await
+		.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -46,22 +60,24 @@ pub async fn get_ypk () -> Response {
 
 #[tauri::command]
 pub async fn load_ypk (app: AppHandle, name: String) -> Result<(), String> {
-	Game::load_zip(&app, name).await.map_err(|e| e.to_string())
+	game::load::zip(&app, name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn unload_ypk (name: String) -> Result<(), String> {
-	Game::unload_zip(name).await.map_err(|e| e.to_string())
+	game::unload::zip(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn set_system (key: String, ct: i8, value: String, write: bool) -> Result<(), String> {
-	Game::set_system(key, ct, value, write).await.map_err(|e| e.to_string())
+	ygopro3_game::set::system(key, ct, value, write).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn chk_version () -> Result<bool, String> {
-	Game::chk_version().await.map_err(|e| e.to_string())
+	let game: &RwLock<Game> = GAME.get().ok_or(String::new())?;
+	let game: RwLockReadGuard<'_, Game> = game.read().await;
+	Ok(ygopro3_network::chk_version(URL_GAME_VERSION, &game.version).await)
 }
 
 #[tauri::command]
@@ -82,7 +98,7 @@ pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 	};
 	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
 		.map_err(|e| e.to_string())?;
-	Ok(Game::get_pic(deck).await
+	Ok(ygopro3_game::get::pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -91,7 +107,7 @@ pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 
 #[tauri::command]
 pub async fn get_sound () -> Response {
-	Game::get_sound().await
+	ygopro3_game::get::sound().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -100,7 +116,7 @@ pub async fn get_sound () -> Response {
 
 #[tauri::command]
 pub async fn get_textures () -> Response {
-	Game::get_textures().await
+	ygopro3_game::get::textures().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -109,7 +125,7 @@ pub async fn get_textures () -> Response {
 
 #[tauri::command]
 pub async fn get_cards () -> Response {
-	Game::get_cards().await
+	ygopro3_game::get::cards().await
 		.ok()
 		.and_then(|cards| encode_to_vec(cards, CONFIG).ok())
 		.map(Response::new)
@@ -118,7 +134,7 @@ pub async fn get_cards () -> Response {
 
 #[tauri::command]
 pub async fn get_system () -> Response {
-	Game::get_system().await
+	ygopro3_game::get::system().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -127,7 +143,7 @@ pub async fn get_system () -> Response {
 
 #[tauri::command]
 pub async fn get_server () -> Response {
-	Game::get_server().await
+	ygopro3_game::get::server().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -136,7 +152,7 @@ pub async fn get_server () -> Response {
 
 #[tauri::command]
 pub async fn get_lflist () -> Response {
-	Game::get_lflist().await
+	ygopro3_game::get::lflist().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -145,7 +161,7 @@ pub async fn get_lflist () -> Response {
 
 #[tauri::command]
 pub async fn get_strings () -> Response {
-	Game::get_strings().await
+	ygopro3_game::get::strings().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -154,7 +170,7 @@ pub async fn get_strings () -> Response {
 
 #[tauri::command]
 pub async fn get_info () -> Response {
-	Game::get_info().await
+	ygopro3_game::get::info().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -163,7 +179,7 @@ pub async fn get_info () -> Response {
 
 #[tauri::command]
 pub async fn get_room () -> Response {
-	Game::get_room().await
+	ygopro3_game::get::room().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -172,7 +188,7 @@ pub async fn get_room () -> Response {
 
 #[tauri::command]
 pub async fn get_ex_code () -> Response {
-	Game::get_ex_code().await
+	ygopro3_game::get::ex_code().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -181,7 +197,23 @@ pub async fn get_ex_code () -> Response {
 
 #[tauri::command]
 pub async fn get_time (path: Vec<String>) -> Result<String, String> {
-	Game::get_time(path).await.map_err(|e| e.to_string())
+	let p: Vec<String> = path;
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	let mut path: PathBuf = path.clone();
+	for i in p {
+		path = path.join(&i);
+	}
+	if exists(&path).map_err(|e| e.to_string())? {
+		let time: DateTime<Utc> = metadata(path)
+			.await
+			.map_err(|e| e.to_string())?
+			.modified()
+			.map_err(|e| e.to_string())?
+			.into();
+		Ok(time.to_rfc3339())
+	} else {
+		Ok(String::new())
+	}
 }
 
 #[tauri::command]
@@ -249,12 +281,12 @@ pub async fn ygoserver_stop () -> Result<(), String> {
 pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 	#[cfg(not(target_arch = "x86"))]
 	if args.is_empty() {
-		WindBot::init().await
+		ygopro3_windbot::init().await
 	} else {
-		let (i18n, _) = Game::get_server_args()
+		let (i18n, _) = ygopro3_game::get::server_args()
 			.await
 			.map_err(|e| e.to_string())?;
-		WindBot::start(args, i18n, deck).await
+		ygopro3_windbot::start(args, i18n, deck).await
 	}
 		.map_err(|e| e.to_string())?;
 	#[cfg(target_arch = "x86")]
@@ -265,14 +297,14 @@ pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn windbot_stop () -> Result<(), String> {
 	#[cfg(not(target_arch = "x86"))]
-	WindBot::stop().await.map_err(|e| e.to_string())?;
+	ygopro3_windbot::stop().await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
 #[tauri::command]
 pub async fn windbot_list () -> Response {
 	#[cfg(not(target_arch = "x86"))]
-	return WindBot::list().await
+	return ygopro3_windbot::list().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -327,5 +359,5 @@ pub async fn replay_del (name: String) -> Result<(), String>{
 
 #[tauri::command]
 pub async fn get_hash () -> Result<Response, String> {
-	Ok(Response::new(Game::get_hash().await.map_err(|e| e.to_string())?))
+	Ok(Response::new(ygopro3_game::get::hash().await.map_err(|e| e.to_string())?))
 }
