@@ -85,7 +85,7 @@ jobs:
         mkdir arm64-v8a
         mkdir armeabi-v7a
 
-        cd ../x86_64
+        cd x86_64
         wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-x86_64.zip
         unzip windbot-android-x86_64.zip
         rm -r *.zip
