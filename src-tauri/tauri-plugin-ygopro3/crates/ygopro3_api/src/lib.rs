@@ -1,4 +1,4 @@
-pub mod api;
+mod api;
 
 use tauri::{
 	path::BaseDirectory,
