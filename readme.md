@@ -2,7 +2,7 @@
 	<img width = '15%' src = './src-tauri/icons/icon.jpg' alt = 'logo'>
 	<h1>YGOPro3</h1>
 
-[![Rust](https://img.shields.io/badge/Rust-1.91-orange.svg)](https://www.rust-lang.org/)
+[![Rust](https://img.shields.io/badge/Rust-1.95.0-orange.svg)](https://www.rust-lang.org/)
 [![Vue.js](https://img.shields.io/badge/Vue.js-3.x-brightgreen.svg)](https://vuejs.org/)
 [![Tauri](https://img.shields.io/badge/Tauri-v2.0-blue.svg)](https://tauri.app/)
 [![Java](https://img.shields.io/badge/Java-21+-yellow.svg)](https://www.oracle.com/java/)
@@ -16,10 +16,15 @@
 </div>
 
 <div>
+	<h3>预览</h3>
+	<img src="./readme/预览.webp"/>
+</div>
+
+<div>
 	<h3>开发环境</h3>
 	<ul>
 		<li>Node.js v22</li>
-		<li>Rust 1.91</li>
+		<li>Rust 1.95.0</li>
 		<li>Java 21（Android开发）</li>
 		<li>NDK 27（Android开发）</li>
 	</ul>
@@ -29,8 +34,8 @@
 <h5>Clone 仓库</h5>
 
 ```bash
-git clone https://github.com/jwyxym/tauri-ygo.git
-cd tauri-ygo
+git clone https://github.com/jwyxym/YGOPro3
+cd YGOPro3
 ```
 <h5>初始化tauri项目所需的config文件</h5>
 
