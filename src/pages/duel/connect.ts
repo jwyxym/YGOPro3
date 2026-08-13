@@ -387,7 +387,7 @@ const connect = reactive({
 			connect.debouncing = false;
 		}
 	},
-	close : async () => {
+	close : () => {
 		connect.protocol?.disconnect()
 			.then()
 			.catch();
