@@ -2,7 +2,6 @@ use ygopro3_const::*;
 use ygopro3_game::{game::{self, Game}, GAME};
 use ygopro3_log::log;
 use ygopro3_network::{Srv, srv};
-use ygopro3_deck::deck;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
@@ -213,22 +212,22 @@ pub async fn get_version (app: AppHandle) -> String {
 
 #[tauri::command]
 pub async fn write_deck (name: String, deck: String) -> Result<(), String> {
-	deck::write(name, deck).await.map_err(|e| e.to_string())
+	ygopro3_deck::deck::write(name, deck).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn rename_deck (old_name: String, new_name: String) -> Result<(), String> {
-	deck::rename(old_name, new_name).await.map_err(|e| e.to_string())
+	ygopro3_deck::deck::rename(old_name, new_name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn del_deck (name: String) -> Result<(), String> {
-	deck::del(name).await.map_err(|e| e.to_string())
+	ygopro3_deck::deck::del(name).await.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn get_deck () -> Response {
-	deck::get().await
+	ygopro3_deck::deck::get().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
@@ -296,8 +295,10 @@ pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 		ygopro3_windbot::start(args, i18n, deck).await
 	}
 		.map_err(|e| e.to_string())?;
-	#[cfg(target_arch = "x86")]
-	let _ = args;
+	#[cfg(target_arch = "x86")] {
+		let _ = args;
+		let _ = deck;
+	}
 	Ok(())
 }
 
