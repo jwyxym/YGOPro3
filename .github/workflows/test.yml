@@ -1,9 +1,10 @@
 name: test build YGOPro3
 
+
 on:
   push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+    branches:
+      rust
     
 jobs:
   build-android:
