@@ -141,8 +141,19 @@
 			if (!selected || (selected[1] === 'Lucky' && !page.deck)) return;
 			emit('connect', {
 				name : page.name,
-				args : [
-					`7911 -1 5 0 F ${page.no_chk ? 'T' : 'F'} ${page.no_shuffle ? 'T' : 'F'} ${page.start_lp} ${page.start_hand} ${page.draw} 0 0`,
+				args : [{
+						lflist : 0,
+						rule : 5,
+						mode : 0,
+						replayMode : 0,
+						duelRule : false,
+						noCheckDeck : page.no_chk,
+						noShuffleDeck : page.no_shuffle,
+						startLp : page.start_lp,
+						startHand : page.start_hand,
+						drawCount : page.draw,
+						timeLimit : 0,
+					},
 					`Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
 				],
 				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : ''
@@ -170,7 +181,7 @@
 	const emit = defineEmits<{
 		connect : [server : {
 			name : string;
-			args : [string, string];
+			args : [any, string];
 			deck : string;
 		}];
 	}>();

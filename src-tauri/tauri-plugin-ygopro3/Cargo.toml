@@ -17,6 +17,8 @@ serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.143"
 anyhow = "1.0.100"
 tokio = { version = "1.49.0", features = ["full"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-util = { version = "0.7", features = ["codec"] }
 bincode = "2.0.0-rc.3"
 zip = "0.6"
 walkdir = "2.5.0"
@@ -32,7 +34,16 @@ lazy_static = "1.5.0"
 indexmap = { version = "2.13.0", features = ["serde"] }
 uuid = { version = "1.21.0", features = ["v4"] }
 libloading = "0.9.0"
-ygopro_cdb_reader = "0.1.1"
+binrw = "0.13"
+hashbrown = "0.17.1"
+parking_lot = { version = "0.12.5", features = ["arc_lock", "send_guard"] }
+arc-swap = "1.9.2"
+ygopro_cdb_reader = "0.1.5"
+ygopru = {
+	git = "https://github.com/jwyxym/ygopru.git",
+	branch = "ygopro3",
+	default-features = false
+}
 
 ygopro3_api = { path = "./crates/ygopro3_api" }
 ygopro3_card = { path = "./crates/ygopro3_card" }
@@ -50,6 +61,8 @@ ygopro3_picture = { path = "./crates/ygopro3_picture" }
 ygopro3_resource = { path = "./crates/ygopro3_resource" }
 ygopro3_room = { path = "./crates/ygopro3_room" }
 ygopro3_server_list = { path = "./crates/ygopro3_server_list" }
+ygopro3_single_duel = { path = "./crates/ygopro3_single_duel" }
+ygopro3_scripts = { path = "./crates/ygopro3_scripts" }
 ygopro3_sound = { path = "./crates/ygopro3_sound" }
 ygopro3_strings = { path = "./crates/ygopro3_strings" }
 ygopro3_system = { path = "./crates/ygopro3_system" }
@@ -61,27 +74,29 @@ ygopro3_zip = { path = "./crates/ygopro3_zip" }
 [workspace]
 resolver = "2"
 members = [
-    "crates/ygopro3_api",
-    "crates/ygopro3_card",
-    "crates/ygopro3_const",
-    "crates/ygopro3_deck",
-    "crates/ygopro3_emit",
-    "crates/ygopro3_ex_code",
-    "crates/ygopro3_fs",
-    "crates/ygopro3_game",
-    "crates/ygopro3_info",
-    "crates/ygopro3_lflist",
-    "crates/ygopro3_log",
-    "crates/ygopro3_network",
-    "crates/ygopro3_picture",
-    "crates/ygopro3_resource",
-    "crates/ygopro3_room",
-    "crates/ygopro3_server_list",
-    "crates/ygopro3_sound",
-    "crates/ygopro3_strings",
-    "crates/ygopro3_system",
-    "crates/ygopro3_windbot",
-    "crates/ygopro3_ypk",
-    "crates/ygopro3_yrp",
-    "crates/ygopro3_zip",
+	"crates/ygopro3_api",
+	"crates/ygopro3_card",
+	"crates/ygopro3_const",
+	"crates/ygopro3_deck",
+	"crates/ygopro3_emit",
+	"crates/ygopro3_ex_code",
+	"crates/ygopro3_fs",
+	"crates/ygopro3_game",
+	"crates/ygopro3_info",
+	"crates/ygopro3_lflist",
+	"crates/ygopro3_log",
+	"crates/ygopro3_network",
+	"crates/ygopro3_picture",
+	"crates/ygopro3_resource",
+	"crates/ygopro3_room",
+	"crates/ygopro3_server_list",
+	"crates/ygopro3_single_duel",
+	"crates/ygopro3_scripts",
+	"crates/ygopro3_sound",
+	"crates/ygopro3_strings",
+	"crates/ygopro3_system",
+	"crates/ygopro3_windbot",
+	"crates/ygopro3_ypk",
+	"crates/ygopro3_yrp",
+	"crates/ygopro3_zip",
 ]

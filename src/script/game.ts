@@ -31,8 +31,8 @@ class Game {
 	version = '';
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
-	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
-	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
+	unknown : Card = Card.default();
+	back : Card = Card.default();
 
 	init = async () : Promise<boolean> => {
 		try {
@@ -49,7 +49,6 @@ class Game {
 				room,
 				info,
 				hash,
-				ex_codes,
 				version
 			] = await Promise.all([
 				invoke.game.get_sound(),
@@ -62,7 +61,6 @@ class Game {
 				invoke.game.get_room(),
 				invoke.game.get_info(),
 				invoke.game.get_hash(),
-				invoke.game.get_ex_code(),
 				invoke.game.version()
 			]);
 			if (hash)
@@ -102,11 +100,6 @@ class Game {
 			this.model = new Map(room);
 			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
-			ex_codes
-				.forEach(i => this.cards
-					.get(i[0])
-					?.set.setcode(i[1])
-				);
 
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')

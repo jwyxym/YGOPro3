@@ -10,6 +10,7 @@ tokio.workspace = true
 futures.workspace = true
 indexmap.workspace = true
 anyhow.workspace = true
+parking_lot.workspace = true
 
 ygopro3_strings.workspace = true
 ygopro3_system.workspace = true
@@ -18,6 +19,7 @@ ygopro3_card.workspace = true
 ygopro3_picture.workspace = true
 ygopro3_zip.workspace = true
 ygopro3_resource.workspace = true
+ygopro3_scripts.workspace = true
 ygopro3_sound.workspace = true
 ygopro3_info.workspace = true
 ygopro3_lflist.workspace = true

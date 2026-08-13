@@ -61,7 +61,7 @@ impl SetCode {
 		result
 	}
 
-	pub fn to_array(&self) -> Vec<(u32, Vec<u16>)> {
-		self.code.clone().into_iter().collect()
+	pub fn code (&self) -> &BTreeMap<u32, Vec<u16>> {
+		&self.code
 	}
 }

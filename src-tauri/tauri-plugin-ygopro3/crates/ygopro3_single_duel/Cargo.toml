@@ -1,0 +1,19 @@
+[package]
+name = "ygopro3_single_duel"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+ygopru.workspace = true
+binrw.workspace = true
+futures.workspace = true
+hashbrown.workspace = true
+parking_lot.workspace = true
+tokio.workspace = true
+tokio-stream.workspace = true
+tokio-util.workspace = true
+arc-swap.workspace = true
+
+ygopro3_ex_code.workspace = true
+ygopro3_game.workspace = true

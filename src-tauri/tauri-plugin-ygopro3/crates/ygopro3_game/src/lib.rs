@@ -9,6 +9,7 @@ use ygopro3_lflist::*;
 use ygopro3_picture::*;
 use ygopro3_resource::*;
 use ygopro3_server_list::*;
+use ygopro3_scripts::*;
 use ygopro3_sound::*;
 use ygopro3_strings::*;
 use ygopro3_system::*;
@@ -22,10 +23,11 @@ use ygopro3_emit::progress::{self, Event};
 use anyhow::{Error, Result, anyhow};
 use walkdir::WalkDir;
 use indexmap::IndexMap;
+use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::{
 	task::{JoinHandle, spawn},
 	fs::{create_dir_all, read_to_string, metadata},
-	sync::{OnceCell, RwLock, RwLockReadGuard, RwLockWriteGuard},
+	sync::OnceCell,
 	join
 };
 use futures::{StreamExt, stream::FuturesUnordered};
@@ -48,8 +50,9 @@ pub async fn init (app: &AppHandle) -> Result<(), Error> {
 }
 pub async fn reload (app: &AppHandle, overwrite: bool) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
-	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
 	progress::emit(app, Event::Start, 5);
-	*game = Game::init(app, overwrite).await?;
+	let new_game: Game = Game::init(app, overwrite).await?;
+	let mut game: RwLockWriteGuard<'_, Game> = game.write();
+	*game = new_game;
 	Ok(())
 }

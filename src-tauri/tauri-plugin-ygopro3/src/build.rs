@@ -18,7 +18,6 @@ const COMMANDS: &[&str] = &[
 	"get_lflist",
 	"get_info",
 	"get_room",
-	"get_ex_code",
 	"get_deck",
 	"get_time",
 	"get_version",
@@ -64,7 +63,9 @@ fn generate_default_permissions() {
 
 	let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set");
 	let permissions_dir = std::path::Path::new(&manifest_dir).join("permissions");
+	let permissions_file = permissions_dir.join("default.toml");
 	std::fs::create_dir_all(&permissions_dir).expect("failed to create permissions directory");
-	std::fs::write(permissions_dir.join("default.toml"), permissions)
-		.expect("failed to write permissions/default.toml");
+	if std::fs::read_to_string(&permissions_file).ok().as_deref() != Some(permissions.as_str()) {
+		std::fs::write(permissions_file, permissions).expect("failed to write permissions/default.toml");
+	}
 }

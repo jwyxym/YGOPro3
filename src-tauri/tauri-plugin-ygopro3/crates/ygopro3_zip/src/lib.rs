@@ -23,6 +23,7 @@ pub type ZipArchive = Archive<File>;
 pub struct Zip {
 	name: String,
 	pics: BTreeMap<u32, usize>,
+	scripts: BTreeMap<String, usize>,
 	db: Vec<Cdb>,
 	ini: Vec<String>,
 	lflist: Vec<String>,
@@ -34,62 +35,27 @@ pub struct Zip {
 impl Zip {
 	pub fn new (path: String, name: String) -> JoinHandle<Result<Self, Error>> {
 		spawn_blocking(move || {
+			let mut scripts: BTreeMap<String, usize> = BTreeMap::new();
 			let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
 			let mut db: Vec<Cdb>= Vec::new();
 			let mut ini: Vec<String>= Vec::new();
 			let mut lflist: Vec<String>= Vec::new();
 			let mut strings: Vec<String>= Vec::new();
 			let mut servers: Vec<String>= Vec::new();
-			let archive: ZipArchive = Self::read(&path, |index: usize, name, mut file| {
-				if let Some(_match) = PIC_REGEX
-					.captures(&name)
-					.and_then(|i| Some(i)?
-					.get(1))
-				{
-					if let Ok(code) = _match.as_str().parse::<u32>() {
-						pics.insert(code, index);
-					}
-				} else if name.ends_with("ini") {
-					let mut content: String = String::new();
-					if file.read_to_string(&mut content).is_ok() {
-						ini.push(content);
-					}
-				} else if name.ends_with("strings.conf") {
-					let mut content: String = String::new();
-					if file.read_to_string(&mut content).is_ok() {
-						strings.push(content);
-					}
-				} else if name.ends_with("lflist.conf") {
-					let mut content: String = String::new();
-					if file.read_to_string(&mut content).is_ok() {
-						lflist.push(content);
-					}
-				} else if name.ends_with("servers.conf") {
-					let mut content: String = String::new();
-					if file.read_to_string(&mut content).is_ok() {
-						servers.push(content);
-					}
-				} else if name.ends_with("cdb") {
-					let mut content: Vec<u8> = Vec::new();
-					if file.read_to_end(&mut content).is_ok() {
-						let mut cdb: Cdb = Cdb::new();
-						if cdb.init_by_buffer(content).is_ok() {
-							db.push(cdb);
-						}
-					}
-				}
-			
+			let archive: ZipArchive = Self::read(&path, |index: usize, name: String, mut file: ZipFile<'_>| {
+				Self::init(&mut file, index, &name, &mut scripts, &mut pics, &mut db, &mut ini, &mut lflist, &mut strings, &mut servers);
 				Ok(())
 			})?;
 			Ok::<Self, Error>(Self {
-				name: name,
-				pics: pics,
-				db: db,
-				ini: ini,
-				lflist: lflist,
-				strings: strings,
-				servers: servers,
-				archive: archive
+				name,
+				scripts,
+				pics,
+				db,
+				ini,
+				lflist,
+				strings,
+				servers,
+				archive
 			})
 		})
 	}
@@ -98,63 +64,29 @@ impl Zip {
 		let archive: ZipArchive = Archive::new(file)?;
 		let len: usize = archive.len();
 		progress::emit(app, Event::Start, len);
+		let mut scripts: BTreeMap<String, usize> = BTreeMap::new();
 		let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
 		let mut db: Vec<Cdb>= Vec::new();
 		let mut ini: Vec<String>= Vec::new();
 		let mut lflist: Vec<String>= Vec::new();
 		let mut strings: Vec<String>= Vec::new();
 		let mut servers: Vec<String>= Vec::new();
-		let archive: ZipArchive = Self::read(&path, |index: usize, name, mut file| {
+		let archive: ZipArchive = Self::read(&path, |index: usize, name: String, mut file: ZipFile<'_>| {
 			progress::emit(app, Event::Progress, 1);
-			if let Some(_match) = PIC_REGEX
-				.captures(&name)
-				.and_then(|i| Some(i)?
-				.get(1))
-			{
-				if let Ok(code) = _match.as_str().parse::<u32>() {
-					pics.insert(code, index);
-				}
-			} else if name.ends_with("ini") {
-				let mut content: String = String::new();
-				if file.read_to_string(&mut content).is_ok() {
-					ini.push(content);
-				}
-			} else if name.ends_with("strings.conf") {
-				let mut content: String = String::new();
-				if file.read_to_string(&mut content).is_ok() {
-					strings.push(content);
-				}
-			} else if name.ends_with("lflist.conf") {
-				let mut content: String = String::new();
-				if file.read_to_string(&mut content).is_ok() {
-					lflist.push(content);
-				}
-			} else if name.ends_with("servers.conf") {
-				let mut content: String = String::new();
-				if file.read_to_string(&mut content).is_ok() {
-					servers.push(content);
-				}
-			} else if name.ends_with("cdb") {
-				let mut content: Vec<u8> = Vec::new();
-				if file.read_to_end(&mut content).is_ok() {
-					let mut cdb: Cdb = Cdb::new();
-					if cdb.init_by_buffer(content).is_ok() {
-						db.push(cdb);
-					}
-				}
-			}
+			Self::init(&mut file, index, &name, &mut scripts, &mut pics, &mut db, &mut ini, &mut lflist, &mut strings, &mut servers);
 			Ok(())
 		})?;
 		progress::emit(app, Event::Progress, len - archive.len());
 		Ok::<Self, Error>(Self {
-			name: name,
-			pics: pics,
-			db: db,
-			ini: ini,
-			lflist: lflist,
-			strings: strings,
-			servers: servers,
-			archive: archive
+			name,
+			scripts,
+			pics,
+			db,
+			ini,
+			lflist,
+			strings,
+			servers,
+			archive
 		})
 	}
 	pub async fn unzip<P: AsRef<Path>> (app: &AppHandle, path: P, assets: P) -> Result<Vec<JoinHandle<Result<Option<(String, String)>, Error>>>, Error> {
@@ -209,8 +141,11 @@ impl Zip {
 	pub fn name (&self) -> String {
 		String::from(&self.name)
 	}
-	pub fn pics (&self) -> Vec<(u32, usize)> {
-		self.pics.clone().into_iter().collect()
+	pub fn scripts (&self) -> &BTreeMap<String, usize> {
+		&self.scripts
+	}
+	pub fn pics (&self) -> &BTreeMap<u32, usize> {
+		&self.pics
 	}
 	pub fn db (&self) -> Vec<Cdb> {
 		self.db.clone()
@@ -229,5 +164,57 @@ impl Zip {
 	}
 	pub fn archive (self) -> ZipArchive {
 		self.archive
+	}
+	fn init (
+		file: &mut ZipFile<'_>,
+		index: usize,
+		name: &str,
+		scripts: &mut BTreeMap<String, usize>,
+		pics: &mut BTreeMap<u32, usize>,
+		db: &mut Vec<Cdb>,
+		ini: &mut Vec<String>,
+		lflist: &mut Vec<String>,
+		strings: &mut Vec<String>,
+		servers: &mut Vec<String>
+	) -> () {
+		if let Some(_match) = PIC_REGEX
+			.captures(&name)
+			.and_then(|i| Some(i)?
+			.get(1))
+		{
+			if let Ok(code) = _match.as_str().parse::<u32>() {
+				pics.insert(code, index);
+			}
+		} else if name.ends_with(".ini") {
+			let mut content: String = String::new();
+			if file.read_to_string(&mut content).is_ok() {
+				ini.push(content);
+			}
+		} else if name.ends_with("strings.conf") {
+			let mut content: String = String::new();
+			if file.read_to_string(&mut content).is_ok() {
+				strings.push(content);
+			}
+		} else if name.ends_with("lflist.conf") {
+			let mut content: String = String::new();
+			if file.read_to_string(&mut content).is_ok() {
+				lflist.push(content);
+			}
+		} else if name.ends_with("servers.conf") {
+			let mut content: String = String::new();
+			if file.read_to_string(&mut content).is_ok() {
+				servers.push(content);
+			}
+		} else if name.ends_with(".cdb") {
+			let mut content: Vec<u8> = Vec::new();
+			if file.read_to_end(&mut content).is_ok() {
+				let mut cdb: Cdb = Cdb::new();
+				if cdb.init_by_buffer(content).is_ok() {
+					db.push(cdb);
+				}
+			}
+		} else if name.ends_with(".lua") {
+			scripts.insert(String::from(name), index);
+		}
 	}
 }

@@ -22,6 +22,7 @@ pub struct GamePack {
 	pub server: Server,
 	pub lflist: LFList,
 	pub pics: Pic,
+	pub scripts: Script,
 	pub archive: Option<ZipArchive>
 }
 
@@ -68,13 +69,14 @@ impl Game {
 		i.1?;
 		progress::emit(app, Event::Progress, 1);
 
-		let (system, resource, lflist, servers, room, setcode, mut tasks) = load::config(path, &config).await;
+		let (system, resource, lflist, server, room, setcode, mut tasks) = load::config(path, &config).await;
 		progress::emit(app, Event::Progress, 1);
 		
 		let (mut pack, (card_info, db, strings, task)) = join!(
 			load::expansion(path, &system),
 			load::i18n(path, system.i18n(), &config)
 		);
+		let db: Cdb = db.add_ex_code(setcode.code());
 		progress::emit(app, Event::Progress, 1);
 
 		tasks.push(task);
@@ -88,18 +90,20 @@ impl Game {
 		}
 		progress::emit(app, Event::Progress, 1);
 
+		let scripts: Script = Script::new().read_dir(path.join("script"));
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
 		progress::emit(app, Event::Progress, 1);
 		
 		pack.insert(String::from("./"), GamePack {
 			on: true,
-			card_info: card_info,
-			strings:  strings,
-			db: db,
-			server: servers,
-			lflist: lflist,
-			pics: pics,
+			card_info,
+			strings,
+			db,
+			server,
+			lflist,
+			scripts,
+			pics,
 			archive: None
 		});
 		progress::emit(app, Event::End, 0);

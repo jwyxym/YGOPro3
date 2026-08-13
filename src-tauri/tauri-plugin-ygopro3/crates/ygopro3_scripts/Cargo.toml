@@ -1,0 +1,10 @@
+[package]
+name = "ygopro3_scripts"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+walkdir.workspace = true
+
+ygopro3_fs.workspace = true

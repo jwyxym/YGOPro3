@@ -264,6 +264,7 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 						let mut db: Cdb = Cdb::new();
 						let mut server: Server = Server::new();
 						let mut pics: Pic = Pic::new();
+						let mut scripts: Script = Script::new();
 						zip.lflist().into_iter().for_each(|text: String| {
 							lflist.init(text);
 						});
@@ -274,7 +275,10 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 							db.init_by_db(i);
 						});
 						zip.pics().into_iter().for_each(|(k, v)| {
-							pics.insert(k, PicContent::ZipFile(v));
+							pics.insert(*k, PicContent::ZipFile(*v));
+						});
+						zip.scripts().into_iter().for_each(|(k, v)| {
+							scripts.insert(k.clone(), ScriptContent::ZipFile(*v));
 						});
 						zip.servers().into_iter().for_each(|text: String| {
 							server.init_by_conf(text);
@@ -285,11 +289,12 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 						packs.insert(zip.name(), GamePack {
 							on: true,
 							card_info: CardInfo::default(),
-							strings: strings,
-							db: db,
-							server: server,
-							lflist: lflist,
-							pics: pics,
+							strings,
+							db,
+							server,
+							lflist,
+							scripts,
+							pics,
 							archive: Some(zip.archive())
 						});
 					}
@@ -328,10 +333,11 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 			GamePack {
 				on: true,
 				card_info: CardInfo::default(),
-				strings: strings,
-				db: db,
-				server: server,
-				lflist: lflist,
+				strings,
+				db,
+				server,
+				lflist,
+				scripts: Script::new().read_dir(path.join("expansions").join("script")),
 				pics: Pic::new().read_dir(path.join("expansions").join("pics")),
 				archive: None
 			}
@@ -343,7 +349,7 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 
 pub async fn zip (app: &AppHandle, name: String) -> Result<(), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-	let mut game: RwLockWriteGuard<'_, Game> = game.write().await;
+	let mut game: RwLockWriteGuard<'_, Game> = game.write();
 	if let Some((_, pack)) = game.pack
 		.iter_mut()
 		.find(|i| i.0 == &name) {
@@ -361,6 +367,7 @@ pub async fn zip (app: &AppHandle, name: String) -> Result<(), Error> {
 		let mut db: Vec<Cdb> = Vec::new();
 		let mut server: Server = Server::new();
 		let mut pics: Pic = Pic::new();
+		let mut scripts: Script = Script::new();
 		zip.lflist().into_iter().for_each(|text: String| {
 			lflist.init(text);
 		});
@@ -371,7 +378,10 @@ pub async fn zip (app: &AppHandle, name: String) -> Result<(), Error> {
 			db.push(i);
 		});
 		zip.pics().into_iter().for_each(|(k, v)| {
-			pics.insert(k, PicContent::ZipFile(v));
+			pics.insert(*k, PicContent::ZipFile(*v));
+		});
+		zip.scripts().into_iter().for_each(|(k, v)| {
+			scripts.insert(k.clone(), ScriptContent::ZipFile(*v));
 		});
 		zip.servers().into_iter().for_each(|text: String| {
 			server.init_by_conf(text);
@@ -382,11 +392,12 @@ pub async fn zip (app: &AppHandle, name: String) -> Result<(), Error> {
 		game.pack.insert(name, GamePack {
 			on: true,
 			card_info: CardInfo::default(),
-			strings:  strings,
 			db: Cdb::new(),
-			server: server,
-			lflist: lflist,
-			pics: pics,
+			strings,
+			server,
+			lflist,
+			pics,
+			scripts,
 			archive: Some(zip.archive())
 		});
 		progress::emit(app, Event::End, 0);

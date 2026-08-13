@@ -8,11 +8,11 @@ use ygopro3_yrp::yrp;
 
 use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
 use serde_json::Value::Array;
-use std::borrow::Cow;
+use std::{borrow::Cow, fs::metadata};
 use tauri::{
 	AppHandle, ipc::{Response, Request, InvokeBody::{Raw, Json}}
 };
-use tokio::{sync::{RwLock, RwLockReadGuard}, fs::metadata};
+use parking_lot::{RwLock, RwLockReadGuard};
 use std::{path::PathBuf, fs::exists};
 use chrono::{DateTime, Utc};
 
@@ -76,7 +76,7 @@ pub async fn set_system (key: String, ct: i8, value: String, write: bool) -> Res
 #[tauri::command]
 pub async fn chk_version () -> Result<bool, String> {
 	let game: &RwLock<Game> = GAME.get().ok_or(String::new())?;
-	let game: RwLockReadGuard<'_, Game> = game.read().await;
+	let game: RwLockReadGuard<'_, Game> = game.read();
 	Ok(ygopro3_network::chk_version(URL_GAME_VERSION, &game.version).await)
 }
 
@@ -187,15 +187,6 @@ pub async fn get_room () -> Response {
 }
 
 #[tauri::command]
-pub async fn get_ex_code () -> Response {
-	ygopro3_game::get::ex_code().await
-		.ok()
-		.and_then(|i| encode_to_vec(i, CONFIG).ok())
-		.map(Response::new)
-		.unwrap_or_else(default_response)
-}
-
-#[tauri::command]
 pub async fn get_time (path: Vec<String>) -> Result<String, String> {
 	let p: Vec<String> = path;
 	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
@@ -205,7 +196,6 @@ pub async fn get_time (path: Vec<String>) -> Result<String, String> {
 	}
 	if exists(&path).map_err(|e| e.to_string())? {
 		let time: DateTime<Utc> = metadata(path)
-			.await
 			.map_err(|e| e.to_string())?
 			.modified()
 			.map_err(|e| e.to_string())?
@@ -261,20 +251,37 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub async fn ygoserver_start (args: String) -> Result<(), String> {
-	// let (i18n, pack) = Game::get_server_args()
-	// 	.await
-	// 	.map_err(|e| e.to_string())?;
-	// YgoServer::start(args, i18n, pack)
-	// 	.await
-	// 	.map_err(|e| e.to_string())
-	Err(String::new())
+pub async fn ygoserver_start (
+	lflist: u32, //lflist hash
+	rule: u8,
+	mode: u8,
+	replay_mode: u32,
+	duel_rule: bool,
+	no_check_deck: bool,
+	no_shuffle_deck: bool,
+	start_lp: u32,
+	start_hand: u8,
+	draw_count: u8,
+	time_limit: u16
+) -> Result<u16, String> {
+	ygopro3_single_duel::start_server(
+		lflist,
+		rule,
+		mode,
+		replay_mode,
+		duel_rule,
+		no_check_deck,
+		no_shuffle_deck,
+		start_lp,
+		start_hand,
+		draw_count,
+		time_limit
+	).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
-	// YgoServer::stop().await.map_err(|e| e.to_string())
-	Err(String::new())
+	Ok(ygopro3_single_duel::stop_server())
 }
 
 #[tauri::command]
