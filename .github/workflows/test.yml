@@ -62,7 +62,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build android ${{ github.ref_name }}
+        npm run json:build android 1.0.0
 
     - name: NPM Init
       run: |
@@ -195,7 +195,7 @@ jobs:
     - name: Write Tauri Config
       shell: cmd
       run: |
-        npm run json:build windows ${{ github.ref_name }}
+        npm run json:build windows 1.0.0
 
     - name: NPM Init
       run: |
@@ -289,7 +289,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build macos ${{ github.ref_name }}
+        npm run json:build macos 1.0.0
 
     - name: NPM Init
       run: |
@@ -398,7 +398,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build linux ${{ github.ref_name }}
+        npm run json:build linux 1.0.0
 
     - name: NPM Init
       run: |
