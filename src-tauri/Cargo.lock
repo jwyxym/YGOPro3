@@ -6811,6 +6811,7 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 [[package]]
 name = "ygopro"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "anymap3",
  "arc-swap",
@@ -6834,6 +6835,7 @@ dependencies = [
 [[package]]
 name = "ygopro-core-wrapper"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "cc",
  "glob",
@@ -6846,6 +6848,7 @@ dependencies = [
 [[package]]
 name = "ygopro-data"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "binrw",
  "bitflags 2.9.3",
@@ -6863,6 +6866,7 @@ dependencies = [
 [[package]]
 name = "ygopro-derive"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "darling 0.14.4",
  "proc-macro2",
@@ -6873,6 +6877,7 @@ dependencies = [
 [[package]]
 name = "ygopro-external-server-bridge"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "base64 0.22.1",
  "binrw",
@@ -6890,6 +6895,7 @@ dependencies = [
 [[package]]
 name = "ygopro-handler"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "anymap3",
  "binrw",
@@ -7206,6 +7212,7 @@ dependencies = [
 [[package]]
 name = "ygopru"
 version = "0.1.0"
+source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "ygopro",
  "ygopro-core-wrapper",

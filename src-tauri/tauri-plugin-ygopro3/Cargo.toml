@@ -40,7 +40,8 @@ parking_lot = { version = "0.12.5", features = ["arc_lock", "send_guard"] }
 arc-swap = "1.9.2"
 ygopro_cdb_reader = "0.1.5"
 ygopru = {
-	path = "E:\\github\\Rust\\ygopru",
+	git = "https://github.com/jwyxym/ygopru.git",
+	branch = "ygopro3",
 	default-features = false
 }
 
