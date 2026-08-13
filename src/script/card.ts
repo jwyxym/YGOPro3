@@ -29,7 +29,6 @@ const TYPE = {
 }
 
 class Card {
-	readonly : boolean;
 	ot : number;
 	id : number;
 	alias : number;
@@ -65,9 +64,7 @@ class Card {
 		link_marker : number;
 		ot : number;
 		category : number;
-		readonly ?: boolean;
 	}) {
-		this.readonly = Boolean(i.readonly);
 		this.pic = '';
 		this.id = i.code;
 		this.ot = i.ot;
@@ -103,15 +100,12 @@ class Card {
 		rscale : 0,
 		link_marker : 0,
 		ot : 0,
-		category : 0,
-		readonly : true
+		category : 0
 	});
 
 	update_pic = (url : string) : Card => {
-		if (!this.readonly) {
-			this.clear();
-			this.pic = url;
-		}
+		this.clear();
+		this.pic = url;
 		return this;
 	};
 
@@ -158,13 +152,6 @@ class Card {
 
 	is_tuner = () : boolean => {
 		return (this.type & TYPE.TUNER) === TYPE.TUNER;
-	};
-
-	set = {
-		readonly : () : Card => {
-			this.readonly = true
-			return this;
-		}
 	};
 
 }

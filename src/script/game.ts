@@ -102,11 +102,9 @@ class Game {
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
 			this.unknown
-				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
-				.set.readonly();
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');
 			this.back
-				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
-				.set.readonly();
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '');
 		} catch (error) {
 			invoke.log.write(error);
 			return false;
