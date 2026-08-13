@@ -1,7 +1,9 @@
 name: build YGOPro3
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      rust
 
 jobs:
   push-gitcode:
