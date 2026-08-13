@@ -1,4 +1,4 @@
-name: build YGOPro3
+name: test build YGOPro3
 
 on:
   push:

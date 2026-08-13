@@ -38,6 +38,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "ahash"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "891477e0c6a8957309ee5c45a6368af3ae14bb510732d2684ffa19af310920f9"
+dependencies = [
+ "getrandom 0.2.16",
+ "once_cell",
+ "version_check",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1842,6 +1853,9 @@ name = "hashbrown"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
+dependencies = [
+ "ahash",
+]
 
 [[package]]
 name = "hashbrown"
@@ -1857,11 +1871,6 @@ name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
-dependencies = [
- "allocator-api2",
- "equivalent",
- "foldhash 0.2.0",
-]
 
 [[package]]
 name = "hashbrown"
@@ -6802,7 +6811,6 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 [[package]]
 name = "ygopro"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "anymap3",
  "arc-swap",
@@ -6826,7 +6834,6 @@ dependencies = [
 [[package]]
 name = "ygopro-core-wrapper"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "cc",
  "glob",
@@ -6839,7 +6846,6 @@ dependencies = [
 [[package]]
 name = "ygopro-data"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "binrw",
  "bitflags 2.9.3",
@@ -6857,7 +6863,6 @@ dependencies = [
 [[package]]
 name = "ygopro-derive"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "darling 0.14.4",
  "proc-macro2",
@@ -6868,7 +6873,6 @@ dependencies = [
 [[package]]
 name = "ygopro-external-server-bridge"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "base64 0.22.1",
  "binrw",
@@ -6886,13 +6890,12 @@ dependencies = [
 [[package]]
 name = "ygopro-handler"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "anymap3",
  "binrw",
  "bytes",
  "futures",
- "hashbrown 0.16.1",
+ "hashbrown 0.12.3",
  "pin-project-lite",
  "tokio",
  "tokio-stream",
@@ -7203,7 +7206,6 @@ dependencies = [
 [[package]]
 name = "ygopru"
 version = "0.1.0"
-source = "git+https://github.com/jwyxym/ygopru.git?branch=ygopro3#d4c6e25358fe073f9bfc2728accda3a774f9e36a"
 dependencies = [
  "ygopro",
  "ygopro-core-wrapper",

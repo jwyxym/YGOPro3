@@ -435,6 +435,9 @@ class Protocol {
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
 		}],
+		[STOC.DUEL_END, async () => {
+			connect.state = 0;
+		}],
 		[STOC.TIME_LIMIT, async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
 			const player = msg.read.uint8();
 			msg.index ++;
