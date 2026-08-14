@@ -83,7 +83,7 @@
 		lp : number;
 		name : string;
 		time : number;
-		time_player : 0 | 1;
+		time_on : boolean;
 		index : 0 | 1;
 		desc : Array<number>
 	}>();
@@ -106,9 +106,9 @@
 		lp.to = n;
 	}, { immediate : true });
 
-	watch(() => { return props.time_player; }, (n) => {
+	watch(() => { return props.time_on; }, (n) => {
 		if (!countdown.value) return;
-		props.index === n ? countdown.value.start() : countdown.value.pause();
+		n ? countdown.value.start() : countdown.value.pause();
 	}, { immediate : true });
 
 </script>

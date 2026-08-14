@@ -444,10 +444,12 @@ class Protocol {
 			const time = msg.read.uint16();
 			if (player === undefined || time === undefined)
 				return;
-			if (connect.duel.player[player])
+			if (connect.duel.player[player]) {
 				connect.duel.player[player]!.time = time * 1000;
-			connect.duel.time_player = this.to.player(player);
-			if(!connect.duel.time_player)
+				connect.duel.player[player]!.time_on = true;
+				connect.duel.player[1 - player]!.time_on = false;
+			}
+			if(!this.to.player(player))
 				await send(new Msg()
 					.write.uint8(CTOS.TIME_CONFIRM));
 		}],

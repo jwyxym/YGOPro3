@@ -104,12 +104,14 @@ class Player {
 	name : string;
 	time : number;
 	lp : number;
+	time_on : boolean;
 	desc : Map<number, number>;
 	constructor () {
 		this.index = - 1;
 		this.name = '';
 		this.time = 0;
 		this.lp = 0;
+		this.time_on = false;
 		this.desc = new Map();
 	};
 	async change_lp (lp : number) : Promise<void> {
@@ -143,7 +145,6 @@ class Duel {
 	};
 	chaining : 0 | 1 | 2 | 3 = 1;
 	turn : 0 | 1 = 0;
-	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
 	shuffle = false;
 	reverse = false;
