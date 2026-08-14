@@ -89,8 +89,9 @@ pub fn start_server(
 
 	let server_control_lock = SERVER_CONTROL.get_or_init(|| Mutex::new(None));
 	let mut server_control = server_control_lock.lock();
-	if server_control.is_some() {
-		return Err(anyhow!("ygoserver already running"));
+	if let Some(i) = server_control.take() {
+		i.shutdown_sender.send(()).ok();
+		i.server_thread.join().ok();
 	}
 
 	*SERVER_SEEDS.get_or_init(|| Mutex::new(Vec::new())).lock() = seeds.clone();

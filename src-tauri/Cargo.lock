@@ -4873,8 +4873,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-tcp"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e732ea5ae6cbd8bfba66febef9aee6049312b98616fe0d4888c6467c36deb55a"
+source = "git+https://github.com/jwyxym/tauri-plugin-tcp.git#069db3dbc5545cb2af183c1f6407039176a8548f"
 dependencies = [
  "debug_print",
  "lazy_static",
