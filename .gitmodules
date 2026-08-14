@@ -1,0 +1,4 @@
+[submodule "src-tauri/tauri-plugin-ygopro3/crates/ygopru"]
+	path = src-tauri/tauri-plugin-ygopro3/crates/ygopru
+	url = https://github.com/jwyxym/ygopru
+	branch = ygopro3

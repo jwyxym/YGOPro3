@@ -39,12 +39,8 @@ hashbrown = "0.17.1"
 parking_lot = { version = "0.12.5", features = ["arc_lock", "send_guard"] }
 arc-swap = "1.9.2"
 ygopro_cdb_reader = "0.1.5"
-ygopru = {
-	git = "https://github.com/jwyxym/ygopru.git",
-	branch = "ygopro3",
-	default-features = false
-}
 
+ygopru = { path = "./crates/ygopru", default-features = false }
 ygopro3_api = { path = "./crates/ygopro3_api" }
 ygopro3_card = { path = "./crates/ygopro3_card" }
 ygopro3_const = { path = "./crates/ygopro3_const" }
