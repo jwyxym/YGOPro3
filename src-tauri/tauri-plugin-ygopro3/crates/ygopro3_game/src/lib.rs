@@ -26,14 +26,14 @@ use indexmap::IndexMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::{
 	task::{JoinHandle, spawn},
-	fs::{create_dir_all, read_to_string, metadata},
+	fs::{create_dir_all, read_to_string},
 	sync::OnceCell,
 	join
 };
 use futures::{StreamExt, stream::FuturesUnordered};
 use std::{
 	collections::BTreeMap,
-	fs::{write, read},
+	fs::{write, read, metadata},
 	path::{Path, PathBuf},
 	io::Read
 };

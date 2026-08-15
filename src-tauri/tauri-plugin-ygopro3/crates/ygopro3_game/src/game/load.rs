@@ -19,7 +19,7 @@ pub async fn config (path: &Path, config: &Vec<(String, String)>) -> (System, Re
 						} else if file.name() == "servers.toml" {
 							let text: String = read_to_string(i.path()).await?;
 							Ok(FileContent::Servers(text))
-						} else if file.name() == "room_room.toml" {
+						} else if file.name() == "room_model.toml" {
 							let text: String = read_to_string(i.path()).await?;
 							Ok(FileContent::Room(text))
 						} else if file.name() == "extra_code.toml" {

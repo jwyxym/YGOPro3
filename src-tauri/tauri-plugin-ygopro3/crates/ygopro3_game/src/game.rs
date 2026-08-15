@@ -32,7 +32,7 @@ impl Game {
 		let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 		let resource_path: &PathBuf = RESOURCE_PATH.get().ok_or(anyhow!("get path error"))?;
 		let assets: PathBuf = resource_path.join("assets");
-		metadata(&assets).await?;
+		metadata(&assets)?;
 		let version: String = app.package_info().version.to_string();
 		let cache: String = read_to_string(path.join("cache"))
 			.await
