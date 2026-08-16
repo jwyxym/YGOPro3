@@ -701,7 +701,7 @@ class Client_Card {
 			this.atk = 0;
 			this.def = 0;
 			this.scale = 0;
-			this.status = 0;
+			this.set.status(0);
 			this.need_change.type = true;
 			if ((this.location & LOCATION.HAND) && this.owner)
 				this.set.pos(POS.FACEDOWN_ATTACK);
