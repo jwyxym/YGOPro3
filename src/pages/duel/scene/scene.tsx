@@ -114,6 +114,7 @@ class _Duel {
 					if (chk)
 						tl.add(turn(img, mainGame.get.card(card.id).pic ?? mainGame.unknown.pic));
 
+					const z = parseInt(gsap.getProperty(img, 'rotationZ').toString());
 					tl.to(img, {
 						rotationZ : - 180,
 						duration : 0.1,
@@ -133,7 +134,7 @@ class _Duel {
 						duration : 0.2,
 					}, '+=0.5');
 					tl.to(img, {
-						rotationZ : 0,
+						rotationZ : z,
 						duration : 0.1,
 					}, '+=0.2');
 					if (chk)

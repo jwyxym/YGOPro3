@@ -4,7 +4,8 @@ const REG = {
 	LV : /^[0-9<>=.]*$/,
 	LINE_FEED : /\r?\n/,
 	NUMBER : /^\d+$/,
-	KEY_WORDS : /「([^「」]*)」/g
+	KEY_WORDS : /「([^「」]*)」/g,
+	URL : /"([^"]*)"/
 };
 
 const LANGUAGE = {
