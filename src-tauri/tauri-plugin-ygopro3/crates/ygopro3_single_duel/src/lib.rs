@@ -22,7 +22,8 @@ use ygopru::{
 	ygopro::{
 		Configuration,
 		managers::{ deck_manager::{self, DeckManager}, config_manager::{self, ConfigManager}, data_manager::{self, DataManager} },
-		single_duel::{self, SingleDuelHost}
+		single_duel::SingleDuelHost,
+		plugin::replay::{NAME, Configuration as PluginConfiguration}
 	},
 	ygopro_core_wrapper::{
 		set_script_reader,
@@ -151,9 +152,9 @@ async fn run_tcp_server(
 
 	start_result_sender.send(Ok(port)).ok();
 
-	let mut configuration: Configuration = config_manager::get_duel_configuration();
+    let mut configuration: Configuration = Configuration::default();
 	configuration.seed_generator = Some(Box::new(seed_generator));
-	configuration.replay_mode = replay_mode;
+    configuration.enable_plugin_with_configuration(NAME, PluginConfiguration { mode: replay_mode });
 	let (mut duel, duel_handle) = SingleDuelHost::new(host_info, configuration);
 	let mut client_tasks = Vec::new();
 
@@ -245,7 +246,6 @@ async fn init() -> Result<(), Error> {
 		set_card_reader(Some(data_manager::card_reader));
 		set_message_handler(Some(core_message_handler));
 	}
-	single_duel::init();
 	Ok(())
 }
 
