@@ -1,0 +1,11 @@
+[package]
+name = "ygopro3_lflist"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+indexmap.workspace = true
+lazy_static.workspace = true
+
+ygopro3_const.workspace = true

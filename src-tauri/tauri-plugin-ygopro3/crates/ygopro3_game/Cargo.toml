@@ -1,0 +1,30 @@
+[package]
+name = "ygopro3_game"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tauri.workspace = true
+walkdir.workspace = true
+tokio.workspace = true
+futures.workspace = true
+indexmap.workspace = true
+anyhow.workspace = true
+parking_lot.workspace = true
+
+ygopro3_strings.workspace = true
+ygopro3_system.workspace = true
+ygopro3_server_list.workspace = true
+ygopro3_card.workspace = true
+ygopro3_picture.workspace = true
+ygopro3_zip.workspace = true
+ygopro3_resource.workspace = true
+ygopro3_scripts.workspace = true
+ygopro3_sound.workspace = true
+ygopro3_info.workspace = true
+ygopro3_lflist.workspace = true
+ygopro3_room.workspace = true
+ygopro3_ex_code.workspace = true
+ygopro3_emit.workspace = true
+ygopro3_fs.workspace = true
+ygopro3_const.workspace = true

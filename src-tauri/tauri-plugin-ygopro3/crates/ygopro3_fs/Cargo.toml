@@ -1,0 +1,10 @@
+[package]
+name = "ygopro3_fs"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde.workspace = true
+urlencoding.workspace = true
+
+ygopro3_card.workspace = true

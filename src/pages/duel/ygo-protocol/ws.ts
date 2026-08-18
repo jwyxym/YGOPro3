@@ -56,7 +56,6 @@ class Ws {
 		try {
 			await this.ws?.disconnect();
 		} catch {};
-		await this.on_disconnect?.();
 		this.queue.clear();
 		this.ws = undefined;
 	};

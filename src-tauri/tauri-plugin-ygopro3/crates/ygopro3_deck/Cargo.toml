@@ -1,0 +1,13 @@
+[package]
+name = "ygopro3_deck"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+walkdir.workspace = true
+futures.workspace = true
+tokio.workspace = true
+
+ygopro3_fs.workspace = true
+ygopro3_const.workspace = true

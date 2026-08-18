@@ -104,12 +104,14 @@ class Player {
 	name : string;
 	time : number;
 	lp : number;
+	time_on : boolean;
 	desc : Map<number, number>;
 	constructor () {
 		this.index = - 1;
 		this.name = '';
 		this.time = 0;
 		this.lp = 0;
+		this.time_on = false;
 		this.desc = new Map();
 	};
 	async change_lp (lp : number) : Promise<void> {
@@ -143,7 +145,6 @@ class Duel {
 	};
 	chaining : 0 | 1 | 2 | 3 = 1;
 	turn : 0 | 1 = 0;
-	time_player : 0 | 1 = 0;
 	turns : [number, number] = [0, 0];
 	shuffle = false;
 	reverse = false;
@@ -224,7 +225,7 @@ const connect = reactive({
 		protocal : 0 | 1 | 2;
 	} | {
 		name : string;
-		args : [string, string];
+		args : [any, string];
 		deck : string;
 	} | {
 		replay : string
@@ -255,7 +256,7 @@ const connect = reactive({
 						});
 					} else {
 						const local_server = i && 'args' in i;
-						const callback = (name : string, pass : string, address : string) => {
+						const callback = (name : string, pass : string, address : string, port : number) => {
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
@@ -273,8 +274,8 @@ const connect = reactive({
 										.write.uint16(0)
 										.write.uint32(0)
 										.write.str(pass, 40));
-									if (local_server)
-										await invoke.bot.start(i.args[1], i.deck);
+									if (local_server && port)
+										await invoke.bot.start(`${i.args[1]} Port=${port}`, i.deck);
 								},
 								on_message : protocol.read,
 								on_disconnect : async () : Promise<void> => {
@@ -291,14 +292,16 @@ const connect = reactive({
 							};
 						};
 						if (local_server) {
-							const address = 'localhost:7911';
-							await invoke.server.start(i.args[0]);
-							const p = callback(i.name, '', address);
-							connect.protocol = tcp;
-							await Promise.all([
-								connect.protocol.connect(address, p),
-								mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
-							]);
+							const port = await invoke.server.start(i.args[0]);
+							if (port) {
+								const address = `localhost:${port}`;
+								const p = callback(i.name, '', address, port);
+								connect.protocol = tcp;
+								await Promise.all([
+									connect.protocol.connect(address, p),
+									mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
+								]);
+							}
 						} else {
 							const para = i as {
 								name : string;
@@ -311,7 +314,7 @@ const connect = reactive({
 							else if (!para.address)
 								throw mainGame.get.text(I18N_KEYS.SERVER_ADDRESS_ERROR);
 							const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
-							const p = callback(para.name, pass, para.address);
+							const p = callback(para.name, pass, para.address, 0);
 							const get_srv = async () : Promise<string> => {
 								const address = para.address;
 								if (!address.includes(':') && !para.protocal)
@@ -385,7 +388,7 @@ const connect = reactive({
 			connect.debouncing = false;
 		}
 	},
-	close : async () => {
+	close : () => {
 		connect.protocol?.disconnect()
 			.then()
 			.catch();

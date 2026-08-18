@@ -29,7 +29,6 @@ const TYPE = {
 }
 
 class Card {
-	readonly : boolean;
 	ot : number;
 	id : number;
 	alias : number;
@@ -47,43 +46,66 @@ class Card {
 	hint : Array<string>;
 	pic : string;
   
-	constructor (row : Array<string | number | bigint>) {
-		const setcode = (value : string | number | bigint) : Array<number> => {
-			let setcode = BigInt(value || 0);
-			if (setcode < 0n)
-				setcode = BigInt.asUintN(64, setcode);
-			const result : Array<number> = [];
-			while (setcode > 0n) {
-				result.unshift(Number(setcode & 0xffffn));
-				setcode >>= 16n;
-			}
-			return result;
-		};
-		this.readonly = false;
+	constructor (i : {
+		name : string;
+		desc : string;
+		hint : Array<string>;
+		code : number;
+		alias : number;
+		setcode : Array<number>;
+		card_type : number;
+		level : number;
+		attribute : number;
+		race : number;
+		attack : number;
+		defense : number;
+		lscale : number;
+		rscale : number;
+		link_marker : number;
+		ot : number;
+		category : number;
+	}) {
 		this.pic = '';
-		this.id = Number(row[0]);
-		this.ot = Number(row[1]);
-		this.alias = Number(row[2]);
-		this.setcode = setcode(row[3]);
-		this.type = Number(row[4]);
-		this.atk = Number(row[5]);
-		this.def = Number(row[6]);
-		const level = Number(row[7]) >>> 0;
-		this.level = level & 0xffff;
-		this.scale = (level >>> 16) & 0xff;
-		this.race = Number(row[8]);
-		this.attribute = Number(row[9]);
-		this.category = Number(row[10]);
-		this.name = row[12] as string;
-		this.desc = row[13] as string;
-		this.hint = row.slice(14, 31) as Array<string>;
+		this.id = i.code;
+		this.ot = i.ot;
+		this.alias = i.alias;
+		this.setcode = i.setcode;
+		this.type = i.card_type;
+		this.atk = i.attack;
+		this.def = i.defense;
+		this.level = i.level;
+		this.scale = i.rscale;
+		this.race = i.race;
+		this.attribute = i.attribute;
+		this.category = i.category;
+		this.name = i.name;
+		this.desc = i.desc;
+		this.hint = i.hint;
 	};
 
+	static default = () : Card => new Card({
+		name : '',
+		desc : '',
+		hint : [],
+		setcode : [],
+		code : 0,
+		alias : 0,
+		card_type : 0,
+		level : 0,
+		attribute : 0,
+		race : 0,
+		attack : 0,
+		defense : 0,
+		lscale : 0,
+		rscale : 0,
+		link_marker : 0,
+		ot : 0,
+		category : 0
+	});
+
 	update_pic = (url : string) : Card => {
-		if (!this.readonly) {
-			this.clear();
-			this.pic = url;
-		}
+		this.clear();
+		this.pic = url;
 		return this;
 	};
 
@@ -131,17 +153,6 @@ class Card {
 	is_tuner = () : boolean => {
 		return (this.type & TYPE.TUNER) === TYPE.TUNER;
 	};
-
-	set = {
-		readonly : () : Card => {
-			this.readonly = true
-			return this;
-		},
-		setcode : (setcode : Array<number>) : Card => {
-			this.setcode = Array.from(new Set([...this.setcode, ...setcode]));
-			return this;
-		}
-	}
 
 }
 

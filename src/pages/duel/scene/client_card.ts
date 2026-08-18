@@ -3,7 +3,7 @@ import { gsap } from 'gsap';
 import lodash from 'lodash';
 
 import Card, { TYPE } from '@/script/card';
-import { KEYS } from '@/script/constant';
+import { KEYS, REG } from '@/script/constant';
 import mainGame from '@/script/game';
 
 import { COMMAND, LOCATION, POS, STATUS } from '@/pages/duel/ygo-protocol/network';
@@ -160,7 +160,7 @@ class Client_Card {
 				const el : HTMLCardsElement = this.three.element.children[0] as HTMLCardsElement;
 				Object.defineProperty(el, 'src', {
 					get () {
-						return this.style.backgroundImage;
+						return this.style.backgroundImage.match(REG.URL)?.[1] ?? mainGame.unknown.pic;
 					},
 					set (src : string) {
 						this.style.backgroundImage = `url("${src}")`;
@@ -701,7 +701,7 @@ class Client_Card {
 			this.atk = 0;
 			this.def = 0;
 			this.scale = 0;
-			this.status = 0;
+			this.set.status(0);
 			this.need_change.type = true;
 			if ((this.location & LOCATION.HAND) && this.owner)
 				this.set.pos(POS.FACEDOWN_ATTACK);

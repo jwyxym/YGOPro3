@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke as tauriInvoke, type InvokeArgs } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
 import Card from './card';
@@ -11,6 +11,10 @@ interface Srv {
 	port : number;
 	target : string;
 };
+
+const invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
+	tauriInvoke<T>(`plugin:ygopro3|${command}`, args)
+);
 
 class Invoke {
 	game = {
@@ -159,11 +163,44 @@ class Invoke {
 			try {
 				const result = await invoke<ArrayBuffer>('get_cards');
 				return (bincode.decode(bincode.Collection(
-					bincode.Tuple(
-						bincode.Collection(bincode.i64),
-						bincode.Collection(bincode.String),
-					)), result).value as any as Array<[Array<number>, Array<string>]>)
-						.map(i => [i[0][0], new Card(i.flat())]);
+					bincode.Struct({
+						name : bincode.String,
+						desc : bincode.String,
+						hint : bincode.Array(bincode.String, 16),
+						code : bincode.u32,
+						alias : bincode.u32,
+						setcode : bincode.Array(bincode.u16, 16),
+						card_type : bincode.u32,
+						level : bincode.u32,
+						attribute : bincode.u32,
+						race : bincode.u32,
+						attack : bincode.i32,
+						defense : bincode.i32,
+						lscale : bincode.u32,
+						rscale : bincode.u32,
+						link_marker : bincode.u32,
+						ot : bincode.u8,
+						category : bincode.u32
+					})), result).value as Array<{
+						name : string;
+						desc : string;
+						hint : Array<string>;
+						code : number;
+						alias : number;
+						setcode : Array<number>;
+						card_type : number;
+						level : number;
+						attribute : number;
+						race : number;
+						attack : number;
+						defense : number;
+						lscale : number;
+						rscale : number;
+						link_marker : number;
+						ot : number;
+						category : number;
+					}>)
+						.map(i => [i.code, new Card(i)]);
 			} catch (error) {
 				this.log.write(error);
 				return [];
@@ -280,23 +317,12 @@ class Invoke {
 				};
 			}
 		},
-		get_model : async () : Promise<Array<[string, string]>> => {
+		get_room : async () : Promise<Array<[string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_model');
+				const result = await invoke<ArrayBuffer>('get_room');
 				return bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
-			} catch (error) {
-				this.log.write(error);
-				return [];
-			}
-		},
-		get_ex_code : async () : Promise<Array<[number, Array<number>]>> => {
-			try {
-				const result = await invoke<ArrayBuffer>('get_ex_code');
-				return bincode.decode(bincode.Collection(
-					bincode.Tuple(bincode.u32, bincode.Collection(bincode.u16))
-				), result).value as any;
 			} catch (error) {
 				this.log.write(error);
 				return [];
@@ -412,13 +438,24 @@ class Invoke {
 		}
 	};
 	server = {
-		start : async (args : string) : Promise<boolean> => {
+		start : async (i : {
+			lflist : number;
+			rule : number;
+			mode : number;
+			replayMode : number;
+			duelRule : number;
+			noCheckDeck : number;
+			noShuffleDeck : number;
+			startLp : number;
+			startHand : number;
+			drawCount : number;
+			timeLimit : number;
+		}) : Promise<number> => {
 			try {
-				await invoke<void>('ygoserver_start', { args : args});
-				return true;
+				return await invoke<number>('ygoserver_start', i);
 			} catch (error) {
 				this.log.write(error);
-				return false;
+				return 0;
 			}
 		},
 		stop : async () : Promise<boolean> => {

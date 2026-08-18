@@ -31,8 +31,8 @@ class Game {
 	version = '';
 	max_card_id = 0x0fffffff;
 	max_string_id = 2047;
-	unknown : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
-	back : Card = new Card(new Array(11).fill(0).concat(new Array(18).fill('')));
+	unknown : Card = Card.default();
+	back : Card = Card.default();
 
 	init = async () : Promise<boolean> => {
 		try {
@@ -46,10 +46,9 @@ class Game {
 				servers,
 				lflist,
 				strings,
-				model,
+				room,
 				info,
 				hash,
-				ex_codes,
 				version
 			] = await Promise.all([
 				invoke.game.get_sound(),
@@ -59,10 +58,9 @@ class Game {
 				invoke.game.get_server(),
 				invoke.game.get_lflist(),
 				invoke.game.get_strings(),
-				invoke.game.get_model(),
+				invoke.game.get_room(),
 				invoke.game.get_info(),
 				invoke.game.get_hash(),
-				invoke.game.get_ex_code(),
 				invoke.game.version()
 			]);
 			if (hash)
@@ -99,21 +97,14 @@ class Game {
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
 			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
-			this.model = new Map(model);
+			this.model = new Map(room);
 			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
-			ex_codes
-				.forEach(i => this.cards
-					.get(i[0])
-					?.set.setcode(i[1])
-				);
 
 			this.unknown
-				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '')
-				.set.readonly();
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');
 			this.back
-				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '')
-				.set.readonly();
+				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '');
 		} catch (error) {
 			invoke.log.write(error);
 			return false;
@@ -146,9 +137,10 @@ class Game {
 	get = {
 		textures : (type : string, key : string | number) : [string, string] | string => this.textures.get(type)?.get(key) ?? '',
 		lflist : (key : string | number) : LFList => (typeof key === 'string'
-				? this.lflist.get(key) : Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
+				? this.lflist.get(key)
+				: Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
 			)
-			?? this.lflist.get(CONSTANT.KEYS.NA)!,
+			?? new LFList(this.get.text(I18N_KEYS.UNKNOW), { hash : 0, genesys : 0, lflist : [], glist : [] }),
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:

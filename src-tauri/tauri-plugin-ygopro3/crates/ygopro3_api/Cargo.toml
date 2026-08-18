@@ -1,0 +1,25 @@
+[package]
+name = "ygopro3_api"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tauri.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+bincode.workspace = true
+chrono.workspace = true
+parking_lot.workspace = true
+
+ygopro3_log.workspace = true
+ygopro3_const.workspace = true
+ygopro3_network.workspace = true
+ygopro3_game.workspace = true
+ygopro3_deck.workspace = true
+ygopro3_yrp.workspace = true
+ygopro3_ypk.workspace = true
+ygopro3_single_duel.workspace = true
+
+[target.'cfg(not(target_arch = "x86"))'.dependencies]
+ygopro3_windbot.workspace = true

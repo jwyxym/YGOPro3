@@ -64,7 +64,6 @@ class Tcp {
 		try {
 			await tcp.disconnect(this.cid);
 		} catch {};
-		await this.on_disconnect?.();
 		this.queue.clear();
 	};
 	clear = () : void => {

@@ -38,4 +38,8 @@ src-tauri/*.so
 src-tauri/*.dll
 src-tauri/*.dylib
 src-tauri/gen
+src-tauri/target
+src-tauri/tauri-plugin-ygopro3/target
+src-tauri/tauri-plugin-ygopro3/Cargo.lock
+src-tauri/tauri-plugin-ygopro3/permissions
 kotlin/jniLibs

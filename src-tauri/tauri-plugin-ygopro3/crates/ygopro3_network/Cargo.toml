@@ -1,0 +1,17 @@
+[package]
+name = "ygopro3_network"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tauri.workspace = true
+tokio.workspace = true
+anyhow.workspace = true
+serde.workspace = true
+uuid.workspace = true
+trust-dns-resolver.workspace = true
+content_disposition.workspace = true
+futures.workspace = true
+ureq.workspace = true
+
+ygopro3_emit.workspace = true

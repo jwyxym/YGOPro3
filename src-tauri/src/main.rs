@@ -1,5 +1,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-	ygopro3_lib::run()
+	ygopro3::run()
 }

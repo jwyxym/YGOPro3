@@ -208,7 +208,9 @@ class Protocol {
 					const code = msg.read.int32();
 					if (code === undefined) return result;
 					result.push([c, code]);
-					c.set.overlay(ct - (i + 1));
+					c
+						.set.status(0)
+						.set.overlay(ct - (i + 1));
 				}
 			}
 			if (flag & QUERY.COUNTERS) {
@@ -439,16 +441,21 @@ class Protocol {
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
 		}],
+		[STOC.DUEL_END, async () => {
+			connect.close();
+		}],
 		[STOC.TIME_LIMIT, async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
 			const player = msg.read.uint8();
 			msg.index ++;
 			const time = msg.read.uint16();
 			if (player === undefined || time === undefined)
 				return;
-			if (connect.duel.player[player])
+			if (connect.duel.player[player]) {
 				connect.duel.player[player]!.time = time * 1000;
-			connect.duel.time_player = this.to.player(player);
-			if(!connect.duel.time_player)
+				connect.duel.player[player]!.time_on = true;
+				connect.duel.player[1 - player]!.time_on = false;
+			}
+			if(!this.to.player(player))
 				await send(new Msg()
 					.write.uint8(CTOS.TIME_CONFIRM));
 		}],
@@ -1695,84 +1702,82 @@ class Protocol {
 					}
 					duel.remove.card(card);
 				}
-			} else {
-				if ((to.loc & LOCATION.OVERLAY) && (from.loc & LOCATION.OVERLAY)) {
-					const ocard = [
-						this.get.card(from.tp, from.loc & 0x7f, from.seq!),
-						this.get.card(to.tp, to.loc & 0x7f, to.seq!)
-					];
-					if (ocard[0] && ocard[1]) {
-						card = ocard[0].overlays[from.ct!];
-						if (card) {
-							const ct = ocard[0].overlays.indexOf(card);
-							ocard[0].overlays.splice(ct, 1);
-							ocard[1].overlays.push(card);
-							if (ocard[1].location & LOCATION.ONFIELD)
-								card
-									.set.owner(to.tp)
-									.set.location(ocard[1].location | LOCATION.OVERLAY)
-									.set.seq(ocard[1].seq)
-									.set.pos(POS.FACEUP_ATTACK);
-						}
-					}
-				} else if (to.loc & LOCATION.OVERLAY) {
-					card = this.get.card(from.tp, from.loc, from.seq!);
-					const ocard = this.get.card(to.tp, to.loc & 0x7f, to.seq!);
-					if (ocard && card) {
-						if (code && card.id !== code) {
-							await mainGame.load.pic([code]);
-							card.set.id(code);
-						}
-						card.clear.equip();
-						ocard.overlays.push(card);
-						ocard.overlays.push(...card.overlays);
-						card.overlays.length = 0;
-						if (ocard.location & LOCATION.ONFIELD)
+			} else if ((to.loc & LOCATION.OVERLAY) && (from.loc & LOCATION.OVERLAY)) {
+				const ocard = [
+					this.get.card(from.tp, from.loc & 0x7f, from.seq!),
+					this.get.card(to.tp, to.loc & 0x7f, to.seq!)
+				];
+				if (ocard[0] && ocard[1]) {
+					card = ocard[0].overlays[from.ct!];
+					if (card) {
+						const ct = ocard[0].overlays.indexOf(card);
+						ocard[0].overlays.splice(ct, 1);
+						ocard[1].overlays.push(card);
+						if (ocard[1].location & LOCATION.ONFIELD)
 							card
 								.set.owner(to.tp)
-								.set.location(ocard.location | LOCATION.OVERLAY)
-								.set.seq(ocard.seq)
+								.set.location(ocard[1].location | LOCATION.OVERLAY)
+								.set.seq(ocard[1].seq)
 								.set.pos(POS.FACEUP_ATTACK);
 					}
-				} else if (from.loc & LOCATION.OVERLAY) {
-					const ocard = this.get.card(from.tp, from.loc & 0x7f, from.seq!);
-					card = ocard?.overlays[from.ct!];
-					if (ocard && card) {
-						const ct = ocard.overlays.indexOf(card);
-						ocard.overlays.splice(ct, 1);
+				}
+			} else if (to.loc & LOCATION.OVERLAY) {
+				card = this.get.card(from.tp, from.loc, from.seq!);
+				const ocard = this.get.card(to.tp, to.loc & 0x7f, to.seq!);
+				if (ocard && card) {
+					if (code && card.id !== code) {
+						await mainGame.load.pic([code]);
+						card.set.id(code);
+					}
+					card.clear.equip();
+					ocard.overlays.push(card);
+					ocard.overlays.push(...card.overlays);
+					card.overlays.length = 0;
+					if (ocard.location & LOCATION.ONFIELD)
 						card
 							.set.owner(to.tp)
-							.set.location(to.loc!)
-							.set.seq(to.seq!)
-							.set.pos(to.pos!);
+							.set.location(ocard.location | LOCATION.OVERLAY)
+							.set.seq(ocard.seq)
+							.set.pos(POS.FACEUP_ATTACK);
+				}
+			} else if (from.loc & LOCATION.OVERLAY) {
+				const ocard = this.get.card(from.tp, from.loc & 0x7f, from.seq!);
+				card = ocard?.overlays[from.ct!];
+				if (ocard && card) {
+					const ct = ocard.overlays.indexOf(card);
+					ocard.overlays.splice(ct, 1);
+					card
+						.set.owner(to.tp)
+						.set.location(to.loc!)
+						.set.seq(to.seq!)
+						.set.pos(to.pos!);
+				}
+			} else {
+				card = this.get.card(from.tp, from.loc, from.seq!);
+				if (card) {
+					if ((code || to.loc !== LOCATION.EXTRA) && card.id !== code) {
+						await mainGame.load.pic([code]);
+						card.set.id(code);
 					}
-				} else {
-					card = this.get.card(from.tp, from.loc, from.seq!);
-					if (card) {
-						if ((code || to.loc !== LOCATION.EXTRA) && card.id !== code) {
-							await mainGame.load.pic([code]);
-							card.set.id(code);
-						}
-						card.hint_msg = '';
-						if (from.loc !== to.loc) {
-							card.clear.equip();
-							if (from.loc & LOCATION.ONFIELD)
-								card.clear.counter();
-						}
-						card
-							.set.owner(to.tp)
-							.set.location(to.loc!)
-							.set.seq(to.seq!)
-							.set.pos(to.pos!);
-						
-						if (to.loc & LOCATION.ONFIELD)
-							for (const i of card.overlays)
-								i
-									.set.owner(to.tp)
-									.set.location(card.location | LOCATION.OVERLAY)
-									.set.seq(card.seq)
-									.set.pos(POS.FACEUP_ATTACK);
+					card.hint_msg = '';
+					if (from.loc !== to.loc) {
+						card.clear.equip();
+						if (from.loc & LOCATION.ONFIELD)
+							card.clear.counter();
 					}
+					card
+						.set.owner(to.tp)
+						.set.location(to.loc!)
+						.set.seq(to.seq!)
+						.set.pos(to.pos!);
+					
+					if (to.loc & LOCATION.ONFIELD)
+						for (const i of card.overlays)
+							i
+								.set.owner(to.tp)
+								.set.location(card.location | LOCATION.OVERLAY)
+								.set.seq(card.seq)
+								.set.pos(POS.FACEUP_ATTACK);
 				}
 			}
 			if (card) {

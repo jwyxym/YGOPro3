@@ -150,7 +150,7 @@
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
 				update : async () : Promise<string> => {
-					const ypk = await invoke.game.download(URL.SUPER_PRE, undefined, 10240);
+					const ypk = await invoke.game.download(URL.SUPER_PRE, undefined, 1024 * 1024 * 10);
 					console.log("ypk: ", ypk)
 					if (ypk) {
 						await page.change(ypk);

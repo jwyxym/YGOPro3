@@ -4,6 +4,7 @@
 	"version": "0.1.0",
 	"type": "module",
 	"scripts": {
+		"preinstall": "git submodule update --init --recursive",
 		"copy:cmd": "xcopy kotlin\\ src-tauri\\gen\\android\\app\\src\\main /s /Y /e /I",
 		"copy:sh": "cp -r kotlin/* src-tauri/gen/android/app/src/main/",
 		"json:build": "node .ci/tauri.conf.json.cjs",
