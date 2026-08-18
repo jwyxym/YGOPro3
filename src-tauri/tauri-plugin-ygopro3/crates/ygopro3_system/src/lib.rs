@@ -73,9 +73,12 @@ impl System {
 		})
 	}
 	pub fn init (mut self) -> Self {
-		self.array
-			.entry(String::from("LOADING_EXPANSION"))
-			.or_insert(Vec::new());
+		["LOADING_EXPANSION", "EXTEND"]
+			.into_iter().for_each(|i| {
+				self.array
+					.entry(String::from(i))
+					.or_insert(Vec::new());
+			});
 		["HIDDEN_NAME", "HIDDEN_CHAT"]
 			.into_iter().for_each(|i| {
 				self.boolean

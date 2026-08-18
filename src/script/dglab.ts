@@ -80,7 +80,7 @@ class DG {
 		this.secret = result.secret;
 	};
 
-	happen = async () : Promise<void> => {
+	happen = async (val : number) : Promise<void> => {
 		const socket = this.socket;
 		const client_id = this.client_id;
 		if (!socket || !client_id || this.state.value !== DGLAB_SOCKET_STATE.Paired)

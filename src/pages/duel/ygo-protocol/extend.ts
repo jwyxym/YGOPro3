@@ -18,7 +18,9 @@ class Extend {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
 			if (tp) return;
 			const val = msg.read.int32();
-			await dg.happen();
+			if (!val)
+				return;
+			await dg.happen(val);
 		}]
 	]);
 

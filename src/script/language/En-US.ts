@@ -170,6 +170,7 @@ En_US[I18N_KEYS.SETTING_VOICE_BGM] = 'BGM Volume';
 En_US[I18N_KEYS.SETTING_VOICE_SOUND_EFFECT] = 'Sound Effects';
 En_US[I18N_KEYS.SETTING_SERVER_PLAYER_NAME] = 'Player Name';
 En_US[I18N_KEYS.SETTING_SEARCH_SPLIT] = 'Search Keyword Separator';
+En_US[I18N_KEYS.SETTING_EXTEND] = 'Extensions';
 En_US[I18N_KEYS.SETTING_DELETE_YPK] = 'Are you sure you want to delete?';
 En_US[I18N_KEYS.SETTING_PACKS] = 'Card Pack Settings';
 En_US[I18N_KEYS.SETTING_ITEMS] = 'System Settings';
@@ -196,6 +197,10 @@ En_US[I18N_KEYS.SETTING_GOTO_HOME] = 'Go to Homepage';
 En_US[I18N_KEYS.SETTING_GOTO_GIT] = 'Go to GitHub repository';
 En_US[I18N_KEYS.SETTING_GAME_CURRENT_VERSION] = 'Current Version: {:?}';
 En_US[I18N_KEYS.SETTING_ACKNOWLEDGEMENT] = 'Acknowledgements';
+En_US[I18N_KEYS.SETTING_DGLAB] = 'DGLAB';
+En_US[I18N_KEYS.SETTING_DGLAB_MIN] = 'Minimum Intensity';
+En_US[I18N_KEYS.SETTING_DGLAB_MAX] = 'Maximum Intensity';
+En_US[I18N_KEYS.SETTING_DGLAB_RATIO] = 'Ratio (LP lost per event / ratio = intensity)';
 
 En_US[I18N_KEYS.DUEL_DECK_CONFIRM] = 'Deck Confirmed';
 En_US[I18N_KEYS.DUEL_DECK_RESTORE] = 'Restore Deck';

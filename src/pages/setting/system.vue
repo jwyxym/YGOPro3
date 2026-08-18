@@ -41,7 +41,7 @@
 				<template #extra>
 					<var-switch
 						v-model = 'i.value'
-						@change = 'page.change(i.key, $event, i)'/>
+						@change = 'page.change(i)'/>
 				</template>
 			</var-cell>
 			<var-cell
@@ -54,7 +54,7 @@
 						:min = '0'
 						:max = '999'
 						v-model = 'i.value'
-						@change = 'page.change(i.key, i.value, i)'/>
+						@change = 'page.change(i)'/>
 				</template>
 			</var-cell>
 			<var-cell
@@ -67,14 +67,36 @@
 						v-model = 'i.value'
 						:maxlength = 'i.max'
 						:clearable = 'false'
-						@blur = 'page.change(i.key, i.value, i)'/>
+						@blur = 'page.change(i)'/>
 				</template>
 			</var-cell>
+			<var-cell class = 'extend'>
+				<template #default>
+					<Input
+						:placeholder = 'mainGame.get.text(page.extend.i18n)'
+						v-model = 'page.extend.value'
+						:clearable = 'false'
+						@enter = 'page.extend.push()'
+					/>
+				</template>
+				<template #extra>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
+						@click = 'page.extend.push()'
+					/>
+				</template>
+			</var-cell>
+			<Dglab
+				v-if = 'page.extend.dglab'
+				@change = 'page.change'
+				@off = '(key : string) => page.extend.del(key)'
+			/>
 		</var-list>
 	</div>
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, ref, watch } from 'vue';
+	import { toUpper } from 'lodash';
 	import PQueue from 'p-queue';
 
 	import { KEYS } from '@/script/constant';
@@ -84,6 +106,9 @@
 	import Select from '@/pages/ui/select.vue';
 	import Input from '@/pages/ui/input.vue';
 	import Slider from '@/pages/ui/slider.vue';
+	import Button from '@/pages/ui/button.vue';
+
+	import Dglab from './extend/dglab.vue';
 
 	class Sound_Setting {
 		key : number;
@@ -130,7 +155,35 @@
 		},
 		number : [] as Array<{ i18n : number, key : string; value : number; }>,
 		bool : [] as Array<{ i18n : number, key : string; value : boolean; }>,
-		string : [] as Array<{ i18n : number, key : string; value : string; max : number }>,
+		string : [] as Array<{ i18n : number, key : string; value : string; max ?: number }>,
+		extend : {
+			i18n : I18N_KEYS.SETTING_EXTEND,
+			value : '',
+			dglab : false,
+			flush : function (extend : Array<string>) {
+				this.value = '';
+				this.dglab = extend.includes('DGLAB');
+			},
+			push : function () {
+				const extend = (mainGame.get.system(KEYS.SETTING_EXTEND)! as Array<string>);
+				const key : string = toUpper(this.value);
+				if (!extend.includes(key)) {
+					extend.push(key);
+					queue.add(async () => await mainGame.set.system(KEYS.SETTING_EXTEND, extend, true));
+				}
+				this.flush(extend);
+			},
+			del : function (key : string) {
+				key = toUpper(key);
+				const extend = (mainGame.get.system(KEYS.SETTING_EXTEND)! as Array<string>);
+				const i = extend.indexOf(key);
+				if (i > - 1) {
+					extend.splice(i, 1);
+					queue.add(async () => await mainGame.set.system(KEYS.SETTING_EXTEND, extend, true));
+				}
+				this.flush(extend);
+			}
+		},
 		sound : [
 			new Sound_Setting(
 				I18N_KEYS.SETTING_VOICE_BGM,
@@ -158,15 +211,13 @@
 			)
 		],
 		change : (
-			k : string,
-			v : string | number | boolean | Array<string>,
 			obj : { i18n : number, key : string; value : any; }
 		) => {
-			if (k === KEYS.SETTING_SEARCH_SPLIT && !v) {
+			if (obj.key === KEYS.SETTING_SEARCH_SPLIT && !obj.value) {
 				obj.value = '%%';
 				return;
 			}
-			queue.add(async () => mainGame.set.system(k, v));
+			queue.add(async () => await mainGame.set.system(obj.key, obj.value));
 		}
 	});
 
@@ -185,7 +236,7 @@
 				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
 				key : KEYS[i as keyof typeof KEYS],
 				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as number
-			}
+			};
 		});
 		page.bool = [
 			'SETTING_CHK_DELETE_YPK',
@@ -205,7 +256,7 @@
 				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
 				key : KEYS[i as keyof typeof KEYS],
 				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as boolean
-			}
+			};
 		});
 		page.string = [
 			['SETTING_SERVER_PLAYER_NAME', 20],
@@ -215,9 +266,11 @@
 				i18n : I18N_KEYS[i[0] as keyof typeof I18N_KEYS],
 				key : KEYS[i[0] as keyof typeof KEYS],
 				value : mainGame.get.system(KEYS[i[0] as keyof typeof KEYS]) as string,
-				max : i[1] as number
-			}
+				max : i[1] as number | undefined
+			};
 		});
+		const extend = mainGame.get.system(KEYS.SETTING_EXTEND) as Array<string>;
+		page.extend.dglab = extend.includes('DGLAB');
 	});
 
 	const emit = defineEmits<{ i18n : [boolean]; }>();
@@ -229,19 +282,31 @@
 		width: 100%;
 		overflow-y: auto;
 		.var-cell {
+			height: 60px;
 			:deep(.var-cell__extra) {
 				display: flex;
 				height: 40px;
 				transform: translateX(-10px);
 				.var-input {
-					width: 100px;
+					width: 200px;
 					[media = 'mobile'] & {
-						transform: scale(140%) translate(-20px, -10px);
+						transform: scale(140%) translate(-40px, -10px);
 					}
 					[media = 'pc'] & {
 						transform: translateY(-10px);
 					}
 				}
+			}
+		}
+		.extend {
+			.var-input {
+				width: 500px;
+			}
+			[media = 'mobile'] & {
+				height: 140px !important;
+			}
+			[media = 'pc'] & {
+				height: 80px !important;
 			}
 		}
 	}
