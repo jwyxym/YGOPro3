@@ -12,8 +12,12 @@
 			>
 				<template #extra>
 					<Button
-						:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
-						@click = 'dg.on'
+						:content = 'mainGame.get.text(
+							dg.state.value === DGLAB_SOCKET_STATE.Idle
+								? I18N_KEYS.SERVER_CONNECT : I18N_KEYS.SERVER_DISCONNECT
+							)
+						'
+						@click = 'page.connect'
 					/>
 				</template>
 			</var-cell>
@@ -62,6 +66,7 @@
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, watch } from 'vue';
+	import { DGLAB_SOCKET_STATE } from 'dglab-kit';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -78,6 +83,7 @@
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
 		number : [] as Array<{ i18n : number, key : string; value : number; max ?: number; }>,
 		test : 1000,
+		url : undefined as string | undefined,
 		change : (i : { i18n : number, key : string; value : any; }) => {
 			if (i.key === KEYS.SETTING_DGLAB_MAX) {
 				const min = page.number[0].value;
@@ -90,7 +96,9 @@
 				}
 			}
 			emit('change', i);
-		}
+		},
+		connect : async () => dg.state.value === DGLAB_SOCKET_STATE.Idle
+			? page.url = await dg.on() : await dg.clear()
 	});
 
 	const emit = defineEmits<{

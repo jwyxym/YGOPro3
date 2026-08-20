@@ -49,6 +49,7 @@
       ]
     },
     "websocket:default",
-    "dialog:default"
+    "dialog:default",
+    "dglab-ws-server:default"
   ]
 }

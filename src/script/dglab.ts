@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
+import * as dglab_server from 'tauri-plugin-dglab-ws-server';
 import {
 	COYOTE_WAVEFORM,
 	COYOTE_WAVEFORMS,
@@ -13,6 +14,7 @@ import {
 import { connect } from './websocket';
 import mainGame from './game';
 import { KEYS } from './constant';
+import invoke from './invoke';
 
 class DG {
 	address ?: string;
@@ -22,66 +24,78 @@ class DG {
 	client_id ?: string;
 	secret ?: string;
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
+	local_server : boolean = false;
 
-    on = async () : Promise<string> => {
+    on = async () : Promise<string | undefined> => {
+		if (this.address)
+			return this.address;
 		const address = mainGame.get.system(KEYS.SETTING_DGLAB_SERVER) as string;
-		this.address = address// ? address : ;
-		const socket = new DglabSocket();
-		const ws = await connect(this.address, (i : Message) => {
-			switch (i.type) {
-				case 'Text':
-				case 'Binary':
-					socket.handleMessage(i.data);
-					break;
-				case 'Close': 
-					socket.handleClose(i.data);
-			};
-		});
-		socket.setSender((data : DglabSocketOutgoing) => ws.send(
-			typeof data === 'string'
-				? data : Array.from(
-					data instanceof ArrayBuffer
-						? new Uint8Array(data)
-						: new Uint8Array(
-							data.buffer,
-							data.byteOffset,
-							data.byteLength
-						)
-				)
-		));
+		if (address)
+			this.address = address;
+		else {
+			this.local_server = true;
+			this.address = await dglab_server.startServer({ port : 0, prefix : '/', idleTimeoutMs: 0 });
+		}
+		
+		try {
+			const socket = new DglabSocket();
+			socket.on('state', (state : DGLAB_SOCKET_STATE, previous) => {
+				this.state.value = state;
+				console.log('socket state:', previous, '->', state);
+			});
+			socket.on('devices', (devices, clientId) => {
+				console.log('设备列表更新:', clientId, devices);
+			});
+			socket.on('device', (device : DglabSocketDeviceEventPayload, id : string) => {
+				console.log('单设备变化:', id, device);
+				this.client_id = id;
+			});
+			socket.on('action', (action) => {
+				console.log('APP 自定义动作:', action);
+			});
+			socket.on('client-attached', async (id : string) => {
+				console.log('APP 接入:', id);
+				this.client_id = id;
+			});
+			socket.setSender((data : DglabSocketOutgoing) => ws.send(
+				typeof data === 'string'
+					? data : Array.from(
+						data instanceof ArrayBuffer
+							? new Uint8Array(data)
+							: new Uint8Array(
+								data.buffer,
+								data.byteOffset,
+								data.byteLength
+							)
+					)
+			));
+			const ws = await connect(this.address, (i : Message) => {
+				switch (i.type) {
+					case 'Text':
+					case 'Binary':
+						socket.handleMessage(i.data);
+						break;
+					case 'Close': 
+						socket.handleClose(i.data);
+				};
+			});
 
-		socket.on('state', (state : DGLAB_SOCKET_STATE, previous) => {
-			this.state.value = state;
-			console.log('socket state:', previous, '->', state);
-		});
-		socket.on('devices', (devices, clientId) => {
-			console.log('设备列表更新:', clientId, devices);
-		});
-		socket.on('device', (device : DglabSocketDeviceEventPayload, id : string) => {
-			console.log('单设备变化:', id, device);
-			this.client_id = id;
-		});
-		socket.on('action', (action) => {
-			console.log('APP 自定义动作:', action);
-		});
-		socket.on('client-attached', async (id : string) => {
-			console.log('APP 接入:', id);
-			this.client_id = id;
-		});
+			const result = await socket.connect();
+			console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
+			console.log('HTTP 鉴权密钥:', result.secret);
+			const url = `${this.address}/?tid=${result.targetId}`;
+			const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(url)}`;
+			console.log(url, qrcode)
 
-		const result = await socket.connect();
-		console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
-		console.log('HTTP 鉴权密钥:', result.secret);
-		const url = `${this.address}/?tid=${result.targetId}`;
-		const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(url)}`;
-		console.log(url, qrcode)
-
-		this.ws = ws;
-		this.socket = socket;
-		this.target_id = result.targetId;
-		this.secret = result.secret;
-
-		return url;
+			this.ws = ws;
+			this.socket = socket;
+			this.target_id = result.targetId;
+			this.secret = result.secret;
+			return url;
+		} catch (error) {
+			await invoke.log.write(error);
+			return undefined;
+		}
 	};
 
 	happen = async (val : number) : Promise<void> => {
@@ -137,6 +151,10 @@ class DG {
 		this.client_id = undefined;
 		this.secret = undefined;
 		this.state.value = DGLAB_SOCKET_STATE.Idle;
+		if (this.local_server) {
+			this.local_server = false;
+			await dglab_server.stopServer();
+		}
 	};
 };
 

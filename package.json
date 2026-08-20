@@ -49,6 +49,7 @@
 		"lodash": "^4.17.23",
 		"mathjs": "^15.1.0",
 		"p-queue": "^9.1.0",
+		"tauri-plugin-dglab-ws-server": "^0.1.0",
 		"vue": "^3.5.13",
 		"vue-virtual-scroller": "^3.0.3",
 		"vue3-starry-sky": "^0.1.0",
