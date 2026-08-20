@@ -163,7 +163,7 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(0.0);
 			});
-		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS"]
+		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS", "DGLAB_SERVER"]
 			.into_iter().for_each(|i| {
 				self.string
 					.entry(String::from(i))
@@ -183,6 +183,15 @@ impl System {
 		if !["zh-CN", "ko-KR", "ja-JP", "en-US", "zh-TW"].contains(&i18n.as_str()) {
 			*i18n = String::from("zh-CN");
 		}
+		self.number
+			.entry(String::from("CT_DGLAB_MIN"))
+			.or_insert(10.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MAX"))
+			.or_insert(40.0);
+		self.number
+			.entry(String::from("CT_DGLAB_RATIO"))
+			.or_insert(200.0);
 		self
 	}
 }

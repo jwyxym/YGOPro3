@@ -1,5 +1,5 @@
 <template>
-	<div class = 'system no-scrollbar' v-if = '!page.i18n.changing'>
+	<div class = 'system no-scrollbar' ref = 'system' v-if = '!page.i18n.changing'>
 		<var-list>
 			<var-cell>
 				<template #default>
@@ -90,12 +90,13 @@
 				v-if = 'page.extend.dglab'
 				@change = 'page.change'
 				@off = '(key : string) => page.extend.del(key)'
+				@open = 'page.scroll'
 			/>
 		</var-list>
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, reactive, ref, watch } from 'vue';
+	import { onBeforeMount, reactive, ref, useTemplateRef, watch } from 'vue';
 	import { toUpper } from 'lodash';
 	import PQueue from 'p-queue';
 
@@ -109,6 +110,8 @@
 	import Button from '@/pages/ui/button.vue';
 
 	import Dglab from './extend/dglab.vue';
+
+	const system = useTemplateRef('system');
 
 	class Sound_Setting {
 		key : number;
@@ -218,7 +221,13 @@
 				return;
 			}
 			queue.add(async () => await mainGame.set.system(obj.key, obj.value));
-		}
+		},
+		scroll : (value : number) => setTimeout(
+			() => system.value
+				?.scrollBy({
+					top : value,
+					behavior : 'smooth'
+				}), 200)
 	});
 
 	onBeforeMount(() => {
@@ -303,10 +312,10 @@
 				width: 500px;
 			}
 			[media = 'mobile'] & {
-				height: 140px !important;
+				height: 140px;
 			}
 			[media = 'pc'] & {
-				height: 80px !important;
+				height: 80px;
 			}
 		}
 	}

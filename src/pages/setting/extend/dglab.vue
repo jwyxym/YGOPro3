@@ -5,7 +5,18 @@
 			:title = 'mainGame.get.text(I18N_KEYS.SETTING_DGLAB)'
 			@off = "emit('off', 'DGLAB')"
 		/>
-		<var-list :style = "{ '--h' : `${page.show ? 4 * 60 : 0}px` }">
+		<var-list :style = "{ '--h' : `${page.show ? 6 * 60 : 0}px` }">
+			<var-cell
+				:title = 'mainGame.get.text(I18N_KEYS.SETTING_DGLAB_STATUS)'
+				:description = '(dg.state as any as string)'
+			>
+				<template #extra>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.SERVER_CONNECT)'
+						@click = 'dg.on'
+					/>
+				</template>
+			</var-cell>
 			<var-cell
 				v-for = 'i in page.string'
 				:key = 'i.key'
@@ -15,7 +26,7 @@
 					<Input
 						v-model = 'i.value'
 						:clearable = 'false'
-						@blur = "emit('change', i)"/>
+						@blur = 'page.change(i)'/>
 				</template>
 			</var-cell>
 			<var-cell
@@ -26,29 +37,47 @@
 				<template #extra>
 					<var-counter
 						:min = '0'
-						:max = '200'
+						:max = i.max
 						v-model = 'i.value'
 						@change = 'page.change(i)'/>
+				</template>
+			</var-cell>
+			<var-cell>
+				<template #default>
+					<Input
+						:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DGLAB_TEST_LP)'
+						v-model = 'page.test'
+						type = 'number'
+					/>
+				</template>
+				<template #extra>
+					<Button
+						:content = 'mainGame.get.text(I18N_KEYS.TEST)'
+						@click = 'dg.happen(Number(page.test))'
+					/>
 				</template>
 			</var-cell>
 		</var-list>
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount, reactive } from 'vue';
+	import { onBeforeMount, reactive, watch } from 'vue';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
+	import dg from '@/script/dglab';
 
 	import Input from '@/pages/ui/input.vue';
+	import Button from '@/pages/ui/button.vue';
 
 	import Head from './head.vue';
 
 	const page = reactive({
 		show : false,
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
-		number : [] as Array<{ i18n : number, key : string; value : number; }>,
+		number : [] as Array<{ i18n : number, key : string; value : number; max ?: number; }>,
+		test : 1000,
 		change : (i : { i18n : number, key : string; value : any; }) => {
 			if (i.key === KEYS.SETTING_DGLAB_MAX) {
 				const min = page.number[0].value;
@@ -67,6 +96,7 @@
 	const emit = defineEmits<{
 		change : [{ i18n : number, key : string; value : any; }]
 		off : [string];
+		open : [number];
 	}>();
 
 	onBeforeMount(() => {
@@ -80,23 +110,31 @@
 			};
 		});
 		page.number = [
-			'SETTING_DGLAB_MIN',
-			'SETTING_DGLAB_MAX',
-			'SETTING_DGLAB_RATIO'
+			['SETTING_DGLAB_MIN', 200],
+			['SETTING_DGLAB_MAX', 200],
+			['SETTING_DGLAB_RATIO', undefined]
 		].map(i => {
 			return {
-				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
-				key : KEYS[i as keyof typeof KEYS],
-				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as number,
+				i18n : I18N_KEYS[i[0] as keyof typeof I18N_KEYS],
+				key : KEYS[i[0] as keyof typeof KEYS],
+				value : mainGame.get.system(KEYS[i[0] as keyof typeof KEYS]) as number,
+				max : i[1] as number | undefined
 			};
 		});
+	});
 
+	watch(() => page.show, (n : boolean) => {
+		if (n)
+			emit('open', 360);
 	});
 </script>
 <style scoped lang = 'scss'>
 	.dglab {
 		.var-cell {
 			height: 60px;
+			.var-input {
+				width: 500px;
+			}
 		}
 		.var-list {
 			transition: all 0.2s ease;

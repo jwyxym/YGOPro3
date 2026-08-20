@@ -9,6 +9,7 @@ En_US[I18N_KEYS.CANCEL] = 'Cancel';
 En_US[I18N_KEYS.HIDDEN_NAME] = '******';
 En_US[I18N_KEYS.LFLIST_NA] = 'N/A';
 En_US[I18N_KEYS.DELETE_COMPELETE] = 'Deleted successfully';
+En_US[I18N_KEYS.TEST] = 'Test';
 
 En_US[I18N_KEYS.RULE_URL_UNLAWFUL] = 'Invalid download URL';
 En_US[I18N_KEYS.RULE_CHUNK_UNLAWFUL] = 'Invalid chunk size';
@@ -198,6 +199,9 @@ En_US[I18N_KEYS.SETTING_GOTO_GIT] = 'Go to GitHub repository';
 En_US[I18N_KEYS.SETTING_GAME_CURRENT_VERSION] = 'Current Version: {:?}';
 En_US[I18N_KEYS.SETTING_ACKNOWLEDGEMENT] = 'Acknowledgements';
 En_US[I18N_KEYS.SETTING_DGLAB] = 'DGLAB';
+En_US[I18N_KEYS.SETTING_DGLAB_SERVER] = 'DGLAB Server Address';
+En_US[I18N_KEYS.SETTING_DGLAB_STATUS] = 'DGLAB Status: ';
+En_US[I18N_KEYS.SETTING_DGLAB_TEST_LP] = 'Test Value (LP)';
 En_US[I18N_KEYS.SETTING_DGLAB_MIN] = 'Minimum Intensity';
 En_US[I18N_KEYS.SETTING_DGLAB_MAX] = 'Maximum Intensity';
 En_US[I18N_KEYS.SETTING_DGLAB_RATIO] = 'Ratio (LP lost per event / ratio = intensity)';
