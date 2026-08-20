@@ -23,7 +23,7 @@ class DG {
 	secret ?: string;
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
 
-    on = async () => {
+    on = async () : Promise<string> => {
 		const address = mainGame.get.system(KEYS.SETTING_DGLAB_SERVER) as string;
 		this.address = address// ? address : ;
 		const socket = new DglabSocket();
@@ -72,14 +72,16 @@ class DG {
 		const result = await socket.connect();
 		console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
 		console.log('HTTP 鉴权密钥:', result.secret);
-		const appSocketUrl = `${this.address}/?tid=${result.targetId}`;
-		const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(appSocketUrl)}`;
-		console.log(appSocketUrl, qrcode)
+		const url = `${this.address}/?tid=${result.targetId}`;
+		const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(url)}`;
+		console.log(url, qrcode)
 
 		this.ws = ws;
 		this.socket = socket;
 		this.target_id = result.targetId;
 		this.secret = result.secret;
+
+		return url;
 	};
 
 	happen = async (val : number) : Promise<void> => {
