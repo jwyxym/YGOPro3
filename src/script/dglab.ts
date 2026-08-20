@@ -40,7 +40,10 @@ class DG {
 		try {
 			const socket = new DglabSocket();
 			socket.on('state', (state : DGLAB_SOCKET_STATE, previous) => {
-				this.state.value = state;
+				if (state === DGLAB_SOCKET_STATE.Disconnected)
+					this.state.value = DGLAB_SOCKET_STATE.Idle;
+				else
+					this.state.value = state;
 				console.log('socket state:', previous, '->', state);
 			});
 			socket.on('devices', (devices, clientId) => {
