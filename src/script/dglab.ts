@@ -85,16 +85,17 @@ class DG {
 	};
 
 	happen = async (val : number) : Promise<void> => {
-		if (isNaN(val)) return;
+		const socket = this.socket;
+		const client_id = this.client_id;
+		if (!socket || !client_id
+			|| this.state.value !== DGLAB_SOCKET_STATE.Paired
+			|| Number.isNaN(val)
+		)
+			return;
 		const min = mainGame.get.system(KEYS.SETTING_DGLAB_MIN) as number;
 		const max = mainGame.get.system(KEYS.SETTING_DGLAB_MAX) as number;
 		const ratio = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO) as number;
 		const value = Math.min(max, Math.max(min, val / ratio));
-
-		const socket = this.socket;
-		const client_id = this.client_id;
-		if (!socket || !client_id || this.state.value !== DGLAB_SOCKET_STATE.Paired)
-			return;
 		const { devices } = await socket.requestDevices(client_id);
 		const channels = [V4Channel.A, V4Channel.B];
 		for (const device of devices) {

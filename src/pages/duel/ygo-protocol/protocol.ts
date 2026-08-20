@@ -291,8 +291,8 @@ class Protocol {
 				this.need_update = false;
 			}
 			await Promise.all([
-				this.msg.get(protocol)?.(msg, send),
-				extend.get(protocol)?.(msg)
+				this.msg.get(protocol)?.(msg.to_end(), send),
+				extend.get(protocol)?.(msg.to_end())
 			]);
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {

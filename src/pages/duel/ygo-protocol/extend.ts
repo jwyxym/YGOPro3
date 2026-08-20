@@ -16,10 +16,8 @@ class Extend {
 	private content = new Map<number, (msg : Msg) => Promise<void>>([
 		[MSG.DAMAGE, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
-			if (tp) return;
 			const val = msg.read.int32();
-			if (!val)
-				return;
+			if (tp || !val) return;
 			await dg.happen(val);
 		}]
 	]);
