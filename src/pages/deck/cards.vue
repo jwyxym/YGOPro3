@@ -274,13 +274,13 @@
 					deck.value!.scrollTop += window.innerHeight;
 					page.move.on = setInterval(() => {
 						deck.value!.scrollTop += window.innerHeight;
-					}, 400);
+					}, 400) as any as number;
 				}
 				else if (y < pos.top && !page.move.on) {
 					deck.value!.scrollTop -= window.innerHeight;
 					page.move.on = setInterval(() => {
 						deck.value!.scrollTop -= window.innerHeight;
-					}, 400);
+					}, 400) as any as number;
 				} else {
 					if (page.move.on) {
 						clearInterval(page.move.on);

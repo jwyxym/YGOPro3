@@ -12,6 +12,7 @@ En_US[I18N_KEYS.DELETE_COMPELETE] = 'Deleted successfully';
 En_US[I18N_KEYS.TEST] = 'Test';
 En_US[I18N_KEYS.COPY] = 'Copy';
 En_US[I18N_KEYS.COPY_COMPELETE] = 'Copied to clipboard';
+En_US[I18N_KEYS.OPEN_URL] = 'Open in Browser';
 
 En_US[I18N_KEYS.RULE_URL_UNLAWFUL] = 'Invalid download URL';
 En_US[I18N_KEYS.RULE_CHUNK_UNLAWFUL] = 'Invalid chunk size';

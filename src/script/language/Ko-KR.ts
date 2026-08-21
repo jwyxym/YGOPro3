@@ -12,6 +12,7 @@ Ko_KR[I18N_KEYS.DELETE_COMPELETE] = '삭제되었습니다';
 Ko_KR[I18N_KEYS.TEST] = '테스트';
 Ko_KR[I18N_KEYS.COPY] = '복사';
 Ko_KR[I18N_KEYS.COPY_COMPELETE] = '클립보드에 복사되었습니다';
+Ko_KR[I18N_KEYS.OPEN_URL] = '브라우저에서 열기';
 
 Ko_KR[I18N_KEYS.RULE_URL_UNLAWFUL] = '잘못된 다운로드 URL입니다';
 Ko_KR[I18N_KEYS.RULE_CHUNK_UNLAWFUL] = '잘못된 분할 크기입니다';

@@ -12,6 +12,7 @@ Ja_JP[I18N_KEYS.DELETE_COMPELETE] = '削除しました';
 Ja_JP[I18N_KEYS.TEST] = 'テスト';
 Ja_JP[I18N_KEYS.COPY] = 'コピー';
 Ja_JP[I18N_KEYS.COPY_COMPELETE] = 'クリップボードにコピーしました';
+Ja_JP[I18N_KEYS.OPEN_URL] = 'ブラウザーで開く';
 
 Ja_JP[I18N_KEYS.RULE_URL_UNLAWFUL] = 'ダウンロードURLが不正です';
 Ja_JP[I18N_KEYS.RULE_CHUNK_UNLAWFUL] = '分割サイズが不正です';

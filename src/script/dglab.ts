@@ -18,6 +18,8 @@ import invoke from './invoke';
 
 class DG {
 	address ?: string;
+	url ?: string;
+	qrcode ?: string;
 	ws ?: WebSocket;
 	socket ?: DglabManualSocket;
 	target_id ?: string;
@@ -26,9 +28,9 @@ class DG {
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
 	local_server : boolean = false;
 
-    on = async () : Promise<string | undefined> => {
+    on = async (clear : () => void) : Promise<[string | undefined, string | undefined]> => {
 		if (this.address)
-			return this.address;
+			return [this.address, this.qrcode];
 		const address = mainGame.get.system(KEYS.SETTING_DGLAB_SERVER) as string;
 		if (address)
 			this.address = address;
@@ -41,7 +43,7 @@ class DG {
 			const socket = new DglabSocket();
 			socket.on('state', (state : DGLAB_SOCKET_STATE) => {
 				state === DGLAB_SOCKET_STATE.Disconnected
-					? this.clear() : this.state.value = state;
+					? this.clear(clear) : this.state.value = state;
 			});
 			socket.on('device', (_ : DglabSocketDeviceEventPayload, id : string) => this.client_id = id);
 			socket.on('client-attached', async (id : string) => this.client_id = id);
@@ -69,19 +71,20 @@ class DG {
 			});
 
 			const result = await socket.connect();
-			const url = `${this.address}/?tid=${result.targetId}`;
+			this.url = `${this.address}/?tid=${result.targetId}`;
+			this.qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(this.url)}`;
 			
 			this.ws = ws;
 			this.socket = socket;
 			this.target_id = result.targetId;
 			this.secret = result.secret;
-			return url;
+			return [this.url, this.qrcode];
 		} catch (error) {
 			await Promise.all([
 				invoke.log.write(error),
-				this.clear()
+				this.clear(clear)
 			]);
-			return undefined;
+			return [undefined, undefined];
 		}
 	};
 
@@ -137,8 +140,11 @@ class DG {
 		this.socket?.disconnect();
 	};
 
-	clear = async () => {
+	clear = async (clear : () => void) => {
+		clear();
 		this.address = undefined;
+		this.url = undefined;
+		this.qrcode = undefined;
 		this.ws = undefined;
 		this.socket = undefined;
 		this.target_id = undefined;
