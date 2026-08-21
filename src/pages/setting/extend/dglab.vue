@@ -144,7 +144,7 @@
 		connect : async () => {
 			console.log(dg.state.value, dg.state.value === DGLAB_SOCKET_STATE.Idle)
 			dg.state.value === DGLAB_SOCKET_STATE.Idle
-			? page.url = await dg.on() : await dg.clear()
+			? page.url = await dg.on() : await dg.disconnect()
 		},
 		copy : async () : Promise<void> => {
 			if (!page.url)

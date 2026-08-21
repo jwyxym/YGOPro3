@@ -39,26 +39,12 @@ class DG {
 		
 		try {
 			const socket = new DglabSocket();
-			socket.on('state', (state : DGLAB_SOCKET_STATE, previous) => {
-				this.state.value = state === DGLAB_SOCKET_STATE.Disconnected
-					? DGLAB_SOCKET_STATE.Idle
-					: state;
-				console.log('socket state:', previous, '->', state);
+			socket.on('state', (state : DGLAB_SOCKET_STATE) => {
+				state === DGLAB_SOCKET_STATE.Disconnected
+					? this.clear() : this.state.value = state;
 			});
-			socket.on('devices', (devices, clientId) => {
-				console.log('设备列表更新:', clientId, devices);
-			});
-			socket.on('device', (device : DglabSocketDeviceEventPayload, id : string) => {
-				console.log('单设备变化:', id, device);
-				this.client_id = id;
-			});
-			socket.on('action', (action) => {
-				console.log('APP 自定义动作:', action);
-			});
-			socket.on('client-attached', async (id : string) => {
-				console.log('APP 接入:', id);
-				this.client_id = id;
-			});
+			socket.on('device', (_ : DglabSocketDeviceEventPayload, id : string) => this.client_id = id);
+			socket.on('client-attached', async (id : string) => this.client_id = id);
 			socket.setSender((data : DglabSocketOutgoing) => ws.send(
 				typeof data === 'string'
 					? data : Array.from(
@@ -146,9 +132,12 @@ class DG {
 		}
 	};
 
-	clear = async () => {
+	disconnect = async () => {
 		await this.ws?.disconnect();
 		this.socket?.disconnect();
+	};
+
+	clear = async () => {
 		this.address = undefined;
 		this.ws = undefined;
 		this.socket = undefined;
