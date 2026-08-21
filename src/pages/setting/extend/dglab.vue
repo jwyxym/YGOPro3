@@ -254,6 +254,7 @@
 		width: 100%;
 		.var-list {
 			width: 100%;
+			height: var(--h);
 			transition: all 0.2s ease;
 			overflow: hidden;
 			.var-input {
