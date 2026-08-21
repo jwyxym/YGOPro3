@@ -99,7 +99,7 @@ class DG {
 		const min_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_INTENSITY) as number;
 		const max_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_INTENSITY) as number;
 		const ratio_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_INTENSITY) as number;
-		const duration = Math.min(max_time, Math.max(min_time, val / ratio_time));
+		const duration = Math.min(max_time, Math.max(min_time, val / ratio_time)) * 1000;
 		const value = Math.min(max_intensity, Math.max(min_intensity, val / ratio_intensity));
 		const { devices } = await socket.requestDevices(client_id);
 		const channels = [V4Channel.A, V4Channel.B];
