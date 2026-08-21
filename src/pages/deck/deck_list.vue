@@ -131,7 +131,7 @@
 		deck : undefined as undefined | Deck,
 		copy : async (deck : Deck) : Promise<void> => {
 			await writeText(deck.toYGOMobileDeckURL());
-			toast.info(mainGame.get.text(I18N_KEYS.DECK_COPY_COMPELETE));
+			toast.info(mainGame.get.text(I18N_KEYS.COPY_COMPELETE));
 		},
 		update : (name : string) : void => {
 			if (!page.deck) return;

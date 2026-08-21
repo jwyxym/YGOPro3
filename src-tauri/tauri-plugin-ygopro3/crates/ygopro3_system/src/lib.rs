@@ -184,13 +184,22 @@ impl System {
 			*i18n = String::from("zh-CN");
 		}
 		self.number
-			.entry(String::from("CT_DGLAB_MIN"))
+			.entry(String::from("CT_DGLAB_MIN_TIME"))
+			.or_insert(1.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MAX_TIME"))
+			.or_insert(4.0);
+		self.number
+			.entry(String::from("CT_DGLAB_RATIO_TIME"))
+			.or_insert(2000.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MIN_INTENSITY"))
 			.or_insert(10.0);
 		self.number
-			.entry(String::from("CT_DGLAB_MAX"))
+			.entry(String::from("CT_DGLAB_MAX_INTENSITY"))
 			.or_insert(40.0);
 		self.number
-			.entry(String::from("CT_DGLAB_RATIO"))
+			.entry(String::from("CT_DGLAB_RATIO_INTENSITY"))
 			.or_insert(200.0);
 		self
 	}

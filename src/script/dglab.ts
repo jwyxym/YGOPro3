@@ -83,19 +83,18 @@ class DG {
 			});
 
 			const result = await socket.connect();
-			console.log('请将这个 APP 配对 ID 交给 DG-LAB 4 APP:', result.targetId);
-			console.log('HTTP 鉴权密钥:', result.secret);
 			const url = `${this.address}/?tid=${result.targetId}`;
-			const qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(url)}`;
-			console.log(url, qrcode)
-
+			
 			this.ws = ws;
 			this.socket = socket;
 			this.target_id = result.targetId;
 			this.secret = result.secret;
 			return url;
 		} catch (error) {
-			await invoke.log.write(error);
+			await Promise.all([
+				invoke.log.write(error),
+				this.clear()
+			]);
 			return undefined;
 		}
 	};
@@ -108,15 +107,19 @@ class DG {
 			|| Number.isNaN(val)
 		)
 			return;
-		const min = mainGame.get.system(KEYS.SETTING_DGLAB_MIN) as number;
-		const max = mainGame.get.system(KEYS.SETTING_DGLAB_MAX) as number;
-		const ratio = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO) as number;
-		const value = Math.min(max, Math.max(min, val / ratio));
+		const min_time = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_TIME) as number;
+		const max_time = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_TIME) as number;
+		const ratio_time = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_TIME) as number;
+		const min_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_INTENSITY) as number;
+		const max_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_INTENSITY) as number;
+		const ratio_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_INTENSITY) as number;
+		const duration = Math.min(max_time, Math.max(min_time, val / ratio_time));
+		const value = Math.min(max_intensity, Math.max(min_intensity, val / ratio_intensity));
 		const { devices } = await socket.requestDevices(client_id);
 		const channels = [V4Channel.A, V4Channel.B];
 		for (const device of devices) {
 			const slot_id = device.slotId;
-			const jobs: Array<Promise<unknown>> = [];
+			const jobs: Array<Promise<any>> = [];
 			for (const channel of channels) {
 				jobs.push(
 					socket.setTempIntensity(
@@ -124,7 +127,7 @@ class DG {
 						slot_id,
 						channel,
 						value,
-						1000,
+						duration,
 						{ immediate: true }
 					)
 				);
@@ -133,7 +136,7 @@ class DG {
 						client_id,
 						slot_id,
 						channel,
-						1000,
+						duration,
 						COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
 						{ immediate: true }
 					)
