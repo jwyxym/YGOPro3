@@ -18,8 +18,8 @@ import invoke from './invoke';
 
 class DG {
 	address ?: string;
-	url ?: string;
-	qrcode ?: string;
+	url = ref<string | undefined>(undefined);
+	qrcode = ref<string | undefined>(undefined);
 	ws ?: WebSocket;
 	socket ?: DglabManualSocket;
 	target_id ?: string;
@@ -28,9 +28,9 @@ class DG {
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
 	local_server : boolean = false;
 
-    on = async (clear : () => void) : Promise<[string | undefined, string | undefined]> => {
+    on = async (clear : () => void) : Promise<void> => {
 		if (this.address)
-			return [this.address, this.qrcode];
+			return;
 		const address = mainGame.get.system(KEYS.SETTING_DGLAB_SERVER) as string;
 		if (address)
 			this.address = address;
@@ -71,20 +71,20 @@ class DG {
 			});
 
 			const result = await socket.connect();
-			this.url = `${this.address}/?tid=${result.targetId}`;
-			this.qrcode = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(this.url)}`;
+			this.url.value = `${this.address}/?tid=${result.targetId}`;
+			this.qrcode.value = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(this.url.value)}`;
 			
 			this.ws = ws;
 			this.socket = socket;
 			this.target_id = result.targetId;
 			this.secret = result.secret;
-			return [this.url, this.qrcode];
+			return;
 		} catch (error) {
 			await Promise.all([
 				invoke.log.write(error),
 				this.clear(clear)
 			]);
-			return [undefined, undefined];
+			return;
 		}
 	};
 
@@ -143,8 +143,8 @@ class DG {
 	clear = async (clear : () => void) => {
 		clear();
 		this.address = undefined;
-		this.url = undefined;
-		this.qrcode = undefined;
+		this.url.value = undefined;
+		this.qrcode.value = undefined;
 		this.ws = undefined;
 		this.socket = undefined;
 		this.target_id = undefined;

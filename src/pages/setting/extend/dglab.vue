@@ -46,10 +46,8 @@
 						/>
 					</template>
 				</var-cell>
-				<p>
-					{{ dg.state.value === DGLAB_SOCKET_STATE.Idle
-						? '' : `${mainGame.get.text(I18N_KEYS.SETTING_DGLAB_URL)} ${page.url}`
-					}}
+				<p v-if = 'dg.state.value !== DGLAB_SOCKET_STATE.Idle'>
+					{{ mainGame.get.text(I18N_KEYS.SETTING_DGLAB_URL) }} {{ dg.url }}
 				</p>
 			</div>
 			<var-cell
@@ -124,8 +122,6 @@
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
 		number : [] as Array<{ i18n : number, key : string; value : number; max ?: number; }>,
 		test : 1000,
-		url : undefined as string | undefined,
-		qrcode : undefined as string | undefined,
 		state : computed(() => {
 			let key;
 			switch (dg.state.value) {
@@ -167,22 +163,25 @@
 		},
 		connect : async () => {
 			if (dg.state.value === DGLAB_SOCKET_STATE.Idle) {
-				[page.url, page.qrcode] = await dg.on(() => {
-					page.url = undefined;
+				await dg.on(() => {
 					if (canvas.value) {
 						const ctx = canvas.value.getContext('2d');
 						ctx?.clearRect(0, 0, canvas.value.width, canvas.value.height);
 					}
 				});
-				page.to_canvas(canvas.value, page.qrcode);
+				page.to_canvas(canvas.value, dg.qrcode.value);
 			} else
 				await dg.disconnect();
 		},
 		copy : async () : Promise<void> => {
-			if (!page.url)
+			if (!dg.url.value)
 				return;
-			await writeText(page.url);
-			toast.info(mainGame.get.text(I18N_KEYS.COPY_COMPELETE));
+			try {
+				await writeText(dg.url.value);
+				toast.info(mainGame.get.text(I18N_KEYS.COPY_COMPELETE));
+			} catch (e) {
+				await invoke.log.write(e);
+			}
 		},
 		to_canvas : (canvas : HTMLCanvasElement | null, qrcode ?: string) => {
 			if (canvas && qrcode)
@@ -198,8 +197,8 @@
 		},
 		open_url : async () => {
 			try {
-				if (page.qrcode)
-					await Opener.openUrl(page.qrcode);
+				if (dg.qrcode.value)
+					await Opener.openUrl(dg.qrcode.value);
 			} catch (e) {
 				await invoke.log.write(e);
 			}
@@ -240,9 +239,7 @@
 	});
 
 	onMounted(() => {
-		page.url = dg.url;
-		page.qrcode = dg.qrcode;
-		page.to_canvas(canvas.value, page.qrcode);
+		page.to_canvas(canvas.value, dg.qrcode.value);
 	});
 
 	watch(() => page.show, (n : boolean) => {
