@@ -17,6 +17,7 @@
 		</template>
 		<template #extra>
 			<var-icon
+				v-if = 'icon'
 				name = 'close-circle-outline'
 				@click = "emit('off')"
 			/>
@@ -27,6 +28,7 @@
 	const props = defineProps<{
 		show : boolean;
 		title : string;
+		icon : boolean;
 	}>();
 
 	const emit = defineEmits<{

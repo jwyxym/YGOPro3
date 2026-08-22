@@ -3,6 +3,7 @@
 		<Head
 			v-model:show = 'page.show'
 			:title = 'mainGame.get.text(I18N_KEYS.SETTING_DGLAB)'
+			:icon = 'icon'
 			@off = "emit('off', 'DGLAB')"
 		/>
 		<var-list :style = "{ '--h' : `${page.show
@@ -106,7 +107,6 @@
 	import { KEYS } from '@/script/constant';
 	import dg from '@/script/dglab';
 	import invoke from '@/script/invoke';
-	import GLOBAL from '@/script/scale';
 
 	import { toast } from '@/pages/toast/toast';
 	import Input from '@/pages/ui/input.vue';
@@ -117,7 +117,7 @@
 	const canvas = useTemplateRef<HTMLCanvasElement>('qrcode');
 
 	const page = reactive({
-		height : computed(() => 9 * (GLOBAL.SCALE < 0.6 ? 100 : 60) + 1),
+		height : computed(() => 9 * props.height + 1),
 		show : false,
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
 		number : [] as Array<{ i18n : number, key : string; value : number; max ?: number; }>,
@@ -209,6 +209,11 @@
 		change : [{ i18n : number, key : string; value : any; }]
 		off : [string];
 		open : [number];
+	}>();
+
+	const props = defineProps<{
+		height : number;
+		icon : boolean;
 	}>();
 
 	onBeforeMount(() => {

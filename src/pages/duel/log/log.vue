@@ -7,9 +7,10 @@
 			<var-tabs v-model:active = 'page.select'>
 				<var-tab>{{ mainGame.get.text(I18N_KEYS.DUEL_CHAT) }}</var-tab>
 				<var-tab>{{ mainGame.get.text(I18N_KEYS.DUEL_HISTORY) }}</var-tab>
+				<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_EXTEND) }}</var-tab>
 			</var-tabs>
 		</div>
-		<TransitionGroup tag = 'div' name = 'left_in'>
+		<TransitionGroup tag = 'div' name = 'opacity'>
 			<Chat v-show = '!page.select' key = '0'/>
 			<div
 				v-show = '!page.select'
@@ -27,8 +28,16 @@
 				/>
 			</div>
 		</TransitionGroup>
-		<transition name = 'right_in'>
-			<History v-show = 'page.select' @click = "(i : string | number) => emit('click', i)"/>
+		<transition name = 'opacity'>
+			<History v-show = 'page.select === 1' @click = "(i : string | number) => emit('click', i)"/>
+		</transition>
+		<transition name = 'opacity'>
+			<div v-show = 'page.select === 2' class = 'no-scrollbar'>
+				<Dglab
+					:height = '45'
+					:icon = 'false'
+				/>
+			</div>
 		</transition>
 	</div>
 </template>
@@ -43,10 +52,10 @@
 	import connect from '@/pages/duel/connect';
 	import Msg from '@/pages/duel/ygo-protocol/msg';
 	import { CTOS } from '@/pages/duel/ygo-protocol/network';
+	import Dglab from '@/pages/setting/extend/dglab.vue';
 
 	import Chat, { chat } from './chat';
 	import History, { history } from './history/history';
-
 
 	const page = reactive({
 		select : 0,
@@ -161,37 +170,41 @@
 				}
 			}
 		}
+		> div:nth-child(4) {
+			overflow-y: auto;
+			width: 90%;
+			height: calc(100% - 80px);
+			:deep(.var-cell) {
+				height: 60px;
+				border-bottom: 1px solid white;
+				.var-cell__extra {
+					display: flex;
+					transform: translateX(-10px);
+					.var-input {
+						width: 150px;
+						[media = 'mobile'] & {
+							transform: scale(140%) translate(-10px, -10px);
+						}
+					}
+				}
+			}
+		}
     }
-	.left_in {
+
+	.opacity {
 		&-enter-active,
 		&-leave-active {
-			transition: transform 0.1s ease;
+			transition: opacity 0.2s ease;
 		}
 
 		&-enter-from,
 		&-leave-to {
-			transform: translateX(-100%);
+			opacity: 0;
 		}
 
 		&-enter-to,
 		&-leave-from {
-			transform: translateX(0);
-		}
-	}
-	.right_in {
-		&-enter-active,
-		&-leave-active {
-			transition: transform 0.1s ease;
-		}
-
-		&-enter-from,
-		&-leave-to {
-			transform: translateX(100%);
-		}
-
-		&-enter-to,
-		&-leave-from {
-			transform: translateX(0);
+			opacity: 1;
 		}
 	}
 </style>

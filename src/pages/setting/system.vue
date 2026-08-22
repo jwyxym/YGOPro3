@@ -89,6 +89,8 @@
 			<Dglab
 				class = 'extend'
 				v-if = 'page.extend.dglab'
+				:height = 'GLOBAL.SCALE < 0.6 ? 100 : 60'
+				:icon = 'true'
 				@change = 'page.change'
 				@off = '(key : string) => page.extend.del(key)'
 				@open = 'page.scroll'
@@ -104,6 +106,7 @@
 	import { KEYS } from '@/script/constant';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import GLOBAL from '@/script/scale';
 	import { voice } from '@/pages/voice/voice';
 	import Select from '@/pages/ui/select.vue';
 	import Input from '@/pages/ui/input.vue';
@@ -314,17 +317,8 @@
 			}
 			:deep(.var-cell) {
 				height: 60px;
-				:deep(.var-cell__content) {
-					[media = 'mobile'] & {
-						height: 140px;
-					}
-					[media = 'pc'] & {
-						height: 80px;
-					}
-				}
-				:deep(.var-cell__extra) {
+				.var-cell__extra {
 					display: flex;
-					height: 40px;
 					transform: translateX(-10px);
 					.var-input {
 						[media = 'mobile'] & {
