@@ -36,6 +36,7 @@
 				<Dglab
 					:height = '45'
 					:icon = 'false'
+					@change = 'page.change'
 				/>
 			</div>
 		</transition>
@@ -43,6 +44,7 @@
 </template>
 <script setup lang = 'ts'>
 	import { nextTick, reactive, watch} from 'vue';
+	import PQueue from 'p-queue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -57,9 +59,16 @@
 	import Chat, { chat } from './chat';
 	import History, { history } from './history/history';
 
+	const queue = new PQueue({ 
+		concurrency: 1,
+		autoStart: true
+	});
+
 	const page = reactive({
 		select : 0,
 		input : '',
+		change : (obj : { key : string; value : any; }) => queue
+			.add(async () => await mainGame.set.system(obj.key, obj.value)),
 		send : async () => {
 			if (!page.input) return;
 			const send = connect.send?.(new Msg()
