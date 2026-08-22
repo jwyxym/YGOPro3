@@ -217,8 +217,8 @@ impl Resource {
 	pub fn sound (&self) -> Vec<(String, String)> {
 		self.sound.clone().into_iter().collect()
 	}
-	pub fn recognizer (&self) -> IndexMap<String, String> {
-		self.recognizer.clone()
+	pub fn recognizer (&self) -> &IndexMap<String, String> {
+		&self.recognizer
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
 		Ok(to_string(&self)?)

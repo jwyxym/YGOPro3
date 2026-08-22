@@ -44,12 +44,9 @@ impl System {
 		&self.string
 	}
 	pub fn i18n (&self) -> String {
-		String::from(
-			self
-			.string()
+		self.string
 			.get("I18N")
-			.unwrap_or(&String::from("zh-CN"))
-		)
+			.map_or_else(|| "zh-CN".to_owned(), Clone::clone)
 	}
 	pub fn set (&mut self, key: String, ct: i8, value: String) -> Result<(), Error> {
 		Ok(match ct {

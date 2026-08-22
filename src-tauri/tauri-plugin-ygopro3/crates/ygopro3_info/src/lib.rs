@@ -63,69 +63,29 @@ impl CardInfo {
 		Vec<(u32, String)>
 	) {
 		(
-			self.ot.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			self.attribute.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			self.link.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			self.category.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			self.race.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			self.types.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect()
+			Self::to_code_array(&self.ot),
+			Self::to_code_array(&self.attribute),
+			Self::to_code_array(&self.link),
+			Self::to_code_array(&self.category),
+			Self::to_code_array(&self.race),
+			Self::to_code_array(&self.types)
 		)
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
 		Ok(to_string(&self)?)
+	}
+	fn to_code_array (map: &BTreeMap<String, String>) -> Vec<(u32, String)> {
+		map
+			.iter()
+			.filter_map(|(key, value)|
+				Self::parse_code(key)
+					.map(|code| (code, value.clone()))
+			)
+			.collect()
+	}
+	fn parse_code (key: &str) -> Option<u32> {
+		u32::from_str_radix(key.trim_start_matches("0x"),
+			if key.starts_with("0x") { 16 } else { 10 }
+		).ok()
 	}
 }
