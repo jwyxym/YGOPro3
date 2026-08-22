@@ -11,9 +11,10 @@ import {
 	type DglabManualSocket,
 	type DglabSocketDeviceEventPayload
 } from 'dglab-kit';
+
 import { connect } from './websocket';
 import mainGame from './game';
-import { KEYS } from './constant';
+import { KEYS, URL } from './constant';
 import invoke from './invoke';
 
 class DG {
@@ -72,7 +73,7 @@ class DG {
 
 			const result = await socket.connect();
 			this.url.value = `${this.address}/?tid=${result.targetId}`;
-			this.qrcode.value = `https://dungeon-lab.cn/s/?v=1&action=socket&url=${encodeURIComponent(this.url.value)}`;
+			this.qrcode.value = `${URL.DGLAB}${encodeURIComponent(this.url.value)}`;
 			
 			this.ws = ws;
 			this.socket = socket;

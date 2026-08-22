@@ -34,6 +34,7 @@ const URL = {
 	GIT_RELEASE : 'https://github.com/jwyxym/YGOPro3/releases/release-latest',
 	GIT_HOME : 'https://github.com/jwyxym/YGOPro3',
 	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
+	DGLAB : 'https://dungeon-lab.cn/s/?v=1&action=socket&url=',
 	HOME_OTHER : new Map([
 		['乌鸦Producer', 'https://b23.tv/STgl276'],
 		['幽影櫻', 'https://home.barian.moe'],
