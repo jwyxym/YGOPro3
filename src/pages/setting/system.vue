@@ -87,6 +87,7 @@
 				</template>
 			</var-cell>
 			<Dglab
+				class = 'extend'
 				v-if = 'page.extend.dglab'
 				@change = 'page.change'
 				@off = '(key : string) => page.extend.del(key)'
@@ -308,14 +309,29 @@
 			}
 		}
 		.extend {
-			.var-input {
+			:deep(.var-input) {
 				width: 500px;
 			}
-			[media = 'mobile'] & {
-				height: 140px;
-			}
-			[media = 'pc'] & {
-				height: 80px;
+			:deep(.var-cell) {
+				height: 60px;
+				:deep(.var-cell__content) {
+					[media = 'mobile'] & {
+						height: 140px;
+					}
+					[media = 'pc'] & {
+						height: 80px;
+					}
+				}
+				:deep(.var-cell__extra) {
+					display: flex;
+					height: 40px;
+					transform: translateX(-10px);
+					.var-input {
+						[media = 'mobile'] & {
+							transform: scale(140%) translateX(-130px);
+						}
+					}
+				}
 			}
 		}
 	}

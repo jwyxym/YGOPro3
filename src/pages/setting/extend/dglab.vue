@@ -6,7 +6,7 @@
 			@off = "emit('off', 'DGLAB')"
 		/>
 		<var-list :style = "{ '--h' : `${page.show
-				? HEIGHT + (dg.state.value === DGLAB_SOCKET_STATE.Idle ? 0 : 340)
+				? page.height + (dg.state.value === DGLAB_SOCKET_STATE.Idle ? 0 : 340)
 				: 0
 			}px`
 		}">
@@ -108,6 +108,7 @@
 	import { KEYS } from '@/script/constant';
 	import dg from '@/script/dglab';
 	import invoke from '@/script/invoke';
+	import GLOBAL from '@/script/scale';
 
 	import { toast } from '@/pages/toast/toast';
 	import Input from '@/pages/ui/input.vue';
@@ -115,10 +116,10 @@
 
 	import Head from './head.vue';
 
-	const HEIGHT = 9 * 60;
 	const canvas = useTemplateRef<HTMLCanvasElement>('qrcode');
 
 	const page = reactive({
+		height : computed(() => 9 * (GLOBAL.SCALE < 0.6 ? 100 : 60) + 1),
 		show : false,
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
 		number : [] as Array<{ i18n : number, key : string; value : number; max ?: number; }>,
@@ -246,7 +247,7 @@
 
 	watch(() => page.show, (n : boolean) => {
 		if (n)
-			emit('open', HEIGHT + (dg.state.value === DGLAB_SOCKET_STATE.Idle ? 0 : 340));
+			emit('open', page.height + (dg.state.value === DGLAB_SOCKET_STATE.Idle ? 0 : 340));
 	});
 </script>
 <style scoped lang = 'scss'>
@@ -257,21 +258,6 @@
 			height: var(--h);
 			transition: all 0.2s ease;
 			overflow: hidden;
-			.var-input {
-				width: 500px;
-			}
-			.var-cell {
-				height: 60px;
-				:deep(.var-cell__extra) {
-					display: flex;
-					transform: translateX(-10px);
-					.var-input {
-						[media = 'mobile'] & {
-							transform: scale(140%) translateX(-130px);
-						}
-					}
-				}
-			}
 			.qrcode {
 				height: var(--h);
 				width: 100%;
