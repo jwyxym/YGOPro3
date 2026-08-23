@@ -21,7 +21,7 @@ use ygopro3_const::*;
 use ygopro3_emit::progress::{self, Event};
 
 use anyhow::{Error, Result, anyhow};
-use walkdir::WalkDir;
+use walkdir::{WalkDir, DirEntry};
 use indexmap::IndexMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::{
@@ -35,7 +35,8 @@ use std::{
 	collections::BTreeMap,
 	fs::{write, read, metadata},
 	path::{Path, PathBuf},
-	io::Read
+	io::Read,
+	env
 };
 use tauri::AppHandle;
 

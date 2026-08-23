@@ -205,52 +205,85 @@ pub async fn i18n (path: &Path, i18n: String, config: &Vec<(String, String)>) ->
 	}
 }
 
+fn expansion_file (
+	file: File,
+	loading_expansion: &[String],
+	load_all_archives: bool,
+	zip_tasks: &mut Vec<JoinHandle<Result<Zip, Error>>>,
+	tasks: &mut Vec<JoinHandle<Result<FileContent, Error>>>
+) {
+	let file_name: String = String::from(file.name());
+	let should_load_archive: bool = load_all_archives || loading_expansion.contains(&file_name);
+	if (file.ext() == "ypk" || file.ext() == "zip") && should_load_archive {
+		zip_tasks.push(Zip::new(file.path(), file_name));
+	} else if file.ext() == "cdb" {
+		tasks.push(spawn(async move {
+			let mut db: Cdb = Cdb::new();
+			db.init(file.path()).await?;
+			Ok(FileContent::Cdb(db))
+		}));
+	} else if file.name().ends_with("strings.conf") {
+		tasks.push(spawn(async move {
+			let text: String = read_to_string(file.path()).await?;
+			Ok(FileContent::Strings(text))
+		}));
+	} else if file.name().ends_with("lflist.conf") {
+		tasks.push(spawn(async move {
+			let text: String = read_to_string(file.path()).await?;
+			Ok(FileContent::LFList(text))
+		}));
+	} else if file.name().ends_with("servers.conf") {
+		tasks.push(spawn(async move {
+			let text: String = read_to_string(file.path()).await?;
+			Ok(FileContent::ServersConf(text))
+		}));
+	} else if file.ext() == "ini" {
+		tasks.push(spawn(async move {
+			let text: String = read_to_string(file.path()).await?;
+			Ok(FileContent::ServersIni(text))
+		}));
+	}
+}
+
+fn expansion_dir (
+	path: PathBuf,
+	loading_expansion: &[String],
+	load_all_archives: bool,
+	zip_tasks: &mut Vec<JoinHandle<Result<Zip, Error>>>,
+	tasks: &mut Vec<JoinHandle<Result<FileContent, Error>>>
+) {
+	WalkDir::new(path)
+		.max_depth(1)
+		.into_iter()
+		.filter_map(Result::ok)
+		.filter_map(|i: DirEntry| File::new(i.path()))
+		.for_each(|file: File| expansion_file(file, loading_expansion, load_all_archives, zip_tasks, tasks));
+}
+
 pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePack> {
 	let mut zip_tasks: Vec<JoinHandle<Result<Zip, Error>>> = Vec::new();
 	let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
-	WalkDir::new(path.join("expansions"))
-		.max_depth(1)
-		.into_iter()
-		.for_each(|i| {
-			if let Ok(i) = i {
-				if let Some(file) = File::new(i.path()) {
-					let file_name: String = String::from(file.name());
-					if system
-						.array()
-						.get("LOADING_EXPANSION")
-						.unwrap_or(&Vec::new())
-						.contains(&file_name) {
-						zip_tasks.push(Zip::new(String::from(file.path()), file_name));
-					} else if file.ext() == "cdb" {
-						tasks.push(spawn(async move {
-							let mut db: Cdb = Cdb::new();
-							db.init(file.path()).await?;
-							Ok(FileContent::Cdb(db))
-						}));
-					} else if file.name().ends_with("strings.conf") {
-						tasks.push(spawn(async move {
-							let text: String = read_to_string(file.path()).await?;
-							Ok(FileContent::Strings(text))
-						}));
-					} else if file.name().ends_with("lflist.conf") {
-						tasks.push(spawn(async move {
-							let text: String = read_to_string(file.path()).await?;
-							Ok(FileContent::LFList(text))
-						}));
-					} else if file.name().ends_with("servers.conf") {
-						tasks.push(spawn(async move {
-							let text: String = read_to_string(file.path()).await?;
-							Ok(FileContent::ServersConf(text))
-						}));
-					} else if file.ext() == "ini" {
-						tasks.push(spawn(async move {
-							let text: String = read_to_string(file.path()).await?;
-							Ok(FileContent::ServersIni(text))
-						}));
-					}
-				}
+	let empty_loading_expansion: Vec<String> = Vec::new();
+	let loading_expansion: &Vec<String> = system
+		.array()
+		.get("LOADING_EXPANSION")
+		.unwrap_or(&empty_loading_expansion);
+	#[cfg(not(target_os = "android"))]
+	if let Ok(cwd) = env::current_dir() {
+		for arg in env::args().skip(1).filter(|arg| arg != "--" && !arg.starts_with("--")) {
+			let p: PathBuf = cwd.join(arg);
+			if !p.exists() {
+				continue;
 			}
-		});
+			if p.is_dir() {
+				expansion_dir(p, loading_expansion, true, &mut zip_tasks, &mut tasks);
+			} else if let Some(file) = File::new(&p) {
+				expansion_file(file, loading_expansion, false, &mut zip_tasks, &mut tasks);
+			}
+		}
+	}
+	expansion_dir(path.join("expansions"), loading_expansion, false, &mut zip_tasks, &mut tasks);
+
 	let mut packs: IndexMap<String, GamePack> = IndexMap::new();
 	let mut zip_tasks: FuturesUnordered<JoinHandle<Result<Zip, Error>>> = zip_tasks.into_iter().collect::<FuturesUnordered<_>>();
 	let mut tasks: FuturesUnordered<JoinHandle<Result<FileContent, Error>>> = tasks.into_iter().collect::<FuturesUnordered<_>>();
