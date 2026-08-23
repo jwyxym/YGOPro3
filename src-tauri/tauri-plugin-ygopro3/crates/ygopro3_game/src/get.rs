@@ -219,7 +219,7 @@ pub async fn hash () -> Result<Vec<u8>, Error> {
 	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
 	let hash: String = String::from(game.resource.recognizer()
 		.get("hash").ok_or(anyhow!("no hash data"))?);
-	let path = path
+	let path: PathBuf = path
 		.join("recognizer")
 		.join(hash);
 	Ok(read(path)?)

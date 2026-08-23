@@ -35,10 +35,12 @@ use std::{
 	collections::BTreeMap,
 	fs::{write, read, metadata},
 	path::{Path, PathBuf},
-	io::Read,
-	env
+	io::Read
 };
 use tauri::AppHandle;
+
+#[cfg(not(target_os = "android"))]
+use std::env;
 
 pub static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 
