@@ -726,8 +726,7 @@ watch(() => connect.duel.card, (n, o) => {
 	const o_card = toRaw(o);
 	if (o_card instanceof Client_Card) {
 		const cards = get_equip(o_card);
-		if (cards.length > 1)
-			cards.forEach(i => i.hint.equip());
+		cards.forEach(i => i.hint.equip());
 	}
 	const n_card = toRaw(n);
 	if (n_card instanceof Client_Card) {
@@ -736,7 +735,7 @@ watch(() => connect.duel.card, (n, o) => {
 			cards.forEach(i => i.hint.equip(true));
 		duel.activate?.on(n_card, n_card.location & LOCATION.ONFIELD ? [] : connect.duel.cards);
 	} else duel.activate?.off();
-})
+});
 
 const duel = new _Duel();
 
