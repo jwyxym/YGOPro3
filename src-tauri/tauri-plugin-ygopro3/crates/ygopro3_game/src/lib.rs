@@ -21,7 +21,7 @@ use ygopro3_const::*;
 use ygopro3_emit::progress::{self, Event};
 
 use anyhow::{Error, Result, anyhow};
-use walkdir::WalkDir;
+use walkdir::{WalkDir, DirEntry};
 use indexmap::IndexMap;
 use parking_lot::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 use tokio::{
@@ -38,6 +38,9 @@ use std::{
 	io::Read
 };
 use tauri::AppHandle;
+
+#[cfg(not(target_os = "android"))]
+use std::env;
 
 pub static GAME: OnceCell<RwLock<Game>> = OnceCell::const_new();
 

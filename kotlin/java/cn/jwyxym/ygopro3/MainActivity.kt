@@ -1,12 +1,16 @@
 package cn.jwyxym.ygopro3
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.OpenableColumns
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import java.io.*
 
 class MainActivity : TauriActivity() {
+	private var openedYpkPath: String? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		enableEdgeToEdge()
@@ -14,6 +18,13 @@ class MainActivity : TauriActivity() {
 
 		copyAssets()
 		screen()
+		handleOpenIntent(intent)
+	}
+
+	override fun onNewIntent(intent: Intent) {
+		super.onNewIntent(intent)
+		setIntent(intent)
+		handleOpenIntent(intent)
 	}
 
 	private fun copyAssets() {
@@ -79,6 +90,43 @@ class MainActivity : TauriActivity() {
 		super.onWindowFocusChanged(hasFocus)
 		if (hasFocus) {
 			screen()
+		}
+	}
+
+	private fun handleOpenIntent(intent: Intent?) {
+		if (intent?.action != Intent.ACTION_VIEW) return
+
+		val uri = intent.data ?: return
+		copyOpenedYpk(uri)
+	}
+
+	private fun copyOpenedYpk(uri: Uri): String? {
+		val name = getDisplayName(uri)
+			?: uri.lastPathSegment
+			?: return null
+		if (!name.endsWith(".ypk", ignoreCase = true)) return null
+
+		val dir = File(getExternalFilesDir(null), "expansions")
+		dir.mkdirs()
+
+		val target = File(dir, File(name).name)
+		return try {
+			contentResolver.openInputStream(uri)?.use { input ->
+				FileOutputStream(target).use { output ->
+					input.copyTo(output)
+				}
+			} ?: return null
+			target.absolutePath
+		} catch (e: Exception) {
+			e.printStackTrace()
+			null
+		}
+	}
+
+	private fun getDisplayName(uri: Uri): String? {
+		return contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+			val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+			if (index >= 0 && cursor.moveToFirst()) cursor.getString(index) else null
 		}
 	}
 }

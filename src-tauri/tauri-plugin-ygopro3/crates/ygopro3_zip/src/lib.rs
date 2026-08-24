@@ -33,7 +33,8 @@ pub struct Zip {
 }
 
 impl Zip {
-	pub fn new (path: String, name: String) -> JoinHandle<Result<Self, Error>> {
+	pub fn new<P: AsRef<Path>> (path: P, name: String) -> JoinHandle<Result<Self, Error>> {
+		let path: PathBuf = path.as_ref().to_path_buf();
 		spawn_blocking(move || {
 			let mut scripts: BTreeMap<String, usize> = BTreeMap::new();
 			let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
@@ -45,7 +46,7 @@ impl Zip {
 			let archive: ZipArchive = Self::read(&path, |index: usize, name: String, mut file: ZipFile<'_>| {
 				Self::init(&mut file, index, &name, &mut scripts, &mut pics, &mut db, &mut ini, &mut lflist, &mut strings, &mut servers);
 				Ok(())
-			})?;
+			}, None)?;
 			Ok::<Self, Error>(Self {
 				name,
 				scripts,
@@ -59,11 +60,7 @@ impl Zip {
 			})
 		})
 	}
-	pub fn new_with_emit (app: &AppHandle, path: String, name: String) -> Result<Self, Error> {
-		let file: File = File::open(&path)?;
-		let archive: ZipArchive = Archive::new(file)?;
-		let len: usize = archive.len();
-		progress::emit(app, Event::Start, len);
+	pub fn new_with_emit<P: AsRef<Path>> (app: &AppHandle, path: P, name: String) -> Result<Self, Error> {
 		let mut scripts: BTreeMap<String, usize> = BTreeMap::new();
 		let mut pics: BTreeMap<u32, usize> = BTreeMap::new();
 		let mut db: Vec<Cdb>= Vec::new();
@@ -71,12 +68,14 @@ impl Zip {
 		let mut lflist: Vec<String>= Vec::new();
 		let mut strings: Vec<String>= Vec::new();
 		let mut servers: Vec<String>= Vec::new();
-		let archive: ZipArchive = Self::read(&path, |index: usize, name: String, mut file: ZipFile<'_>| {
+		let start_callback = |len: usize| {
+			progress::emit(app, Event::Start, len);
+		};
+		let archive: ZipArchive = Self::read(path, |index: usize, name: String, mut file: ZipFile<'_>| {
 			progress::emit(app, Event::Progress, 1);
 			Self::init(&mut file, index, &name, &mut scripts, &mut pics, &mut db, &mut ini, &mut lflist, &mut strings, &mut servers);
 			Ok(())
-		})?;
-		progress::emit(app, Event::Progress, len - archive.len());
+		}, Some(&start_callback))?;
 		Ok::<Self, Error>(Self {
 			name,
 			scripts,
@@ -120,20 +119,25 @@ impl Zip {
 				}
 			}
 			Ok(())
-		});
+		}, None);
 		Ok(tasks)
 	}
 	pub fn read<P: AsRef<Path>> (
 		path: P,
-		mut callback: impl FnMut(usize, String, ZipFile) -> Result<(), Error>
+		mut progress_callback: impl FnMut(usize, String, ZipFile) -> Result<(), Error>,
+		start_callback: Option<&dyn Fn(usize) -> ()>
 	) -> Result<ZipArchive, Error> {
 		let file: File = File::open(path)?;
 		let mut archive: ZipArchive = Archive::new(file)?;
-		for i in 0..archive.len() {
+		let len: usize = archive.len();
+		if let Some(start_callback) = start_callback {
+			start_callback(len);
+		}
+		for i in 0..len {
 			let file: ZipFile<'_> = archive.by_index(i)?;
 			if !file.is_dir() {
 				let name: String = String::from(file.name());
-				let _ = callback(i, name, file);
+				let _ = progress_callback(i, name, file);
 			}
 		}
 		Ok(archive)
