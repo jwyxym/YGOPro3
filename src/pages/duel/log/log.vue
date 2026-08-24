@@ -34,6 +34,7 @@
 		<transition name = 'opacity'>
 			<div v-show = 'page.select === 2' class = 'no-scrollbar'>
 				<Dglab
+					v-if = 'page.dglab'
 					:height = '45'
 					:icon = 'false'
 					@change = 'page.change'
@@ -43,11 +44,12 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { nextTick, reactive, watch} from 'vue';
+	import { nextTick, onBeforeMount, reactive, watch} from 'vue';
 	import PQueue from 'p-queue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import { KEYS } from '@/script/constant';
 
 	import Input from '@/pages/ui/input.vue';
 	import Button from '@/pages/ui/button.vue';
@@ -67,6 +69,7 @@
 	const page = reactive({
 		select : 0,
 		input : '',
+		dglab : false,
 		change : (obj : { key : string; value : any; }) => queue
 			.add(async () => await mainGame.set.system(obj.key, obj.value)),
 		send : async () => {
@@ -93,7 +96,12 @@
 			el.scrollTop = el.scrollHeight;
 			el.style.scrollBehavior = 'smooth';
 		}
-	})
+	});
+
+	onBeforeMount(() => {
+		const extend = mainGame.get.system(KEYS.SETTING_EXTEND) as Array<string>;
+		page.dglab = extend.includes('DGLAB');
+	});
 </script>
 <style scoped lang = 'scss'>
 	@use './history/history.scss';
