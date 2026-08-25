@@ -12,8 +12,8 @@ import Axis from './axis';
 
 class Activate {
 	three : CSS.CSS3DObject;
-	btns : HTMLDivElement;
-	btn : Map<string, HTMLImageElement>;
+	btn : HTMLDivElement;
+	btns : Map<string, HTMLImageElement>;
 	cards : Array<Client_Card>;
 
 	_btnable : boolean = false;
@@ -27,19 +27,11 @@ class Activate {
 	};
 
 	constructor () {
-		this.btn = new Map();
+		this.btns = new Map();
 		this.btnable = false;
-		const btns = () : HTMLDivElement => {
+		const btn = () : HTMLDivElement => {
 			const dom = document.createElement('div');
-			Object.assign(dom.style, {
-				opacity : '0',
-				height : '48px',
-				display : 'flex',
-				gap : '2px',
-				justifyContent: 'center',
-				transition : 'opacity 0.1s ease',
-				pointerEvents : 'none'
-			});
+			dom.classList.add('ygopro3__duel__activate');
 			for (const i of [
 				KEYS.ACTIVATE,
 				KEYS.ATTACK,
@@ -56,25 +48,18 @@ class Activate {
 				const img = document.createElement('img');
 				img.classList.add(i);
 				img.classList.add('duel__card__btn');
-				Object.assign(img.style, {
-					height : '100%',
-					opacity : '0',
-					transition : 'all 0.1s ease',
-					display : 'none',
-					pointerEvents : 'initial'
-				});
 				const srcs = mainGame.get.textures(KEYS.BTN, i) as [string, string];
 				img.src = srcs[0];
 				img.addEventListener('mouseenter', () => img.src = srcs[1]);
 				img.addEventListener('mouseout', () => img.src = srcs[0]);
 				dom.appendChild(img);
-				this.btn.set(i, img);
+				this.btns.set(i, img);
 			}
 			return dom;
 		}
 		const dom = document.createElement('div');
-		this.btns = btns();
-		dom.appendChild(this.btns);
+		this.btn = btn();
+		dom.appendChild(this.btn);
 		this.three = new CSS.CSS3DObject(dom);
 		this.cards = [];
 	};
@@ -139,7 +124,7 @@ class Activate {
 		this.cards = cards.length ? cards.slice() : [c];
 		const axis = Axis.computed.card(c);
 		this.three.position.set(axis.x, axis.y + (c.location & LOCATION.HAND ? 80 : 5), 100);
-		this.btns.style.opacity = '1';
+		this.btn.classList.add('show');
 		const ACTIVATE : Array<{ desc ?: number; index : number; }> = [];
 		const SUMMON : Array<{ desc ?: number; index : number; }> = [];
 		const SPSUMMON : Array<{ desc ?: number; index : number; }> = [];
@@ -159,33 +144,28 @@ class Activate {
 		const elements : Array<[HTMLDivElement, number]> = [];
 		const is_pendulum = (c.location & LOCATION.SZONE) && [0, 4].includes(c.seq) && c.type & TYPE.PENDULUM;
 
-		elements.push([this.btn.get(KEYS.SCALE)!, Number(!!ACTIVATE.find(i => i.desc === 1160))]);
-		elements.push([this.btn.get(KEYS.ACTIVATE)!, Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
-		elements.push([this.btn.get(KEYS.SUMMON)!, Number(!!SUMMON.length)]);
-		elements.push([this.btn.get(KEYS.PSUMMON)!, is_pendulum ? Number(!!SPSUMMON.length) : 0]);
-		elements.push([this.btn.get(KEYS.SPSUMMON)!, is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
-		elements.push([this.btn.get(KEYS.SSET)!, Number(!!SSET.length)]);
-		elements.push([this.btn.get(KEYS.MSET)!, Number(!!MSET.length)]);
-		elements.push([this.btn.get(KEYS.FLIP)!, Number(!!REPOS.length)]);
-		elements.push([this.btn.get(KEYS.ATTACK)!, Number(!!ATTACK.length)]);
-		elements.forEach(i => Object.assign(i[0].style, this.btnable && i[1] ? {
-				opacity : '1',
-				display : 'initial'
-			} : {
-				opacity : '0',
-				display : 'none'
-			})
+		elements.push([this.btns.get(KEYS.SCALE)!, Number(!!ACTIVATE.find(i => i.desc === 1160))]);
+		elements.push([this.btns.get(KEYS.ACTIVATE)!, Number(!!ACTIVATE.find(i => i.desc !== 1160))]);
+		elements.push([this.btns.get(KEYS.SUMMON)!, Number(!!SUMMON.length)]);
+		elements.push([this.btns.get(KEYS.PSUMMON)!, is_pendulum ? Number(!!SPSUMMON.length) : 0]);
+		elements.push([this.btns.get(KEYS.SPSUMMON)!, is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
+		elements.push([this.btns.get(KEYS.SSET)!, Number(!!SSET.length)]);
+		elements.push([this.btns.get(KEYS.MSET)!, Number(!!MSET.length)]);
+		elements.push([this.btns.get(KEYS.FLIP)!, Number(!!REPOS.length)]);
+		elements.push([this.btns.get(KEYS.ATTACK)!, Number(!!ATTACK.length)]);
+		elements.forEach(i => (
+			this.btnable && i[1]
+				? i[0].classList.add
+				: i[0].classList.remove
+			)('show')
 		);
 	};
 
 	off = () : void => {
 		this.cards.length = 0;
 		this.three.position.set(0, 0, - 100);
-		this.btns.style.opacity = '0';
-		this.btn.forEach(i => Object.assign(i.style, {
-			opacity : '0',
-			display : 'none'
-		}));
+		this.btn.classList.remove('show');
+		this.btns.forEach(i => i.classList.remove('show'));
 	};
 	
 	contains = (target : HTMLElement) : boolean => this.three.element.contains(target);

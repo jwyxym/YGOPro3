@@ -73,6 +73,29 @@ $boder-color: #9ed3ff;
 				border-color: yellow;
 			}
 		}
+		.ygopro3__duel__activate {
+			opacity: 0;
+			height: 48px;
+			display: flex;
+			gap: 2px;
+			justify-content: center;
+			transition: opacity 0.1s ease;
+			pointer-events: none;
+			> img {
+				opacity: 0;
+				display: none;
+				height: 100%;
+				transition: all 0.1s ease;
+				pointer-events: initial;
+				&.show {
+					opacity: 1;
+					display: initial;
+				}
+			}
+			&.show {
+				opacity: 1;
+			}
+		}
 		.ygopro3__duel__card {
 			position: relative;
 			width: var(--width);
