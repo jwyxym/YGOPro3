@@ -153,11 +153,9 @@ class Activate {
 		elements.push([this.btns.get(KEYS.MSET)!, Number(!!MSET.length)]);
 		elements.push([this.btns.get(KEYS.FLIP)!, Number(!!REPOS.length)]);
 		elements.push([this.btns.get(KEYS.ATTACK)!, Number(!!ATTACK.length)]);
-		elements.forEach(i => (
-			this.btnable && i[1]
-				? i[0].classList.add
-				: i[0].classList.remove
-			)('show')
+		elements.forEach(i => this.btnable && i[1]
+			? i[0].classList.add('show')
+			: i[0].classList.remove('show')
 		);
 	};
 
