@@ -664,12 +664,9 @@ class Client_Card {
 			]
 				.filter(i => i !== undefined);
 			if (tls.length) {
-				let resolve = undefined as (() => void) | undefined;
-				const promise = new Promise<void>((r) => resolve = r);
 				const tl = gsap.timeline();
 				tls.forEach(i => tl.add(i));
-				tl.then(() => resolve?.());
-				await promise;
+				await tl.then();
 			}
 		};
 		if (this.clicked && !(this.location & LOCATION.HAND))
@@ -787,10 +784,7 @@ class Client_Card {
 					scale : 1
 				}, 0.5);
 			}
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
-			tl.then(() => resolve?.());
-			await promise;
+			await tl.then();
 		},
 		equip : (show ?: boolean) : void => {
 			if (this.location & LOCATION.ONFIELD) {

@@ -147,10 +147,7 @@ class _Duel {
 				}
 				tls.add(tl, '>');
 			}
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
-			tls.then(() => resolve?.());
-			await promise;
+			await tls.then();
 		},
 		decktop : async (cards : Array<Client_Card>) : Promise<void> => {
 			for (const card of cards) {
@@ -203,10 +200,7 @@ class _Duel {
 						duration : 0.1
 					}, 0.2);
 				}
-				let resolve = undefined as (() => void) | undefined;
-				const promise = new Promise<void>((r) => resolve = r);
-				tl.then(() => resolve?.());
-				await promise;
+				await tl.then();
 			}
 		} 
 	};
@@ -247,18 +241,12 @@ class _Duel {
 			return tl;
 		},
 		deck : async (owner : 0 | 1) : Promise<void> => {
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
 			const tl = this.sort.on(owner, LOCATION.DECK);
-			tl.then(() => resolve?.());
-			return promise;
+			await tl.then();
 		},
 		ex_deck : async (owner : 0 | 1) : Promise<void> => {
-			let resolve = undefined as (() => void) | undefined;
-			const promise = new Promise<void>((r) => resolve = r);
 			const tl = this.sort.on(owner, LOCATION.EXTRA);
-			tl.then(() => resolve?.());
-			return promise;
+			await tl.then();
 		},
 		hand : async (owner : 0 | 1, hands : Array<number>) : Promise<Array<Client_Card>> => {
 			const sort = (a : Array<Client_Card>, b : Array<number>) : void => {
@@ -425,10 +413,7 @@ class _Duel {
 				duration : 0.1,
 			}, time);
 		}
-		let resolve = undefined as (() => void) | undefined;
-		const promise = new Promise<void>((r) => resolve = r);
-		tl.then(() => resolve?.());
-		await promise;
+		await tl.then();
 		return [a, d];
 	};
 
