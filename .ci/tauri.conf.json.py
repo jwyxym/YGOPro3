@@ -46,7 +46,14 @@ tauri_config = {
 			"icons/128x128@2x.png",
 			"icons/icon.icns",
 			"icons/icon.ico"
-		]
+		],
+		"linux" : {
+			"rpm" : {
+				"compression" : {
+					"type" : "none"
+				}
+			}
+		}
 	}
 }
 
