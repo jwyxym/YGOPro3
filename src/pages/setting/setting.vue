@@ -10,7 +10,7 @@
 			<Expansions v-if = '!page.select.value' key = '0' :loading = 'loading' :i18n = 'page.i18n'/>
 			<System v-if = 'page.select.value === 1' key = '1' @i18n = '(n : boolean) => page.i18n = n'/>
 			<Resource v-if = 'page.select.value === 2' key = '2' :i18n = 'page.i18n'/>
-			<More v-if = 'page.select.value === 3' key = '3' :i18n = 'page.i18n'/>
+			<About v-if = 'page.select.value === 3' key = '3' :i18n = 'page.i18n'/>
 		</TransitionGroup>
 		<div>
 			<Button
@@ -29,7 +29,7 @@
 	import Expansions from './expansions.vue';
 	import System from './system.vue';
 	import Resource from './resource.vue';
-	import More from './more.vue';
+	import About from './about.vue';
 	
 	import Button from '@/pages/ui/button.vue';
 

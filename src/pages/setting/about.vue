@@ -1,5 +1,5 @@
 <template>
-	<div class = 'more no-scrollbar' v-if = '!i18n'>
+	<div class = 'about no-scrollbar' v-if = '!i18n'>
 		<var-cell
 			v-for = 'i in  page.list'
 			:title = 'i.title'
@@ -120,7 +120,7 @@
 	}>();
 </script>
 <style scoped lang = 'scss'>
-	.more {
+	.about {
 		height: 100%;
 		width: 100%;
 		overflow-y: auto;
@@ -140,6 +140,9 @@
 			}
 			:deep(.var-cell__content) {
 				transform: translateX(20px);
+			}
+			:deep(.var-cell__extra) {
+				transform: translateX(-10px);
 			}
 		}
 	}
