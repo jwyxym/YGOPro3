@@ -492,8 +492,51 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  update-s3:
+  push-to-server:
     needs: [build-android, build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: build
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Write Version
+        run: |
+          mkdir -p ygopro3
+          cd .ci
+          python write_version.py ${{ github.ref_name }}
+          cd ..
+          mv ./.ci/version.txt ygopro3/
+
+      - name: Move Files
+        run: |
+          mkdir -p ygopro3
+          cd build
+          sh ../.ci/rename.sh
+          cd ..
+          find ./build -type f -exec mv {} ygopro3/ \;
+
+      - name: Deploy
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+        with:
+          username: ${{ secrets.SSH_USER }}
+          server: ${{ secrets.SSH_SERVER }}
+          port: 22
+          local_path: './ygopro3/*'
+          remote_path: ${{ secrets.SSH_PATH }}
+          sftp_only: true
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  update-s3:
+    needs: push-to-server
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

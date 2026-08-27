@@ -755,8 +755,8 @@ class Protocol {
 			const card = this.get.card(tp, loc, seq);
 			if (card && len > 8) {
 				const codes = this.update.card(msg, card);
-				await this.update.codes(codes);
-				await card.update();
+				// await this.update.codes(codes);
+				// await card.update();
 			}
 		}],
 		[MSG.SELECT_BATTLECMD, async (msg : Msg, send : (msg : Msg) => Promise<void>) => {
