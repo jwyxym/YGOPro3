@@ -1,8 +1,5 @@
 .history {
 	overflow-y: auto;
-	display: flex;
-	flex-direction: column;
-	gap: 1px;
 	:deep(.vue-recycle-scroller__item-view) {
 		width: 100%;
 		border-bottom: 1px solid white;

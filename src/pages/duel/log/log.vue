@@ -145,7 +145,7 @@
 				transform: translate(-50%, -50%);
 			}
 		}
-		> div:nth-child(2), > div:last-child {
+		> div:nth-child(2), > .history, > div:last-child {
 			position: absolute;
 			height: calc(100% - 80px);
 			width: 90%;
