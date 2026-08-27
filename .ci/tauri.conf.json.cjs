@@ -3,6 +3,7 @@ const path = require('path');
 
 const os = process.argv[2] || '';
 const arg = (process.argv[3] || '0.1.0').split('.');
+const linuxBundleTarget = process.argv[4] || 'all';
 const version = `${arg[0].slice(-2)}.${Number(arg[1])}.${Number(arg[2])}`;
 
 const tauriConfig = {
@@ -59,6 +60,9 @@ else if (os === 'windows')
 	tauriConfig.bundle.resources = ["assets", "WindBot.dll", "e_sqlite3.dll"];
 else 
 	tauriConfig.bundle.resources = ["assets"];
+
+if (os === 'linux' && linuxBundleTarget !== 'all')
+	tauriConfig.bundle.targets = [linuxBundleTarget];
 
 const configPath = path.join(__dirname, '../src-tauri/tauri.conf.json');
 fs.writeFileSync(configPath, JSON.stringify(tauriConfig, null, 4), 'utf-8');

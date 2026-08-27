@@ -355,7 +355,7 @@ jobs:
         path: ./src-tauri/target/release/bundle/macos/YGOPro3.app.zip
 
   build-linux:
-    name: build-linux-${{ matrix.target }}
+    name: build-linux-${{ matrix.target }}-${{ matrix.bundle }}
     runs-on: ${{ matrix.run-on }}
     strategy:
       fail-fast: false
@@ -363,8 +363,34 @@ jobs:
         include:
           - target: x86_64
             run-on: ubuntu-latest
+            bundle: deb
+            bundle_dir: deb
+            extension: deb
           - target: aarch64
             run-on: ubuntu-24.04-arm
+            bundle: deb
+            bundle_dir: deb
+            extension: deb
+          - target: x86_64
+            run-on: ubuntu-latest
+            bundle: rpm
+            bundle_dir: rpm
+            extension: rpm
+          - target: aarch64
+            run-on: ubuntu-24.04-arm
+            bundle: rpm
+            bundle_dir: rpm
+            extension: rpm
+          - target: x86_64
+            run-on: ubuntu-latest
+            bundle: appimage
+            bundle_dir: appimage
+            extension: AppImage
+          - target: aarch64
+            run-on: ubuntu-24.04-arm
+            bundle: appimage
+            bundle_dir: appimage
+            extension: AppImage
     steps:
     - uses: actions/checkout@v4
       with:
@@ -428,7 +454,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build linux ${{ github.ref_name }}
+        npm run json:build linux ${{ github.ref_name }} ${{ matrix.bundle }}
 
     - name: NPM Init
       run: |
@@ -441,30 +467,14 @@ jobs:
     - name: Copy
       run: |
         mkdir -p ./build
-        cp ./src-tauri/target/release/bundle/appimage/*.AppImage ./build/YGOPro3.AppImage
-        cp ./src-tauri/target/release/bundle/deb/*.deb ./build/YGOPro3.deb
-        cp ./src-tauri/target/release/bundle/rpm/*.rpm ./build/YGOPro3.rpm
+        cp ./src-tauri/target/release/bundle/${{ matrix.bundle_dir }}/*.${{ matrix.extension }} ./build/YGOPro3.${{ matrix.extension }}
 
     - name: Upload File
       uses: actions/upload-artifact@v4
       with:
-        name: YGOPro3-linux-${{ matrix.target }}.deb
+        name: YGOPro3-linux-${{ matrix.target }}.${{ matrix.extension }}
         retention-days: 1
-        path: ./build/YGOPro3.deb
-
-    - name: Upload File
-      uses: actions/upload-artifact@v4
-      with:
-        name: YGOPro3-linux-${{ matrix.target }}.rpm
-        retention-days: 1
-        path: ./build/YGOPro3.rpm
-
-    - name: Upload File
-      uses: actions/upload-artifact@v4
-      with:
-        name: YGOPro3-linux-${{ matrix.target }}.AppImage
-        retention-days: 1
-        path: ./build/YGOPro3.AppImage
+        path: ./build/YGOPro3.${{ matrix.extension }}
 
   create-release:
     needs: [build-android, build-windows, build-macos, build-linux]

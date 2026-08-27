@@ -3,6 +3,7 @@ import sys
 
 os = sys.argv[1] if len(sys.argv) >= 2 else ''
 args = (sys.argv[2] if len(sys.argv) >= 3 else '0.1.0').split('.')
+linux_bundle_target = sys.argv[3] if len(sys.argv) >= 4 else 'all'
 version = f"{args[0][-2:]}.{int(args[1])}.{int(args[2])}"
 
 tauri_config = {
@@ -59,6 +60,9 @@ elif os == 'windows':
 	tauri_config["bundle"]["resources"] = ["assets", "WindBot.dll", "e_sqlite3.dll"]
 else:
 	tauri_config["bundle"]["resources"] = ["assets"]
+
+if os == 'linux' and linux_bundle_target != 'all':
+	tauri_config["bundle"]["targets"] = [linux_bundle_target]
 
 path = './src-tauri/tauri.conf.json'
 with open(path, 'w', encoding = 'utf-8') as f :
