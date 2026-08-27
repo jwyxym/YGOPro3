@@ -36,6 +36,8 @@
                 <data android:mimeType="application/octet-stream" />
                 <data android:pathPattern=".*\\.ypk" />
                 <data android:pathPattern=".*\\.YPK" />
+                <data android:pathPattern=".*\\.yrp3d" />
+                <data android:pathPattern=".*\\.YRP3D" />
             </intent-filter>
         </activity>
 

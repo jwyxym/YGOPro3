@@ -3,15 +3,12 @@ package cn.jwyxym.ygopro3
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.provider.OpenableColumns
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import java.io.*
 
 class MainActivity : TauriActivity() {
-	private var openedYpkPath: String? = null
-
 	override fun onCreate(savedInstanceState: Bundle?) {
 		enableEdgeToEdge()
 		super.onCreate(savedInstanceState)
@@ -97,16 +94,21 @@ class MainActivity : TauriActivity() {
 		if (intent?.action != Intent.ACTION_VIEW) return
 
 		val uri = intent.data ?: return
-		copyOpenedYpk(uri)
+		copyOpenedFile(uri)
 	}
 
-	private fun copyOpenedYpk(uri: Uri): String? {
+	private fun copyOpenedFile(uri: Uri): String? {
 		val name = getDisplayName(uri)
 			?: uri.lastPathSegment
 			?: return null
-		if (!name.endsWith(".ypk", ignoreCase = true)) return null
 
-		val dir = File(getExternalFilesDir(null), "expansions")
+		val targetDir = when {
+			name.endsWith(".ypk", ignoreCase = true) -> "expansions"
+			name.endsWith(".yrp3d", ignoreCase = true) -> "replay"
+			else -> return null
+		}
+
+		val dir = File(getExternalFilesDir(null), targetDir)
 		dir.mkdirs()
 
 		val target = File(dir, File(name).name)
