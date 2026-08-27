@@ -61,10 +61,10 @@ class Tcp {
 	};
 	send = async (msg : Msg) => await tcp.send(this.cid, msg.buffer());
 	disconnect = async () : Promise<void> => {
+		this.queue.clear();
 		try {
 			await tcp.disconnect(this.cid);
 		} catch {};
-		this.queue.clear();
 	};
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;

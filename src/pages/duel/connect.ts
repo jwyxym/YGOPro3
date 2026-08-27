@@ -389,11 +389,13 @@ const connect = reactive({
 		}
 	},
 	close : () => {
-		connect.protocol?.disconnect()
-			.then()
-			.catch();
+		connect.protocol
+			? connect.protocol.disconnect()
+				.then()
+				.catch()
+			: connect.clear();
 	},
-	clear : async () => {
+	clear : () => {
 		connect.chat.off();
 		history.clear();
 		chat.clear();
@@ -406,7 +408,6 @@ const connect = reactive({
 		connect.replay = false;
 	}
 });
-
 
 export default connect;
 export { Player };

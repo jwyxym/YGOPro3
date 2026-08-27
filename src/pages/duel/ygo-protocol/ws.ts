@@ -53,10 +53,10 @@ class Ws {
 	};
 	send = async (msg : Msg) => this.ws?.send(msg.array());
 	disconnect = async () => {
+		this.queue.clear();
 		try {
 			await this.ws?.disconnect();
 		} catch {};
-		this.queue.clear();
 		this.ws = undefined;
 	};
 };
