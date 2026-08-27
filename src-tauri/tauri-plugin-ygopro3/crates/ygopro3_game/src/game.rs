@@ -108,7 +108,7 @@ impl Game {
 		});
 		progress::emit(app, Event::End, 0);
 		Ok(Self {
-			version: format!("YGOPro3://{}/", app.package_info().version.to_string()),
+			version: format!("YGOPro3://{}", app.package_info().version.to_string()),
 			room: room,
 			system: system,
 			sound: sound,

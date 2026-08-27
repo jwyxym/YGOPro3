@@ -22,7 +22,7 @@ use ureq::{
 };
 
 pub async fn chk_version (url: &str, version: &str) -> bool {
-	tokio::task::spawn_blocking({
+	spawn_blocking({
 		let url: String = String::from(url);
 		let version: String = String::from(version);
 		move || -> Result<bool, Error> {

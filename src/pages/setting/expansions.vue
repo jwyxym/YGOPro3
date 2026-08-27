@@ -129,10 +129,10 @@
 				this.loading.value = await obj.chk();
 			};
 			this.update = async () : Promise<void> => {
+				const v = this.loading.value;
 				this.loading.value = 'loading';
-				const res = await obj.update();
-				if (this.to_true)
-					this.loading.value = Boolean(res);
+				const res = await obj.update() ?? true;
+				this.loading.value = this.to_true ? Boolean(res) : v;
 			};
 		};
 	}
@@ -144,14 +144,13 @@
 			new Version({
 				title : I18N_KEYS.SETTING_GAME_VERSION,
 				chk : mainGame.chk.version.game,
-				update : async () => await Opener.openUrl(URL.GIT_RELEASE)
+				update : async () => await Opener.openUrl(URL.YGOPRO3_HOME)
 			}),
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,
 				chk : mainGame.chk.version.superpre,
 				update : async () : Promise<string> => {
 					const ypk = await invoke.game.download(URL.SUPER_PRE, undefined, 1024 * 1024 * 10);
-					console.log("ypk: ", ypk)
 					if (ypk) {
 						await page.change(ypk);
 						if (!page.expansion.includes(ypk))
