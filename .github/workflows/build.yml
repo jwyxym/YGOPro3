@@ -39,6 +39,22 @@ jobs:
 
   build-android:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - tauri_target: aarch64
+            apk_abi: arm64
+            artifact_abi: arm64-v8a
+          - tauri_target: armv7
+            apk_abi: arm
+            artifact_abi: armeabi-v7a
+          - tauri_target: i686
+            apk_abi: x86
+            artifact_abi: x86
+          - tauri_target: x86_64
+            apk_abi: x86_64
+            artifact_abi: x86_64
     
     steps:
     - uses: actions/checkout@v4
@@ -130,9 +146,10 @@ jobs:
         unzip windbot-android-armeabi-v7a.zip
         rm -r *.zip
 
-    - name: Android build
+    - name: Android build (${{ matrix.artifact_abi }})
       run: |
-        npm run tauri:android:build:sh
+        npm run copy:sh
+        npm run tauri:android:build -- --apk --target ${{ matrix.tauri_target }}
 
     - name: Git Config
       run: |
@@ -152,17 +169,17 @@ jobs:
         git clone ${{ secrets.KEYSTORE_REPO }} --depth 1 jks
         mv jks/ygopro3.jks ./YGOPro3.jks
 
-    - name: Sign apk
+    - name: Sign apk (${{ matrix.artifact_abi }})
       run: |
         mkdir build
-        apksigner sign --ks ./YGOPro3.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --out ./build/YGOPro3.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
+        apksigner sign --ks ./YGOPro3.jks --ks-key-alias ${{ secrets.KEY_ALIAS }} --key-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} --out ./build/YGOPro3-${{ matrix.artifact_abi }}.apk ./src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release-unsigned.apk
 
-    - name: Upload
+    - name: Upload (${{ matrix.artifact_abi }})
       uses: actions/upload-artifact@v4
       with:
-        name: YGOPro3.apk
+        name: YGOPro3-${{ matrix.artifact_abi }}.apk
         retention-days: 1
-        path: ./build/YGOPro3.apk
+        path: ./build/YGOPro3-${{ matrix.artifact_abi }}.apk
 
   build-windows:
     name: build-windows-${{ matrix.target }}
