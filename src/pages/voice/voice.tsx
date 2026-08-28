@@ -66,7 +66,7 @@ const voice = new Voice();
 
 const _Voice = defineComponent({
 	setup () {
-		onMounted(async () => await voice.play.bgm(KEYS.BACK_BGM));
+		onMounted(() => voice.play.bgm(KEYS.BACK_BGM));
 		return () => 
 			<div>
 				{Array.from(mainGame.bgm).map(([i, v]) =>

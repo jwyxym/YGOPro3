@@ -213,7 +213,7 @@
 				async (v : number) => {
 					await mainGame.set.system(KEYS.SETTING_VOICE_SOUND_EFFECT, v);
 					voice.update.sound_effect();
-					await voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE);
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE);
 				}
 			)
 		],
