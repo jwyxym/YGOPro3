@@ -43,7 +43,7 @@ class _Duel {
 	time : number = 0;
 	interval : number = 0;
 	resolve : (() => void) | undefined = undefined;
-	await = new Promise<void>((r) => this.resolve = r);
+	await : Promise<void> | undefined = undefined;
 
 	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);

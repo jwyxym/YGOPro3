@@ -10,9 +10,10 @@ import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
 import { voice } from '@/pages/voice/voice';
 
-import ws, { Ws } from './ygo-protocol/ws';
-import tcp, { Tcp } from './ygo-protocol/tcp';
+import ws from './ygo-protocol/ws';
+import tcp from './ygo-protocol/tcp';
 import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
+import Socket from './ygo-protocol/socket';
 import Msg from './ygo-protocol/msg';
 import { CTOS, VERSION } from './ygo-protocol/network';
 
@@ -206,7 +207,7 @@ const connect = reactive({
 	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
 	duel : new Duel(),
-	protocol : undefined as undefined | Tcp | Ws | Replay3D,
+	protocol : undefined as undefined | Socket | Replay3D,
 	chat : {
 		show : false,
 		on : () : void => connect.chat.show ? connect.chat.off()
@@ -389,11 +390,11 @@ const connect = reactive({
 		}
 	},
 	close : () => {
-		connect.protocol
-			? connect.protocol.disconnect()
-				.then()
-				.catch()
-			: connect.clear();
+		try {
+			connect.protocol
+				? connect.protocol.disconnect()
+				: connect.clear();
+		} catch {}
 	},
 	clear : () => {
 		connect.chat.off();

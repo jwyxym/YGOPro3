@@ -29,7 +29,7 @@ class Replay3D {
 			call_back.on_disconnect ?? Promise.resolve
 		);
 	};
-	disconnect = async () => {
+	disconnect = async () : Promise<void> => {
 		this.queue.clear();
 		await this.on_disconnect?.();
 	};

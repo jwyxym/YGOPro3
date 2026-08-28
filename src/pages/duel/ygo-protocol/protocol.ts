@@ -442,7 +442,6 @@ class Protocol {
 			connect.state = 2;
 		}],
 		[STOC.DUEL_END, async () => {
-			connect.close();
 		}],
 		[STOC.TIME_LIMIT, async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
 			const player = msg.read.uint8();
@@ -624,6 +623,7 @@ class Protocol {
 		}],
 		[MSG.START, async (msg : Msg) => {
 			if (connect.state !== 2) {
+				duel.await = new Promise<void>((r) => duel.resolve = r);
 				connect.state = 2;
 				await duel.await;
 			}
@@ -689,12 +689,15 @@ class Protocol {
 				: mainGame.get.strings.victory(type);
 			connect.on();
 			connect.state = 4;
+			connect.duel.win.await = new Promise<string | void>((r) => connect.duel.win.resolve = r);
 			connect.duel.win.title = mainGame.get.text(key);
 			connect.duel.win.message = message;
 			connect.duel.win.show = true;
 			const result = await connect.duel.win.await;
+			connect.duel.win.resolve = undefined;
 			if (result) {
 				const name = await invoke.replay.save(result, this.replay.toYrp3d());
+				this.replay = new YGOProYrp3d();
 				if (name)
 					toast.info(mainGame.get.text(I18N_KEYS.REPLAY_SAVE, name));
 			}
