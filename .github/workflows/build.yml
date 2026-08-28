@@ -530,19 +530,6 @@ jobs:
         with:
           path: build
 
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Write Version
-        run: |
-          mkdir -p ygopro3
-          cd .ci
-          python write_version.py ${{ github.ref_name }}
-          cd ..
-          mv ./.ci/version.txt ygopro3/
-
       - name: Move Files
         run: |
           mkdir -p ygopro3
@@ -561,3 +548,61 @@ jobs:
           remote_path: ${{ secrets.SSH_PATH }}
           sftp_only: true
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+  update-version:
+    runs-on: ubuntu-latest
+    needs: push-to-server
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Write Version
+        run: |
+          cd .ci
+          python write_version.py ${{ github.ref_name }}
+
+      - name: proxy
+        uses: jwyxym/jwyxym/shadowsocks@master
+        with:
+          ss_server: ${{ secrets.SS_SERVER }}
+          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
+          ss_pass: ${{ secrets.SS_PASS }}
+
+      - name: Upload to Bucket
+        uses: jwyxym/jwyxym/s3@master
+        with:
+          proxy: http://127.0.0.1:1081
+          s3_endpoint: ${{ secrets.S3_ENDPOINT }}
+          access_key: ${{ secrets.S3_ACCESS_KEY }}
+          secret_key: ${{ secrets.S3_SECRET_KEY }}
+          bucket: ${{ secrets.S3_BUCKET }}
+          file_name: version.txt
+          file_path: ./.ci/version.txt
+
+  flush-cdn:
+    runs-on: ubuntu-latest
+    needs: update-version
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: proxy
+        uses: jwyxym/jwyxym/shadowsocks@master
+        with:
+          ss_server: ${{ secrets.SS_SERVER }}
+          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
+          ss_pass: ${{ secrets.SS_PASS }}
+
+      - uses: jwyxym/jwyxym/edgeone-cache@master
+        with:
+          proxy: http://127.0.0.1:1081
+          secret_id: ${{ secrets.EDGE_ID }}
+          secret_key: ${{ secrets.EDGE_KEY }}
+          zone_id: ${{ secrets.EDGE_ZONE_ID }}
+          url_target: ${{ secrets.EDGE_URL }}
+          flush_type: "purge_prefix"
