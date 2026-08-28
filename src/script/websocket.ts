@@ -20,4 +20,5 @@ const connect = async (
 	);
 }
 
-export { connect };
+export { connect, WebSocket };
+export type { Message };

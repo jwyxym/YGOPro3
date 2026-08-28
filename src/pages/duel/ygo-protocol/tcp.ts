@@ -1,40 +1,23 @@
 import * as tcp from '@kuyoonjo/tauri-plugin-tcp';
-import PQueue from 'p-queue';
 
-import invoke from '@/script/invoke';
 import Msg from './msg';
-import mainGame from '@/script/game';
-class Tcp {
+import Socket from './socket';
+
+class Tcp extends Socket {
 	cid = 'YGOPro3';
 	address = '';
-	queue = new PQueue({ 
-		concurrency: 1,
-		autoStart: true
-	});
-	on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>;
-	on_disconnect ?: () => Promise<void>;
 	cache : Msg = new Msg([]);
 
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}) : Promise<boolean> => {
-		try {
-			this.cache = new Msg([]);
-			this.address = address;
-			this.on_message = call_back.on_message;
-			this.on_disconnect = call_back.on_disconnect;
-			if (__ANDROID__)
-				await mainGame.sleep(100);
-			await tcp.connect(this.cid, this.address);
-			await call_back.on_connect?.(this.send);
-		} catch (e) {
-			await invoke.log.write(e);
-			return false;
-		}
-		return true;
-	};
+	}) : Promise<boolean> => await super.connect(address, call_back, async (i : string) => {
+		this.cache = new Msg([]);
+		this.address = i;
+		await tcp.connect(this.cid, i);
+	});
+
 	listen = async () : Promise<void> => {
 		await tcp.listen((x) => {
 			if (x.payload.id === this.cid && this.address) {
@@ -59,13 +42,16 @@ class Tcp {
 			}
 		});
 	};
+
 	send = async (msg : Msg) => await tcp.send(this.cid, msg.buffer());
+
 	disconnect = async () : Promise<void> => {
-		this.queue.clear();
+		super.disconnect();
 		try {
 			await tcp.disconnect(this.cid);
 		} catch {};
 	};
+
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;
 		this.queue.add(async () => await on_disconnect?.());

@@ -44,15 +44,18 @@ class Voice {
 				this.playing.currentTime = 0;
 			}
 			this.playing = this.audio.bgm.get(key);
-			await this.playing?.play();
+			try {
+				await this.playing?.play();
+			} catch {}
 		},
 		sound_effect : async (key : string, ct : number = 1) : Promise<void> => {
 			const sound = this.audio.sound_effect.get(key);
 			if (sound) {
 				for (let i = 0; i < ct; i ++) {
 					sound.currentTime = 0;
-					await sound.play();
-					await mainGame.sleep(sound.duration);
+					try {
+						await sound.play();
+					} catch {}
 				}
 			}
 		}

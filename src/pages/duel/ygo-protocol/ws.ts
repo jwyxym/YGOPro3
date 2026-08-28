@@ -1,59 +1,47 @@
-import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
-import PQueue from 'p-queue';
+import { connect, WebSocket, type Message } from '@/script/websocket';
 
-import invoke from '@/script/invoke';
-import { connect } from '@/script/websocket';
 import Msg from './msg';
+import Socket from './socket';
 
-class Ws {
+class Ws extends Socket {
 	ws ?: WebSocket;
-	queue = new PQueue({ 
-		concurrency: 1,
-		autoStart: true
-	});
-	on_disconnect ?: () => Promise<void>;
+
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}) : Promise<boolean> => {
-		try {
-			if (this.ws)
-				return false;
-			this.ws = await connect(address, (i : Message) => {
-				switch (i.type) {
-					case 'Binary':
-						const msg = new Msg(i.data);
-						while (true) {
-							const len = msg.read.uint16();
-							if (!len) break;
-							const m = msg.slice(len);
-							if (!m) {
-								msg.index -= 2;
-								break;
-							}
-							this.queue.add(
-								async () => await call_back.on_message?.(m, this.send)
-							);
+	}) : Promise<boolean> => await super.connect(address, call_back, async (ad : string) => {
+		if (this.ws)
+			throw Error('webscoket is connected');
+		this.ws = await connect(ad, (i : Message) => {
+			switch (i.type) {
+				case 'Binary':
+					const msg = new Msg(i.data);
+					while (true) {
+						const len = msg.read.uint16();
+						if (!len) break;
+						const m = msg.slice(len);
+						if (!m) {
+							msg.index -= 2;
+							break;
 						}
-						break;
-					case 'Close': 
 						this.queue.add(
-							async () => await this.on_disconnect?.()
+							async () => await call_back.on_message?.(m, this.send)
 						);
-				};
-			});
-			this.on_disconnect = call_back.on_disconnect;
-			await call_back.on_connect?.(this.send);
-		} catch (e) {
-			await invoke.log.write(e);
-			return false;
-		}
-		return true;
-	};
+					}
+					break;
+				case 'Close': 
+					this.queue.add(
+						async () => await this.on_disconnect?.()
+					);
+			};
+		});
+	});
+
 	send = async (msg : Msg) => this.ws?.send(msg.array());
+
 	disconnect = async () => {
-		this.queue.clear();
+		super.disconnect();
 		try {
 			await this.ws?.disconnect();
 		} catch {};

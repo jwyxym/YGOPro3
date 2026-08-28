@@ -1,5 +1,4 @@
 import { ref } from 'vue';
-import WebSocket, { Message } from '@tauri-apps/plugin-websocket';
 import * as dglab_server from 'tauri-plugin-dglab-ws-server';
 import {
 	COYOTE_WAVEFORM,
@@ -12,7 +11,7 @@ import {
 	type DglabSocketDeviceEventPayload
 } from 'dglab-kit';
 
-import { connect } from './websocket';
+import { connect, WebSocket, type Message } from './websocket';
 import mainGame from './game';
 import { KEYS, URL } from './constant';
 import invoke from './invoke';
