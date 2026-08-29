@@ -539,6 +539,13 @@ jobs:
           cd ..
           find ./build -type f -exec mv {} ygopro3/ \;
 
+      - name: Download assets
+        uses: robinraju/release-downloader@v1.10
+        with:
+          tag: assets-latest
+          fileName: "assets.zip"
+          out-file-path: "./ygopro3/"
+
       - name: Deploy
         uses: wlixcc/SFTP-Deploy-Action@v1.2.5
         with:

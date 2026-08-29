@@ -5,7 +5,7 @@ const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
 
 const os = process.argv[2] || '';
-const URL = 'https://github.com/jwyxym/YGOPro3/releases/download/assets-latest/assets.zip';
+const URL = 'https://www.ygopro3.cn/assets.zip';
 const LOCAL_ASSETS = [
 	'./src-tauri/assets.zip',
 	'./src-tauri/assets'
