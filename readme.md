@@ -79,3 +79,10 @@ npm run tauri:android:build:sh
 # Windows cmd
 npm run tauri:android:build:cmd
 ```
+<h3>运行环境</h3>
+<h5>对于在 Linux 上运行需要 ALSA 库作为运行时依赖</h5>
+
+```bash
+#以Debian为例
+sudo apt install libasound2t64
+```
