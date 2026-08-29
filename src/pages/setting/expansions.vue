@@ -107,8 +107,8 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG, URL } from '@/script/constant';
 	import { toast } from '@/pages/toast/toast';
-	import Dialog from '@/pages/ui/dialog';
-	import Input from '@/pages/ui/input.vue';
+	import Dialog from '@/ui/dialog';
+	import Input from '@/ui/input.vue';
 	
 	class Version {
 		title : number;

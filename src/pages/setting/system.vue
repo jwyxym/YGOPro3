@@ -108,10 +108,10 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import GLOBAL from '@/script/scale';
 	import voice from '@/script/voice';
-	import Select from '@/pages/ui/select.vue';
-	import Input from '@/pages/ui/input.vue';
-	import Slider from '@/pages/ui/slider.vue';
-	import Button from '@/pages/ui/button.vue';
+	import Select from '@/ui/select.vue';
+	import Input from '@/ui/input.vue';
+	import Slider from '@/ui/slider.vue';
+	import Button from '@/ui/button.vue';
 
 	import Dglab from './extend/dglab.vue';
 

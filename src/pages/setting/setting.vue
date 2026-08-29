@@ -31,7 +31,7 @@
 	import Resource from './resource.vue';
 	import About from './about.vue';
 	
-	import Button from '@/pages/ui/button.vue';
+	import Button from '@/ui/button.vue';
 
 	class Select {
 		private _value = 0;

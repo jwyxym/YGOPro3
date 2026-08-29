@@ -63,9 +63,9 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG } from '@/script/constant';
 
-	import Input from '@/pages/ui/input.vue';
-	import Button from '@/pages/ui/button.vue';
-	import Dialog from '@/pages/ui/dialog';
+	import Input from '@/ui/input.vue';
+	import Button from '@/ui/button.vue';
+	import Dialog from '@/ui/dialog';
 
 	const page = reactive({
 		name : '',

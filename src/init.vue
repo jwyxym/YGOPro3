@@ -40,7 +40,7 @@
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
-	import dialog from './pages/ui/dialog';
+	import dialog from './ui/dialog';
 
 	import mainGame from './script/game';
 	import { I18N_KEYS } from './script/language/i18n';

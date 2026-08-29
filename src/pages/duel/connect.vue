@@ -336,8 +336,8 @@
 <script setup lang = 'ts'>
 	import { onUnmounted, reactive, watch } from 'vue';
 
-	import Button from '@/pages/ui/button.vue';
-	import dialog, { close } from '@/pages/ui/dialog';
+	import Button from '@/ui/button.vue';
+	import dialog, { close } from '@/ui/dialog';
 	import Card_info from '@/pages/deck/card_info.vue';
 	import Side from '@/pages/deck/cards.vue';
 	import Deck from '@/pages/deck/deck';

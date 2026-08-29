@@ -112,9 +112,9 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
 
-	import Input from '@/pages/ui/input.vue';
-	import Button from '@/pages/ui/button.vue';
-	import Select from '@/pages/ui/select.vue';
+	import Input from '@/ui/input.vue';
+	import Button from '@/ui/button.vue';
+	import Select from '@/ui/select.vue';
 
 	import Deck from '@/pages/deck/deck';
 

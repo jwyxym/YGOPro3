@@ -38,7 +38,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import invoke from '@/script/invoke';
 
-	import Input from '@/pages/ui/input.vue';
+	import Input from '@/ui/input.vue';
 
 	const page = reactive({
 		show : computed({

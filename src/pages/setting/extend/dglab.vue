@@ -109,8 +109,8 @@
 	import invoke from '@/script/invoke';
 
 	import { toast } from '@/pages/toast/toast';
-	import Input from '@/pages/ui/input.vue';
-	import Button from '@/pages/ui/button.vue';
+	import Input from '@/ui/input.vue';
+	import Button from '@/ui/button.vue';
 
 	import Head from './head.vue';
 

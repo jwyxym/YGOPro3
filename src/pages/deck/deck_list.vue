@@ -113,9 +113,9 @@
 	import { open } from '@tauri-apps/plugin-dialog';
 
 	import DeckPage from './deck.vue';
-	import Button from '@/pages/ui/button.vue';
-	import Input from '@/pages/ui/input.vue';
-	import Dialog from '@/pages/ui/dialog';
+	import Button from '@/ui/button.vue';
+	import Input from '@/ui/input.vue';
+	import Dialog from '@/ui/dialog';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';

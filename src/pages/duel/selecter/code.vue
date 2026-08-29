@@ -46,7 +46,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
-	import Input from '@/pages/ui/input.vue';
+	import Input from '@/ui/input.vue';
 
 	import Selecter from './selecter.vue';
 

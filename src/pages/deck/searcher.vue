@@ -198,9 +198,9 @@
 	import Search from '@/pages/deck/search';
 
 	import Pic, { CardPic } from '@/pages/deck/pic.vue';
-	import Input from '@/pages/ui/input.vue';
-	import Button from '@/pages/ui/button.vue';
-	import Select from '@/pages/ui/select.vue';
+	import Input from '@/ui/input.vue';
+	import Button from '@/ui/button.vue';
+	import Select from '@/ui/select.vue';
 	import Deck from './deck';
 
 	let mark : InstanceType<typeof Mark> | undefined;
