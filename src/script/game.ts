@@ -123,7 +123,7 @@ class Game {
 			await this.init();
 			return true;
 		} catch (error) {
-			invoke.log.write(error);
+			await invoke.log.write(error);
 		}
 		return false;
 	};

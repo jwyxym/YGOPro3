@@ -23,7 +23,7 @@ class Invoke {
 				await invoke<void>('init');
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -32,7 +32,7 @@ class Invoke {
 				await invoke<void>('reload', { overwrite : overwrite });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -41,7 +41,7 @@ class Invoke {
 				const time = await invoke<string>('get_time', { path : path });
 				return time.length > 0 ? new Date(time) : undefined;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return undefined;
 			}
 		},
@@ -52,7 +52,7 @@ class Invoke {
 			try {
 				return await invoke<boolean>('chk_version');
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return true;
 			}
 		},
@@ -60,7 +60,7 @@ class Invoke {
 			try {
 				return await invoke<string>('download', { url : url, name : name ?? '', chunk : chunk ?? 0});
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return '';
 			}
 		},
@@ -69,7 +69,7 @@ class Invoke {
 				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -78,7 +78,7 @@ class Invoke {
 				const result = await invoke<Srv>('get_srv', { url : url });
 				return result.target + ':' + result.port;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return url;
 			}
 		},
@@ -99,7 +99,7 @@ class Invoke {
 				}))]);
 				return [pics[0], buffer_url].flat();
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -110,7 +110,7 @@ class Invoke {
 					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
 				).value as Array<[string, string]>;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -143,7 +143,7 @@ class Invoke {
 					avatar : bincode.Collection(bincode.String)
 				}), result).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return {
 					ot : [],
 					attribute : [],
@@ -202,7 +202,7 @@ class Invoke {
 					}>)
 						.map(i => [i.code, new Card(i)]);
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -222,7 +222,7 @@ class Invoke {
 						array : bincode.Collection(bincode.Tuple(bincode.String,  bincode.Collection(bincode.String))),
 					}), result).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return {
 					string : [],
 					bool : [],
@@ -238,7 +238,7 @@ class Invoke {
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -259,7 +259,7 @@ class Invoke {
 					glist : Array<[number, number]>
 				}]>).map(i => [i[0], new LFList(i[0], i[1])]);
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -278,7 +278,7 @@ class Invoke {
 					setname : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
 				}), result).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return {
 					system : [],
 					victory : [],
@@ -306,7 +306,7 @@ class Invoke {
 					types : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
 				}), result).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return {
 					ot : [],
 					attribute : [],
@@ -324,7 +324,7 @@ class Invoke {
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -332,7 +332,7 @@ class Invoke {
 			try {
 				return await invoke<ArrayBuffer>('get_hash');
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return undefined;
 			}
 		}
@@ -346,7 +346,7 @@ class Invoke {
 				), result).value as Array<[string, string]>)
 					.map(i => Deck.fromYdkString(i[1]).set_name(i[0]));
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -358,7 +358,7 @@ class Invoke {
 				});
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -370,7 +370,7 @@ class Invoke {
 				});
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -381,7 +381,7 @@ class Invoke {
 				});
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		}
@@ -392,7 +392,7 @@ class Invoke {
 				await invoke<void>('del_ypk', { name : name });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -400,7 +400,7 @@ class Invoke {
 			try {
 				return await invoke<boolean>('exists_ypk', { name : name });
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -412,7 +412,7 @@ class Invoke {
 					bincode.Collection(bincode.String), result
 				).value as Array<string>;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -423,7 +423,7 @@ class Invoke {
 					return true;
 				} else return await this.ypk.get();
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return name ? false : [];
 			}
 		},
@@ -432,7 +432,7 @@ class Invoke {
 				await invoke<void>('unload_ypk', { name : name });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		}
@@ -454,7 +454,7 @@ class Invoke {
 			try {
 				return await invoke<number>('ygoserver_start', i);
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return 0;
 			}
 		},
@@ -463,7 +463,7 @@ class Invoke {
 				await invoke<void>('ygoserver_stop');
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		}
@@ -474,7 +474,7 @@ class Invoke {
 				await invoke<void>('windbot_start', { args : args, deck : deck});
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -483,7 +483,7 @@ class Invoke {
 				await invoke<void>('windbot_stop');
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -494,7 +494,7 @@ class Invoke {
 					bincode.Collection(bincode.Tuple(bincode.String, bincode.String, bincode.String)), result
 				).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		}
@@ -504,7 +504,7 @@ class Invoke {
 			try {
 				return new Uint8Array(await invoke<ArrayBuffer>('replay_read', { name : name}));
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return new Uint8Array();
 			}
 		},
@@ -522,7 +522,7 @@ class Invoke {
 				bytes.set(content, encoded.length);
 				return await invoke<string>('replay_save', bytes);
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 			}
 		},
 		list : async () : Promise<Array<string>> => {
@@ -532,7 +532,7 @@ class Invoke {
 					bincode.Collection(bincode.String), result
 				).value as any;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return [];
 			}
 		},
@@ -541,7 +541,7 @@ class Invoke {
 				await invoke<ArrayBuffer>('replay_rename', { from : from, to : to });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		},
@@ -550,7 +550,7 @@ class Invoke {
 				await invoke<ArrayBuffer>('replay_del', { name : name });
 				return true;
 			} catch (error) {
-				this.log.write(error);
+				await this.log.write(error);
 				return false;
 			}
 		}
