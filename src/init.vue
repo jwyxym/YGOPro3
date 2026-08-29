@@ -1,7 +1,6 @@
 <template>
 	<div class = 'main'>
 		<starry-sky :stars-count = '1500' :distance = '800'/>
-		<Voice v-if = 'page.show.voice'/>
 		<Loading
 			v-model:loading = 'page.loading'
 		/>
@@ -41,7 +40,6 @@
 	import Setting from './pages/setting/setting.vue';
 	import Loading from './pages/loading/loading.vue';
 	import Toast from './pages/toast/toast';
-	import Voice from './pages/voice/voice';
 	import dialog from './pages/ui/dialog';
 
 	import mainGame from './script/game';
@@ -53,7 +51,6 @@
 			model : 0 as 0 | 1 | 2
 		},
 		show : {
-			voice : false,
 			dialog : false,
 			menu : false,
 			duel : false,
@@ -112,10 +109,9 @@
 	});
 
 	onMounted(async () : Promise<void> => {
-		if (await mainGame.init()) {
-			page.show.voice = true;
+		if (await mainGame.init())
 			page.show.menu = true;
-		} else {
+		else {
 			await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),
 				message : mainGame.get.text(I18N_KEYS.START_MESSAGE),

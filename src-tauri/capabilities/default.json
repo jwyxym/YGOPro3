@@ -50,6 +50,7 @@
     },
     "websocket:default",
     "dialog:default",
-    "dglab-ws-server:default"
+    "dglab-ws-server:default",
+    "sound-player:default"
   ]
 }

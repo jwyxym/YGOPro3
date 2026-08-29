@@ -10,6 +10,7 @@ import * as CONSTANT from './constant';
 import Card from './card';
 import LFList from './lflist';
 import invoke from './invoke';
+import voice from './voice';
 import { I18N_KEYS } from './language/i18n';
 import Zh_CN from './language/Zh-CN';
 import Zh_TW from './language/Zh-TW';
@@ -26,7 +27,6 @@ class Game {
 	lflist : Map<string, LFList> = new Map;
 	model : Map<string, string> = new Map();
 	cards : Map<number, Card> = new Map;
-	bgm : Array<[string, string]> = reactive(new Array());
 	avatars : Array<string> = new Array();
 	version = '';
 	max_card_id = 0x0fffffff;
@@ -63,8 +63,6 @@ class Game {
 				invoke.game.get_hash(),
 				invoke.game.version()
 			]);
-			if (hash)
-				await recognizer.init(hash);
 			this.version = version;
 			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
 			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
@@ -98,8 +96,12 @@ class Game {
 			this.lflist = new Map(lflist);
 			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(room);
-			this.bgm = sounds;
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
+
+			await Promise.all([
+				voice.init(sounds),
+				hash ? recognizer.init(hash) : Promise.resolve()
+			]);
 
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');

@@ -5,10 +5,10 @@ import { KEYS } from '@/script/constant';
 import Card from '@/script/card';
 import { I18N_KEYS } from '@/script/language/i18n';
 import invoke from '@/script/invoke';
+import voice from '@/script/voice';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
-import { voice } from '@/pages/voice/voice';
 
 import ws from './ygo-protocol/ws';
 import tcp from './ygo-protocol/tcp';

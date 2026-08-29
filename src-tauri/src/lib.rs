@@ -14,6 +14,7 @@ pub fn run() {
 		.plugin(tauri_plugin_dialog::init())
 		.plugin(tauri_plugin_dglab_ws_server::init())
 		.plugin(tauri_plugin_ygopro3::init())
+		.plugin(tauri_plugin_sound_player::init())
 		.run(tauri::generate_context!())
 		.expect("error while running tauri application");
 }

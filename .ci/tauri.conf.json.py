@@ -47,6 +47,9 @@ tauri_config = {
 			"icons/icon.icns",
 			"icons/icon.ico"
 		],
+		"android" : {
+			"minSdkVersion" : 26
+		},
 		"linux" : {
 			"rpm" : {
 				"compression" : {

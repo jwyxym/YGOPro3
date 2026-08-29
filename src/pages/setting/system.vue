@@ -107,7 +107,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import GLOBAL from '@/script/scale';
-	import { voice } from '@/pages/voice/voice';
+	import voice from '@/script/voice';
 	import Select from '@/pages/ui/select.vue';
 	import Input from '@/pages/ui/input.vue';
 	import Slider from '@/pages/ui/slider.vue';
@@ -196,11 +196,10 @@
 				I18N_KEYS.SETTING_VOICE_BGM,
 				mainGame.get.system(KEYS.SETTING_VOICE_BGM) as number,
 				async (v : number) => {
-					voice.update.bgm(v);
+					await voice.update.bgm(v);
 				},
 				async (v : number) => {
-					await mainGame.set.system(KEYS.SETTING_VOICE_BGM, v);
-					voice.update.bgm();
+					await mainGame.set.system(KEYS.SETTING_VOICE_BGM, v)
 				}
 			),
 			new Sound_Setting(
@@ -208,12 +207,12 @@
 				mainGame.get.system(KEYS.SETTING_VOICE_SOUND_EFFECT) as number,
 				async (v : number) => {
 					mainGame.system.get(KEYS.NUMBER)!.set(KEYS.SETTING_VOICE_SOUND_EFFECT, v);
-					voice.update.sound_effect();
 				},
 				async (v : number) => {
-					await mainGame.set.system(KEYS.SETTING_VOICE_SOUND_EFFECT, v);
-					voice.update.sound_effect();
-					voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE);
+					await Promise.all([
+						mainGame.set.system(KEYS.SETTING_VOICE_SOUND_EFFECT, v),
+						await voice.play.sound_effect(KEYS.SOUND_EFFECT_ACTIVATE)
+					]);
 				}
 			)
 		],

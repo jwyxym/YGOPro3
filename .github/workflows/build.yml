@@ -450,6 +450,7 @@ jobs:
           libatk1.0-dev \
           libgdk-pixbuf2.0-dev \
           build-essential \
+          libasound2-dev \
           libssl-dev \
           pkg-config \
           libgtk-3-dev \

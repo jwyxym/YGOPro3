@@ -29,7 +29,7 @@ impl Sound {
 						&& let Some(i) = sounds
 							.iter()
 							.find(|i| i.1 == String::from(file.name())) {
-						return Some((i.0.clone(), file.url()));
+						return Some((i.0.clone(), String::from(file.path())));
 					}
 				}
 				None
