@@ -126,7 +126,7 @@
 "MSET" = ["btn/btn_mset.webp", "btn/btn_hover_mset.webp"]
 "SSET" = ["btn/btn_sset.webp", "btn/btn_hover_sset.webp"]
 "POS_ATTACK" = ["btn/btn_pos_attack.webp", "btn/btn_hover_pos_attack.webp"]
-"POS_DEFENCE" = ["btn/btn_pos_defence", "btn/btn_hover_pos_defence.webp"]
+"POS_DEFENCE" = ["btn/btn_pos_defence.webp", "btn/btn_hover_pos_defence.webp"]
 
 [info]
 "LEVEL" = "info/info_level.webp"
