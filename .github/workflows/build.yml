@@ -2,41 +2,9 @@ name: build YGOPro3
 
 on:
   push:
-    tags:
-      - '[0-9]+.[0-9]+.[0-9]+'
+    branches: [Android-test]
     
 jobs:
-  push-gitcode:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Git Config
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions@github.com"
-
-      - name: Set SSH Key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
-
-      - name: Push to GitCode
-        run: |
-          git remote add gitcode git@gitcode.com:jwyxym/YGOPro3.git
-          git fetch gitcode
-          git checkout -b gitcode-main gitcode/main
-          git merge origin/main
-          git push gitcode gitcode-main:main
-
   build-android:
     runs-on: ubuntu-latest
     strategy:
@@ -108,7 +76,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build android ${{ github.ref_name }}
+        npm run json:build android 2026.08.29
 
     - name: NPM Init
       run: |
@@ -242,7 +210,7 @@ jobs:
     - name: Write Tauri Config
       shell: cmd
       run: |
-        npm run json:build windows ${{ github.ref_name }}
+        npm run json:build windows 2026.08.29
 
     - name: NPM Init
       run: |
@@ -336,7 +304,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build macos ${{ github.ref_name }}
+        npm run json:build macos 2026.08.29
 
     - name: NPM Init
       run: |
@@ -450,8 +418,8 @@ jobs:
           libatk1.0-dev \
           libgdk-pixbuf2.0-dev \
           build-essential \
-          libasound2-dev \
           libssl-dev \
+          libasound2-dev \
           pkg-config \
           libgtk-3-dev \
           xdg-utils
@@ -472,7 +440,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build linux ${{ github.ref_name }} ${{ matrix.bundle }}
+        npm run json:build linux 2026.08.29 ${{ matrix.bundle }}
 
     - name: NPM Init
       run: |
@@ -493,117 +461,3 @@ jobs:
         name: YGOPro3-linux-${{ matrix.target }}.${{ matrix.extension }}
         retention-days: 1
         path: ./build/YGOPro3.${{ matrix.extension }}
-
-  create-release:
-    needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
-
-      - name: Create release-latest
-        run: |
-          cd build
-          sh ../.ci/rename.sh
-          gh release delete release-latest --cleanup-tag -y || true
-          gh release create release-latest $(find . -type f) \
-            --target "$GITHUB_SHA" \
-            --title "release-latest" \
-            --notes "Latest build for ${{ github.ref_name }}" \
-            --latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  push-to-server:
-    needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
-
-      - name: Move Files
-        run: |
-          mkdir -p ygopro3
-          cd build
-          sh ../.ci/rename.sh
-          cd ..
-          find ./build -type f -exec mv {} ygopro3/ \;
-
-      - name: Deploy
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
-        with:
-          username: ${{ secrets.SSH_USER }}
-          server: ${{ secrets.SSH_SERVER }}
-          port: 22
-          local_path: './ygopro3/*'
-          remote_path: ${{ secrets.SSH_PATH }}
-          sftp_only: true
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-  update-version:
-    runs-on: ubuntu-latest
-    needs: push-to-server
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: 'recursive'
-
-      - name: Install Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.13'
-
-      - name: Write Version
-        run: |
-          cd .ci
-          python write_version.py ${{ github.ref_name }}
-
-      - name: proxy
-        uses: jwyxym/jwyxym/shadowsocks@master
-        with:
-          ss_server: ${{ secrets.SS_SERVER }}
-          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
-          ss_pass: ${{ secrets.SS_PASS }}
-
-      - name: Upload to Bucket
-        uses: jwyxym/jwyxym/s3@master
-        with:
-          proxy: http://127.0.0.1:1081
-          s3_endpoint: ${{ secrets.S3_ENDPOINT }}
-          access_key: ${{ secrets.S3_ACCESS_KEY }}
-          secret_key: ${{ secrets.S3_SECRET_KEY }}
-          bucket: ${{ secrets.S3_BUCKET }}
-          file_name: version.txt
-          file_path: ./.ci/version.txt
-
-  flush-cdn:
-    runs-on: ubuntu-latest
-    needs: update-version
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: proxy
-        uses: jwyxym/jwyxym/shadowsocks@master
-        with:
-          ss_server: ${{ secrets.SS_SERVER }}
-          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
-          ss_pass: ${{ secrets.SS_PASS }}
-
-      - uses: jwyxym/jwyxym/edgeone-cache@master
-        with:
-          proxy: http://127.0.0.1:1081
-          secret_id: ${{ secrets.EDGE_ID }}
-          secret_key: ${{ secrets.EDGE_KEY }}
-          zone_id: ${{ secrets.EDGE_ZONE_ID }}
-          url_target: ${{ secrets.EDGE_URL }}
-          flush_type: "purge_prefix"
