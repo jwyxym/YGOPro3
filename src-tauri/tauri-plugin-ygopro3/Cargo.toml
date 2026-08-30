@@ -39,7 +39,7 @@ hashbrown = "0.17.1"
 parking_lot = { version = "0.12.5", features = ["arc_lock", "send_guard"] }
 arc-swap = "1.9.2"
 ygopro_cdb_reader = "0.1.5"
-rquickjs = "0.12.0"
+rquickjs = { version = "0.12.0", features = ["bindgen"] }
 
 ygopru = { path = "./crates/ygopru", default-features = false }
 ygopro3_api = { path = "./crates/ygopro3_api" }
