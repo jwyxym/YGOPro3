@@ -99,7 +99,7 @@
 					</var-cell>
 					<var-cell class = 'waveform'>
 						<template #default>
-							<div>
+							<div class = 'no-scrollbar'>
 								<var-chip
 									:closeable = "parents === 'system'"
 									v-for = 'i in page.waveform.array'
@@ -357,6 +357,7 @@
 				flex-direction: column;
 				> div:first-child {
 					width: 100%;
+					overflow-y: auto;
 					[media = 'pc'] & {
 						height: 100%;
 					}
