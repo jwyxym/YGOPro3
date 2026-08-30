@@ -16,8 +16,7 @@
 	import { onMounted, ComponentPublicInstance, onUnmounted, useTemplateRef } from 'vue';
 	import { _AutoCompleteComponent, Rules } from '@varlet/ui';
 
-	type AutoComplete = ComponentPublicInstance & _AutoCompleteComponent;
-	const input = useTemplateRef<AutoComplete>('input');
+	const input = useTemplateRef<ComponentPublicInstance & _AutoCompleteComponent>('input');
 
 	let chk = false;
 
@@ -45,11 +44,13 @@
 	};
 
 	const exported = {
-		blur : undefined as (() => void) | undefined
+		blur : undefined as (() => void) | undefined,
+		focus : undefined as (() => void) | undefined,
 	};
 
 	onMounted(() => {
 		exported.blur = input.value?.blur;
+		exported.focus = input.value?.focus;
 		if (__ANDROID__) {
 			window.addEventListener('click', blur);
 			const i = input.value?.$el.querySelector('input');

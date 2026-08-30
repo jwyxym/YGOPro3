@@ -35,7 +35,7 @@
 			<div v-show = 'page.select === 2' class = 'no-scrollbar'>
 				<Dglab
 					v-if = 'page.dglab'
-					:height = '45'
+					:height = '60'
 					:icon = 'false'
 					@change = 'page.change'
 				/>
