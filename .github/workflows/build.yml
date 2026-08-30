@@ -80,6 +80,22 @@ jobs:
         echo "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$ANDROID_SDK_ROOT/platform-tools" >> $GITHUB_PATH
         echo "$ANDROID_SDK_ROOT/build-tools/34.0.0" >> $GITHUB_PATH
+        NDK_SYSROOT="$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/sysroot"
+        case "${{ matrix.tauri_target }}" in
+          aarch64)
+            BINDGEN_TARGET_INCLUDE="aarch64-linux-android"
+            ;;
+          armv7)
+            BINDGEN_TARGET_INCLUDE="arm-linux-androideabi"
+            ;;
+          i686)
+            BINDGEN_TARGET_INCLUDE="i686-linux-android"
+            ;;
+          x86_64)
+            BINDGEN_TARGET_INCLUDE="x86_64-linux-android"
+            ;;
+        esac
+        echo "BINDGEN_EXTRA_CLANG_ARGS=--sysroot=$NDK_SYSROOT -isystem $NDK_SYSROOT/usr/include -isystem $NDK_SYSROOT/usr/include/$BINDGEN_TARGET_INCLUDE" >> $GITHUB_ENV
 
     - name: Install Node.js
       uses: actions/setup-node@v4
