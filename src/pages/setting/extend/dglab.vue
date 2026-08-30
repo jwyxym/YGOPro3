@@ -74,29 +74,12 @@
 				class = 'custom'
 				:style = "{ '--h' : `${page.number.length * height}px` }"
 			>
-				<div v-if = 'page.custom.show'>
-					<var-input
-						v-show = 'page.custom.input'
-						ref = 'input'
-						textarea
-						v-model = 'page.custom.code'
-						:rows = 'GLOBAL.SCALE < 0.6 ? 32 : 19'
-						@blur = 'page.custom.blur()'
-					/>
-					<var-highlighter-provider
-						v-show = '!page.custom.input'
-						:highlighter = 'style'
-						theme = 'vitesse-light'
-						@click = 'page.custom.focus()'
-					>
-						<var-code
-							language = 'javascript'
-							:code = 'page.custom.code'
-							:word-wrap = 'true'
-							:trim = 'false'
-						/>
-					</var-highlighter-provider>
-				</div>
+				<Code
+					v-if = 'page.custom.show'
+					v-model = 'page.custom.code'
+					:rows = 'GLOBAL.SCALE < 0.6 ? 32 : 18'
+					@blur = 'page.custom.blur()'
+				/>
 				<div v-else>
 					<var-cell
 						v-for = 'i in page.number'
@@ -133,14 +116,11 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { ComponentPublicInstance, computed, nextTick, onBeforeMount, onMounted, reactive, useTemplateRef, watch } from 'vue';
-	import { _AutoCompleteComponent } from '@varlet/ui';
+	import { computed, onBeforeMount, onMounted, reactive, useTemplateRef, watch } from 'vue';
 	import { DGLAB_SOCKET_STATE } from 'dglab-kit';
 	import QRCode from 'qrcode';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import * as Opener from '@tauri-apps/plugin-opener';
-	import hljs from 'highlight.js/lib/core';
-	import javascript from 'highlight.js/lib/languages/javascript';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -152,45 +132,27 @@
 	import { toast } from '@/pages/toast/toast';
 	import Input from '@/ui/input.vue';
 	import Button from '@/ui/button.vue';
+	import Code from '@/ui/code.vue';
 
 	import Head from './head.vue';
 
 	const canvas = useTemplateRef<HTMLCanvasElement>('qrcode');
-	const input = useTemplateRef<ComponentPublicInstance & _AutoCompleteComponent>('input');
 	const QRHEIGHT = 340;
-
-	hljs.registerLanguage('javascript', javascript);
-
-	const style = {
-		codeToHtml : async (code : string) => {
-			return `<pre>
-					<code class = 'hljs'>${
-						hljs.highlight(code, { language : 'javascript' }).value
-					}</code>
-				</pre>`;
-		}
-	};
 
 	const page = reactive({
 		height : computed(() => 10 * props.height + 1),
 		show : false,
 		custom : {
 			show : false,
-			input : false,
 			code : '',
 			blur : function () {
-				this.input = false;
+				console.log(this.code)
 				if (this.code !== mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT))
 					emit('change', {
 						i18n : I18N_KEYS.SETTING_DGLAB_SCRIPT,
 						key : KEYS.SETTING_DGLAB_SCRIPT,
 						value : this.code
 					});
-			},
-			focus : async function () {
-				this.input = true;
-				await nextTick()
-				input.value?.focus?.();
 			}
 		},
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
@@ -374,21 +336,6 @@
 				left: 0;
 				height: 100%;
 				width: 100%;
-				.var-highlighter-provider {
-					border: 1px solid white;
-					height: 100%;
-					width: 100%;
-					--code-font-size: 16px !important;
-				}
-				.var-input {
-					border-left: 1px solid white;
-					border-right: 1px solid white;
-					height: 100%;
-					width: 100%;
-					[media = 'mobile'] & {
-						transform: initial;
-					}
-				}
 			}
 		}
 	}
