@@ -27,6 +27,7 @@ class DG {
 	secret ?: string;
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
 	local_server : boolean = false;
+	script ?: string;
 
     on = async (clear : () => void) : Promise<void> => {
 		if (this.address)
@@ -78,6 +79,9 @@ class DG {
 			this.socket = socket;
 			this.target_id = result.targetId;
 			this.secret = result.secret;
+			const script : string = mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string;
+			this.script = await invoke.extend.load('DGLAB', script);
+
 			return;
 		} catch (error) {
 			await Promise.all([
@@ -89,49 +93,66 @@ class DG {
 	};
 
 	happen = async (val : number) : Promise<void> => {
-		const socket = this.socket;
-		const client_id = this.client_id;
-		if (!socket || !client_id
-			|| this.state.value !== DGLAB_SOCKET_STATE.Paired
-			|| Number.isNaN(val)
-		)
-			return;
-		const min_time = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_TIME) as number;
-		const max_time = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_TIME) as number;
-		const ratio_time = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_TIME) as number;
-		const min_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_INTENSITY) as number;
-		const max_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_INTENSITY) as number;
-		const ratio_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_INTENSITY) as number;
-		const duration = Math.min(max_time, Math.max(min_time, val / ratio_time)) * 1000;
-		const value = Math.min(max_intensity, Math.max(min_intensity, val / ratio_intensity));
-		const { devices } = await socket.requestDevices(client_id);
-		const channels = [V4Channel.A, V4Channel.B];
-		for (const device of devices) {
-			const slot_id = device.slotId;
-			const jobs: Array<Promise<any>> = [];
-			for (const channel of channels) {
-				jobs.push(
-					socket.setTempIntensity(
-						client_id,
-						slot_id,
-						channel,
-						value,
-						duration,
-						{ immediate: true }
-					)
-				);
-				jobs.push(
-					socket.sendPulse(
-						client_id,
-						slot_id,
-						channel,
-						duration,
-						COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
-						{ immediate: true }
-					)
-				);
+		try {
+			const socket = this.socket;
+			const client_id = this.client_id;
+			if (!socket || !client_id
+				|| this.state.value !== DGLAB_SOCKET_STATE.Paired
+				|| Number.isNaN(val)
+			)
+				return;
+			let duration;
+			let value;
+			if (this.script) {
+				const result = await invoke.extend.call(this.script, [val]);
+				if (!Array.isArray(result)
+					|| result.length !== 2
+					|| typeof result[0] !== 'number'
+					|| typeof result[1] !== 'number'
+				)
+					throw new TypeError('DGLAB custom script must return [number, number]');
+				[value, duration] = result;
+			} else {
+				const min_time = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_TIME) as number;
+				const max_time = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_TIME) as number;
+				const ratio_time = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_TIME) as number;
+				const min_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_INTENSITY) as number;
+				const max_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_INTENSITY) as number;
+				const ratio_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_INTENSITY) as number;
+				duration = Math.min(max_time, Math.max(min_time, val / ratio_time)) * 1000;
+				value = Math.min(max_intensity, Math.max(min_intensity, val / ratio_intensity));
 			}
-			await Promise.all(jobs);
+			const { devices } = await socket.requestDevices(client_id);
+			const channels = [V4Channel.A, V4Channel.B];
+			for (const device of devices) {
+				const slot_id = device.slotId;
+				const jobs: Array<Promise<any>> = [];
+				for (const channel of channels) {
+					jobs.push(
+						socket.setTempIntensity(
+							client_id,
+							slot_id,
+							channel,
+							value,
+							duration,
+							{ immediate: true }
+						)
+					);
+					jobs.push(
+						socket.sendPulse(
+							client_id,
+							slot_id,
+							channel,
+							duration,
+							COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
+							{ immediate: true }
+						)
+					);
+				}
+				await Promise.all(jobs);
+			}
+		} catch (error) {
+			await invoke.log.write(error);
 		}
 	};
 
@@ -151,10 +172,16 @@ class DG {
 		this.client_id = undefined;
 		this.secret = undefined;
 		this.state.value = DGLAB_SOCKET_STATE.Idle;
+		const promise = [];
 		if (this.local_server) {
+			promise.push(dglab_server.stopServer());
 			this.local_server = false;
-			await dglab_server.stopServer();
 		}
+		if (this.script) {
+			promise.push(invoke.extend.unload(this.script));
+			this.script = undefined;
+		}
+		await Promise.all(promise);
 	};
 };
 

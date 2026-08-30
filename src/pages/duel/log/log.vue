@@ -35,7 +35,7 @@
 			<div v-show = 'page.select === 2' class = 'no-scrollbar'>
 				<Dglab
 					v-if = 'page.dglab'
-					:height = '45'
+					:height = '60'
 					:icon = 'false'
 					@change = 'page.change'
 				/>
@@ -51,8 +51,8 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
 
-	import Input from '@/pages/ui/input.vue';
-	import Button from '@/pages/ui/button.vue';
+	import Input from '@/ui/input.vue';
+	import Button from '@/ui/button.vue';
 	import connect from '@/pages/duel/connect';
 	import Msg from '@/pages/duel/ygo-protocol/msg';
 	import { CTOS } from '@/pages/duel/ygo-protocol/network';

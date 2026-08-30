@@ -4,7 +4,7 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import { TYPE } from '@/script/card';
 
-import { COMMAND, LOCATION } from '@/pages/duel/ygo-protocol/network';
+import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
 
 import Client_Card from './client_card';
@@ -33,16 +33,16 @@ class Activate {
 			const dom = document.createElement('div');
 			dom.classList.add('ygopro3__duel__activate');
 			for (const i of [
-				KEYS.ACTIVATE,
-				KEYS.ATTACK,
-				KEYS.MSET,
-				KEYS.SSET,
 				KEYS.POS_ATTACK,
 				KEYS.POS_DEFENCE,
 				KEYS.FLIP,
 				KEYS.SUMMON,
+				KEYS.ATTACK,
+				KEYS.MSET,
+				KEYS.SSET,
 				KEYS.PSUMMON,
 				KEYS.SPSUMMON,
+				KEYS.ACTIVATE,
 				KEYS.SCALE,
 			]) {
 				const img = document.createElement('img');
@@ -151,8 +151,13 @@ class Activate {
 		elements.push([this.btns.get(KEYS.SPSUMMON)!, is_pendulum ? 0 : Number(!!SPSUMMON.length)]);
 		elements.push([this.btns.get(KEYS.SSET)!, Number(!!SSET.length)]);
 		elements.push([this.btns.get(KEYS.MSET)!, Number(!!MSET.length)]);
-		elements.push([this.btns.get(KEYS.FLIP)!, Number(!!REPOS.length)]);
 		elements.push([this.btns.get(KEYS.ATTACK)!, Number(!!ATTACK.length)]);
+		elements.push([this.btns.get(c.pos & POS.FACEDOWN
+				? KEYS.FLIP : c.pos & POS.ATTACK
+					? KEYS.POS_DEFENCE : KEYS.POS_ATTACK
+			)!,
+			Number(!!REPOS.length)]
+		);
 		elements.forEach(i => this.btnable && i[1]
 			? i[0].classList.add('show')
 			: i[0].classList.remove('show')

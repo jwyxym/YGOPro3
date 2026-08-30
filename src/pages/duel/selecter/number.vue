@@ -26,7 +26,7 @@
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive } from 'vue';
 	import GLOBAL from '@/script/scale';
-	import Select from '@/pages/ui/select.vue';
+	import Select from '@/ui/select.vue';
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{

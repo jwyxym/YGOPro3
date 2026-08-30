@@ -51,6 +51,7 @@
 		"mathjs": "^15.1.0",
 		"p-queue": "^9.1.0",
 		"qrcode": "^1.5.4",
+		"shiki": "^4.4.3",
 		"tauri-plugin-dglab-ws-server": "^0.1.0",
 		"tauri-plugin-sound-player": "^0.1.0",
 		"vue": "^3.5.13",

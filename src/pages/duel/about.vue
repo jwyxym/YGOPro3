@@ -32,7 +32,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import type Card from '@/script/card';
 
-	import Button from '@/pages/ui/button.vue';
+	import Button from '@/ui/button.vue';
 	import Search from '@/pages/deck/search';
 	const page = reactive({
 		cards : [] as Array<[number, string]>,

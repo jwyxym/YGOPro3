@@ -47,7 +47,7 @@
 	import mainGame from '@/script/game';
 	import GLOBAL from '@/script/scale';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import Button from '@/pages/ui/button.vue';
+	import Button from '@/ui/button.vue';
 	const page = reactive({
 		show : true,
 		el : null as HTMLElement | null,

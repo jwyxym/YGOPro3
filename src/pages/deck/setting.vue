@@ -39,7 +39,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { REG } from '@/script/constant';
 
-	import Input from '@/pages/ui/input.vue';
+	import Input from '@/ui/input.vue';
 
 	import Deck from './deck';
 

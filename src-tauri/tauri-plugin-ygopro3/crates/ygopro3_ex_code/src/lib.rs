@@ -8,7 +8,7 @@ pub struct SetCode {
 }
 
 impl SetCode {
-	pub fn new(text: String) -> Self {
+	pub fn new (text: String) -> Self {
 		from_str::<BTreeMap<String, Vec<u16>>>(&text)
 			.map(|i| Self {
 				code: i
@@ -19,7 +19,7 @@ impl SetCode {
 			.unwrap_or(Self::default())
 	}
 
-	fn parse_code(code: &str) -> Option<u32> {
+	fn parse_code (code: &str) -> Option<u32> {
 		let code: &str = code.trim();
 		if let Some(code) = code.strip_prefix("0x").or_else(|| code.strip_prefix("0X")) {
 			u32::from_str_radix(code, 16).ok()
@@ -28,17 +28,17 @@ impl SetCode {
 		}
 	}
 
-	pub fn default() -> Self {
+	pub fn default () -> Self {
 		Self {
 			code: BTreeMap::new(),
 		}
 	}
 
-	pub fn to_string(&self) -> String {
+	pub fn to_string (&self) -> String {
 		to_string(&self).unwrap_or(to_string(&Self::default()).unwrap_or(String::from("")))
 	}
 
-	pub fn merge(&mut self, text: &str) -> bool {
+	pub fn merge (&mut self, text: &str) -> bool {
 		let setcode: Self = Self::new(String::from(text));
 		let mut result: bool = false;
 		for (key, value) in setcode.code.into_iter() {

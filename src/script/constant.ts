@@ -35,7 +35,7 @@ const URL = {
 	GIT_HOME : 'https://github.com/jwyxym/YGOPro3',
 	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
 	DGLAB : 'https://dungeon-lab.cn/s/?v=1&action=socket&url=',
-	YGOPRO3_HOME : 'https://ygopro3.cn',
+	YGOPRO3_HOME : 'https://www.ygopro3.cn',
 	HOME_OTHER : new Map([
 		['乌鸦Producer', 'https://b23.tv/STgl276'],
 		['幽影櫻', 'https://home.barian.moe'],
@@ -145,6 +145,7 @@ const KEYS = {
 	SETTING_SERVER_PASS : 'SERVER_PASS',
 	SETTING_SEARCH_SPLIT : 'SEARCH_SPLIT',
 	SETTING_DGLAB_SERVER : 'DGLAB_SERVER',
+	SETTING_DGLAB_SCRIPT : 'DGLAB_SCRIPT',
 	SETTING_DGLAB_MIN_TIME : 'CT_DGLAB_MIN_TIME',
 	SETTING_DGLAB_MAX_TIME : 'CT_DGLAB_MAX_TIME',
 	SETTING_DGLAB_RATIO_TIME : 'CT_DGLAB_RATIO_TIME',

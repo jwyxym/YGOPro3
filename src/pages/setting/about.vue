@@ -44,7 +44,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import invoke from '@/script/invoke';
 
-	import Button from '@/pages/ui/button.vue';
+	import Button from '@/ui/button.vue';
 
 	type List = Array<{
 		title : string;

@@ -28,7 +28,7 @@
 	import { onBeforeMount, reactive } from 'vue';
 	import GLOBAL from '@/script/scale';
 	import mainGame from '@/script/game';
-	import Select from '@/pages/ui/select.vue';
+	import Select from '@/ui/select.vue';
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{

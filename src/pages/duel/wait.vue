@@ -89,8 +89,8 @@
 
 <script setup lang = 'ts'>
 	import { reactive } from 'vue'
-	import Button from '@/pages/ui/button.vue';
-	import Select from '@/pages/ui/select.vue';
+	import Button from '@/ui/button.vue';
+	import Select from '@/ui/select.vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Deck from '@/pages/deck/deck';

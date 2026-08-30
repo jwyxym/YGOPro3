@@ -160,7 +160,7 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(0.0);
 			});
-		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS", "DGLAB_SERVER"]
+		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS", "DGLAB_SERVER", "DGLAB_SCRIPT"]
 			.into_iter().for_each(|i| {
 				self.string
 					.entry(String::from(i))

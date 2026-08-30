@@ -54,10 +54,10 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
 
-	import Input from '@/pages/ui/input.vue';
-	import AutoInput from '@/pages/ui/auto_input.vue';
-	import Select from '@/pages//ui/select.vue';
-	import Button from '@/pages//ui/button.vue';
+	import Input from '@/ui/input.vue';
+	import AutoInput from '@/ui/auto_input.vue';
+	import Select from '@/ui/select.vue';
+	import Button from '@/ui/button.vue';
 
 	const input = useTemplateRef('input');
 	let lock : boolean = false;

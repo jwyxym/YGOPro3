@@ -59,7 +59,7 @@
 	import LFList from '@/script/lflist';
 	import GLOBAL from '@/script/scale';
 
-	import dialog from '@/pages/ui/dialog';
+	import dialog from '@/ui/dialog';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';

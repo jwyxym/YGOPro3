@@ -95,7 +95,7 @@
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card, { TYPE } from '@/script/card';
-	import Button from '@/pages/ui/button.vue';
+	import Button from '@/ui/button.vue';
 	import Client_Card from '@/pages/duel/scene/client_card';
 	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
