@@ -85,7 +85,7 @@
 					/>
 					<var-highlighter-provider
 						v-show = '!page.custom.input'
-						:highlighter = '{ codeToHtml }'
+						:highlighter = 'style'
 						theme = 'vitesse-light'
 						@click = 'page.custom.focus()'
 					>
@@ -139,7 +139,8 @@
 	import QRCode from 'qrcode';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import * as Opener from '@tauri-apps/plugin-opener';
-	import { codeToHtml } from 'shiki';
+	import hljs from 'highlight.js/lib/core';
+	import javascript from 'highlight.js/lib/languages/javascript';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -157,6 +158,18 @@
 	const canvas = useTemplateRef<HTMLCanvasElement>('qrcode');
 	const input = useTemplateRef<ComponentPublicInstance & _AutoCompleteComponent>('input');
 	const QRHEIGHT = 340;
+
+	hljs.registerLanguage('javascript', javascript);
+
+	const style = {
+		codeToHtml : async (code : string) => {
+			return `<pre>
+					<code class = 'hljs'>${
+						hljs.highlight(code, { language : 'javascript' }).value
+					}</code>
+				</pre>`;
+		}
+	};
 
 	const page = reactive({
 		height : computed(() => 10 * props.height + 1),
