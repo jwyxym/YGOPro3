@@ -8,6 +8,7 @@ import { FakeQQUI } from 'fake-qq-ui';
 import 'fake-qq-ui/styles/fake-qq-ui.css';
 import 'fake-qq-ui/styles/light.scss';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
+import 'highlight.js/styles/github-dark.css';
 
 const ygopro = createApp(YGO);
 
