@@ -3,23 +3,24 @@ use std::{
 	fs::{OpenOptions, File},
 	io::Write,
 	path::PathBuf,
-	sync::OnceLock
+	sync::{Mutex, MutexGuard, OnceLock}
 };
-use tokio::sync::{RwLock, RwLockWriteGuard};
 
-static LOG: OnceLock<RwLock<Log>> = OnceLock::new();
+static LOG: OnceLock<Mutex<Log>> = OnceLock::new();
 
 pub fn init (path: &PathBuf) -> Result<(), Error> {
 	if !LOG.get().is_some() {
 		let log: Log = Log::new(path)?;
-		let _ = LOG.set(RwLock::new(log));
+		let _ = LOG.set(Mutex::new(log));
 	}
 	Ok(())
 }
 
-pub async fn write (line: String) -> Result<(), Error> {
-	let log: &RwLock<Log> = LOG.get().ok_or(anyhow!("log error"))?;
-	let mut log: RwLockWriteGuard<'_, Log> = log.write().await;
+pub fn write (line: String) -> Result<(), Error> {
+	let log: &Mutex<Log> = LOG.get().ok_or(anyhow!("log error"))?;
+	let mut log: MutexGuard<'_, Log> = log
+		.lock()
+		.map_err(|err| anyhow!("log lock poisoned: {}", err))?;
 	log.write(line)
 }
 

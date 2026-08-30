@@ -1,4 +1,4 @@
-import { invoke as tauriInvoke, type InvokeArgs } from '@tauri-apps/api/core';
+import { invoke as tauri_invoke, type InvokeArgs } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
 import Card from './card';
@@ -12,15 +12,15 @@ interface Srv {
 	target : string;
 };
 
-const invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
-	tauriInvoke<T>(`plugin:ygopro3|${command}`, args)
+const _invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
+	tauri_invoke<T>(`plugin:ygopro3|${command}`, args)
 );
 
 class Invoke {
 	game = {
 		init : async () : Promise<boolean> => {
 			try {
-				await invoke<void>('init');
+				await _invoke<void>('init');
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -29,7 +29,7 @@ class Invoke {
 		},
 		reload : async (overwrite : boolean) : Promise<boolean> => {
 			try {
-				await invoke<void>('reload', { overwrite : overwrite });
+				await _invoke<void>('reload', { overwrite : overwrite });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -38,19 +38,19 @@ class Invoke {
 		},
 		time : async (path : Array<string>) : Promise<Date | undefined> => {
 			try {
-				const time = await invoke<string>('get_time', { path : path });
+				const time = await _invoke<string>('get_time', { path : path });
 				return time.length > 0 ? new Date(time) : undefined;
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
 			}
 		},
-		version : async () : Promise<string> => await invoke<string>(
+		version : async () : Promise<string> => await _invoke<string>(
 			'get_version'
 		),
 		chk_version : async () : Promise<boolean> => {
 			try {
-				return await invoke<boolean>('chk_version');
+				return await _invoke<boolean>('chk_version');
 			} catch (error) {
 				await this.log.write(error);
 				return true;
@@ -58,7 +58,7 @@ class Invoke {
 		},
 		download : async (url : string, name ?: string, chunk ?: number) : Promise<string> => {
 			try {
-				return await invoke<string>('download', { url : url, name : name ?? '', chunk : chunk ?? 0});
+				return await _invoke<string>('download', { url : url, name : name ?? '', chunk : chunk ?? 0});
 			} catch (error) {
 				await this.log.write(error);
 				return '';
@@ -66,7 +66,7 @@ class Invoke {
 		},
 		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>, write : boolean) : Promise<boolean> => {
 			try {
-				await invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
+				await _invoke<void>('set_system', { key : key, ct : ct, value : JSON.stringify(value), write : write });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -75,7 +75,7 @@ class Invoke {
 		},
 		get_srv : async (url : string) : Promise<string> => {
 			try {
-				const result = await invoke<Srv>('get_srv', { url : url });
+				const result = await _invoke<Srv>('get_srv', { url : url });
 				return result.target + ':' + result.port;
 			} catch (error) {
 				await this.log.write(error);
@@ -88,7 +88,7 @@ class Invoke {
 				const buffer = new ArrayBuffer(Math.max(1024, deck.length * 5 + 1));
 				const size = bincode.encode(bincode.Collection(bincode.u32), deck, buffer);
 				const encoded = new Uint8Array(buffer.slice(0, size));
-				const result = await invoke<ArrayBuffer>('get_pic', encoded);
+				const result = await _invoke<ArrayBuffer>('get_pic', encoded);
 				const pics : [Array<[number, string]>, Array<[number, Array<number>]>] = bincode.decode(bincode.Tuple(
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					bincode.Collection(bincode.Tuple(bincode.u32, bincode.Collection(bincode.u8)))
@@ -105,7 +105,7 @@ class Invoke {
 		},
 		get_sound : async () : Promise<Array<[string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_sound');
+				const result = await _invoke<ArrayBuffer>('get_sound');
 				return bincode.decode(
 					bincode.Collection(bincode.Tuple(bincode.String, bincode.String)), result
 				).value as Array<[string, string]>;
@@ -128,7 +128,7 @@ class Invoke {
 			avatar : Array<string>,
 		}> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_textures');
+				const result = await _invoke<ArrayBuffer>('get_textures');
 				return bincode.decode(bincode.Struct({
 					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
@@ -161,7 +161,7 @@ class Invoke {
 		},
 		get_cards : async () : Promise<Array<[number, Card]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_cards');
+				const result = await _invoke<ArrayBuffer>('get_cards');
 				return (bincode.decode(bincode.Collection(
 					bincode.Struct({
 						name : bincode.String,
@@ -213,7 +213,7 @@ class Invoke {
 			array : Array<[string, Array<string>]>,
 		}> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_system');
+				const result = await _invoke<ArrayBuffer>('get_system');
 				return bincode.decode(
 					bincode.Struct({
 						string : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
@@ -233,7 +233,7 @@ class Invoke {
 		},
 		get_server : async () : Promise<Array<[string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_server');
+				const result = await _invoke<ArrayBuffer>('get_server');
 				return bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
@@ -244,7 +244,7 @@ class Invoke {
 		},
 		get_lflist : async () : Promise<Array<[string, LFList]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_lflist');
+				const result = await _invoke<ArrayBuffer>('get_lflist');
 				return (bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.Struct({
 						hash : bincode.u32,
@@ -270,7 +270,7 @@ class Invoke {
 			setname : Array<[number, string]>,
 		}> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_strings');
+				const result = await _invoke<ArrayBuffer>('get_strings');
 				return bincode.decode(bincode.Struct({
 					system : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					victory : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
@@ -296,7 +296,7 @@ class Invoke {
 			types : Array<[number, string]>
 		}> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_info');
+				const result = await _invoke<ArrayBuffer>('get_info');
 				return bincode.decode(bincode.Struct({
 					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
@@ -319,7 +319,7 @@ class Invoke {
 		},
 		get_room : async () : Promise<Array<[string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_room');
+				const result = await _invoke<ArrayBuffer>('get_room');
 				return bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>;
@@ -330,7 +330,7 @@ class Invoke {
 		},
 		get_hash : async () : Promise<ArrayBuffer | undefined> => {
 			try {
-				return await invoke<ArrayBuffer>('get_hash');
+				return await _invoke<ArrayBuffer>('get_hash');
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
@@ -340,7 +340,7 @@ class Invoke {
 	deck = {
 		get : async () : Promise<Array<Deck>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_deck');
+				const result = await _invoke<ArrayBuffer>('get_deck');
 				return (bincode.decode(bincode.Collection(
 					bincode.Tuple(bincode.String, bincode.String)
 				), result).value as Array<[string, string]>)
@@ -352,7 +352,7 @@ class Invoke {
 		},
 		write : async (name : string, deck : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('write_deck', {
+				await _invoke<void>('write_deck', {
 					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`,
 					deck : deck
 				});
@@ -364,7 +364,7 @@ class Invoke {
 		},
 		rename : async (old_name : string, new_name : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('rename_deck', {
+				await _invoke<void>('rename_deck', {
 					oldName : old_name,
 					newName : new_name
 				});
@@ -376,7 +376,7 @@ class Invoke {
 		},
 		del : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('del_deck', {
+				await _invoke<void>('del_deck', {
 					name : `${name}${name.endsWith('.ydk') ? '' : '.ydk'}`
 				});
 				return true;
@@ -389,7 +389,7 @@ class Invoke {
 	ypk = {
 		del : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('del_ypk', { name : name });
+				await _invoke<void>('del_ypk', { name : name });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -398,7 +398,7 @@ class Invoke {
 		},
 		exists : async (name : string) : Promise<boolean> => {
 			try {
-				return await invoke<boolean>('exists_ypk', { name : name });
+				return await _invoke<boolean>('exists_ypk', { name : name });
 			} catch (error) {
 				await this.log.write(error);
 				return false;
@@ -407,7 +407,7 @@ class Invoke {
 		
 		get : async () : Promise<Array<string>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('get_ypk');
+				const result = await _invoke<ArrayBuffer>('get_ypk');
 				return bincode.decode(
 					bincode.Collection(bincode.String), result
 				).value as Array<string>;
@@ -419,7 +419,7 @@ class Invoke {
 		load : async (name ?: string) : Promise<boolean | Array<string>> => {
 			try {
 				if (name) {
-					await invoke<void>('load_ypk', { name : name });
+					await _invoke<void>('load_ypk', { name : name });
 					return true;
 				} else return await this.ypk.get();
 			} catch (error) {
@@ -429,7 +429,7 @@ class Invoke {
 		},
 		unload : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('unload_ypk', { name : name });
+				await _invoke<void>('unload_ypk', { name : name });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -452,7 +452,7 @@ class Invoke {
 			timeLimit : number;
 		}) : Promise<number> => {
 			try {
-				return await invoke<number>('ygoserver_start', i);
+				return await _invoke<number>('ygoserver_start', i);
 			} catch (error) {
 				await this.log.write(error);
 				return 0;
@@ -460,7 +460,7 @@ class Invoke {
 		},
 		stop : async () : Promise<boolean> => {
 			try {
-				await invoke<void>('ygoserver_stop');
+				await _invoke<void>('ygoserver_stop');
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -471,7 +471,7 @@ class Invoke {
 	bot = {
 		start : async (args : string, deck : string) : Promise<boolean> => {
 			try {
-				await invoke<void>('windbot_start', { args : args, deck : deck});
+				await _invoke<void>('windbot_start', { args : args, deck : deck});
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -480,7 +480,7 @@ class Invoke {
 		},
 		stop : async () : Promise<boolean> => {
 			try {
-				await invoke<void>('windbot_stop');
+				await _invoke<void>('windbot_stop');
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -489,7 +489,7 @@ class Invoke {
 		},
 		list : async () : Promise<Array<[string, string, string]>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('windbot_list');
+				const result = await _invoke<ArrayBuffer>('windbot_list');
 				return bincode.decode(
 					bincode.Collection(bincode.Tuple(bincode.String, bincode.String, bincode.String)), result
 				).value as any;
@@ -502,7 +502,7 @@ class Invoke {
 	replay = {
 		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				return new Uint8Array(await invoke<ArrayBuffer>('replay_read', { name : name}));
+				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name : name}));
 			} catch (error) {
 				await this.log.write(error);
 				return new Uint8Array();
@@ -520,14 +520,14 @@ class Invoke {
 				const bytes = new Uint8Array(encoded.length + content.length);
 				bytes.set(encoded, 0);
 				bytes.set(content, encoded.length);
-				return await invoke<string>('replay_save', bytes);
+				return await _invoke<string>('replay_save', bytes);
 			} catch (error) {
 				await this.log.write(error);
 			}
 		},
 		list : async () : Promise<Array<string>> => {
 			try {
-				const result = await invoke<ArrayBuffer>('replay_list');
+				const result = await _invoke<ArrayBuffer>('replay_list');
 				return bincode.decode(
 					bincode.Collection(bincode.String), result
 				).value as any;
@@ -538,7 +538,7 @@ class Invoke {
 		},
 		rename : async (from : string, to : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('replay_rename', { from : from, to : to });
+				await _invoke<ArrayBuffer>('replay_rename', { from : from, to : to });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -547,7 +547,7 @@ class Invoke {
 		},
 		del : async (name : string) : Promise<boolean> => {
 			try {
-				await invoke<ArrayBuffer>('replay_del', { name : name });
+				await _invoke<ArrayBuffer>('replay_del', { name : name });
 				return true;
 			} catch (error) {
 				await this.log.write(error);
@@ -555,12 +555,43 @@ class Invoke {
 			}
 		}
 	};
+	extend = {
+		load : async (name : string, script : string) : Promise<string | undefined> => {
+			if (!script.trim())
+				return undefined;
+			try {
+				return await _invoke<string>('extend_load', { name, script });
+			} catch (error) {
+				await this.log.write(error);
+				return undefined;
+			}
+		},
+		unload : async (name : string) : Promise<boolean> => {
+			try {
+				await _invoke<void>('extend_unload', { name });
+				return true
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		},
+		call : async<T> (name : string, args : Array<any>) : Promise<T | undefined> => {
+			try {
+				return JSON.parse(
+					await _invoke<string>('extend_call', { name, args : JSON.stringify(args) })
+				) as T;
+			} catch (error) {
+				await this.log.write(error);
+				return undefined;
+			}
+		},
+	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {
 			try {
 				console.error(line);
 				toast.error(line);
-				await invoke<void>('write_log', { line : line.toString() });
+				await _invoke<void>('write_log', { line : line.toString() });
 				return true;
 			} catch (error) {
 				toast.error(error.toString());
@@ -570,6 +601,6 @@ class Invoke {
 	};
 };
 
-const invoker = new Invoke();
-export default invoker;
+const invoke = new Invoke();
+export default invoke;
 export type { Srv };

@@ -236,7 +236,7 @@ pub async fn get_deck () -> Response {
 
 #[tauri::command]
 pub async fn write_log (line: String) -> Result<(), String> {
-	log::write(line).await.map_err(|e| e.to_string())
+	log::write(line).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -368,4 +368,22 @@ pub async fn replay_del (name: String) -> Result<(), String>{
 #[tauri::command]
 pub async fn get_hash () -> Result<Response, String> {
 	Ok(Response::new(ygopro3_game::get::hash().await.map_err(|e| e.to_string())?))
+}
+
+#[tauri::command]
+pub async fn extend_load (name: String, script: String) -> Result<String, String> {
+	ygopro3_extend::load(name, &script)
+		.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn extend_unload (name: String) -> Result<(), String> {
+	ygopro3_extend::unload(name)
+		.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn extend_call (name: String, args: String) -> Result<String, String> {
+	ygopro3_extend::call(name, args)
+		.map_err(|e| e.to_string())
 }
