@@ -16,6 +16,8 @@ import mainGame from './game';
 import { KEYS, URL } from './constant';
 import invoke from './invoke';
 
+const WAVEFORM = Object.entries(COYOTE_WAVEFORM).map(i => i[1]);
+
 class DG {
 	address ?: string;
 	url = ref<string | undefined>(undefined);
@@ -28,6 +30,15 @@ class DG {
 	state = ref<DGLAB_SOCKET_STATE>(DGLAB_SOCKET_STATE.Idle);
 	local_server : boolean = false;
 	script ?: string;
+	index : number = 0;
+
+	waveform = () : Array<string> | undefined => {
+		const waveforms = mainGame.get.system(KEYS.SETTING_DGLAB_WAVEFORM) as Array<string>;
+		const i = this.index ++;
+		if (this.index >= frames.length)
+			this.index = 0;
+		return COYOTE_WAVEFORMS[waveforms[i] as COYOTE_WAVEFORM]?.raw;
+	};
 
     on = async (clear : () => void) : Promise<void> => {
 		if (this.address)
@@ -103,15 +114,25 @@ class DG {
 				return;
 			let duration;
 			let value;
+			let waveform;
 			if (this.script) {
-				const result = await invoke.extend.call(this.script, [val]);
+				const result = await invoke.extend
+					.call<[number, number, Array<string> | number | undefined]>(this.script, [val, WAVEFORM]);
 				if (!Array.isArray(result)
-					|| result.length !== 2
+					|| result.length < 2
 					|| typeof result[0] !== 'number'
 					|| typeof result[1] !== 'number'
 				)
-					throw new TypeError('DGLAB custom script must return [number, number]');
+					throw new TypeError('DGLAB custom script should return at least two items in an array');
 				[value, duration] = result;
+				const index = result[2];
+				if (typeof index === 'number' && index > - 1) {
+					const key = WAVEFORM[index];
+					if (key)
+						waveform = COYOTE_WAVEFORMS[key].raw;
+				}
+				else if (Array.isArray(index) && index.length)
+					waveform = index;
 			} else {
 				const min_time = mainGame.get.system(KEYS.SETTING_DGLAB_MIN_TIME) as number;
 				const max_time = mainGame.get.system(KEYS.SETTING_DGLAB_MAX_TIME) as number;
@@ -121,6 +142,7 @@ class DG {
 				const ratio_intensity = mainGame.get.system(KEYS.SETTING_DGLAB_RATIO_INTENSITY) as number;
 				duration = Math.min(max_time, Math.max(min_time, val / ratio_time));
 				value = Math.min(max_intensity, Math.max(min_intensity, val / ratio_intensity));
+				waveform = this.waveform();
 			}
 			duration = duration * 1000;
 			const { devices } = await socket.requestDevices(client_id);
@@ -145,7 +167,7 @@ class DG {
 							slot_id,
 							channel,
 							duration,
-							COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
+							waveform ?? COYOTE_WAVEFORMS[COYOTE_WAVEFORM.BUBBLE].raw,
 							{ immediate: true }
 						)
 					);
@@ -172,6 +194,7 @@ class DG {
 		this.target_id = undefined;
 		this.client_id = undefined;
 		this.secret = undefined;
+		this.index = 0;
 		this.state.value = DGLAB_SOCKET_STATE.Idle;
 		const promise = [];
 		if (this.local_server) {

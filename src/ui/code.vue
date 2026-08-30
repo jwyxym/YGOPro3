@@ -46,11 +46,7 @@
 
 	const props = defineProps<{
 		modelValue : string;
-		rows : number;
-		placeholder ?: string;
-		variant ?: 'outlined' | 'standard';
-		rules ?: ((value ?: string) => string | boolean) | ((value : string) => string | boolean) | ((value ?: string) => Promise<string | boolean>) | ((value : string) => Promise<string | boolean>);
-		type ?: 'text' | 'password' | 'number' | 'tel'
+		readonly ?: boolean;
 	}>();
 
 	const page = reactive({
@@ -60,6 +56,8 @@
 		}),
 		input : false,
 		focus : async function () {
+			if (props.readonly)
+				return;
 			this.input = true;
 			await nextTick()
 			input.value?.focus?.();

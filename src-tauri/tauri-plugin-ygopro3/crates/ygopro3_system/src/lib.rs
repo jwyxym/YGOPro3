@@ -70,7 +70,7 @@ impl System {
 		})
 	}
 	pub fn init (mut self) -> Self {
-		["LOADING_EXPANSION", "EXTEND"]
+		["LOADING_EXPANSION", "EXTEND", "DGLAB_WAVEFORM"]
 			.into_iter().for_each(|i| {
 				self.array
 					.entry(String::from(i))
