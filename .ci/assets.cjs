@@ -8,7 +8,10 @@ const os = process.argv[2] || '';
 const URL = 'https://www.ygopro3.cn/assets.zip';
 const LOCAL_ASSETS = [
 	'./src-tauri/assets.zip',
-	'./src-tauri/assets'
+	'./src-tauri/assets',
+	'./src-tauri/gen/android/app/src/main/assets/assets',
+	'./src-tauri/target/debug/assets'
+
 ];
 const WINDBOT_ANDROID = [
 	{
