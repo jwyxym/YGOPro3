@@ -11,9 +11,6 @@ tauri-plugin = { version = "2", features = ["build"] }
 [dependencies]
 ygopro3_api.workspace = true
 
-[features]
-windbot = ["ygopro3_api/windbot"]
-
 [workspace.dependencies]
 tauri = { version = "2", features = ["protocol-asset"] }
 serde = { version = "1.0.228", features = ["derive"] }
@@ -56,7 +53,6 @@ ygopro3_ex_code = { path = "./crates/ygopro3_ex_code" }
 ygopro3_fs = { path = "./crates/ygopro3_fs" }
 ygopro3_game = { path = "./crates/ygopro3_game" }
 ygopro3_info = { path = "./crates/ygopro3_info" }
-ygopro3_js_runner = { path = "./crates/ygopro3_js_runner" }
 ygopro3_lflist = { path = "./crates/ygopro3_lflist" }
 ygopro3_log = { path = "./crates/ygopro3_log" }
 ygopro3_macros = { path = "./crates/ygopro3_macros" }
@@ -88,7 +84,6 @@ members = [
 	"crates/ygopro3_fs",
 	"crates/ygopro3_game",
 	"crates/ygopro3_info",
-	"crates/ygopro3_js_runner",
 	"crates/ygopro3_lflist",
 	"crates/ygopro3_log",
 	"crates/ygopro3_macros",
@@ -108,3 +103,8 @@ members = [
 	"crates/ygopro3_yrp",
 	"crates/ygopro3_zip",
 ]
+
+[features]
+windbot = ["ygopro3_api/windbot"]
+single_duel = ["ygopro3_api/single_duel"]
+plugin = ["ygopro3_api/plugin"]

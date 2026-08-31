@@ -1,4 +1,5 @@
 mod runner;
+mod global;
 
 use anyhow::{anyhow, Error, Result};
 use std::sync::mpsc;

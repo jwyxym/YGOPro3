@@ -3,10 +3,6 @@ name = "ygopro3_api"
 version = "0.1.0"
 edition = "2024"
 
-[features]
-default = ["windbot"]
-windbot = ["dep:ygopro3_windbot"]
-
 [dependencies]
 tauri.workspace = true
 serde.workspace = true
@@ -23,10 +19,14 @@ ygopro3_game.workspace = true
 ygopro3_deck.workspace = true
 ygopro3_yrp.workspace = true
 ygopro3_ypk.workspace = true
-ygopro3_single_duel.workspace = true
-ygopro3_plugin.workspace = true
-ygopro3_js_runner.workspace = true
+ygopro3_single_duel = { workspace = true, optional = true }
+ygopro3_plugin = { workspace = true, optional = true }
 ygopro3_macros.workspace = true
 
 [target.'cfg(not(target_arch = "x86"))'.dependencies]
 ygopro3_windbot = { workspace = true, optional = true }
+
+[features]
+windbot = ["dep:ygopro3_windbot"]
+single_duel = ["dep:ygopro3_single_duel"]
+plugin = ["dep:ygopro3_plugin"]

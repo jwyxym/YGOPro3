@@ -28,4 +28,4 @@ tauri-plugin-tcp = { git = "https://github.com/jwyxym/tauri-plugin-tcp.git" }
 
 [dependencies.tauri-plugin-ygopro3]
 path = "tauri-plugin-ygopro3"
-features = ["windbot"]
+features = ["windbot", "single_duel", "plugin"]

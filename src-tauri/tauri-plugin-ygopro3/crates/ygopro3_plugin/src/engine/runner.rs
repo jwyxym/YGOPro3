@@ -1,4 +1,4 @@
-mod global;
+use super::global;
 
 use anyhow::{anyhow, Error, Result};
 use rquickjs::{
