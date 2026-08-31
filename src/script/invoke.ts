@@ -575,7 +575,7 @@ class Invoke {
 				return false;
 			}
 		},
-		call : async<T> (name : string, args : Array<any>) : Promise<T | undefined> => {
+		call : async<T> (name : string, args : Array<any> = []) : Promise<T | undefined> => {
 			try {
 				return JSON.parse(
 					await _invoke<string>('extend_call', { name, args : JSON.stringify(args) })
