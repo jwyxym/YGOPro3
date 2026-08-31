@@ -40,22 +40,25 @@ parking_lot = { version = "0.12.5", features = ["arc_lock", "send_guard"] }
 arc-swap = "1.9.2"
 ygopro_cdb_reader = "0.1.5"
 rquickjs = { version = "0.12.0", features = ["bindgen"] }
+syn = { version = "3.0.4", features = ["full"] }
+quote = "1.0.47"
 
 ygopru = { path = "./crates/ygopru", default-features = false }
-ygopro3_api = { path = "./crates/ygopro3_api" }
+ygopro3_api = { path = "./crates/ygopro3_api", default-features = false }
 ygopro3_card = { path = "./crates/ygopro3_card" }
 ygopro3_const = { path = "./crates/ygopro3_const" }
 ygopro3_deck = { path = "./crates/ygopro3_deck" }
 ygopro3_emit = { path = "./crates/ygopro3_emit" }
-ygopro3_extend = { path = "./crates/ygopro3_extend" }
 ygopro3_ex_code = { path = "./crates/ygopro3_ex_code" }
 ygopro3_fs = { path = "./crates/ygopro3_fs" }
 ygopro3_game = { path = "./crates/ygopro3_game" }
 ygopro3_info = { path = "./crates/ygopro3_info" }
 ygopro3_lflist = { path = "./crates/ygopro3_lflist" }
 ygopro3_log = { path = "./crates/ygopro3_log" }
+ygopro3_macros = { path = "./crates/ygopro3_macros" }
 ygopro3_network = { path = "./crates/ygopro3_network" }
 ygopro3_picture = { path = "./crates/ygopro3_picture" }
+ygopro3_plugin = { path = "./crates/ygopro3_plugin" }
 ygopro3_resource = { path = "./crates/ygopro3_resource" }
 ygopro3_room = { path = "./crates/ygopro3_room" }
 ygopro3_server_list = { path = "./crates/ygopro3_server_list" }
@@ -77,15 +80,16 @@ members = [
 	"crates/ygopro3_const",
 	"crates/ygopro3_deck",
 	"crates/ygopro3_emit",
-	"crates/ygopro3_extend",
 	"crates/ygopro3_ex_code",
 	"crates/ygopro3_fs",
 	"crates/ygopro3_game",
 	"crates/ygopro3_info",
 	"crates/ygopro3_lflist",
 	"crates/ygopro3_log",
+	"crates/ygopro3_macros",
 	"crates/ygopro3_network",
 	"crates/ygopro3_picture",
+	"crates/ygopro3_plugin",
 	"crates/ygopro3_resource",
 	"crates/ygopro3_room",
 	"crates/ygopro3_server_list",
@@ -99,3 +103,8 @@ members = [
 	"crates/ygopro3_yrp",
 	"crates/ygopro3_zip",
 ]
+
+[features]
+windbot = ["ygopro3_api/windbot"]
+single_duel = ["ygopro3_api/single_duel"]
+plugin = ["ygopro3_api/plugin"]

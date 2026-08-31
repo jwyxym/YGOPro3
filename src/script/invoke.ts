@@ -555,12 +555,10 @@ class Invoke {
 			}
 		}
 	};
-	extend = {
-		load : async (name : string, script : string) : Promise<string | undefined> => {
-			if (!script.trim())
-				return undefined;
+	js = {
+		load : async (name : string) : Promise<string | undefined> => {
 			try {
-				return await _invoke<string>('extend_load', { name, script });
+				return await _invoke<string>('js_load', { name });
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
@@ -568,23 +566,48 @@ class Invoke {
 		},
 		unload : async (name : string) : Promise<boolean> => {
 			try {
-				await _invoke<void>('extend_unload', { name });
+				await _invoke<void>('js_unload', { name });
 				return true
 			} catch (error) {
 				await this.log.write(error);
 				return false;
 			}
 		},
-		call : async<T> (name : string, args : Array<any>) : Promise<T | undefined> => {
+		call : async<T> (name : string, args : Array<any> = []) : Promise<T | undefined> => {
 			try {
 				return JSON.parse(
-					await _invoke<string>('extend_call', { name, args : JSON.stringify(args) })
+					await _invoke<string>('js_call', { name, args : JSON.stringify(args) })
 				) as T;
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
 			}
+		}
+	};
+	extend = {
+		write : async (name : string, content : string) : Promise<boolean> => {
+			try {
+				const buffer = new ArrayBuffer(20480);
+				bincode.encode(
+					bincode.Tuple(bincode.String, bincode.String),
+					[name, content],
+					buffer
+				);
+				await _invoke<void>('extend_write', new Uint8Array(buffer));
+				return true
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
 		},
+		read : async (name : string) : Promise<string> => {
+			try {
+				return _invoke<string>('extend_read', { name });
+			} catch (error) {
+				await this.log.write(error);
+				return '';
+			}
+		}
 	};
 	log = {
 		write : async (line : string) : Promise<boolean> => {

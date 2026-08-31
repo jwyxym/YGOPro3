@@ -5,8 +5,8 @@ use ygopro3_network::{Srv, srv};
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
-use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
-use serde_json::Value::Array;
+use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}, error::DecodeError};
+use serde_json::{Value::{self, Array}, Number};
 use std::{borrow::Cow, fs::metadata};
 use tauri::{
 	AppHandle, ipc::{Response, Request, InvokeBody::{Raw, Json}}
@@ -90,13 +90,18 @@ pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 		Raw(data) => Cow::Borrowed(data),
 		Json(Array(data)) => Cow::Owned(
 			data.iter()
-				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v| v as u8)
+					))
 				.collect(),
 		),
 		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
-		.map_err(|e| e.to_string())?;
+		.map_err(|e: DecodeError| e.to_string())?;
 	Ok(ygopro3_game::get::pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
@@ -249,6 +254,7 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 	ypk::exists(name).await.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::single_duel]
 #[tauri::command]
 pub async fn ygoserver_start (
 	lflist: u32, //lflist hash
@@ -278,14 +284,15 @@ pub async fn ygoserver_start (
 	).map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::single_duel]
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
 	Ok(ygopro3_single_duel::stop_server())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
 pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
-	#[cfg(not(target_arch = "x86"))]
 	if args.is_empty() {
 		ygopro3_windbot::init().await
 	} else {
@@ -295,30 +302,24 @@ pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 		ygopro3_windbot::start(args, i18n, deck).await
 	}
 		.map_err(|e| e.to_string())?;
-	#[cfg(target_arch = "x86")] {
-		let _ = args;
-		let _ = deck;
-	}
 	Ok(())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
 pub async fn windbot_stop () -> Result<(), String> {
-	#[cfg(not(target_arch = "x86"))]
 	ygopro3_windbot::stop().await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
-pub async fn windbot_list () -> Response {
-	#[cfg(not(target_arch = "x86"))]
-	return ygopro3_windbot::list().await
+pub async fn windbot_list () -> Result<Response, String> {
+	Ok(ygopro3_windbot::list().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(default_response);
-	#[cfg(target_arch = "x86")]
-	default_response()
+		.unwrap_or_else(default_response))
 }
 
 #[tauri::command]
@@ -335,13 +336,18 @@ pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 		Raw(data) => Cow::Borrowed(data),
 		Json(Array(data)) => Cow::Owned(
 			data.iter()
-				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v| v as u8)
+					))
 				.collect(),
 		),
 		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
-		.map_err(|e| e.to_string())?;
+		.map_err(|e: DecodeError| e.to_string())?;
 	let content: &[u8] = &bytes[256..];
 	yrp::save(name, content).await.map_err(|e| e.to_string())
 }
@@ -370,20 +376,56 @@ pub async fn get_hash () -> Result<Response, String> {
 	Ok(Response::new(ygopro3_game::get::hash().await.map_err(|e| e.to_string())?))
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
-pub async fn extend_load (name: String, script: String) -> Result<String, String> {
-	ygopro3_extend::load(name, &script)
+pub async fn js_load (name: String) -> Result<String, String> {
+	let script: String = plugin_read(&name).await?;
+	ygopro3_plugin::engine::load(name, &script)
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
-pub async fn extend_unload (name: String) -> Result<(), String> {
-	ygopro3_extend::unload(name)
+pub async fn js_unload (name: String) -> Result<(), String> {
+	ygopro3_plugin::engine::unload(name)
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
-pub async fn extend_call (name: String, args: String) -> Result<String, String> {
-	ygopro3_extend::call(name, args)
+pub async fn js_call (name: String, args: String) -> Result<String, String> {
+	ygopro3_plugin::engine::call(name, args)
+		.map_err(|e| e.to_string())
+}
+
+#[ygopro3_macros::plugin]
+#[tauri::command]
+pub async fn plugin_read (name: &str) -> Result<String, String> {
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	ygopro3_plugin::read(path, &name)
+		.map_err(|e| e.to_string())
+}
+
+#[ygopro3_macros::plugin]
+#[tauri::command]
+pub async fn plugin_write (request: Request<'_>) -> Result<(), String> {
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	let bytes: Cow<'_, Vec<u8>> = match request.body() {
+		Raw(data) => Cow::Borrowed(data),
+		Json(Array(data)) => Cow::Owned(
+			data.iter()
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v: u64| v as u8)
+					))
+				.collect(),
+		),
+		_ => return Err(String::from("unexpected invoke body")),
+	};
+	let ((name, content), _) = decode_from_slice::<(String, String), Configuration>(&bytes, CONFIG)
+		.map_err(|e: DecodeError| e.to_string())?;
+	ygopro3_plugin::write(path, &name, content)
 		.map_err(|e| e.to_string())
 }

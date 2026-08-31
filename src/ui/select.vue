@@ -22,12 +22,15 @@
 </template>
 <script setup lang = 'ts'>
 	import { reactive, onBeforeMount } from 'vue'
+	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { LANGUAGE, FRAME } from '@/script/constant';
+	import { I18N_DGLAB } from '@/script/language/extend';
 	import invoke from '@/script/invoke';
+
 	const props = defineProps<{
-		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'frame' | 'protocol' | 'custom';
+		name : 'lflist' | 'deck' | 'model' | 'i18n' | 'frame' | 'protocol' | 'custom' | 'waveform';
 		array ?: Array<[any, any]>;
 		variant ?: 'outlined' | 'standard';
 		clearable ?: boolean; 
@@ -77,6 +80,10 @@
 					[1, 'WS'],
 					[2, 'WSS']
 				]);
+				break;
+			case 'waveform':
+				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_DGLAB_WAVEFORM);
+				select.map = I18N_DGLAB();
 				break;
 			case 'custom':
 				select.placeholder = props.placeholder ?? '';

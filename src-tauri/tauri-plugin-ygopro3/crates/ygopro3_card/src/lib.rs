@@ -35,7 +35,7 @@ impl Cdb {
 	pub fn content (&self) -> &BTreeMap<u32, Card> {
 		&self.content
 	}
-	pub fn add_ex_code(mut self, ex_code: &BTreeMap<u32, Vec<u16>>) -> Self {
+	pub fn add_ex_code (mut self, ex_code: &BTreeMap<u32, Vec<u16>>) -> Self {
 		for (code, set_codes) in ex_code {
 			if let Some(card) = self.content.get_mut(code)
 				&& let Some(mut i) = card.setcode.iter().position(|&x| x == 0) {

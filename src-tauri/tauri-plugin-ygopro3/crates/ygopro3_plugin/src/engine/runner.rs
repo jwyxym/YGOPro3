@@ -1,13 +1,10 @@
-use ygopro3_log::log::write;
+use super::global;
 
 use anyhow::{anyhow, Error, Result};
 use rquickjs::{
 	Context,
-	Function,
 	Runtime,
-	Object,
-	prelude::Ctx,
-	Error as JSError
+	prelude::Ctx
 };
 use std::{
 	collections::BTreeMap,
@@ -104,7 +101,7 @@ fn load (extends: &mut BTreeMap<String, Extend>, name: String, script: &str) -> 
 	let rt: Runtime = Runtime::new()?;
 	let ctx: Context = Context::full(&rt)?;
 
-	globals(&ctx)?;
+	global::init(&ctx)?;
 
 	ctx.with(|ctx: Ctx<'_>| ctx.eval::<(), _>(script))?;
 
@@ -145,24 +142,4 @@ fn unload (extends: &mut BTreeMap<String, Extend>, name: &str) -> Result<(), Err
 		.ok_or_else(|| anyhow!("extend not loaded: {}", name))?;
 
 	Ok(())
-}
-
-fn globals (ctx: &Context) -> Result<(), Error> {
-	ctx.with(|ctx: Ctx<'_>| {
-		let globals: Object<'_> = ctx.globals();
-		let ygopro3: Object<'_> = Object::new(ctx.clone())?;
-
-		let log: Function<'_> = Function::new(ctx.clone(), |msg: String| {
-			write(format!("YGOPro3 Extend: {}", msg))
-				.map_err(|err| JSError::new_from_js_message(
-					"Rust",
-					"Error",
-					err.to_string(),
-				))
-		})?;
-
-		ygopro3.set("log", log)?;
-		globals.set("YGOPro3", ygopro3)?;
-		Ok::<_, Error>(())
-	})
 }

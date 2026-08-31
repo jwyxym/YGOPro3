@@ -18,7 +18,7 @@ pub struct Srv {
 
 static RESOLVER: OnceLock<Resolver> = OnceLock::new();
 
-pub fn srv(url: String) -> Result<Srv, Error> {
+pub fn srv (url: String) -> Result<Srv, Error> {
 	let resolver: &Resolver = RESOLVER.get_or_init(|| {
 		Resolver::new(ResolverConfig::default(), ResolverOpts::default())
 			.expect("DNS resolver error")

@@ -25,4 +25,7 @@ tauri-plugin-dialog = "2"
 tauri-plugin-dglab-ws-server = "0.1.1"
 tauri-plugin-sound-player = "0.1.0"
 tauri-plugin-tcp = { git = "https://github.com/jwyxym/tauri-plugin-tcp.git" }
-tauri-plugin-ygopro3 = { path = "tauri-plugin-ygopro3" }
+
+[dependencies.tauri-plugin-ygopro3]
+path = "tauri-plugin-ygopro3"
+features = ["windbot", "single_duel", "plugin"]

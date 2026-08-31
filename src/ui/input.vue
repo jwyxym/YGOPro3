@@ -3,7 +3,7 @@
 		:variant = "variant ? variant : 'standard'"
 		:placeholder = 'placeholder'
 		:rules = 'rules'
-		:clearable = 'true'
+		:clearable = 'clearable ?? true'
 		:type = "type ?? 'text'"
 		text-color = 'white'
 		blur-color = 'white'
@@ -32,7 +32,8 @@
 		placeholder ?: string;
 		variant ?: 'outlined' | 'standard';
 		rules ?: ((value ?: string) => string | boolean) | ((value : string) => string | boolean) | ((value ?: string) => Promise<string | boolean>) | ((value : string) => Promise<string | boolean>);
-		type ?: 'text' | 'password' | 'number' | 'tel'
+		type ?: 'text' | 'password' | 'number' | 'tel';
+		clearable ?: boolean;
 	}>();
 
 	const value = computed({

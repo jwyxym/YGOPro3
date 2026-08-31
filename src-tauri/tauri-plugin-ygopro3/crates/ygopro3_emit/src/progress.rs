@@ -7,7 +7,7 @@ pub enum Event {
 	End
 }
 
-pub fn emit<S: Serialize + Clone>(app: &AppHandle, event: Event, payload: S) {
+pub fn emit<S: Serialize + Clone> (app: &AppHandle, event: Event, payload: S) {
 	let event: &str = match event {
 		Event::Start => "started",
 		Event::Progress => "progress",

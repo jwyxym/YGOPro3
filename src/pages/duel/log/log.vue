@@ -38,6 +38,7 @@
 					:height = '60'
 					:icon = 'false'
 					@change = 'page.change'
+					parents = 'log'
 				/>
 			</div>
 		</transition>

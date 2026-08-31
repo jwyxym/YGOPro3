@@ -66,37 +66,29 @@
 			<var-cell>
 				{{ mainGame.get.text(I18N_KEYS.SETTING_DGLAB_SCRIPT) }}
 				&nbsp;&nbsp;
-				<var-switch v-model = 'page.custom.show'/>
+				<var-switch
+					v-model = 'page.custom.show'
+					@change = 'page.change({
+						i18n : I18N_KEYS.SETTING_DGLAB_SCRIPT,
+						key : KEYS.SETTING_CHK_DGLAB_SCRIPT,
+						value : !page.custom.show
+					})'
+				/>
 			</var-cell>
 			<TransitionGroup
 				tag = 'div'
 				name = 'opacity'
 				class = 'custom'
-				:style = "{ '--h' : `${page.number.length * height}px` }"
+				:style = "{ '--h' : `${page.number.length * height + (
+					GLOBAL.SCALE < 0.6 ? 200 : 180
+				)}px` }"
 			>
-				<div v-if = 'page.custom.show'>
-					<var-input
-						v-show = 'page.custom.input'
-						ref = 'input'
-						textarea
-						v-model = 'page.custom.code'
-						:rows = 'GLOBAL.SCALE < 0.6 ? 32 : 19'
-						@blur = 'page.custom.blur()'
-					/>
-					<var-highlighter-provider
-						v-show = '!page.custom.input'
-						:highlighter = 'style'
-						theme = 'vitesse-light'
-						@click = 'page.custom.focus()'
-					>
-						<var-code
-							language = 'javascript'
-							:code = 'page.custom.code'
-							:word-wrap = 'true'
-							:trim = 'false'
-						/>
-					</var-highlighter-provider>
-				</div>
+				<Code
+					v-if = 'page.custom.show'
+					v-model = 'page.custom.code'
+					@blur = 'page.custom.blur()'
+					:readonly = "parents === 'log'"
+				/>
 				<div v-else>
 					<var-cell
 						v-for = 'i in page.number'
@@ -112,12 +104,31 @@
 								@change = 'page.change(i)'/>
 						</template>
 					</var-cell>
+					<var-cell class = 'waveform'>
+						<template #default>
+							<div class = 'no-scrollbar'>
+								<var-chip
+									:closeable = "parents === 'system'"
+									v-for = 'i in page.waveform.array'
+									@close = 'page.waveform.splice(i)'
+								>
+									{{ WAVEFORM_MAP.get(i) ?? i }}
+								</var-chip>
+							</div>
+							<Select
+								:readonly = "parents === 'log'"
+								name = 'waveform'
+								@change = 'page.waveform.change'
+							/>
+						</template>
+					</var-cell>
 				</div>
 			</TransitionGroup>
 			<var-cell>
 				<template #default>
 					<Input
 						:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DGLAB_TEST_LP)'
+						:clearable = 'false'
 						v-model = 'page.test'
 						type = 'number'
 					/>
@@ -133,18 +144,16 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { ComponentPublicInstance, computed, nextTick, onBeforeMount, onMounted, reactive, useTemplateRef, watch } from 'vue';
-	import { _AutoCompleteComponent } from '@varlet/ui';
+	import { computed, onBeforeMount, onMounted, reactive, useTemplateRef, watch } from 'vue';
 	import { DGLAB_SOCKET_STATE } from 'dglab-kit';
 	import QRCode from 'qrcode';
 	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
 	import * as Opener from '@tauri-apps/plugin-opener';
-	import hljs from 'highlight.js/lib/core';
-	import javascript from 'highlight.js/lib/languages/javascript';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
+	import { I18N_DGLAB } from '@/script/language/extend';
 	import dg from '@/script/dglab';
 	import invoke from '@/script/invoke';
 	import GLOBAL from '@/script/scale';
@@ -152,12 +161,17 @@
 	import { toast } from '@/pages/toast/toast';
 	import Input from '@/ui/input.vue';
 	import Button from '@/ui/button.vue';
+	import Code from '@/ui/code.vue';
+	import Select from '@/ui/select.vue';
 
 	import Head from './head.vue';
 
 	const canvas = useTemplateRef<HTMLCanvasElement>('qrcode');
-	const input = useTemplateRef<ComponentPublicInstance & _AutoCompleteComponent>('input');
+
 	const QRHEIGHT = 340;
+	const WAVEFORM_MAP = I18N_DGLAB();
+
+	let code : string;
 
 	hljs.registerLanguage('javascript', javascript);
 
@@ -172,25 +186,37 @@
 	};
 
 	const page = reactive({
-		height : computed(() => 10 * props.height + 1),
+		height : computed(() => 10 * props.height + (GLOBAL.SCALE < 0.6 ? 200 : 180) + 1),
 		show : false,
+		waveform : {
+			array : [] as Array<string>,
+			change : (select : string) => {
+				page.waveform.array.push(select);
+				page.change({
+					i18n : I18N_KEYS.SETTING_DGLAB_WAVEFORM,
+					key : KEYS.SETTING_DGLAB_WAVEFORM,
+					value : page.waveform.array
+				});
+			},
+			splice : (v : string) => {
+				const i = page.waveform.array.indexOf(v);
+				if (i < 0)
+					return;
+				page.waveform.array.splice(i, 1);
+				page.change({
+					i18n : I18N_KEYS.SETTING_DGLAB_WAVEFORM,
+					key : KEYS.SETTING_DGLAB_WAVEFORM,
+					value : page.waveform.array
+				});
+			}
+		},
 		custom : {
 			show : false,
-			input : false,
 			code : '',
-			blur : function () {
-				this.input = false;
-				if (this.code !== mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT))
-					emit('change', {
-						i18n : I18N_KEYS.SETTING_DGLAB_SCRIPT,
-						key : KEYS.SETTING_DGLAB_SCRIPT,
-						value : this.code
-					});
-			},
-			focus : async function () {
-				this.input = true;
-				await nextTick()
-				input.value?.focus?.();
+			blur : async function () {
+				if (this.code !== code
+					&& await invoke.extend.write(KEYS.EXTEND_DGLAB, this.code))
+					code = this.code;
 			}
 		},
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
@@ -288,9 +314,10 @@
 	const props = defineProps<{
 		height : number;
 		icon : boolean;
+		parents : 'log' | 'system';
 	}>();
 
-	onBeforeMount(() => {
+	onBeforeMount(async () => {
 		page.string = [
 			'SETTING_DGLAB_SERVER'
 		].map(i => {
@@ -315,7 +342,10 @@
 				max : i[1] as number | undefined
 			};
 		});
-		page.custom.code = mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string;
+		page.custom.show = mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT) as boolean;
+		page.waveform.array = mainGame.get.system(KEYS.SETTING_DGLAB_WAVEFORM) as Array<string>;
+		code = await invoke.extend.read(KEYS.EXTEND_DGLAB);
+		page.custom.code = code;
 	});
 
 	onMounted(() => {
@@ -330,6 +360,33 @@
 <style scoped lang = 'scss'>
 	.dglab {
 		width: 100%;
+		:deep(.waveform) {
+			[media = 'pc'] & {
+				height: 180px !important;
+			}
+			[media = 'mobile'] & {
+				height: 200px !important;
+				.var-select {
+					width: 100%;
+				}
+			}
+			.var-cell__content {
+				height: 100%;
+				width: 100%;
+				display: flex;
+				flex-direction: column;
+				> div:first-child {
+					width: 100%;
+					overflow-y: auto;
+					[media = 'pc'] & {
+						height: 100%;
+					}
+					[media = 'mobile'] & {
+						height: calc(100% - 80px);
+					}
+				}
+			}
+		}
 		.var-list {
 			width: 100%;
 			height: var(--h);
@@ -374,21 +431,6 @@
 				left: 0;
 				height: 100%;
 				width: 100%;
-				.var-highlighter-provider {
-					border: 1px solid white;
-					height: 100%;
-					width: 100%;
-					--code-font-size: 16px !important;
-				}
-				.var-input {
-					border-left: 1px solid white;
-					border-right: 1px solid white;
-					height: 100%;
-					width: 100%;
-					[media = 'mobile'] & {
-						transform: initial;
-					}
-				}
 			}
 		}
 	}
