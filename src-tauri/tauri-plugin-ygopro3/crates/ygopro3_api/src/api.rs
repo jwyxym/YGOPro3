@@ -254,6 +254,7 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 	ypk::exists(name).await.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::single_duel]
 #[tauri::command]
 pub async fn ygoserver_start (
 	lflist: u32, //lflist hash
@@ -283,6 +284,7 @@ pub async fn ygoserver_start (
 	).map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::single_duel]
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
 	Ok(ygopro3_single_duel::stop_server())
@@ -374,25 +376,29 @@ pub async fn get_hash () -> Result<Response, String> {
 	Ok(Response::new(ygopro3_game::get::hash().await.map_err(|e| e.to_string())?))
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
 pub async fn js_load (name: String) -> Result<String, String> {
 	let script: String = plugin_read(&name).await?;
-	ygopro3_js_runner::load(name, &script)
+	ygopro3_plugin::engine::load(name, &script)
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
 pub async fn js_unload (name: String) -> Result<(), String> {
-	ygopro3_js_runner::unload(name)
+	ygopro3_plugin::engine::unload(name)
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
 pub async fn js_call (name: String, args: String) -> Result<String, String> {
-	ygopro3_js_runner::call(name, args)
+	ygopro3_plugin::engine::call(name, args)
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
 pub async fn plugin_read (name: &str) -> Result<String, String> {
 	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
@@ -400,6 +406,7 @@ pub async fn plugin_read (name: &str) -> Result<String, String> {
 		.map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::plugin]
 #[tauri::command]
 pub async fn plugin_write (request: Request<'_>) -> Result<(), String> {
 	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;

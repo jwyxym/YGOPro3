@@ -1,3 +1,5 @@
+pub mod engine;
+
 use std::{fs, io::Error, path::Path};
 
 macro_rules! plugin_path {

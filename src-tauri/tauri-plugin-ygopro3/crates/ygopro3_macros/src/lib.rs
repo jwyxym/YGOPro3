@@ -27,3 +27,45 @@ pub fn windbot (_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 	TokenStream::from(quote!(#function))
 }
+
+#[proc_macro_attribute]
+pub fn single_duel (_attr: TokenStream, item: TokenStream) -> TokenStream {
+	let mut function: ItemFn = parse_macro_input!(item as ItemFn);
+	let block: Box<Block> = function.block;
+
+	function.attrs.push(parse_quote!(#[allow(unused_variables)]));
+	function.block = parse_quote!({
+		#[cfg(not(feature = "single_duel"))]
+		{
+			Err(String::from("single duel is forbidden by features"))
+		}
+
+		#[cfg(feature = "single_duel")]
+		{
+			#block
+		}
+	});
+
+	TokenStream::from(quote!(#function))
+}
+
+#[proc_macro_attribute]
+pub fn plugin (_attr: TokenStream, item: TokenStream) -> TokenStream {
+	let mut function: ItemFn = parse_macro_input!(item as ItemFn);
+	let block: Box<Block> = function.block;
+
+	function.attrs.push(parse_quote!(#[allow(unused_variables)]));
+	function.block = parse_quote!({
+		#[cfg(not(feature = "plugin"))]
+		{
+			Err(String::from("plugin is forbidden by features"))
+		}
+
+		#[cfg(feature = "plugin")]
+		{
+			#block
+		}
+	});
+
+	TokenStream::from(quote!(#function))
+}
