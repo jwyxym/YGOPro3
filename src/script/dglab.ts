@@ -116,7 +116,7 @@ class DG {
 			let duration;
 			let value;
 			let waveform;
-			if (this.script) {
+			if (this.script && mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT)) {
 				const result = await invoke.extend
 					.call<[number, number, Array<string> | number | undefined]>(this.script, [val, WAVEFORM]);
 				if (!Array.isArray(result)
