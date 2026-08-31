@@ -40,7 +40,9 @@ const COMMANDS: &[&str] = &[
 	"replay_del",
 	"js_load",
 	"js_unload",
-	"js_call"
+	"js_call",
+	"plugin_read",
+	"plugin_write",
 ];
 
 fn main() {

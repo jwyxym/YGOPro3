@@ -91,9 +91,7 @@ class DG {
 			this.target_id = result.targetId;
 			this.secret = result.secret;
 			if (mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT))
-				this.script = await invoke.extend.load('DGLAB',
-					mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string
-				);
+				this.script = await invoke.js.load(KEYS.EXTEND_DGLAB);
 			return;
 		} catch (error) {
 			await Promise.all([
@@ -117,7 +115,7 @@ class DG {
 			let value;
 			let waveform;
 			if (this.script && mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT)) {
-				const result = await invoke.extend
+				const result = await invoke.js
 					.call<[number, number, Array<string> | number | undefined]>(this.script, [val, WAVEFORM]);
 				if (!Array.isArray(result)
 					|| result.length < 2
@@ -203,7 +201,7 @@ class DG {
 			this.local_server = false;
 		}
 		if (this.script) {
-			promise.push(invoke.extend.unload(this.script));
+			promise.push(invoke.js.unload(this.script));
 			this.script = undefined;
 		}
 		await Promise.all(promise);

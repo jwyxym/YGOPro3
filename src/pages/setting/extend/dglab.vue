@@ -171,6 +171,8 @@
 	const QRHEIGHT = 340;
 	const WAVEFORM_MAP = I18N_DGLAB();
 
+	let code : string;
+
 	const page = reactive({
 		height : computed(() => 10 * props.height + (GLOBAL.SCALE < 0.6 ? 200 : 180) + 1),
 		show : false,
@@ -199,13 +201,10 @@
 		custom : {
 			show : false,
 			code : '',
-			blur : function () {
-				if (this.code !== mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT))
-					emit('change', {
-						i18n : I18N_KEYS.SETTING_DGLAB_SCRIPT,
-						key : KEYS.SETTING_DGLAB_SCRIPT,
-						value : this.code
-					});
+			blur : async function () {
+				if (this.code !== code
+					&& await invoke.extend.write(KEYS.EXTEND_DGLAB, this.code))
+					code = this.code;
 			}
 		},
 		string : [] as Array<{ i18n : number, key : string; value : string; }>,
@@ -306,7 +305,7 @@
 		parents : 'log' | 'system';
 	}>();
 
-	onBeforeMount(() => {
+	onBeforeMount(async () => {
 		page.string = [
 			'SETTING_DGLAB_SERVER'
 		].map(i => {
@@ -331,9 +330,10 @@
 				max : i[1] as number | undefined
 			};
 		});
-		page.custom.code = mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string;
 		page.custom.show = mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT) as boolean;
 		page.waveform.array = mainGame.get.system(KEYS.SETTING_DGLAB_WAVEFORM) as Array<string>;
+		code = await invoke.extend.read(KEYS.EXTEND_DGLAB);
+		page.custom.code = code;
 	});
 
 	onMounted(() => {

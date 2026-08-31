@@ -5,8 +5,8 @@ use ygopro3_network::{Srv, srv};
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
-use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}};
-use serde_json::Value::Array;
+use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}, error::DecodeError};
+use serde_json::{Value::{self, Array}, Number};
 use std::{borrow::Cow, fs::metadata};
 use tauri::{
 	AppHandle, ipc::{Response, Request, InvokeBody::{Raw, Json}}
@@ -90,13 +90,18 @@ pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 		Raw(data) => Cow::Borrowed(data),
 		Json(Array(data)) => Cow::Owned(
 			data.iter()
-				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v| v as u8)
+					))
 				.collect(),
 		),
 		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (deck, _) = decode_from_slice::<Vec<u32>, Configuration>(&bytes, CONFIG)
-		.map_err(|e| e.to_string())?;
+		.map_err(|e: DecodeError| e.to_string())?;
 	Ok(ygopro3_game::get::pic(deck).await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
@@ -335,13 +340,18 @@ pub async fn replay_save (request: Request<'_>) -> Result<String, String> {
 		Raw(data) => Cow::Borrowed(data),
 		Json(Array(data)) => Cow::Owned(
 			data.iter()
-				.flat_map(|v| v.as_number().and_then(|v| v.as_u64().map(|v| v as u8)))
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v| v as u8)
+					))
 				.collect(),
 		),
 		_ => return Err(String::from("unexpected invoke body")),
 	};
 	let (name, _) = decode_from_slice::<String, Configuration>(&bytes[0..256], CONFIG)
-		.map_err(|e| e.to_string())?;
+		.map_err(|e: DecodeError| e.to_string())?;
 	let content: &[u8] = &bytes[256..];
 	yrp::save(name, content).await.map_err(|e| e.to_string())
 }
@@ -371,7 +381,8 @@ pub async fn get_hash () -> Result<Response, String> {
 }
 
 #[tauri::command]
-pub async fn js_load (name: String, script: String) -> Result<String, String> {
+pub async fn js_load (name: String) -> Result<String, String> {
+	let script: String = plugin_read(&name).await?;
 	ygopro3_js_runner::load(name, &script)
 		.map_err(|e| e.to_string())
 }
@@ -385,5 +396,35 @@ pub async fn js_unload (name: String) -> Result<(), String> {
 #[tauri::command]
 pub async fn js_call (name: String, args: String) -> Result<String, String> {
 	ygopro3_js_runner::call(name, args)
+		.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn plugin_read (name: &str) -> Result<String, String> {
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	ygopro3_plugin::read(path, &name)
+		.map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn plugin_write (request: Request<'_>) -> Result<(), String> {
+	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
+	let bytes: Cow<'_, Vec<u8>> = match request.body() {
+		Raw(data) => Cow::Borrowed(data),
+		Json(Array(data)) => Cow::Owned(
+			data.iter()
+				.flat_map(|v: &Value| v
+					.as_number()
+					.and_then(|v: &Number| v
+						.as_u64()
+						.map(|v: u64| v as u8)
+					))
+				.collect(),
+		),
+		_ => return Err(String::from("unexpected invoke body")),
+	};
+	let ((name, content), _) = decode_from_slice::<(String, String), Configuration>(&bytes, CONFIG)
+		.map_err(|e: DecodeError| e.to_string())?;
+	ygopro3_plugin::write(path, &name, content)
 		.map_err(|e| e.to_string())
 }

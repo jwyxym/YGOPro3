@@ -93,7 +93,7 @@ impl System {
 			"CLEAR_DECK",
 			"SELECT_SORT",
 			"EXIT_SERVER",
-			"DGLAB_SCRIPT_ON"
+			"DGLAB_SCRIPT"
 		]
 			.into_iter().for_each(|i| {
 				self.boolean
@@ -161,7 +161,7 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(0.0);
 			});
-		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS", "DGLAB_SERVER", "DGLAB_SCRIPT"]
+		["SERVER_PLAYER_NAME", "SERVER_ADDRESS", "SERVER_PASS", "DGLAB_SERVER"]
 			.into_iter().for_each(|i| {
 				self.string
 					.entry(String::from(i))

@@ -1,5 +1,5 @@
 [package]
-name = "ygopro3_extend"
+name = "ygopro3_plugin"
 version = "0.1.0"
 edition = "2024"
 

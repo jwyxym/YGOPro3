@@ -7585,6 +7585,7 @@ dependencies = [
  "ygopro3_js_runner",
  "ygopro3_log",
  "ygopro3_network",
+ "ygopro3_plugin",
  "ygopro3_single_duel",
  "ygopro3_windbot",
  "ygopro3_ypk",
@@ -7734,6 +7735,10 @@ dependencies = [
  "walkdir",
  "ygopro3_fs",
 ]
+
+[[package]]
+name = "ygopro3_plugin"
+version = "0.1.0"
 
 [[package]]
 name = "ygopro3_resource"

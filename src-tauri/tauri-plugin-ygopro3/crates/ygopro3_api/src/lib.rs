@@ -7,6 +7,7 @@ use tauri::{
 	Wry,
 	generate_handler
 };
+use std::path::PathBuf;
 
 use ygopro3_const::{PATH, RESOURCE_PATH};
 use ygopro3_log::log;
@@ -58,14 +59,16 @@ pub fn init () -> TauriPlugin<Wry> {
 			api::replay_del,
 			api::js_load,
 			api::js_unload,
-			api::js_call
+			api::js_call,
+			api::plugin_read,
+			api::plugin_write,
 		])
 		.setup(|app, _api| {
 			#[cfg(target_os = "android")]
 			{
-				let path = app.path().resolve("./", BaseDirectory::Public)?;
+				let path: PathBuf = app.path().resolve("./", BaseDirectory::Public)?;
 				if let Some(parent) = path.parent() {
-					let path = parent.to_path_buf();
+					let path: PathBuf = parent.to_path_buf();
 					log::init(&path)?;
 					RESOURCE_PATH.set(path.clone()).ok();
 					PATH.set(path).ok();
@@ -73,11 +76,11 @@ pub fn init () -> TauriPlugin<Wry> {
 			}
 			#[cfg(not(target_os = "android"))]
 			{
-				let path = app.path().resolve("./", BaseDirectory::Resource)?;
+				let path: PathBuf = app.path().resolve("./", BaseDirectory::Resource)?;
 				RESOURCE_PATH.set(path.clone()).ok();
 
-				let path = if log::init(&path).is_err() {
-					let path = app.path().resolve("./", BaseDirectory::AppLocalData)?;
+				let path: PathBuf = if log::init(&path).is_err() {
+					let path: PathBuf = app.path().resolve("./", BaseDirectory::AppLocalData)?;
 					log::init(&path)?;
 					path
 				} else {

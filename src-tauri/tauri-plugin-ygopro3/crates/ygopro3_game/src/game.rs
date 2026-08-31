@@ -80,7 +80,7 @@ impl Game {
 		progress::emit(app, Event::Progress, 1);
 
 		tasks.push(task);
-		for i in vec!["deck", "expansions", "replay"] {
+		for i in vec!["deck", "expansions", "replay", "plugin"] {
 			tasks.push(spawn(async move {
 				Ok(create_dir_all(path.join(i)).await?)
 			}));
