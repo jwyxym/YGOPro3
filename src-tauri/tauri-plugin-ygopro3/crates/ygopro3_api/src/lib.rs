@@ -11,7 +11,7 @@ use tauri::{
 use ygopro3_const::{PATH, RESOURCE_PATH};
 use ygopro3_log::log;
 
-pub fn init() -> TauriPlugin<Wry> {
+pub fn init () -> TauriPlugin<Wry> {
 	#[allow(unused_mut)]
 	let mut builder = Builder::new("ygopro3");
 

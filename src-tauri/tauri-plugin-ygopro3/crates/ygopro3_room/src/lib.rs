@@ -14,7 +14,7 @@ impl Room {
 			model: IndexMap::new()
 		}
 	}
-	pub fn init(&mut self, text: String) -> () {
+	pub fn init (&mut self, text: String) -> () {
 		if let Ok(model) = from_str::<IndexMap<String, String>>(&text) {
 			self.model = model;
 		}

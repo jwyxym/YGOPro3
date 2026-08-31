@@ -50,7 +50,7 @@ struct ServerControl {
 	server_thread: JoinHandle<()>,
 }
 
-pub fn start_server(
+pub fn start_server (
 	lflist: u32,
 	rule: u8,
 	mode: u8,
@@ -129,7 +129,7 @@ pub fn start_server(
 		.map_err(|_|anyhow!("ygoserver runtime error"))
 }
 
-pub fn stop_server() {
+pub fn stop_server () {
 	let server_control = {
 		let server_control_lock = SERVER_CONTROL.get_or_init(|| Mutex::new(None));
 		server_control_lock.lock().take()
@@ -141,7 +141,7 @@ pub fn stop_server() {
 	}
 }
 
-async fn run_tcp_server(
+async fn run_tcp_server (
 	replay_mode: ReplayMode,
 	host_info: HostInfo,
 	mut shutdown_receiver: oneshot::Receiver<()>,
@@ -205,7 +205,7 @@ async fn run_tcp_server(
 	Ok(())
 }
 
-async fn init() -> Result<(), Error> {
+async fn init () -> Result<(), Error> {
 	let mut hash_map: HashMap<u32, Card> = HashMap::new();
 	let cards = ygopro3_game::get::cards().await?;
 	for i in cards {
@@ -249,8 +249,8 @@ async fn init() -> Result<(), Error> {
 	Ok(())
 }
 
-extern "C" fn script_reader(script_path: *const c_char, slen: *mut c_int) -> *mut u8 {
-	fn read_file(file_path: &str, buffer: &mut [u8]) -> Result<usize, Error> {
+extern "C" fn script_reader (script_path: *const c_char, slen: *mut c_int) -> *mut u8 {
+	fn read_file (file_path: &str, buffer: &mut [u8]) -> Result<usize, Error> {
 		let data: Vec<u8> = read(file_path)?;
 		let len: usize = data.len();
 		if len >= buffer.len() {
@@ -288,7 +288,7 @@ extern "C" fn script_reader(script_path: *const c_char, slen: *mut c_int) -> *mu
 	}
 }
 
-fn seed_generator(duel_count: u8) -> DuelSeed {
+fn seed_generator (duel_count: u8) -> DuelSeed {
 	let seed = SERVER_SEEDS
 		.get()
 		.and_then(|seeds| seeds.lock().get(duel_count as usize).copied());
@@ -298,7 +298,7 @@ fn seed_generator(duel_count: u8) -> DuelSeed {
 	}
 }
 
-extern "C" fn core_message_handler(pduel: isize, message_type: u32) -> u32 {
+extern "C" fn core_message_handler (pduel: isize, message_type: u32) -> u32 {
 	let mut buffer = [0u8; 1024];
 	unsafe { get_log_message(pduel, buffer.as_mut_ptr()); }
 	let c_message = unsafe { CStr::from_ptr(buffer.as_ptr() as *const c_char) };

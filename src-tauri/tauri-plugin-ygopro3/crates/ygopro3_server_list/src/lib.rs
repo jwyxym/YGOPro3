@@ -14,7 +14,7 @@ impl Server {
 			servers: IndexMap::new()
 		}
 	}
-	pub fn init_by_toml(&mut self, text: String) -> () {
+	pub fn init_by_toml (&mut self, text: String) -> () {
 		if let Ok(servers) = from_str::<IndexMap<String, String>>(&text) {
 			let servers: Server = Self {
 				servers: servers
@@ -40,7 +40,7 @@ impl Server {
 		}
 		false
 	}
-	pub fn init_by_conf(&mut self, text: String) -> () {
+	pub fn init_by_conf (&mut self, text: String) -> () {
 		text
 			.lines()
 			.filter_map(|i| if i.trim().is_empty() { None } else { Some(i) })
@@ -51,7 +51,7 @@ impl Server {
 				}
 			});
 	}
-	pub fn init_by_ini(&mut self, text: String) -> () {
+	pub fn init_by_ini (&mut self, text: String) -> () {
 		let mut host: String = String::new();
 		let mut port: String = String::new();
 		let mut name: String = String::new();

@@ -41,7 +41,7 @@ impl WindBot {
 		}
 	}
 
-	pub fn get_list(&self) -> String {
+	pub fn get_list (&self) -> String {
 		|| -> Result<String, Error> {
 			unsafe {
 				let windbot_list: Symbol<unsafe extern "C" fn() -> *const c_char> = self.lib.get(b"windbot_list")?;
