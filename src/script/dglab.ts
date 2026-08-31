@@ -90,9 +90,10 @@ class DG {
 			this.socket = socket;
 			this.target_id = result.targetId;
 			this.secret = result.secret;
-			const script : string = mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string;
-			this.script = await invoke.extend.load('DGLAB', script);
-
+			if (mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT))
+				this.script = await invoke.extend.load('DGLAB',
+					mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string
+				);
 			return;
 		} catch (error) {
 			await Promise.all([

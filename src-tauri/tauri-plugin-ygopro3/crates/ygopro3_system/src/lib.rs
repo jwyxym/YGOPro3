@@ -92,7 +92,8 @@ impl System {
 			"DISRUPT_DECK",
 			"CLEAR_DECK",
 			"SELECT_SORT",
-			"EXIT_SERVER"
+			"EXIT_SERVER",
+			"DGLAB_SCRIPT_ON"
 		]
 			.into_iter().for_each(|i| {
 				self.boolean

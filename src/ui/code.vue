@@ -1,6 +1,7 @@
 <template>
-	<div class = 'code'>
+	<div class = 'code no-scrollbar'>
 		<textarea
+			class = 'no-scrollbar'
 			ref = 'input'
 			v-show = 'page.input'
 			v-model = 'page.code'
@@ -73,6 +74,7 @@
 		height: 100%;
 		width: 100%;
 		border: 1px solid white;
+		overflow-y: auto;
 		.var-highlighter-provider {
 			height: 100%;
 			width: 100%;

@@ -66,7 +66,14 @@
 			<var-cell>
 				{{ mainGame.get.text(I18N_KEYS.SETTING_DGLAB_SCRIPT) }}
 				&nbsp;&nbsp;
-				<var-switch v-model = 'page.custom.show'/>
+				<var-switch
+					v-model = 'page.custom.show'
+					@change = 'page.change({
+						i18n : I18N_KEYS.SETTING_DGLAB_SCRIPT,
+						key : KEYS.SETTING_CHK_DGLAB_SCRIPT,
+						value : !page.custom.show
+					})'
+				/>
 			</var-cell>
 			<TransitionGroup
 				tag = 'div'
@@ -325,7 +332,8 @@
 			};
 		});
 		page.custom.code = mainGame.get.system(KEYS.SETTING_DGLAB_SCRIPT) as string;
-		page.waveform.array = mainGame.get.system(KEYS.SETTING_DGLAB_WAVEFORM) as Array<string>
+		page.custom.show = mainGame.get.system(KEYS.SETTING_CHK_DGLAB_SCRIPT) as boolean;
+		page.waveform.array = mainGame.get.system(KEYS.SETTING_DGLAB_WAVEFORM) as Array<string>;
 	});
 
 	onMounted(() => {
