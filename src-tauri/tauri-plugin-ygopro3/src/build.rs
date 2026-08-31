@@ -38,9 +38,9 @@ const COMMANDS: &[&str] = &[
 	"replay_list",
 	"replay_rename",
 	"replay_del",
-	"extend_load",
-	"extend_unload",
-	"extend_call"
+	"js_load",
+	"js_unload",
+	"js_call"
 ];
 
 fn main() {

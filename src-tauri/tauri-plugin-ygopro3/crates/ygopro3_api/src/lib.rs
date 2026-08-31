@@ -56,9 +56,9 @@ pub fn init () -> TauriPlugin<Wry> {
 			api::replay_list,
 			api::replay_rename,
 			api::replay_del,
-			api::extend_load,
-			api::extend_unload,
-			api::extend_call
+			api::js_load,
+			api::js_unload,
+			api::js_call
 		])
 		.setup(|app, _api| {
 			#[cfg(target_os = "android")]

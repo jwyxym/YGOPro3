@@ -52,6 +52,7 @@ ygopro3_ex_code = { path = "./crates/ygopro3_ex_code" }
 ygopro3_fs = { path = "./crates/ygopro3_fs" }
 ygopro3_game = { path = "./crates/ygopro3_game" }
 ygopro3_info = { path = "./crates/ygopro3_info" }
+ygopro3_js_runner = { path = "./crates/ygopro3_js_runner" }
 ygopro3_lflist = { path = "./crates/ygopro3_lflist" }
 ygopro3_log = { path = "./crates/ygopro3_log" }
 ygopro3_network = { path = "./crates/ygopro3_network" }
@@ -82,6 +83,7 @@ members = [
 	"crates/ygopro3_fs",
 	"crates/ygopro3_game",
 	"crates/ygopro3_info",
+	"crates/ygopro3_js_runner",
 	"crates/ygopro3_lflist",
 	"crates/ygopro3_log",
 	"crates/ygopro3_network",

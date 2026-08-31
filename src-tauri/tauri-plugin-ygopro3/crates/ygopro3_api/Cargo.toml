@@ -20,7 +20,7 @@ ygopro3_deck.workspace = true
 ygopro3_yrp.workspace = true
 ygopro3_ypk.workspace = true
 ygopro3_single_duel.workspace = true
-ygopro3_extend.workspace = true
+ygopro3_js_runner.workspace = true
 
 [target.'cfg(not(target_arch = "x86"))'.dependencies]
 ygopro3_windbot.workspace = true

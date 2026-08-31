@@ -7581,8 +7581,8 @@ dependencies = [
  "tauri",
  "ygopro3_const",
  "ygopro3_deck",
- "ygopro3_extend",
  "ygopro3_game",
+ "ygopro3_js_runner",
  "ygopro3_log",
  "ygopro3_network",
  "ygopro3_single_duel",
@@ -7637,16 +7637,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ygopro3_extend"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "parking_lot",
- "rquickjs",
- "ygopro3_log",
-]
-
-[[package]]
 name = "ygopro3_fs"
 version = "0.1.0"
 dependencies = [
@@ -7691,6 +7681,16 @@ dependencies = [
  "anyhow",
  "basic-toml",
  "serde",
+]
+
+[[package]]
+name = "ygopro3_js_runner"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "parking_lot",
+ "rquickjs",
+ "ygopro3_log",
 ]
 
 [[package]]

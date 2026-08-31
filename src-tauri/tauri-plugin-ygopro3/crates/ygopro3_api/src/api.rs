@@ -371,19 +371,19 @@ pub async fn get_hash () -> Result<Response, String> {
 }
 
 #[tauri::command]
-pub async fn extend_load (name: String, script: String) -> Result<String, String> {
-	ygopro3_extend::load(name, &script)
+pub async fn js_load (name: String, script: String) -> Result<String, String> {
+	ygopro3_js_runner::load(name, &script)
 		.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn extend_unload (name: String) -> Result<(), String> {
-	ygopro3_extend::unload(name)
+pub async fn js_unload (name: String) -> Result<(), String> {
+	ygopro3_js_runner::unload(name)
 		.map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub async fn extend_call (name: String, args: String) -> Result<String, String> {
-	ygopro3_extend::call(name, args)
+pub async fn js_call (name: String, args: String) -> Result<String, String> {
+	ygopro3_js_runner::call(name, args)
 		.map_err(|e| e.to_string())
 }
