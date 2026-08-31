@@ -288,9 +288,9 @@ pub async fn ygoserver_stop () -> Result<(), String> {
 	Ok(ygopro3_single_duel::stop_server())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
 pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
-	#[cfg(not(target_arch = "x86"))]
 	if args.is_empty() {
 		ygopro3_windbot::init().await
 	} else {
@@ -300,30 +300,24 @@ pub async fn windbot_start (args: String, deck: String) -> Result<(), String> {
 		ygopro3_windbot::start(args, i18n, deck).await
 	}
 		.map_err(|e| e.to_string())?;
-	#[cfg(target_arch = "x86")] {
-		let _ = args;
-		let _ = deck;
-	}
 	Ok(())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
 pub async fn windbot_stop () -> Result<(), String> {
-	#[cfg(not(target_arch = "x86"))]
 	ygopro3_windbot::stop().await.map_err(|e| e.to_string())?;
 	Ok(())
 }
 
+#[ygopro3_macros::windbot]
 #[tauri::command]
-pub async fn windbot_list () -> Response {
-	#[cfg(not(target_arch = "x86"))]
-	return ygopro3_windbot::list().await
+pub async fn windbot_list () -> Result<Response, String> {
+	Ok(ygopro3_windbot::list().await
 		.ok()
 		.and_then(|i| encode_to_vec(i, CONFIG).ok())
 		.map(Response::new)
-		.unwrap_or_else(default_response);
-	#[cfg(target_arch = "x86")]
-	default_response()
+		.unwrap_or_else(default_response))
 }
 
 #[tauri::command]
