@@ -9,16 +9,18 @@
 			'--card_width' : `${size.width}px`
 		}"
 	>
-		<var-badge
-			type = 'info'
+		<div
+			class = 'badge glist font-atk'
 			v-if = 'get_g(i.code)'
-			:value = 'get_g(i.code)'
-		/>
-		<var-badge
-			type = 'danger'
+		>
+			{{ get_g(i.code) }}
+		</div>
+		<div
+			class = 'badge lflist font-atk'
 			v-else-if = 'get_lf(i.code)'
-			:value = 'get_lf(i.code)'
-		/>
+		>
+			{{ get_lf(i.code) }}
+		</div>
 	</div>
 </template>
 <script setup lang = 'ts'>
@@ -63,6 +65,29 @@
 		background-image: var(--url);
 		background-size: cover;
 		z-index: 0;
+		> div {
+			position: absolute;
+			left: 0;
+			top: 0;
+			height: calc(var(--card_width) * 0.4);
+			width: calc(var(--card_width) * 0.4);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border-radius: 50%;
+			border-width: 1px;
+			border-style: solid;
+			white-space: nowrap;
+			background-color: black;
+			&.lflist {
+				border-color: hotpink;
+				color: hotpink;
+			}
+			&.glist {
+				border-color: aqua;
+				color: aqua;
+			}
+		}
 	}
 	.show {
 		opacity: 1;
