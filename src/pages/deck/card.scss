@@ -1,0 +1,23 @@
+body {
+	.ygopro3__deck__card {
+		position: relative;
+		background-size: cover;
+		z-index: 0;
+		&.move {
+			opacity: 10%;
+		}
+		> div {
+			position: absolute;
+			left: 0;
+			top: 0;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			border-radius: 50%;
+			border-width: 1px;
+			border-style: solid;
+			white-space: nowrap;
+			background-color: black;
+		}
+	}
+}
