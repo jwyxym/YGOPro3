@@ -1,5 +1,6 @@
 <template>
 	<div
+		ref = 'deck'
 		class = 'drag no-scrollbar'
 		:style = "{
 			'--width' : `${width}px`,
@@ -23,7 +24,7 @@
 				:id = 'item.name'
 				@dragstart = 'drag.start($event)'
 				@dragenter = "drag.enter($event, item.name as 'main' | 'extra' | 'side')"
-				@dragover.prevent
+				@dragover.prevent = 'drag.scroll($event)'
 				@dragleave = 'drag.leave($event)'
 				@dragend.prevent = 'drag.end($event)'
 				@contextmenu.prevent = 'drag.remove($event)'
@@ -57,17 +58,20 @@
 	}>();
 
 	const group = useTemplateRef('group');
+	const deck = useTemplateRef('deck');
 	let cards : [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>] = [[], [], []];
 
 	const drag = {
 		card : undefined as HTMLDivElement | undefined,
 		list : undefined as HTMLDivElement | undefined,
+		on : undefined as undefined | number,
 		err : false,
 		start : function (e : DragEvent) {
 			const card = e.target as HTMLDivElement;
 			e.dataTransfer!.effectAllowed = 'move';
 			if (!e.currentTarget)
 				return;
+			window.addEventListener('dragover', this.scroll);
 			this.card = card;
 			this.list = e.currentTarget as HTMLDivElement | null ?? undefined;
 			this.list?.classList.add('move_ok');
@@ -79,6 +83,11 @@
 			e.dataTransfer!.effectAllowed = 'move';
 			if (!this.card)
 				return;
+			window.removeEventListener('dragover', this.scroll);
+			if (this.on) {
+				clearInterval(this.on);
+				this.on = undefined;
+			}
 			const in_group = group.value!.some(i => {
 				const rect = i.getBoundingClientRect();
 				return e.clientX >= rect.left
@@ -100,6 +109,25 @@
 					.filter(i => i.dataset.id) as Array<HTMLElement>
 				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
 			page.flush();
+		},
+		scroll : (e : DragEvent) : void => {
+			if (!deck.value)
+				return;
+			const rect = deck.value.getBoundingClientRect();
+			if (e.clientY > rect.bottom && !drag.on) {
+				deck.value.scrollTop += window.innerHeight;
+				drag.on = setInterval(() => {
+					deck.value!.scrollTop += window.innerHeight;
+				}, 400) as any as number;
+			} else if (e.clientY < rect.top && !drag.on) {
+				deck.value.scrollTop -= window.innerHeight;
+				drag.on = setInterval(() => {
+					deck.value!.scrollTop -= window.innerHeight;
+				}, 400) as any as number;
+			} else if (e.clientY >= rect.top && e.clientY <= rect.bottom && drag.on) {
+				clearInterval(drag.on);
+				drag.on = undefined;
+			}
 		},
 		enter : function (e : DragEvent, name : 'main' | 'extra' | 'side') {
 			e.dataTransfer!.effectAllowed = 'move';
@@ -354,6 +382,7 @@
 			> div {
 				display: flex;
 				flex-wrap: wrap;
+				align-content: flex-start;
 				min-height: var(--min_height);
 				border: white 2px solid;
 				span {
