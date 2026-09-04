@@ -17,3 +17,4 @@ arc-swap.workspace = true
 
 ygopro3_ex_code.workspace = true
 ygopro3_game.workspace = true
+ygopro3_card.workspace = true

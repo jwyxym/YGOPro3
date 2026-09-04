@@ -74,6 +74,9 @@ ygopro3_zip = { path = "./crates/ygopro3_zip" }
 
 [workspace]
 resolver = "2"
+exclude = [
+	"crates/ygopru",
+]
 members = [
 	"crates/ygopro3_api",
 	"crates/ygopro3_card",

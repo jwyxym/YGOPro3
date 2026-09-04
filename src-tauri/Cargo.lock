@@ -7484,7 +7484,7 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 
 [[package]]
 name = "ygopro"
-version = "0.1.0"
+version = "1.36.2-rs.1"
 dependencies = [
  "anymap3",
  "arc-swap",
@@ -7499,8 +7499,10 @@ dependencies = [
  "log",
  "parking_lot",
  "rand 0.8.5",
+ "slab",
  "tokio",
  "tokio-stream",
+ "tokio-util",
  "walkdir",
  "ygopro-core-wrapper",
  "ygopro-data",
@@ -7809,6 +7811,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
+ "ygopro3_card",
  "ygopro3_ex_code",
  "ygopro3_game",
  "ygopru",
