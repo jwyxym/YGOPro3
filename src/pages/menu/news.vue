@@ -16,7 +16,6 @@
 
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
-	import invoke from '@/script/invoke';
 	
 	interface swipe {
 		url : string;
@@ -29,12 +28,8 @@
 		show : false,
 		swipe : [] as Array<swipe>,
 		open : async (url : string) => {
-			try {
-				await Opener.openUrl(url);
-				return true;
-			} catch (e) {
-				await invoke.log.write(e);
-			}
+			Opener.openUrl(url)
+				.catch();
 		}
 	});
 

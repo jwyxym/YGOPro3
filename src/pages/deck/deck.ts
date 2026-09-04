@@ -11,10 +11,6 @@ class Deck extends YGOProDeck {
 		this.new = is_new;
 	};
 
-	main : Array<number> = [];
-	side : Array<number> = [];
-	extra : Array<number> = [];
-
 	set_name = (name : string) : Deck => {
 		this.name = name;
 		return this;
