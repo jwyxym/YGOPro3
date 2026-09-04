@@ -63,8 +63,28 @@
 	const drag = {
 		card : undefined as HTMLDivElement | undefined,
 		list : undefined as HTMLDivElement | undefined,
+		image : undefined as HTMLDivElement | undefined,
 		on : undefined as undefined | number,
 		err : false,
+		set_image : function (e : DragEvent, card : HTMLDivElement) {
+			if (!e.dataTransfer)
+				return;
+			const rect = card.getBoundingClientRect();
+			const style = getComputedStyle(card);
+			const width = rect.width || parseFloat(card.style.width) || parseFloat(style.width);
+			const height = rect.height || parseFloat(card.style.height) || parseFloat(style.height);
+			const image = card.cloneNode(true) as HTMLDivElement;
+			image.classList.remove('move');
+			image.style.position = 'fixed';
+			image.style.left = '-10000px';
+			image.style.top = '-10000px';
+			image.style.width = width + 'px';
+			image.style.height = height + 'px';
+			image.style.pointerEvents = 'none';
+			document.body.appendChild(image);
+			e.dataTransfer.setDragImage(image, width / 2, height / 2);
+			this.image = image;
+		},
 		start : function (e : DragEvent, copy ?: HTMLDivElement, list ?: HTMLDivElement) {
 			const target = e.target as HTMLElement;
 			const card = copy ?? target.closest('.ygopro3__deck__card') as HTMLDivElement | null;
@@ -73,6 +93,7 @@
 			e.dataTransfer!.effectAllowed = 'move';
 			if (!list && !e.currentTarget)
 				return;
+			this.set_image(e, card);
 			window.addEventListener('dragover', this.scroll);
 			this.card = card;
 			this.list = list;
@@ -92,6 +113,8 @@
 				clearInterval(this.on);
 				this.on = undefined;
 			}
+			this.image?.remove();
+			this.image = undefined;
 			const in_group = group.value!.some(i => {
 				const rect = i.getBoundingClientRect();
 				return e.clientX >= rect.left
