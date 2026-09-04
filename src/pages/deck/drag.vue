@@ -285,7 +285,7 @@
 	watch(() => props.lflist, (n) => card.count(cards.flat(), n));
 
 	onMounted(async () => {
-		const width = props.width / props.count;
+		const width = (props.width - 4) / props.count;
 		const height = width * 1.45;
 		page.height = height * 2;
 		cards = card.append(group.value!, props.deck, width, height, page.callback);
