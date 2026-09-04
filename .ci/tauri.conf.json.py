@@ -21,7 +21,8 @@ tauri_config = {
 			{
 				"title" : "ygopro3",
 				"width" : 1280,
-				"height" : 720
+				"height" : 720,
+				"dragDropEnabled": False
 			}
 		],
 		"security" : {

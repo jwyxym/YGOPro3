@@ -79,13 +79,13 @@
 			/>
 			<Side
 				:ref = '(el) => (side.el = el as InstanceType<typeof Side> | null)'
-				v-if = 'connect.state === 3 && side.show'
+				v-if = 'connect.state === 3 && side.show && connect.wait.deck.current'
 				:height = 'side.height'
 				:width = 'side.width'
 				:count = 'side.count'
 				:deck = 'connect.wait.deck.current'
 				:del = 'false'
-				@card = '(card : number) => connect.duel.card = card'
+				@card = '(card : string | number) => connect.duel.card = card'
 				key = '8'
 			/>
 			<About
@@ -339,7 +339,7 @@
 	import Button from '@/ui/button.vue';
 	import dialog, { close } from '@/ui/dialog';
 	import Card_info from '@/pages/deck/card_info.vue';
-	import Side from '@/pages/deck/cards.vue';
+	import Side from '@/pages/deck/drag.vue';
 	import Deck from '@/pages/deck/deck';
 
 	import mainGame from '@/script/game';

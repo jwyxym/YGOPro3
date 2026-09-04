@@ -14,15 +14,17 @@ class Deck extends YGOProDeck {
 	set_name = (name : string) : Deck => {
 		this.name = name;
 		return this;
-	}
+	};
 
 	is_new = () : void => {
 		this.new = true;
-	}
+	};
 
 	is_not_new = () : void => {
 		this.new = false;
-	}
+	};
+
+	to_array = () : Array<number> => this.main.concat(this.extra, this.side);
 
 	toYdkString () {
 		return [
@@ -35,7 +37,6 @@ class Deck extends YGOProDeck {
 		...this.side.map((id) => id.toString()),
 		].join('\n');
 	};
-
 
 	static fromYdkString (str: string, input : boolean = false) : Deck {
 		const lines = str.split(input ? ' ' : REG.LINE_FEED);
@@ -62,7 +63,7 @@ class Deck extends YGOProDeck {
 			return new Deck();
 		}
 		return deck;
-	}
+	};
 
 	static fromYGOMobileDeckURL (str: string) : Deck {
 		try {
@@ -77,7 +78,7 @@ class Deck extends YGOProDeck {
 			invoke.log.write(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR))
 			return new Deck();
 		}
-	}
+	};
 }
 
 export default Deck;

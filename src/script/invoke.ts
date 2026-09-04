@@ -178,7 +178,7 @@ class Invoke {
 						defense : bincode.i32,
 						lscale : bincode.u32,
 						rscale : bincode.u32,
-						link_marker : bincode.u32,
+						link : bincode.u32,
 						ot : bincode.u8,
 						category : bincode.u32
 					})), result).value as Array<{
@@ -196,7 +196,7 @@ class Invoke {
 						defense : number;
 						lscale : number;
 						rscale : number;
-						link_marker : number;
+						link : number;
 						ot : number;
 						category : number;
 					}>)
