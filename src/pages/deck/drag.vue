@@ -27,7 +27,6 @@
 				@dragover.prevent = 'drag.scroll($event)'
 				@dragleave = 'drag.leave($event)'
 				@dragend.prevent = 'drag.end($event)'
-				@contextmenu.prevent = 'drag.remove($event)'
 			>
 				<span/>
 			</div>
@@ -188,16 +187,6 @@
 				this.err = false;
 			}
 		},
-		remove : function (e : MouseEvent) {
-			if (!props.del)
-				return;
-			if (!card.remove(e.target))
-				return;
-			cards = group.value!.map(list => (Array.from(list.children) as Array<HTMLElement>)
-					.filter(i => i.dataset.id) as Array<HTMLElement>
-				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
-			page.flush();
-		},
 		check : (el : HTMLDivElement | number | string, name : 'main' | 'extra' | 'side') : [string, string] => {
 			const ok : [string, string] = ['move_ok', ''];
 			const err = (i : string) : [string, string] => ['move_err', i];
@@ -257,11 +246,12 @@
 			this.count = group.value!.map(i => i.children.length - 1);
 		},
 		callback : (i : HTMLDivElement) : void => {
-			i.addEventListener('contextmenu', (e) => {
-				e.preventDefault();
-				card.remove(e.target);
-				page.flush();
-			});
+			if (!__ANDROID__)
+				i.addEventListener('contextmenu', (e) => {
+					e.preventDefault();
+					card.remove(e.target);
+					page.flush();
+				});
 			i.addEventListener('click', (e) => {
 				e.preventDefault();
 				emit('card', i.dataset.id!)
