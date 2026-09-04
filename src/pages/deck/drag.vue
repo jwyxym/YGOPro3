@@ -66,17 +66,22 @@
 		list : undefined as HTMLDivElement | undefined,
 		on : undefined as undefined | number,
 		err : false,
-		start : function (e : DragEvent) {
-			const card = e.target as HTMLDivElement;
+		start : function (e : DragEvent, copy ?: HTMLDivElement, list ?: HTMLDivElement) {
+			const target = e.target as HTMLElement;
+			const card = copy ?? target.closest('.ygopro3__deck__card') as HTMLDivElement | null;
+			if (!card)
+				return;
 			e.dataTransfer!.effectAllowed = 'move';
-			if (!e.currentTarget)
+			if (!list && !e.currentTarget)
 				return;
 			window.addEventListener('dragover', this.scroll);
 			this.card = card;
-			this.list = e.currentTarget as HTMLDivElement | null ?? undefined;
+			this.list = list;
+			if (this.list === undefined && group.value?.some(i => i === e.currentTarget))
+				this.list = e.currentTarget as HTMLDivElement;
 			this.list?.classList.add('move_ok');
 			setTimeout(() => {
-				(e.target as HTMLElement).classList.add('move');
+				card.classList.add('move');
 			}, 0);
 		},
 		end : function (e : DragEvent) {
@@ -193,7 +198,7 @@
 				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
 			page.flush();
 		},
-		check : (el : HTMLDivElement | number, name : 'main' | 'extra' | 'side') : [string, string] => {
+		check : (el : HTMLDivElement | number | string, name : 'main' | 'extra' | 'side') : [string, string] => {
 			const ok : [string, string] = ['move_ok', ''];
 			const err = (i : string) : [string, string] => ['move_err', i];
 			const get_code = (card : Card) => {
@@ -205,13 +210,13 @@
 				}
 				return card.id;
 			};
-			const card : Card = mainGame.get.card(typeof el === 'number' ? el : el.dataset.id!);
+			const card : Card = mainGame.get.card(el instanceof HTMLDivElement ? el.dataset.id! : el);
 			if (card.is_token())
 				return err(mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_TYPE));
 			const code = get_code(card);
 			const c = cards.flat();
 			const deck_cards = c.map(i => i.dataset.id!);
-			const chk = typeof el === 'number' ? 1 : Number(!c.includes(el));
+			const chk = el instanceof HTMLDivElement ? Number(!c.includes(el)) : 1;
 			const ct = props.lflist?.get.lflist(card.id) ?? mainGame.get.system(KEYS.SETTING_CT_CARD) as number;
 			if (deck_cards.filter(i => get_code(mainGame.get.card(i)) === code).length + chk > ct)
 				return err(mainGame.get.text(I18N_KEYS.DECK_RULE_CARD_MAX, ct.toString()));
@@ -250,6 +255,17 @@
 				.map(i => i.dataset.id && props.lflist?.genesys ? props.lflist.get.glist(i.dataset.id) : 0)
 				.reduce((acc, cur) => acc + cur, 0);
 			this.count = group.value!.map(i => i.children.length - 1);
+		},
+		callback : (i : HTMLDivElement) : void => {
+			i.addEventListener('contextmenu', (e) => {
+				e.preventDefault();
+				card.remove(e.target);
+				page.flush();
+			});
+			i.addEventListener('click', (e) => {
+				e.preventDefault();
+				emit('card', i.dataset.id!)
+			});
 		}
 	});
 
@@ -259,19 +275,24 @@
 		const width = (props.width - 24) / props.count;
 		const height = width * 1.45;
 		page.height = height * 2;
-		cards = card.append(props.deck, width, height, page.flush);
+		cards = card.append(group.value!, props.deck, width, height, page.callback);
 		card.count(cards.flat(), props.lflist);
 		await nextTick();
 		page.flush();
 	});
+
+	const emit = defineEmits<{
+		card : [card : number | string];
+	}>();
 
 	defineExpose<{
 		clear : () => void;
 		sort : () => void;
 		disrupt : () => void;
 		to_deck : (name : string) => Deck;
-		drag : (target : DragEvent, code ?: number) => void;
-		add : (code : number) => void;
+		dragstart : (target : DragEvent) => void;
+		dragend : (target : DragEvent) => void;
+		add : (code : string | number) => void;
 	}>({
 		sort : () : void => {
 			group.value!.forEach(list => {
@@ -341,8 +362,30 @@
 				.map(i => Number(i.dataset.id)),
 			name : name
 		}),
-		drag : drag.start,
-		add : (code : number) => {
+		dragstart : (e) => {
+			const target = e.target as HTMLElement;
+			const source = target.closest('.ygopro3__deck__card') as HTMLDivElement | null;
+			if (!source)
+				return;
+			if (group.value?.some(i => i.contains(source))) {
+				drag.start(e);
+				return;
+			}
+			const width = (props.width - 24) / props.count;
+			const height = width * 1.45;
+			const copy = source.cloneNode(true) as HTMLDivElement;
+			copy.style.width = width + 'px';
+			copy.style.height = height + 'px';
+			if (copy.children[0] instanceof HTMLElement) {
+				copy.children[0].style.width = width * 0.4 + 'px';
+				copy.children[0].style.height = width * 0.4 + 'px';
+				copy.children[0].style.opacity = '0';
+			}
+			card.count([copy], props.lflist);
+			drag.start(e, copy);
+		},
+		dragend : (e) => drag.end(e),
+		add : (code : string | number) => {
 			const c = mainGame.get.card(code);
 			let deck : 0 | 1 | 2;
 			if (c.is_ex())
@@ -358,7 +401,7 @@
 			else {
 				const width = (props.width - 24) / props.count;
 				const height = width * 1.45;
-				const el = card.add(code, width, height, group.value![deck], page.flush);
+				const el = card.add(code, width, height, group.value![deck], page.callback);
 				cards[deck].push(el);
 				card.count([el], props.lflist);
 				page.flush();

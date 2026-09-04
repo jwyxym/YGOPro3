@@ -1,268 +1,182 @@
 <template>
-	<main
-		:style = "{ '--width' : `${width}px`, '--height' : `${height}px` }"
+	<div
+		class = 'ygopro3__deck__search search no-scrollbar'
+		ref = 'search'
 	>
-		<div v-if = 'page.about' class = 'about__name'>
-			<span>{{ mainGame.get.text(I18N_KEYS.DECK_RELATED_CARD_TITLE, [page.about.name]) }}</span>
-			<Button
-				:content = 'mainGame.get.text(I18N_KEYS.CLOSE)'
-				@click = 'search.search'
+		<div class = 'lflist'>
+			<Select
+				name = 'lflist'
+				v-model = 'page.info.lflist'
 			/>
-		</div>
-		<div v-else class = 'search__input'>
 			<Input
-				variant = 'outlined'
-				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
-				v-model = 'search.info.desc'
-				@enter = 'search.search'
-				@clear = 'search.search'
+				:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_FORBIDDEN)'
+				:rules = 'page.rule.number'
+				v-model = 'page.info.forbidden'
 			/>
-			<Button
-				icon_name = 'search'
-				@click = 'search.search'
-				:loading = 'page.loading'
-			/>
-		</div>
-		<div class = 'no-scrollbar' @scroll = 'page.load_on' ref = 'list'>
-			<var-list
-				:finished = 'page.finished'
-				v-model:loading = 'page.loading'
-				@load = 'page.load'
-				:immediate-check = 'false'
-				:style = "{
-					'--height' : `${page.size.height + 2}px`,
-					'--width' : `${page.size.width + 5}px`,
-				}"
-				class = 'list'
-			>
-				<div
-					v-for = 'i in page.list'
-					:key = 'i.pic.key'
-					:id = 'i.pic.key'
-				>
-					<Pic
-						:i = 'i.pic'
-						:hover = 'page.card === i.pic'
-						:count = '10'
-						:size = 'page.size'
-						:lflist = 'search.info.lflist ? mainGame.get.lflist(search.info.lflist) : undefined'
-						ref = 'cards'
-						@contextmenu.prevent = "emit('add', i.pic.code)"
-					/>
-					<div>
-						<span>{{ i.card.name }}</span>
-						<br>
-						<span>{{ i.card.id }}</span>
-					</div>
-				</div>
-			</var-list>
-		</div>
-		<div>
-			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH)' @click = 'search.on'/>
-			<Button :content = 'mainGame.get.text(I18N_KEYS.DECK_SETTING_SAVE)' @click = "emit('save')"/>
-			<Button :content = 'mainGame.get.text(I18N_KEYS.EXIT)' @click = "emit('exit')"/>
-			<p @click = 'page.back' class = 'pointer'><span>&#9650;</span></p>
 		</div>
 		<div
-			class = 'search no-scrollbar'
-			:style = "{ '--x' : search.x }"
-			ref = 'search_div'
+			class = 'select'
+			v-for = "j in [
+				{ span : I18N_KEYS.CARD_INFO_OT, results : page.info.ot, cards : page.list.ot, key : KEYS.OT, strings : mainGame.get.strings.ot, class : 'ot' },
+				{ span : I18N_KEYS.CARD_INFO_TYPE, results : page.info.type[0], cards : page.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type },
+				{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : page.info.type[1], cards : page.list.spell, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
+				{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : page.info.type[2], cards : page.list.monster, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3, switchs : 'type' },
+				{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : page.info.type[3], cards : page.list.except, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
+				{ span : I18N_KEYS.CARD_INFO_ATTRIBUTE, results : page.info.attribute, cards : page.list.attribute, key : KEYS.ATTRIBUTE, strings : mainGame.get.strings.attribute },
+				{ span : I18N_KEYS.CARD_INFO_RACE, results : page.info.race, cards : page.list.race, key : KEYS.RACE, strings : mainGame.get.strings.race },
+				{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : page.info.category, cards : page.list.category, key : KEYS.CATEGORY, strings : mainGame.get.strings.category, switchs : 'category' },
+			]"
 		>
-			<div class = 'lflist'>
-				<Select
-					name = 'lflist'
-					v-model = 'search.info.lflist'
-				/>
-				<Input
-					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_FORBIDDEN)'
-					:rules = 'search.rule.number'
-					v-model = 'search.info.forbidden'
-				/>
-			</div>
-			<div
-				class = 'select'
-				v-for = "j in [
-					{ span : I18N_KEYS.CARD_INFO_OT, results : search.info.ot, cards : search.list.ot, key : KEYS.OT, strings : mainGame.get.strings.ot, class : 'ot' },
-					{ span : I18N_KEYS.CARD_INFO_TYPE, results : search.info.type[0], cards : search.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type },
-					{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : search.info.type[1], cards : search.list.spell, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
-					{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : search.info.type[2], cards : search.list.monster, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3, switchs : 'type' },
-					{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : search.info.type[3], cards : search.list.except, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
-					{ span : I18N_KEYS.CARD_INFO_ATTRIBUTE, results : search.info.attribute, cards : search.list.attribute, key : KEYS.ATTRIBUTE, strings : mainGame.get.strings.attribute },
-					{ span : I18N_KEYS.CARD_INFO_RACE, results : search.info.race, cards : search.list.race, key : KEYS.RACE, strings : mainGame.get.strings.race },
-					{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : search.info.category, cards : search.list.category, key : KEYS.CATEGORY, strings : mainGame.get.strings.category, switchs : 'category' },
-				]"
-			>
-				<div>
-					<span>{{ mainGame.get.text(j.span) }}&nbsp;:</span>
-					<var-switch v-model = 'search.switchs[j.switchs as keyof typeof search.switchs]' v-if = 'j.switchs !== undefined'/>
-					<span v-if = 'j.switchs !== undefined' class = 'switch'>{{ search.switchs[j.switchs as keyof typeof search.switchs] ? 'and' : 'or' }}</span>
-				</div>
-				<div>
-					<div
-						v-for = 'i in j.cards'
-						:class = "{ 'selected' : j.results.includes(j.value ? j.value(i) : i), 'ot' : j.class === 'ot' }"
-						class = 'cursor'
-						@click = 'search.select(j.results, j.value ? j.value(i) : i)'
-					>
-						<img :src = '(mainGame.get.textures(j.key, i) as string)'/>
-						<span>{{ j.strings(j.value ? j.value(i) : i) }}</span>
-					</div>
-				</div>
-			</div>
-			<div class = 'link'>
-				<div>
-					<span>{{ mainGame.get.text(I18N_KEYS.CARD_INFO_LINK) }}&nbsp;:</span>
-					<var-switch v-model = "search.switchs['link' as keyof typeof search.switchs]"/>
-					<span class = 'switch'>{{ search.switchs['link' as keyof typeof search.switchs] ? 'and' : 'or' }}</span>
-				</div>
-				<div></div>
-				<div>
-					<img
-						v-for = 'i in search.list.link[0]'
-						:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[search.info.link.includes(i) ? 1 : 0]'
-						@click = 'search.select(search.info.link, i)'
-						class = 'cursor'
-					/>
-					<div></div>
-					<img
-						v-for = 'i in search.list.link[1]'
-						:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[search.info.link.includes(i) ? 1 : 0]'
-						@click = 'search.select(search.info.link, i)'
-						class = 'cursor'
-					/>
-				</div>
-			</div>
-			<div
-				class = 'input'
-			>
-				<div>
-					<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.STAR_RANK_LINK) as string)'/>
-					<Input
-						variant = 'outlined'
-						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_LV)'
-						:rules = 'search.rule.number'
-						v-model = search.info.lv
-					/>
-				</div>
-				<div>
-					<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.SCALE) as string)'/>
-					<Input
-						variant = 'outlined'
-						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_SCALE)'
-						:rules = 'search.rule.number'
-						v-model = search.info.scale
-					/>
-				</div>
-				<div>
-					<Input
-						variant = 'outlined'
-						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_ATK)'
-						:rules = 'search.rule.atk'
-						v-model = search.info.atk
-					/>
-					<Input
-						variant = 'outlined'
-						:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_DEF)'
-						:rules = 'search.rule.atk'
-						v-model = search.info.def
-					/>
-				</div>
+			<div>
+				<span>{{ mainGame.get.text(j.span) }}&nbsp;:</span>
+				<var-switch v-model = 'page.switchs[j.switchs as keyof typeof page.switchs]' v-if = 'j.switchs !== undefined'/>
+				<span v-if = 'j.switchs !== undefined' class = 'switch'>{{ page.switchs[j.switchs as keyof typeof page.switchs] ? 'and' : 'or' }}</span>
 			</div>
 			<div>
-				<div>
-					<Button
-						:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_ON)'
-						@click = 'search.search'
-					/>
-				</div>
-				<div>
-					<Button
-						:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_CLEAR)'
-						@click = 'search.clear'
-					/>
+				<div
+					v-for = 'i in j.cards'
+					:class = "{ 'selected' : j.results.includes(j.value ? j.value(i) : i), 'ot' : j.class === 'ot' }"
+					class = 'cursor'
+					@click = 'page.select(j.results, j.value ? j.value(i) : i)'
+				>
+					<img :src = '(mainGame.get.textures(j.key, i) as string)'/>
+					<span>{{ j.strings(j.value ? j.value(i) : i) }}</span>
 				</div>
 			</div>
 		</div>
-	</main>
+		<div class = 'link'>
+			<div>
+				<span>{{ mainGame.get.text(I18N_KEYS.CARD_INFO_LINK) }}&nbsp;:</span>
+				<var-switch v-model = "page.switchs['link' as keyof typeof page.switchs]"/>
+				<span class = 'switch'>{{ page.switchs['link' as keyof typeof page.switchs] ? 'and' : 'or' }}</span>
+			</div>
+			<div></div>
+			<div>
+				<img
+					v-for = 'i in page.list.link[0]'
+					:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[page.info.link.includes(i) ? 1 : 0]'
+					@click = 'page.select(page.info.link, i)'
+					class = 'cursor'
+				/>
+				<div></div>
+				<img
+					v-for = 'i in page.list.link[1]'
+					:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[page.info.link.includes(i) ? 1 : 0]'
+					@click = 'page.select(page.info.link, i)'
+					class = 'cursor'
+				/>
+			</div>
+		</div>
+		<div
+			class = 'input'
+		>
+			<div>
+				<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.STAR_RANK_LINK) as string)'/>
+				<Input
+					variant = 'outlined'
+					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_LV)'
+					:rules = 'page.rule.number'
+					v-model = page.info.lv
+				/>
+			</div>
+			<div>
+				<img :src = '(mainGame.get.textures(KEYS.INFO, KEYS.SCALE) as string)'/>
+				<Input
+					variant = 'outlined'
+					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_SCALE)'
+					:rules = 'page.rule.number'
+					v-model = page.info.scale
+				/>
+			</div>
+			<div>
+				<Input
+					variant = 'outlined'
+					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_ATK)'
+					:rules = 'page.rule.atk'
+					v-model = page.info.atk
+				/>
+				<Input
+					variant = 'outlined'
+					:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_DEF)'
+					:rules = 'page.rule.atk'
+					v-model = page.info.def
+				/>
+			</div>
+		</div>
+		<div>
+			<div>
+				<Button
+					:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_ON)'
+					@click = "emit('search')"
+				/>
+			</div>
+			<div>
+				<Button
+					:content = 'mainGame.get.text(I18N_KEYS.DECK_BTN_SEARCH_CLEAR)'
+					@click = "emit('clear')"
+				/>
+			</div>
+		</div>
+	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted, reactive, watch, ref, ComponentPublicInstance } from 'vue';
-	import Mark from 'mark.js';
+	import { computed, onMounted, onUnmounted, reactive, useTemplateRef } from 'vue';
 
 	import mainGame from '@/script/game';
-	import Card, { TYPE } from '@/script/card';
+	import { TYPE } from '@/script/card';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS, REG } from '@/script/constant';
-	import GLOBAL from '@/script/scale';
 	import LFList from '@/script/lflist';
-	import Search from '@/pages/deck/search';
 
-	import Pic, { CardPic } from '@/pages/deck/pic.vue';
 	import Input from '@/ui/input.vue';
 	import Button from '@/ui/button.vue';
 	import Select from '@/ui/select.vue';
-	import Deck from './deck';
 
-	let mark : InstanceType<typeof Mark> | undefined;
-	const search_div = ref<HTMLDivElement | null>(null);
-	const list = ref<HTMLDivElement | null>(null);
+	type TypeInfo = [Array<number>, Array<number>, Array<number>, Array<number>];
+	const search = useTemplateRef('search');
 
-	const cards = ref<Array<ComponentPublicInstance> | null>(null);
-	const page = reactive({
-		card : undefined as undefined | CardPic,
-		about : undefined as undefined | Card,
-		size : {
-			width : 0,
-			height : 0,
-			resize : () : void => {
-				page.size.width = (GLOBAL.WIDTH * 0.9 / 3) / props.count;
-				page.size.height = page.size.width * 1.45;
-			}
-		},
-		touchstart : (e : TouchEvent) : void => page.start(e.target as HTMLElement),
-		mousedown : (e : MouseEvent) : void => page.start(e.target as HTMLElement),
-		start : (target : HTMLElement) : void => {
-			if (search.off(target)) return;
-			const v : number = cards.value?.findIndex(i => i.$el.contains(target)) ?? -1;
-			if (v < 0) return;
-			cards.value![v].$el.style.transition = 'none';
-			const card = page.list[v].pic;
-			emit('card', card.code);
-			emit('hover', [target, card.code]);
-			page.card = card;
-		},
-		end : () : void => page.card = undefined,
-		finished : false,
-		loading : false,
-		button_loading : false,
-		list : [] as Array<{ card : Card; pic : CardPic; }>,
-		result : [] as Array<{ card : Card; pic : CardPic; }>,
-		load_on : async (event ?: Event) : Promise<void> => {
-			if (event) {
-				const { scrollTop, scrollHeight, clientHeight } = event.target as HTMLElement;
-				if (scrollHeight / page.list.length < scrollHeight - scrollTop - clientHeight)
-					return;
-			}
-			if (!page.loading && !page.finished) {
-				page.loading = true;
-				await page.load();
-			}
-		},
-		load : async () : Promise<void> => {
-			const length = page.list.length;
-			if (page.list.length < page.result.length) {
-				const cards = page.result.slice(length, Math.min(page.result.length, length + 100));
-				await mainGame.load.pic(cards.map(i => i.pic.code));
-				page.list.push(...cards);
-			}
-			page.loading = false;
-			page.finished = page.list.length >= page.result.length;
-		},
-		back : () => {
-			if (list.value)
-				list.value.scrollTop = 0;
-		}
-	});
+	const props = defineProps<{
+		ot : Array<number>;
+		type : TypeInfo;
+		attribute : Array<number>;
+		race : Array<number>;
+		category : Array<number>;
+		link : Array<number>;
+		lflist : string;
+		forbidden : string;
+		lv : string;
+		atk : string;
+		def : string;
+		scale : string;
+		desc : string;
+		typeSwitch : boolean;
+		categorySwitch : boolean;
+		linkSwitch : boolean;
+	}>();
+
+	const emit = defineEmits<{
+		clear : [];
+		search : [];
+		lflist : [lflist ?: LFList];
+		exit : [];
+		close : [];
+		'update:ot' : [value : Array<number>];
+		'update:type' : [value : TypeInfo];
+		'update:attribute' : [value : Array<number>];
+		'update:race' : [value : Array<number>];
+		'update:category' : [value : Array<number>];
+		'update:link' : [value : Array<number>];
+		'update:lflist' : [value : string];
+		'update:forbidden' : [value : string];
+		'update:lv' : [value : string];
+		'update:atk' : [value : string];
+		'update:def' : [value : string];
+		'update:scale' : [value : string];
+		'update:desc' : [value : string];
+		'update:typeSwitch' : [value : boolean];
+		'update:categorySwitch' : [value : boolean];
+		'update:linkSwitch' : [value : boolean];
+	}>();
 
 	const monster_type = [
 		TYPE.NORMAL,
@@ -283,19 +197,74 @@
 		TYPE.TOKEN
 	];
 
-	const search = reactive({
-		x : `${200 / GLOBAL.SCALE}vw`,
-		on : () => search.x = '-50%',
-		off : (target : HTMLElement) : boolean => {
-			const vw = `${200 / GLOBAL.SCALE}vw`;
-			if (search.x !== vw
-				&& search_div.value && !search_div.value.contains(target)
-				&& !target.classList.contains('var-option__cover')
-			) {
-				search.x = vw;
-				return true;
-			}
-			return false;
+	const page = reactive({
+		info : {
+			ot : computed({
+				get : () => props.ot,
+				set : (value) => emit('update:ot', value)
+			}),
+			type : computed({
+				get : () => props.type,
+				set : (value) => emit('update:type', value)
+			}),
+			attribute : computed({
+				get : () => props.attribute,
+				set : (value) => emit('update:attribute', value)
+			}),
+			race : computed({
+				get : () => props.race,
+				set : (value) => emit('update:race', value)
+			}),
+			category : computed({
+				get : () => props.category,
+				set : (value) => emit('update:category', value)
+			}),
+			link : computed({
+				get : () => props.link,
+				set : (value) => emit('update:link', value)
+			}),
+			lflist : computed({
+				get : () => props.lflist,
+				set : (value) => emit('update:lflist', value)
+			}),
+			forbidden : computed({
+				get : () => props.forbidden,
+				set : (value) => emit('update:forbidden', value)
+			}),
+			lv : computed({
+				get : () => props.lv,
+				set : (value) => emit('update:lv', value)
+			}),
+			atk : computed({
+				get : () => props.atk,
+				set : (value) => emit('update:atk', value)
+			}),
+			def : computed({
+				get : () => props.def,
+				set : (value) => emit('update:def', value)
+			}),
+			scale : computed({
+				get : () => props.scale,
+				set : (value) => emit('update:scale', value)
+			}),
+			desc : computed({
+				get : () => props.desc,
+				set : (value) => emit('update:desc', value)
+			})
+		},
+		switchs : {
+			type : computed({
+				get : () => props.typeSwitch,
+				set : (value) => emit('update:typeSwitch', value)
+			}),
+			category : computed({
+				get : () => props.categorySwitch,
+				set : (value) => emit('update:categorySwitch', value)
+			}),
+			link : computed({
+				get : () => props.linkSwitch,
+				set : (value) => emit('update:linkSwitch', value)
+			})
 		},
 		select : (results : Array<number>, i : number) => {
 			const ct = results.indexOf(i);
@@ -333,26 +302,6 @@
 				];
 			})()
 		},
-		info : {
-			ot : [] as Array<number>,
-			type : [[], [], [], []] as [Array<number>, Array<number>, Array<number>, Array<number>],
-			attribute : [] as Array<number>,
-			race : [] as Array<number>,
-			category : [] as Array<number>,
-			link : [] as Array<number>,
-			lflist : '',
-			forbidden : '',
-			lv : '',
-			atk : '',
-			def : '',
-			scale : '',
-			desc : ''
-		},
-		switchs : {
-			'type' : false,
-			'category' : false,
-			'link' : false,
-		},
 		rule : {
 			number : (lv : string) : string | boolean => {
 				if (!lv.match(REG.LV))
@@ -365,463 +314,225 @@
 				return true;
 			}
 		},
-		clear : () => {
-			search.info.ot.length = 0;
-			search.info.race.length = 0;
-			search.info.attribute.length = 0;
-			search.info.category.length = 0;
-			search.info.link.length = 0;
-			search.info.type.forEach(i => i.length = 0);
-			search.info.lflist = '';
-			search.info.forbidden = '';
-			search.info.lv = '';
-			search.info.atk = '';
-			search.info.def = '';
-			search.info.scale = '';
-			search.info.desc = '';
-		},
-		search : async () : Promise<void> => {
-			page.about = undefined;
-			page.list.length = 0;
-			page.finished = false;
-			const searcher = new Search()
-				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
-				.set.ot(search.info.ot)
-				.set.type(search.info.type)
-				.set.race(search.info.race)
-				.set.attribute(search.info.attribute)
-				.set.category(search.info.category)
-				.set.link(search.info.link)
-				.set.lflist(search.info.lflist)
-				.set.forbidden(search.info.forbidden)
-				.set.lv(search.info.lv)
-				.set.scale(search.info.scale)
-				.set.atk(search.info.atk)
-				.set.def(search.info.def)
-				.set.desc(search.info.desc)
-				.set.and_or(search.switchs);
-			page.result = searcher.search().map(i => {
-				return {
-					card : i,
-					pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
-				};
-			});
-			await page.load_on();
-			const desc = searcher.desc ?? [];
-			mark?.unmark({
-				done : () => desc.length ? mark?.mark(desc) : true
-			});
-			emit('update:desc', desc);
-		}
 	});
+	const close = (event : MouseEvent) => {
+		const target = event.target as HTMLElement;
+		if (search.value?.contains(target)
+			|| (target).classList.contains('var-option__cover'))
+			return;
+		emit('close');
+	};
 
-	const emit = defineEmits<{
-		card : [card : number];
-		lflist : [lflist ?: LFList];
-		save : [];
-		exit : [];
-		hover : [para : [HTMLElement, number]];
-		add : [code : number];
-		'update:desc' : [desc : Array<string>];
-	}>();
-
-	const props = defineProps<{
-		desc : Array<string>;
-		width : number;
-		height : number;
-		count : number;
-		deck : Deck;
-	}>();
-
-	onMounted(async () => {
-		page.size.resize();
-		window.addEventListener('mousedown', page.mousedown);
-		window.addEventListener('touchstart', page.touchstart);
-		window.addEventListener('mouseup', page.end);
-		window.addEventListener('touchend', page.end);
-		await search.search();
-		if (list.value)
-			mark = new Mark(list.value);
-	});
-
-	onUnmounted(() => {
-		window.removeEventListener('mousedown', page.mousedown);
-		window.removeEventListener('touchstart', page.touchstart);
-		window.removeEventListener('mouseup', page.end);
-		window.removeEventListener('touchend', page.touchstart);
-		mark = undefined;
-	});
-
-	watch(() => search.info.lflist, (n) => emit('lflist', n ? mainGame.get.lflist(n) : undefined));
-
-	defineExpose<{
-		about : (id : number) => Promise<void>
-	}>({
-		about : async (id : number) => {
-			if (!id) return;
-			const c = mainGame.get.card(id);
-			page.about = c;
-			page.list = [];
-			page.loading = true;
-			const desc = [c.name];
-			for (const i of c.desc.matchAll(REG.KEY_WORDS))
-				desc.push(i[1]);
-			const searcher = new Search()
-				.set.cards(Array.from(mainGame.cards).map(i => i[1]))
-				.set.id(c.id)
-				.set.setcode(c.setcode)
-				.set.desc(desc.join(mainGame.get.system(KEYS.SETTING_SEARCH_SPLIT) as string));
-			page.result = searcher.about().map(i => ({
-				card : i,
-				pic : { code : i.id, index : 0, y : 0, loc : 1, key : Math.random().toString() }
-			}));
-			page.finished = false;
-			page.loading = false;
-			await page.load_on();
-			mark?.unmark();
-			emit('update:desc', []);
-		}
-	});
+	onMounted(() => document.addEventListener('click', close, true));
+	onUnmounted(() => document.removeEventListener('click', close, true));
 </script>
 <style lang = 'scss' scoped>
-	$head-height: 60px;
-	$foot-height: 30px;
-	main {
-		width: var(--width);
-		height: var(--height);
-		border-radius: 4px;
-		background: rgba(255, 255, 255, 0.1);
+	.search {
+		width: calc(var(--width) * 0.8);
+		height: calc(var(--height) * 0.95);
+		background-color: rgba(0, 0, 0, 0.8);
 		color: white;
-		display: flex;
-		flex-direction: column;
+		overflow-y: auto;
+		[media = 'mobile'] & {
+			font-size: 24px;
+		}
 		> div {
-			margin: 10px;
-			width: calc(100% - 20px);
-		}
-		> div:first-child {
-			height: $head-height;
-			display: flex;
-			align-items: center;
-			&.search__input {
-				[media = 'mobile'] & {
-					gap: 125px;
-				}
-				[media = 'pc'] & {
-					gap: 10px;
-				}
-				.var-input {
-					[media = 'mobile'] & {
-						width: 55%;
-					}
-					[media = 'pc'] & {
-						width: 80%;
-					}
-				}
-			}
-			&.about__name {
-				justify-content: space-between;
-				[media = 'mobile'] & {
-					width: calc(95% - 20px);
-				}
-				span {
-					font-weight: bold;
-					white-space: nowrap;
-					max-width: calc(100% - 100px);
-					overflow: hidden;
-					text-overflow: ellipsis;
-				}
-			}
-		}
-		> div:nth-child(2) {
-			height: calc(100% - $head-height - $foot-height);
-			width: calc(100% - 10px);
-			overflow-y: auto;
-			overflow-x: hidden;
-			scroll-behavior: smooth;
-			.list {
-				position: relative;
-				width: calc(100% - 15px);
-				> div {
-					position: relative;
-					[media = 'mobile'] & {
-						height: 100px;
-						> div:first-child {
-							transform: scale(140%);
-							transform-origin: left top;
-						}
-					}
-					[media = 'pc'] & {
-						height: var(--height);
-					}
-					> div:last-child {
-						position: absolute;
-						top: 0;
-						left: var(--width);
-						width: calc(100% - var(--width) - 20px);
-						white-space: nowrap;
-						overflow: hidden;
-						text-overflow: ellipsis;
-						> span:first-child {
-							font-weight: bold;
-						}
-						> span:last-child {
-							color: rgb(203, 203, 203);
-							font-size: 12px;
-						}
-						[media = 'mobile'] & {
-							transform: translateX(20px);
-							span {
-								font-size: 24px;
-							}
-						}
-					}
-				}
-			}
-		}
-		> div:nth-child(3) {
-			position: relative;
-			height: $foot-height;
-			display: flex;
+			margin-left: 10px;
+			max-width: calc(100% - 10px);
 			[media = 'mobile'] & {
-				gap: 50px;
-				.var-button {
+				.var-select,
+				.var-switch {
+					transform: scale(140%);
 					transform-origin: left center;
 				}
 			}
-			[media = 'pc'] & {
-				gap: 5px;
+		}
+		.lflist {
+			[media = 'mobile'] & {
+				height: 150px;
+				gap: 20px;
 			}
-			> p {
-				position: absolute;
-				border: 1px solid white;
-				border-radius: 4px;
-				height: 30px;
-				width: 30px;
-				right: 5px;
+			[media = 'pc'] & {
+				height: 120px;
+				gap: 10px;
+			}
+			.var-select, .var-input {
+				width: 40%;
+			}
+		}
+		.select, .input, .lflist {
+			display: flex;
+			flex-direction: column;
+		}
+		.select, .link {
+			> div:first-child {
+				width: var(--width);
 				display: flex;
-				justify-content: center;
 				align-items: center;
 				[media = 'mobile'] & {
-					transform: scale(140%) translateY(-10px);
+					gap: 20px;
+					> span {
+						font-size: 24px;
+						height: 40px;
+					}
 				}
 				[media = 'pc'] & {
-					transform: translateY(- $foot-height);
+					gap: 5px;
+				}
+				.switch {
+					color: rgb(203, 203, 203);
+					font-size: 12px;
 				}
 			}
 		}
-		.search {
-			z-index: 999;
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(var(--x), calc(-50% - 10px));
-			width: calc(var(--width) * 2);
-			height: var(--height);
-			background-color: rgba(0, 0, 0, 0.8);
-			color: white;
-			overflow-y: auto;
-			transition: all 0.2s ease;
-			[media = 'mobile'] & {
-				font-size: 24px;
-			}
-			> div {
-				margin-left: 10px;
-				max-width: calc(100% - 10px);
-				[media = 'mobile'] & {
-					.var-select,
-					.var-switch {
-						transform: scale(140%);
-						transform-origin: left center;
-					}
-				}
-			}
-			.lflist {
-				[media = 'mobile'] & {
-					height: 150px;
-					gap: 20px;
-				}
-				[media = 'pc'] & {
-					height: 120px;
-					gap: 10px;
-				}
-				.var-select, .var-input {
-					width: 40%;
-				}
-			}
-			.select, .input, .lflist {
-				display: flex;
-				flex-direction: column;
-			}
-			.select, .link {
-				> div:first-child {
-					width: var(--width);
-					display: flex;
-					align-items: center;
-					[media = 'mobile'] & {
-						gap: 20px;
-						> span {
-							font-size: 24px;
-							height: 40px;
-						}
-					}
-					[media = 'pc'] & {
-						gap: 5px;
-					}
-					.switch {
-						color: rgb(203, 203, 203);
-						font-size: 12px;
-					}
-				}
-			}
-			.select {
-				> div:first-child {
-					[media = 'mobile'] > span:first-child {
-						height: 40px;
-					}
-				}
-				> div:last-child {
-					display: flex;
-					flex-wrap: wrap;
-					[media = 'mobile'] & {
-						gap: 20px;
-					}
-					[media = 'pc'] & {
-						gap: 10px;
-					}
-					> div {
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						border: 2px solid white;
-						transition: all 0.1s ease;
-						[media = 'mobile'] & {
-							width: 75px;
-							height: 90px;
-							border-radius: 11.2px;
-						}
-						[media = 'pc'] & {
-							width: 50px;
-							height: 60px;
-							border-radius: 8px;
-						}
-						img {
-							[media = 'mobile'] & {
-								width: 56px;
-								height: 56px;
-							}
-							[media = 'pc'] & {
-								width: 40px;
-								height: 40px;
-							}
-						}
-						span {
-							[media = 'mobile'] & {
-								font-size: 18px;
-							}
-							[media = 'pc'] & {
-								font-size: 12px;
-							}
-						}
-					}
-					> .selected {
-						border: 2px solid yellow;
-						box-shadow: 0 0 10px yellow;
-					}
-					> .ot {
-						[media = 'mobile'] & {
-							width: 90px;
-						}
-						[media = 'pc'] & {
-							width: 60px;
-						}
-						img {
-							[media = 'mobile'] & {
-								width: 70px;
-								height: 56px;
-							}
-							[media = 'pc'] & {
-								width: 50px;
-								height: 40px;
-							}
-						}
-					}
-				}
-			}
-			.link {
-				[media = 'mobile'] & {
-					height: 220px;
-				}
-				[media = 'pc'] & {
-					height: 150px;
-				}
-				width: 120px;
-				position: relative;
-				> div:nth-child(2) {
-					position: absolute;
-					width: 84px;
-					height: 84px;
-					border: 1px solid rgba($color: white, $alpha: 1);
-					top: calc(50% + 8px);
-					left: 50%;
-					[media = 'mobile'] & {
-						transform: scale(140%) translate(calc(-50% + 17px), calc(-50% + 4px));
-						transform-origin: left top;
-					}
-					[media = 'pc'] & {
-						transform: translate(-50%, -50%);
-					}
-				}
-				> div:last-child {
-					position: absolute;
-					width: 120px;
-					height: 120px;
-					display: grid;
-					grid-template-rows: repeat(3, 1fr);
-					grid-template-columns: repeat(3, 1fr);
-					[media = 'mobile'] & {
-						transform: scale(140%);
-						transform-origin: left top;
-					}
-					img {
-						width: 40px;
-						height: 40px;
-					}
-				}
-			}
-			.input {
-				> div {
-					display: flex;
-					gap: 5px;
-					min-height: 50px;
-					.var-input {
-						width: 40%;
-					}
-					img {
-						width: 40px;
-						height: 40px;
-					}
-				}
-				[media = 'mobile'] & {
-					height: 270px;
-					gap: 20px;
-					> div:last-child {
-						flex-direction: column;
-						gap: 20px;
-					}
+		.select {
+			> div:first-child {
+				[media = 'mobile'] > span:first-child {
+					height: 40px;
 				}
 			}
 			> div:last-child {
 				display: flex;
-				align-items: center;
+				flex-wrap: wrap;
 				[media = 'mobile'] & {
-					height: 70px;
+					gap: 20px;
+				}
+				[media = 'pc'] & {
+					gap: 10px;
 				}
 				> div {
-					width: 50%;
 					display: flex;
-					justify-content: center;
+					flex-direction: column;
 					align-items: center;
+					border: 2px solid white;
+					transition: all 0.1s ease;
+					[media = 'mobile'] & {
+						width: 75px;
+						height: 90px;
+						border-radius: 11.2px;
+					}
+					[media = 'pc'] & {
+						width: 50px;
+						height: 60px;
+						border-radius: 8px;
+					}
+					img {
+						[media = 'mobile'] & {
+							width: 56px;
+							height: 56px;
+						}
+						[media = 'pc'] & {
+							width: 40px;
+							height: 40px;
+						}
+					}
+					span {
+						[media = 'mobile'] & {
+							font-size: 18px;
+						}
+						[media = 'pc'] & {
+							font-size: 12px;
+						}
+					}
 				}
+				> .selected {
+					border: 2px solid yellow;
+					box-shadow: 0 0 10px yellow;
+				}
+				> .ot {
+					[media = 'mobile'] & {
+						width: 90px;
+					}
+					[media = 'pc'] & {
+						width: 60px;
+					}
+					img {
+						[media = 'mobile'] & {
+							width: 70px;
+							height: 56px;
+						}
+						[media = 'pc'] & {
+							width: 50px;
+							height: 40px;
+						}
+					}
+				}
+			}
+		}
+		.link {
+			[media = 'mobile'] & {
+				height: 220px;
+			}
+			[media = 'pc'] & {
+				height: 150px;
+			}
+			width: 120px;
+			position: relative;
+			> div:nth-child(2) {
+				position: absolute;
+				width: 84px;
+				height: 84px;
+				border: 1px solid rgba($color: white, $alpha: 1);
+				top: calc(50% + 8px);
+				left: 50%;
+				[media = 'mobile'] & {
+					transform: scale(140%) translate(calc(-50% + 17px), calc(-50% + 4px));
+					transform-origin: left top;
+				}
+				[media = 'pc'] & {
+					transform: translate(-50%, -50%);
+				}
+			}
+			> div:last-child {
+				position: absolute;
+				width: 120px;
+				height: 120px;
+				display: grid;
+				grid-template-rows: repeat(3, 1fr);
+				grid-template-columns: repeat(3, 1fr);
+				[media = 'mobile'] & {
+					transform: scale(140%);
+					transform-origin: left top;
+				}
+				img {
+					width: 40px;
+					height: 40px;
+				}
+			}
+		}
+		.input {
+			> div {
+				display: flex;
+				gap: 5px;
+				min-height: 50px;
+				.var-input {
+					width: 40%;
+				}
+				img {
+					width: 40px;
+					height: 40px;
+				}
+			}
+			[media = 'mobile'] & {
+				height: 270px;
+				gap: 20px;
+				> div:last-child {
+					flex-direction: column;
+					gap: 20px;
+				}
+			}
+		}
+		> div:last-child {
+			display: flex;
+			align-items: center;
+			[media = 'mobile'] & {
+				height: 70px;
+			}
+			> div {
+				width: 50%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
 			}
 		}
 	}
