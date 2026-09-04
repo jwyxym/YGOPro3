@@ -85,7 +85,7 @@
 			e.dataTransfer.setDragImage(image, width / 2, height / 2);
 			this.image = image;
 		},
-		start : function (e : DragEvent, copy ?: HTMLDivElement, list ?: HTMLDivElement) {
+		start : function (e : DragEvent, copy ?: HTMLDivElement, list ?: HTMLDivElement, image ?: HTMLDivElement) {
 			const target = e.target as HTMLElement;
 			const card = copy ?? target.closest('.ygopro3__deck__card') as HTMLDivElement | null;
 			if (!card)
@@ -93,7 +93,7 @@
 			e.dataTransfer!.effectAllowed = 'move';
 			if (!list && !e.currentTarget)
 				return;
-			this.set_image(e, card);
+			this.set_image(e, image ?? card);
 			window.addEventListener('dragover', this.scroll);
 			this.card = card;
 			this.list = list;
@@ -285,7 +285,7 @@
 	watch(() => props.lflist, (n) => card.count(cards.flat(), n));
 
 	onMounted(async () => {
-		const width = (props.width - 24) / props.count;
+		const width = props.width / props.count;
 		const height = width * 1.45;
 		page.height = height * 2;
 		cards = card.append(group.value!, props.deck, width, height, page.callback);
@@ -395,7 +395,7 @@
 				copy.children[0].style.opacity = '0';
 			}
 			card.count([copy], props.lflist);
-			drag.start(e, copy);
+			drag.start(e, copy, undefined, source);
 		},
 		dragend : (e) => drag.end(e),
 		add : (code : string | number) => {
