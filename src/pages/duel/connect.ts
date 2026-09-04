@@ -196,6 +196,7 @@ class Duel {
 				.write.uint8(v)
 		)
 	};
+	ai ?: () => Promise<void>;
 	constructor () {
 		this.win.await = new Promise<string | void>((r) => this.win.resolve = r);
 	};
@@ -275,8 +276,13 @@ const connect = reactive({
 										.write.uint16(0)
 										.write.uint32(0)
 										.write.str(pass, 40));
-									if (local_server && port)
-										await invoke.bot.start(`${i.args[1]} Port=${port}`, i.deck);
+									if (local_server && port) {
+										connect.duel.ai = async () => await invoke.bot.start(`${i.args[1]} Port=${port}`, i.deck);
+										await connect.duel.ai();
+									} else
+										connect.duel.ai = async () => await connect.send?.(new Msg()
+											.write.uint8(CTOS.CHAT)
+											.write.str('/ai'));
 								},
 								on_message : protocol.read,
 								on_disconnect : async () : Promise<void> => {
@@ -385,6 +391,7 @@ const connect = reactive({
 			}
 		} catch (e) {
 			await invoke.log.write(e);
+			connect.clear();
 		} finally {
 			connect.debouncing = false;
 		}

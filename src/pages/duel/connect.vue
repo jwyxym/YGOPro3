@@ -102,9 +102,7 @@
 			/>
 			<Button
 				:content = 'mainGame.get.text(I18N_KEYS.DUEL_AI)'
-				@click = "async () => await connect.send?.(new Msg()
-					.write.uint8(CTOS.CHAT)
-					.write.str('/ai'))"
+				@click = 'connect.duel.ai'
 				v-show = 'connect.state === 1'
 				key = '1'
 			/>
