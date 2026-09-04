@@ -8,14 +8,19 @@ const new_card = (
 	id : number | string,
 	width : number,
 	height : number,
-	callback ?: (i : HTMLDivElement) => void
+	callback ?: (i : HTMLDivElement) => void,
+	lazy = false
 ) : HTMLDivElement => {
 	const card = document.createElement('div');
 	card.draggable = true;
 	card.classList.add('ygopro3__deck__card', 'font-atk');
 	card.style.width = width + 'px';
 	card.style.height = height + 'px';
-	card.style.backgroundImage = `url('${mainGame.get.card(id).pic}')`;
+	const pic = mainGame.get.card(id).pic;
+	if (lazy)
+		lazy_card(card, pic);
+	else
+		card.style.backgroundImage = `url('${pic}')`;
 	card.dataset.id = typeof id === 'string' ? id : id.toString();
 
 	const lflist = document.createElement('div');
@@ -31,7 +36,7 @@ const new_list = (
 	callback ?: (i : HTMLDivElement) => void
 ) : HTMLDivElement => {
 	const item = document.createElement('div');
-	const c = new_card(card.id, 90 / 1.45, 90, callback);
+	const c = new_card(card.id, 90 / 1.45, 90, callback, true);
 	item.classList.add('ygopro3__deck__list');
 	item.dataset.id = c.id.toString();
 	const body = document.createElement('div');
@@ -44,6 +49,29 @@ const new_list = (
 	item.appendChild(c);
 	item.appendChild(body);
 	return item;
+};
+
+let observer : IntersectionObserver | undefined;
+
+const lazy_card = (card : HTMLDivElement, pic : string) => {
+	if (!('IntersectionObserver' in window)) {
+		card.style.backgroundImage = `url('${pic}')`;
+		return;
+	}
+	card.dataset.pic = pic;
+	observer ??= new IntersectionObserver((entries) => {
+		for (const entry of entries) {
+			if (!entry.isIntersecting)
+				continue;
+			const el = entry.target as HTMLDivElement;
+			if (el.dataset.pic) {
+				el.style.backgroundImage = `url('${el.dataset.pic}')`;
+				delete el.dataset.pic;
+			}
+			observer?.unobserve(el);
+		}
+	}, { rootMargin : '200px' });
+	observer.observe(card);
 };
 
 const append = (
@@ -135,7 +163,14 @@ const append_list = (
 	}
 };
 
-const clear_list = (target : HTMLElement) => target.replaceChildren();
+const clear_list = (target : HTMLElement) => {
+	for (const item of Array.from(target.children)) {
+		const card = item.children[0];
+		if (card instanceof HTMLDivElement)
+			observer?.unobserve(card);
+	}
+	target.replaceChildren();
+};
 
 const count_list = (
 	target : HTMLElement,
