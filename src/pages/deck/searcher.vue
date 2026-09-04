@@ -17,14 +17,14 @@
 		<div
 			class = 'select'
 			v-for = "j in [
-				{ span : I18N_KEYS.CARD_INFO_OT, results : page.info.ot, cards : page.list.ot, key : KEYS.OT, strings : mainGame.get.strings.ot, class : 'ot' },
-				{ span : I18N_KEYS.CARD_INFO_TYPE, results : page.info.type[0], cards : page.list.card, key : KEYS.TYPE, strings : mainGame.get.strings.type },
-				{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : page.info.type[1], cards : page.list.spell, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
-				{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : page.info.type[2], cards : page.list.monster, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3, switchs : 'type' },
-				{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : page.info.type[3], cards : page.list.except, key : KEYS.TYPE, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
-				{ span : I18N_KEYS.CARD_INFO_ATTRIBUTE, results : page.info.attribute, cards : page.list.attribute, key : KEYS.ATTRIBUTE, strings : mainGame.get.strings.attribute },
-				{ span : I18N_KEYS.CARD_INFO_RACE, results : page.info.race, cards : page.list.race, key : KEYS.RACE, strings : mainGame.get.strings.race },
-				{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : page.info.category, cards : page.list.category, key : KEYS.CATEGORY, strings : mainGame.get.strings.category, switchs : 'category' },
+				{ span : I18N_KEYS.CARD_INFO_OT, results : page.info.ot, cards : page.list.ot, key : KEYS.OT, model : 'ot', strings : mainGame.get.strings.ot, class : 'ot' },
+				{ span : I18N_KEYS.CARD_INFO_TYPE, results : page.info.type[0], cards : page.list.card, key : KEYS.TYPE, model : 'type', type : 0, strings : mainGame.get.strings.type },
+				{ span : I18N_KEYS.CARD_INFO_SPELL_TRAP_TYPE,  results : page.info.type[1], cards : page.list.spell, key : KEYS.TYPE, model : 'type', type : 1, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
+				{ span : I18N_KEYS.CARD_INFO_MONSTER_TYPE,  results : page.info.type[2], cards : page.list.monster, key : KEYS.TYPE, model : 'type', type : 2, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3, switchs : 'type' },
+				{ span : I18N_KEYS.CARD_INFO_EXCEPT_TYPE,  results : page.info.type[3], cards : page.list.except, key : KEYS.TYPE, model : 'type', type : 3, strings : mainGame.get.strings.type, value : (i : number) => i & ~ 3 },
+				{ span : I18N_KEYS.CARD_INFO_ATTRIBUTE, results : page.info.attribute, cards : page.list.attribute, key : KEYS.ATTRIBUTE, model : 'attribute', strings : mainGame.get.strings.attribute },
+				{ span : I18N_KEYS.CARD_INFO_RACE, results : page.info.race, cards : page.list.race, key : KEYS.RACE, model : 'race', strings : mainGame.get.strings.race },
+				{ span : I18N_KEYS.CARD_INFO_CATEGORY, results : page.info.category, cards : page.list.category, key : KEYS.CATEGORY, model : 'category', strings : mainGame.get.strings.category, switchs : 'category' },
 			]"
 		>
 			<div>
@@ -37,7 +37,7 @@
 					v-for = 'i in j.cards'
 					:class = "{ 'selected' : j.results.includes(j.value ? j.value(i) : i), 'ot' : j.class === 'ot' }"
 					class = 'cursor'
-					@click = 'page.select(j.results, j.value ? j.value(i) : i)'
+					@click = "page.select(j.model as ArrayInfoKey, j.value ? j.value(i) : i, j.type as TypeIndex | undefined)"
 				>
 					<img :src = '(mainGame.get.textures(j.key, i) as string)'/>
 					<span>{{ j.strings(j.value ? j.value(i) : i) }}</span>
@@ -55,14 +55,14 @@
 				<img
 					v-for = 'i in page.list.link[0]'
 					:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[page.info.link.includes(i) ? 1 : 0]'
-					@click = 'page.select(page.info.link, i)'
+					@click = "page.select('link', i)"
 					class = 'cursor'
 				/>
 				<div></div>
 				<img
 					v-for = 'i in page.list.link[1]'
 					:src = '(mainGame.get.textures(KEYS.LINK, i) as [string, string])[page.info.link.includes(i) ? 1 : 0]'
-					@click = 'page.select(page.info.link, i)'
+					@click = "page.select('link', i)"
 					class = 'cursor'
 				/>
 			</div>
@@ -133,6 +133,8 @@
 	import Select from '@/ui/select.vue';
 
 	type TypeInfo = [Array<number>, Array<number>, Array<number>, Array<number>];
+	type TypeIndex = 0 | 1 | 2 | 3;
+	type ArrayInfoKey = 'ot' | 'type' | 'attribute' | 'race' | 'category' | 'link';
 	const search = useTemplateRef('search');
 
 	const props = defineProps<{
@@ -266,12 +268,42 @@
 				set : (value) => emit('update:linkSwitch', value)
 			})
 		},
-		select : (results : Array<number>, i : number) => {
-			const ct = results.indexOf(i);
-			if (ct > -1)
-				results.splice(ct, 1);
-			else
-				results.push(i);
+		select : (key : ArrayInfoKey, i : number, type ?: TypeIndex) => {
+			const toggle = (results : Array<number>) => {
+				const next = results.slice();
+				const ct = next.indexOf(i);
+				if (ct > -1)
+					next.splice(ct, 1);
+				else
+					next.push(i);
+				return next;
+			};
+			if (key === 'type') {
+				if (type === undefined)
+					return;
+				const next = props.type.map(i => i.slice()) as TypeInfo;
+				next[type] = toggle(next[type]);
+				emit('update:type', next);
+				return;
+			}
+			const next = toggle(props[key]);
+			switch (key) {
+				case 'ot':
+					emit('update:ot', next);
+					break;
+				case 'attribute':
+					emit('update:attribute', next);
+					break;
+				case 'race':
+					emit('update:race', next);
+					break;
+				case 'category':
+					emit('update:category', next);
+					break;
+				case 'link':
+					emit('update:link', next);
+					break;
+			}
 		},
 		list : {
 			card : [

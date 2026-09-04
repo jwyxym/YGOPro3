@@ -36,6 +36,7 @@ class Card {
 	scale : number;
 	atk : number;
 	def : number;
+	link : number;
 	type : number;
 	race : number;
 	attribute : number;
@@ -61,7 +62,7 @@ class Card {
 		defense : number;
 		lscale : number;
 		rscale : number;
-		link_marker : number;
+		link : number;
 		ot : number;
 		category : number;
 	}) {
@@ -73,6 +74,7 @@ class Card {
 		this.type = i.card_type;
 		this.atk = i.attack;
 		this.def = i.defense;
+		this.link = i.link;
 		this.level = i.level;
 		this.scale = i.rscale;
 		this.race = i.race;
@@ -98,7 +100,7 @@ class Card {
 		defense : 0,
 		lscale : 0,
 		rscale : 0,
-		link_marker : 0,
+		link : 0,
 		ot : 0,
 		category : 0
 	});

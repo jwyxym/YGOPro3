@@ -62,7 +62,7 @@ class Search {
 				|| (this.ot && this.ot.length && this.ot.findIndex(i => i.toString(2).split('1').length > 2 ? card.ot.toString(2).split('1').length > 2 : i === card.ot) === -1)
 				|| (this.attribute && this.attribute.length && !this.attribute.includes(card.attribute))
 				|| (this.race && this.race.length && !this.race.includes(card.race))
-				|| (this.link && this.link.length && (!card.is_link() || and_or(this.and_or.link, this.link.filter(i => card.def & i).length, this.link.length)))
+				|| (this.link && this.link.length && (!card.is_link() || and_or(this.and_or.link, this.link.filter(i => card.link & i).length, this.link.length)))
 				|| (this.category && this.category.length && and_or(this.and_or.category, this.category.filter(i => card.category & i).length, this.category.length))
 				|| (this.lv && this.lv.length && this.lv.findIndex(i => compare(i, card.level)) === -1)
 				|| (this.scale && this.scale.length && this.scale.findIndex(i => compare(i, card.scale)) === -1)
