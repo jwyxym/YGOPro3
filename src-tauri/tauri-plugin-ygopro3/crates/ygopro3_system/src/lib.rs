@@ -46,7 +46,7 @@ impl System {
 	pub fn i18n (&self) -> String {
 		self.string
 			.get("I18N")
-			.map_or_else(|| "zh-CN".to_owned(), Clone::clone)
+			.map_or_else(|| "zh-CN".to_string(), Clone::clone)
 	}
 	pub fn set (&mut self, key: String, ct: i8, value: String) -> Result<(), Error> {
 		Ok(match ct {

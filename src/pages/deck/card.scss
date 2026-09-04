@@ -1,0 +1,47 @@
+.ygopro3__deck__card {
+	position: relative;
+	background-size: cover;
+	z-index: 0;
+	&.move {
+		opacity: 10%;
+	}
+	> div {
+		position: absolute;
+		left: 0;
+		top: 0;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50%;
+		border-width: 1px;
+		border-style: solid;
+		white-space: nowrap;
+		background-color: black;
+		opacity: 0;
+		&.gf {
+			border-color: aqua;
+			color: aqua;
+			opacity: 1;
+		}
+		&.lf {
+			border-color: hotpink;
+			color: hotpink;
+			opacity: 1;
+		}
+	}
+}
+.ygopro3__deck__list {
+	height: 100px;
+	[media = 'pc'] & {
+		border-bottom: 1px solid white;
+	}
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	> div:nth-child(2) {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		width: calc(100% - 90px / 1.45 - 20px);
+	}
+}

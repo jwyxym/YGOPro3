@@ -1,6 +1,6 @@
 <template>
 	<main class = 'deck'>
-		<Card_Box
+		<Card_Info
 			:height = 'page.height'
 			:width = 'page.width[0]'
 			:desc = 'page.desc'
@@ -19,9 +19,9 @@
 				@disrupt = 'page.disrupt'
 				@clear = 'page.clear'
 			/>
-			<Deck_Box
+			<Drag_Box
 				v-if = 'page.ct'
-				:ref = '(el) => (page.el = el as InstanceType<typeof Deck_Box> | null)'
+				:ref = '(el) => (page.el = el as InstanceType<typeof Drag_Box> | null)'
 				:height = 'page.height - 70'
 				:width = 'page.width[1]'
 				:count = 'page.ct'
@@ -29,72 +29,126 @@
 				:lflist = 'page.lflist'
 				:del = 'true'
 				@card = 'page.oncard'
-				@move = 'page.move.on'
 			/>
 		</div>
-		<Search_Box
-			:ref = '(el) => (page.search_el = el as InstanceType<typeof Search_Box> | null)'
+		<Card_List
+			:ref = '(el) => (page.card_list = el as InstanceType<typeof Card_List> | null)'
 			:height = 'page.height'
 			:width = 'page.width[0]'
-			:count = '10'
-			:move = 'page.move'
-			:deck = 'this_deck'
+			:lflist = 'page.lflist'
+			:info = 'search.info'
+			:switchs = 'search.switchs'
 			@save = 'page.save'
 			@card = 'page.oncard'
-			@lflist = '(lflist ?: LFList) => page.lflist = lflist'
 			@exit = "emit('exit')"
-			@hover = '(i : [HTMLElement, number]) => page.el?.hover(i[0], i[1])'
-			@add = '(i : number) => page.el?.add(i)'
+			@add = 'page.el?.add($event)'
+			@dragstart = 'page.el?.dragstart($event)'
+			@dragend = 'page.el?.dragend($event)'
+			@search = 'page.search = true'
+
 			v-model:desc = 'page.desc'
 		/>
+		<transition name = 'opacity'>
+			<Searcher
+				v-if = 'page.search'
+				v-model:ot = 'search.info.ot'
+				v-model:type = 'search.info.type'
+				v-model:attribute = 'search.info.attribute'
+				v-model:race = 'search.info.race'
+				v-model:category = 'search.info.category'
+				v-model:link = 'search.info.link'
+				v-model:lflist = 'search.info.lflist'
+				v-model:forbidden = 'search.info.forbidden'
+				v-model:lv = 'search.info.lv'
+				v-model:atk = 'search.info.atk'
+				v-model:def = 'search.info.def'
+				v-model:scale = 'search.info.scale'
+				v-model:desc = 'search.info.desc'
+				v-model:type-switch = 'search.switchs.type'
+				v-model:category-switch = 'search.switchs.category'
+				v-model:link-switch = 'search.switchs.link'
+				@search = 'page.card_list?.search'
+				@clear = 'search.clear()'
+				@close = 'page.search = false'
+			/>
+		</transition>
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { reactive } from 'vue';
+	import { computed, reactive } from 'vue';
 
 	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
 	import * as CONSTANT from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import LFList from '@/script/lflist';
 	import GLOBAL from '@/script/scale';
 
 	import dialog from '@/ui/dialog';
 	import { toast } from '@/pages/toast/toast';
 
 	import Deck from './deck';
-	import Search_Box from './searcher.vue';
+	import Searcher from './searcher.vue';
 	import Deck_Setting from './setting.vue';
-	import Deck_Box from './cards.vue';
-	import Card_Box from './card_info.vue';
+	import Card_List from './card_list.vue';
+	import Drag_Box from './drag.vue';
+	import Card_Info from './card_info.vue';
 
 	const props = defineProps<{
 		this_deck : Deck;
 	}>();
 
+	const search = reactive({
+		info : {
+			ot : [] as Array<number>,
+			type : [[], [], [], []] as [Array<number>, Array<number>, Array<number>, Array<number>],
+			attribute : [] as Array<number>,
+			race : [] as Array<number>,
+			category : [] as Array<number>,
+			link : [] as Array<number>,
+			lflist : mainGame.lflist.keys().next().value ?? CONSTANT.KEYS.NA,
+			forbidden : '',
+			lv : '',
+			atk : '',
+			def : '',
+			scale : '',
+			desc : ''
+		},
+		switchs : {
+			'type' : false,
+			'category' : false,
+			'link' : false,
+		},
+		clear : function () {
+			this.info.ot.length = 0;
+			this.info.race.length = 0;
+			this.info.attribute.length = 0;
+			this.info.category.length = 0;
+			this.info.link.length = 0;
+			this.info.type.forEach(i => i.length = 0);
+			this.info.lflist = '';
+			this.info.forbidden = '';
+			this.info.lv = '';
+			this.info.atk = '';
+			this.info.def = '';
+			this.info.scale = '';
+			this.info.desc = '';
+		}
+	});
+
 	const page = reactive({
-		el : null as null | InstanceType<typeof Deck_Box>,
-		search_el : null as null | InstanceType<typeof Search_Box>,
-		lflist : undefined as LFList | undefined,
+		el : null as null | InstanceType<typeof Drag_Box>,
+		card_list : null as null | InstanceType<typeof Card_List>,
+		lflist : computed(() => mainGame.lflist.get(search.info.lflist)),
 		height : GLOBAL.HEIGHT * 0.9,
 		width : [GLOBAL.WIDTH * 0.3 - 20, GLOBAL.WIDTH * 0.9 / 3 + 40],
-		card : 0,
+		card : 0 as number | string,
 		ct : mainGame.get.system(CONSTANT.KEYS.SETTING_CT_DECK_PRELINE) as number,
 		deck_name : props.this_deck.name ?? '',
 		desc : [],
-		about : (card : number) => page.search_el?.about(card),
-		move : {
-			x : 0,
-			y : 0,
-			on : (x : number, y : number) => {
-				page.move.x = x;
-				page.move.y = y;
-			}
-		},
-		oncard : (card : number) => page.card = card,
-		to_deck : (name : string) : Deck => {
-			return page.el?.to_deck(name) ?? new Deck();
-		},
+		search : false,
+		about : (card : number) => page.card_list?.about(card),
+		oncard : (card : number | string) => page.card = card,
+		to_deck : (name : string) : Deck => page.el?.to_deck(name) ?? new Deck(),
 		save : async () => {
 			const name = page.deck_name;
 			const rule = await page.name_rule(name);
@@ -161,6 +215,29 @@
 			height: 100%;
 			display: flex;
 			flex-direction: column;
+		}
+		.ygopro3__deck__search {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+		}
+	}
+
+	.opacity {
+		&-enter-active,
+		&-leave-active {
+			transition: opacity 0.2s ease;
+		}
+
+		&-enter-from,
+		&-leave-to {
+			opacity: 0;
+		}
+
+		&-enter-to,
+		&-leave-from {
+			opacity: 1;
 		}
 	}
 </style>

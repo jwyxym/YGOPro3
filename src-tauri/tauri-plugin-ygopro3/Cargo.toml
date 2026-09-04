@@ -105,6 +105,7 @@ members = [
 ]
 
 [features]
+default = []
 windbot = ["ygopro3_api/windbot"]
 single_duel = ["ygopro3_api/single_duel"]
 plugin = ["ygopro3_api/plugin"]

@@ -131,7 +131,7 @@ class Player {
 
 class Duel {
 	is_first = false;
-	card : undefined | Client_Card | Card | number = undefined;
+	card : undefined | Client_Card | Card | string | number = undefined;
 	cards : Array<Client_Card> = [];
 	player : [Player, Player] = reactive([new Player(), new Player()]);
 	chain : Array<Client_Card> = [];
