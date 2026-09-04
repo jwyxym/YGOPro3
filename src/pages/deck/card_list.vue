@@ -83,10 +83,11 @@
 				list.value!,
 				cards,
 				(i : HTMLDivElement) => {
-					i.addEventListener('contextmenu', (e) => {
-						e.preventDefault();
-						emit('add', i.dataset.id!)
-					});
+					if (!__ANDROID__)
+						i.addEventListener('contextmenu', (e) => {
+							e.preventDefault();
+							emit('add', i.dataset.id!)
+						});
 					i.addEventListener('click', (e) => {
 						e.preventDefault();
 						emit('card', i.dataset.id!)

@@ -346,17 +346,16 @@
 				return true;
 			}
 		},
+		close : (event : MouseEvent) => {
+			const target = event.target as HTMLElement;
+			if (search.value?.contains(target)
+				|| (target).classList.contains('var-option__cover'))
+				return;
+			emit('close');
+		}
 	});
-	const close = (event : MouseEvent) => {
-		const target = event.target as HTMLElement;
-		if (search.value?.contains(target)
-			|| (target).classList.contains('var-option__cover'))
-			return;
-		emit('close');
-	};
-
-	onMounted(() => document.addEventListener('click', close, true));
-	onUnmounted(() => document.removeEventListener('click', close, true));
+	onMounted(() => document.addEventListener('click', page.close, true));
+	onUnmounted(() => document.removeEventListener('click', page.close, true));
 </script>
 <style lang = 'scss' scoped>
 	.search {
