@@ -43,5 +43,7 @@
 		flex-direction: column;
 		height: 100%;
 		width: calc(100% - 90px / 1.45 - 20px);
+		overflow: hidden;
+		white-space: nowrap;
 	}
 }

@@ -36,7 +36,7 @@ const new_list = (
 	item.dataset.id = c.id.toString();
 	const body = document.createElement('div');
 	const name = document.createElement('b');
-	name.innerText = card.name
+	name.innerText = card.name;
 	const id = document.createElement('span');
 	id.innerText = card.id.toString();
 	body.appendChild(name);
