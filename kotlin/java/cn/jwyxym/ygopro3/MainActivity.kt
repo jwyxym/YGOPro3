@@ -104,6 +104,7 @@ class MainActivity : TauriActivity() {
 
 		val targetDir = when {
 			name.endsWith(".ypk", ignoreCase = true) -> "expansions"
+			name.endsWith(".yrp", ignoreCase = true) -> "replay"
 			name.endsWith(".yrp3d", ignoreCase = true) -> "replay"
 			else -> return null
 		}
