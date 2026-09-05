@@ -65,7 +65,7 @@
 
 	import Input from '@/ui/input.vue';
 	import Button from '@/ui/button.vue';
-	import Dialog from '@/ui/dialog';
+	import dialog from '@/ui/dialog';
 
 	const page = reactive({
 		name : '',
@@ -96,7 +96,7 @@
 				page.list[page.selected].name = page.name;
 		},
 		del : async () => {
-			if (await Dialog({
+			if (await dialog({
 				title : mainGame.get.text(I18N_KEYS.REPLAY_DELETE_TITLE),
 				message : mainGame.get.text(I18N_KEYS.REPLAY_DELETE_MESSAGR, page.list[page.selected].name)
 			}, mainGame.get.system(KEYS.SETTING_CHK_DELETE_REPLAY)) && await invoke.replay.del(page.name)) {

@@ -3,6 +3,9 @@ import PQueue from 'p-queue';
 
 import Msg from './msg';
 import { STOC } from './network';
+import mainGame from '@/script/game';
+import { I18N_KEYS } from '@/script/language/i18n';
+import connect from '../connect';
 
 class Replay3D {
 	yrp3d = new YGOProYrp3d();
@@ -25,9 +28,15 @@ class Replay3D {
 				async () => await call_back.on_message?.(m, async () => {})
 			);
 		}
-		this.queue.add(
-			call_back.on_disconnect ?? Promise.resolve
-		);
+		this.queue.add(async () => {
+			connect.duel.win.await = new Promise<string | void>((r) => connect.duel.win.resolve = r);
+			connect.duel.win.title = mainGame.get.text(I18N_KEYS.DUEL_REPLAY_END);
+			connect.duel.win.message = '';
+			connect.duel.win.show = true;
+			await connect.duel.win.await;
+			connect.duel.win.resolve = undefined;
+			await call_back.on_disconnect?.();
+		});
 	};
 	disconnect = async () : Promise<void> => {
 		this.queue.clear();

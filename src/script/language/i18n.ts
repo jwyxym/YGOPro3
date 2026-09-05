@@ -271,6 +271,7 @@ const I18N_KEYS = {
 	DUEL_HISTORY_CHAIN_SOLVED : 0,
 	DUEL_HISTORY_TURN : 0,
 	DUEL_SAVE_REPLAY : 0,
+	DUEL_REPLAY_END : 0,
 };
 
 Object.entries(I18N_KEYS).forEach((i, v) => {

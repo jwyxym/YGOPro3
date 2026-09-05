@@ -268,5 +268,6 @@ Ko_KR[I18N_KEYS.DUEL_HISTORY_CHAINING] = '체인 [{:?}] 발동';
 Ko_KR[I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED] = '체인 [{:?}] 처리';
 Ko_KR[I18N_KEYS.DUEL_HISTORY_TURN] = '턴 {:?}';
 Ko_KR[I18N_KEYS.DUEL_SAVE_REPLAY] = '리플레이 저장';
+Ko_KR[I18N_KEYS.DUEL_REPLAY_END] = '리플레이 종료';
 
 export default Ko_KR;
