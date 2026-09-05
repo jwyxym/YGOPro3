@@ -254,7 +254,7 @@ pub async fn exists_ypk (name: String) -> Result<bool, String> {
 	ypk::exists(name).await.map_err(|e| e.to_string())
 }
 
-#[ygopro3_macros::single_duel]
+#[ygopro3_macros::duel]
 #[tauri::command]
 pub async fn ygoserver_start (
 	lflist: u32, //lflist hash
@@ -269,7 +269,7 @@ pub async fn ygoserver_start (
 	draw_count: u8,
 	time_limit: u16
 ) -> Result<u16, String> {
-	ygopro3_single_duel::start_server(
+	ygopro3_duel::start_server(
 		lflist,
 		rule,
 		mode,
@@ -284,10 +284,10 @@ pub async fn ygoserver_start (
 	).map_err(|e| e.to_string())
 }
 
-#[ygopro3_macros::single_duel]
+#[ygopro3_macros::duel]
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
-	Ok(ygopro3_single_duel::stop_server())
+	Ok(ygopro3_duel::stop_server())
 }
 
 #[ygopro3_macros::windbot]

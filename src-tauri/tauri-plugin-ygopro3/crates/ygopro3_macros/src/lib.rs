@@ -29,18 +29,18 @@ pub fn windbot (_attr: TokenStream, item: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn single_duel (_attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn duel (_attr: TokenStream, item: TokenStream) -> TokenStream {
 	let mut function: ItemFn = parse_macro_input!(item as ItemFn);
 	let block: Box<Block> = function.block;
 
 	function.attrs.push(parse_quote!(#[allow(unused_variables)]));
 	function.block = parse_quote!({
-		#[cfg(not(feature = "single_duel"))]
+		#[cfg(not(feature = "duel"))]
 		{
 			Err(String::from("single duel is forbidden by features"))
 		}
 
-		#[cfg(feature = "single_duel")]
+		#[cfg(feature = "duel")]
 		{
 			#block
 		}
