@@ -8,6 +8,7 @@ use std::{
 	sync::OnceLock,
 	thread::JoinHandle,
 	time::Duration,
+	sync::mpsc::{Sender, Receiver, channel}
 };
 use tokio::{net::TcpListener, sync::oneshot};
 use ygopru::{
@@ -59,11 +60,7 @@ pub fn start_server(
 	} else {
 		MasterRule::MasterRule2020
 	};
-	let mode: Mode = if mode > 2 {
-		Mode::Single
-	} else {
-		Mode::try_from(mode).unwrap_or(Mode::Single)
-	};
+	let mode: Mode = Mode::try_from(mode).unwrap_or(Mode::Single);
 	let host_info: HostInfo = HostInfo {
 		lflist: lflist,
 		rule: Rule::try_from(rule).unwrap_or(Rule::All),
@@ -90,9 +87,9 @@ pub fn start_server(
 	let (shutdown_sender, shutdown_receiver): (oneshot::Sender<()>, oneshot::Receiver<()>) =
 		oneshot::channel();
 	let (start_result_sender, start_result_receiver): (
-		std::sync::mpsc::Sender<Result<u16, i32>>,
-		std::sync::mpsc::Receiver<Result<u16, i32>>,
-	) = std::sync::mpsc::channel();
+		Sender<Result<u16, i32>>,
+		Receiver<Result<u16, i32>>,
+	) = channel();
 	let server_thread: JoinHandle<()> = std::thread::spawn(move || {
 		let runtime: tokio::runtime::Runtime = match tokio::runtime::Builder::new_multi_thread()
 			.enable_all()
@@ -152,7 +149,7 @@ async fn run_tcp_server(
 	host_info: HostInfo,
 	seeds: Vec<[u32; SEED_COUNT]>,
 	shutdown_receiver: oneshot::Receiver<()>,
-	start_result_sender: std::sync::mpsc::Sender<Result<u16, i32>>,
+	start_result_sender: Sender<Result<u16, i32>>,
 ) -> Result<(), Error> {
 	let listener: TcpListener = TcpListener::bind("0.0.0.0:0").await?;
 	let port: u16 = listener.local_addr()?.port();
@@ -161,10 +158,8 @@ async fn run_tcp_server(
 
 	let duel: DuelHost = build_duel_host(host_info, replay_mode, seeds);
 	tokio::select! {
-		_ = shutdown_receiver => {
-		}
-		_ = start_local_server_with_listener(listener, duel) => {
-		}
+		_ = shutdown_receiver => {}
+		_ = start_local_server_with_listener(listener, duel) => {}
 	}
 
 	Ok(())
