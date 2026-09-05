@@ -28,6 +28,50 @@ $boder-color: #9ed3ff;
 		}
 		.ygopro3__duel__back {
 			width: calc(var(--width) * 12);
+			position: relative;
+
+			&.turn_self::after {
+				background: conic-gradient(
+					from var(--angle),
+					$boder-color,
+					#d8f2ff,
+					#00d5ff,
+					#5f9cff,
+					$boder-color
+				);
+			}
+			&.turn_oppo::after {
+				background: conic-gradient(
+					from var(--angle),
+					red,
+					#ffd0d0,
+					#ff4a4a,
+					#b80000,
+					red
+				);
+			}
+			&::after {
+				content: '';
+				position: absolute;
+				inset: -4px;
+				padding: 4px;
+				pointer-events: none;
+				-webkit-mask:
+					linear-gradient(#fff 0 0) content-box,
+					linear-gradient(#fff 0 0);
+				mask:
+					linear-gradient(#fff 0 0) content-box,
+					linear-gradient(#fff 0 0);
+				-webkit-mask-composite: xor;
+				mask-composite: exclude;
+				animation: rotate 2s linear infinite;
+			}
+			&.turn_self {
+				box-shadow: 0 0 15px $boder-color;
+			}
+			&.turn_oppo {
+				box-shadow: 0 0 15px red;
+			}
 			> img {
 				display: block;
 				width: 100%;
@@ -257,4 +301,14 @@ $boder-color: #9ed3ff;
 	.ygopro3__duel__scene.show {
 		opacity: 1;
 	}
+}
+
+@property --angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes rotate {
+  to { --angle: 360deg; }
 }
