@@ -268,5 +268,6 @@ En_US[I18N_KEYS.DUEL_HISTORY_CHAINING] = 'Activated at chain [{:?}]';
 En_US[I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED] = 'Resolving chain [{:?}]';
 En_US[I18N_KEYS.DUEL_HISTORY_TURN] = 'Turn {:?}';
 En_US[I18N_KEYS.DUEL_SAVE_REPLAY] = 'Save Replay';
+En_US[I18N_KEYS.DUEL_REPLAY_END] = 'Replay Ended';
 
 export default En_US;
