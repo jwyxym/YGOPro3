@@ -24,6 +24,10 @@ impl Script {
 		self.content.insert(key, value);
 	}
 
+	pub fn get (&self, key: &str) -> Option<&ScriptContent> {
+		self.content.get(key)
+	}
+
 	pub fn read_dir<P: AsRef<Path>> (mut self, path: P) -> Self {
 		WalkDir::new(path)
 			.max_depth(1)

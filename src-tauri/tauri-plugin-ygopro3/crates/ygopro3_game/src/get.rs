@@ -46,20 +46,19 @@ pub fn script (key: &str) -> Result<Vec<u8>, Error> {
 		if !pack.on {
 			continue;
 		}
-		for (k, v) in pack.scripts.to_array().into_iter() {
-			if &k != key {
-				continue;
-			}
-			match v {
-				ScriptContent::ZipFile(v) => {
+		if let Some(script) = pack.scripts.get(key) {
+			match script {
+				ScriptContent::ZipFile(index) => {
 					if let Some(archive) = pack.archive.as_mut() {
-						if let Ok(mut file) = archive.by_index(v) {
+						if let Ok(mut file) = archive.by_index(*index) {
 							file.read_to_end(&mut content)?;
+							break;
 						}
 					}
 				}
-				ScriptContent::Path(v) => {
-					content = read(v)?;
+				ScriptContent::Path(path) => {
+					content = read(path)?;
+					break;
 				}
 			}
 		}

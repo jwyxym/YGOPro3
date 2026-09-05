@@ -58,9 +58,11 @@ pub async fn get () -> Result<Vec<String>, Error> {
 		.filter_map(|i| {
 			if let Ok(i) = i {
 				if let Some(file) = File::new(i.path()) {
-					if file.ext() == "yrp3d" {
-						return Some(String::from(file.name()));
-					}
+					return match file.ext() {
+						"yrp3d" => Some(String::from(file.name())),
+						"yrp" => Some(String::from(file.name())),
+						_ => None
+					};
 				}
 			}
 			None
@@ -71,8 +73,13 @@ pub async fn get () -> Result<Vec<String>, Error> {
 
 pub async fn read (name: String) -> Result<Vec<u8>, Error> {
 	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	let path: PathBuf = path.join("replay").join(name);
-	Ok(fs_read(path)?)
+	let path: PathBuf = path.join("replay").join(&name);
+	let content: Vec<u8> = fs_read(path)?;
+	if name.ends_with("yrp3d") {
+		Ok(content)
+	} else {
+		Ok(ygopro3_duel::collect_messages(content).await?)
+	}
 }
 
 pub async fn save (mut name: String, content: &[u8]) -> Result<String, Error> {

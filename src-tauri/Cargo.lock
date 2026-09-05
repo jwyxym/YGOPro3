@@ -7484,7 +7484,7 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 
 [[package]]
 name = "ygopro"
-version = "0.1.0"
+version = "1.36.2-rs.1"
 dependencies = [
  "anymap3",
  "arc-swap",
@@ -7499,8 +7499,10 @@ dependencies = [
  "log",
  "parking_lot",
  "rand 0.8.5",
+ "slab",
  "tokio",
  "tokio-stream",
+ "tokio-util",
  "walkdir",
  "ygopro-core-wrapper",
  "ygopro-data",
@@ -7593,12 +7595,12 @@ dependencies = [
  "tauri",
  "ygopro3_const",
  "ygopro3_deck",
+ "ygopro3_duel",
  "ygopro3_game",
  "ygopro3_log",
  "ygopro3_macros",
  "ygopro3_network",
  "ygopro3_plugin",
- "ygopro3_single_duel",
  "ygopro3_windbot",
  "ygopro3_ypk",
  "ygopro3_yrp",
@@ -7631,6 +7633,25 @@ dependencies = [
  "walkdir",
  "ygopro3_const",
  "ygopro3_fs",
+]
+
+[[package]]
+name = "ygopro3_duel"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "arc-swap",
+ "binrw",
+ "futures",
+ "hashbrown 0.17.1",
+ "parking_lot",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "ygopro3_card",
+ "ygopro3_ex_code",
+ "ygopro3_game",
+ "ygopru",
 ]
 
 [[package]]
@@ -7797,24 +7818,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ygopro3_single_duel"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "arc-swap",
- "binrw",
- "futures",
- "hashbrown 0.17.1",
- "parking_lot",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "ygopro3_ex_code",
- "ygopro3_game",
- "ygopru",
-]
-
-[[package]]
 name = "ygopro3_sound"
 version = "0.1.0"
 dependencies = [
@@ -7869,6 +7872,7 @@ dependencies = [
  "chrono",
  "walkdir",
  "ygopro3_const",
+ "ygopro3_duel",
  "ygopro3_fs",
 ]
 

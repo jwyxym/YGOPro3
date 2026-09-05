@@ -115,14 +115,13 @@
 			}
 			this.image?.remove();
 			this.image = undefined;
-			const in_group = group.value!.some(i => {
+			if (props.del && !group.value!.some(i => {
 				const rect = i.getBoundingClientRect();
 				return e.clientX >= rect.left
 					&& e.clientX <= rect.right
 					&& e.clientY >= rect.top
 					&& e.clientY <= rect.bottom;
-			});
-			if (!in_group)
+			}))
 				this.card.remove();
 			this.card.classList.remove('move');
 			group.value!.forEach(i => {
