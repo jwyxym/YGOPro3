@@ -58,7 +58,7 @@ class _Duel {
 		if (!this.element)
 			return;
 		this.renderer.domElement.classList.add('ygopro3__duel__scene')
-		this.renderer.setSize(GLOBAL.WIDTH - 600, GLOBAL.HEIGHT);
+		this.renderer.setSize(GLOBAL.WIDTH - 500, GLOBAL.HEIGHT);
 		this.camera.position.set(0, -300, 780);
 		this.camera.lookAt(0, -60, 0);
 
@@ -427,7 +427,7 @@ class _Duel {
 		back : () : void => {
 			const create_back = (srcs : Array<string> = []) : CSS.CSS3DObject => {
 				const dom = document.createElement('div');
-				dom.classList.add('ygopro3__duel__back');
+				dom.classList.add('ygopro3__duel__back', 'turn_self');
 				for (const [v, src] of srcs.reverse().entries()) {
 					const child = document.createElement('img');
 					child.src = src;
@@ -703,6 +703,13 @@ class _Duel {
 			}
 		});
 	};
+
+	turn = (player : 0 | 1) : void => {
+		if (!this.element || !this.back)
+			return;
+		this.back.element.classList.toggle('turn_self', !player);
+		this.back.element.classList.toggle('turn_oppo', !!player);
+	}
 };
 
 watch(() => connect.duel.card, (n, o) => {
@@ -721,6 +728,8 @@ watch(() => connect.duel.card, (n, o) => {
 		duel.activate?.on(n_card, n_card.location & LOCATION.ONFIELD ? [] : connect.duel.cards);
 	} else duel.activate?.off();
 });
+
+watch(() => connect.duel.turn, (n) => duel.turn(n));
 
 const duel = new _Duel();
 
