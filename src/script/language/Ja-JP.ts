@@ -268,5 +268,6 @@ Ja_JP[I18N_KEYS.DUEL_HISTORY_CHAINING] = 'チェーン[{:?}]で発動';
 Ja_JP[I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED] = 'チェーン[{:?}]の処理';
 Ja_JP[I18N_KEYS.DUEL_HISTORY_TURN] = 'ターン{:?}';
 Ja_JP[I18N_KEYS.DUEL_SAVE_REPLAY] = 'リプレイを保存';
+Ja_JP[I18N_KEYS.DUEL_REPLAY_END] = 'リプレイ終了';
 
 export default Ja_JP;

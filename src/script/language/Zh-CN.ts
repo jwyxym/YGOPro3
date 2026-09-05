@@ -269,5 +269,6 @@ Zh_CN[I18N_KEYS.DUEL_HISTORY_CHAINING] = '在连锁[{:?}]发动';
 Zh_CN[I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED] = '连锁[{:?}]处理';
 Zh_CN[I18N_KEYS.DUEL_HISTORY_TURN] = '第{:?}回合';
 Zh_CN[I18N_KEYS.DUEL_SAVE_REPLAY] = '保存录像';
+Zh_CN[I18N_KEYS.DUEL_REPLAY_END] = '录像结束';
 
 export default Zh_CN;

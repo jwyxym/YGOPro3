@@ -268,5 +268,6 @@ Zh_TW[I18N_KEYS.DUEL_HISTORY_CHAINING] = '在連鎖[{:?}]發動';
 Zh_TW[I18N_KEYS.DUEL_HISTORY_CHAIN_SOLVED] = '連鎖[{:?}]處理';
 Zh_TW[I18N_KEYS.DUEL_HISTORY_TURN] = '第{:?}回合';
 Zh_TW[I18N_KEYS.DUEL_SAVE_REPLAY] = '儲存錄像';
+Zh_TW[I18N_KEYS.DUEL_REPLAY_END] = '錄像結束';
 
 export default Zh_TW;
