@@ -3,21 +3,58 @@ use std::{
 	ops::Deref,
 	time::Duration
 };
-
 use anyhow::{Result, Error, anyhow};
 use binrw::BinRead;
-use futures::FutureExt;
-use tokio::sync::mpsc;
+use futures::{FutureExt, Stream as FuturesStream};
+use tokio::{
+	select,
+	sync::mpsc::{UnboundedSender, unbounded_channel},
+	time::sleep,
+};
 use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use ygopru::{
-	ygopro::{self, Configuration, DuelHost},
+	ygopro::{
+		Configuration,
+		DuelHost,
+		PRO_VERSION,
+		plugin::no_init_shuffle_deck::NAME as NO_INIT_SHUFFLE_DECK,
+	},
 	ygopro_core_wrapper::DuelSeed,
 	ygopro_data::{
 		complex::Complex,
-		constants::{CorePlayer, Hand},
+		constants::{
+			CorePlayer,
+			CorePlayer::{FirstAttackPlayer, SecondAttackPlayer},
+			Hand::{Paper, Rock},
+		},
 		data::Replay,
 		message::gm::GameMessage,
-		message::{ctos, stoc},
+		message::{
+			ctos::{
+				HandResult,
+				HsReady,
+				HsStart,
+				JoinGame,
+				Message as CtosMessage,
+				PlayerInfo,
+				Response,
+				TimeConfirm,
+				TpResult,
+				UpdateDeck,
+			},
+			stoc::{
+				Message as StocMessage,
+				Message::{GameMessage as StocGameMessage, TimeLimit},
+				MessageType,
+				MessageType::{
+					HsPlayerChange,
+					HsPlayerEnter,
+					SelectHand,
+					SelectTp,
+					TypeChange,
+				},
+			},
+		},
 		string::FixedLengthString,
 	},
 	ygopro_handler::RoomProvider,
@@ -29,7 +66,7 @@ const YRP3D_SIBYL_NAME: u8 = 235;
 const YRP3D_NAME_FIELD_CHARS: usize = 50;
 
 pub async fn collect_messages (yrp: Vec<u8>) -> Result<Vec<u8>, Error> {
-	super::local_server::init().await?;
+	super::init().await?;
 
 	let replay: Replay = Replay::read_le(&mut Cursor::new(yrp))?;
 	if replay.is_tag() {
@@ -39,7 +76,7 @@ pub async fn collect_messages (yrp: Vec<u8>) -> Result<Vec<u8>, Error> {
 	let seed_sequence: [u32; 8] = replay.header.seed_sequence;
 	let mut configuration: Configuration = Configuration::default();
 	configuration.no_mask = true;
-	configuration.enable_plugin(ygopro::plugin::no_init_shuffle_deck::NAME);
+	configuration.enable_plugin(NO_INIT_SHUFFLE_DECK);
 	configuration.seed_generator = Some(Box::new(move |_| DuelSeed::Complicated(seed_sequence)));
 
 	let mut messages: Vec<Vec<u8>> = Vec::new();
@@ -47,28 +84,28 @@ pub async fn collect_messages (yrp: Vec<u8>) -> Result<Vec<u8>, Error> {
 	let (mut player1, mut player2) = start_duel(&replay, &mut host, &mut messages).await?;
 
 	for data in &replay.body.datas {
-		let response: ctos::Response = ctos::Response {
+		let response: Response = Response {
 			response: data.data.clone(),
 		};
 
 		loop {
-			tokio::select! {
+			select! {
 				message = player1.stoc_stream.next() => {
 					let message = message.ok_or_else(|| anyhow!("player1 disconnected"))?;
 					collect_game_message(&mut messages, &message);
-					if should_respond(&player1.ctos_sender, CorePlayer::FirstAttackPlayer, &message)? {
+					if should_respond(&player1.ctos_sender, FirstAttackPlayer, &message)? {
 						player1.ctos_sender.send(response.into())?;
 						break;
 					}
 				}
 				message = player2.stoc_stream.next() => {
 					let message = message.ok_or_else(|| anyhow!("player2 disconnected"))?;
-					if should_respond(&player2.ctos_sender, CorePlayer::SecondAttackPlayer, &message)? {
+					if should_respond(&player2.ctos_sender, SecondAttackPlayer, &message)? {
 						player2.ctos_sender.send(response.into())?;
 						break;
 					}
 				}
-				_ = tokio::time::sleep(RESPONSE_TIMEOUT) => {
+				_ = sleep(RESPONSE_TIMEOUT) => {
 					return Err(anyhow!("timed out while replaying response"));
 				}
 			}
@@ -136,15 +173,15 @@ fn write_yrp3d_name_field (out: &mut Vec<u8>, value: &str) {
 	}
 }
 
-struct Player<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> {
-	ctos_sender: mpsc::UnboundedSender<ctos::Message>,
+struct Player<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> {
+	ctos_sender: UnboundedSender<CtosMessage>,
 	stoc_stream: Room::ServerToClientStream,
 }
 
-fn create_player<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
+fn create_player<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	room: &mut Room,
 ) -> Player<Room> {
-	let (ctos_sender, ctos_receiver) = mpsc::unbounded_channel();
+	let (ctos_sender, ctos_receiver) = unbounded_channel();
 	let stoc_stream = room.add(UnboundedReceiverStream::new(ctos_receiver));
 	Player {
 		ctos_sender,
@@ -152,7 +189,7 @@ fn create_player<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	}
 }
 
-async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
+async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	replay: &Replay,
 	room: &mut Room,
 	messages: &mut Vec<Vec<u8>>,
@@ -160,15 +197,15 @@ async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	let mut player1 = create_player(room);
 	send(
 		&player1.ctos_sender,
-		ctos::PlayerInfo {
+		PlayerInfo {
 			name: replay.body.host_name.clone(),
 		}
 		.into(),
 	)?;
 	send(
 		&player1.ctos_sender,
-		ctos::JoinGame {
-			version: *ygopro::PRO_VERSION,
+		JoinGame {
+			version: *PRO_VERSION,
 			gameid: 0,
 			pass: FixedLengthString::allocate(),
 		}
@@ -176,7 +213,7 @@ async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	)?;
 	wait_for(
 		&mut player1.stoc_stream,
-		stoc::MessageType::TypeChange,
+		TypeChange,
 		Some(messages),
 	)
 	.await?;
@@ -184,15 +221,15 @@ async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	let mut player2 = create_player(room);
 	send(
 		&player2.ctos_sender,
-		ctos::PlayerInfo {
+		PlayerInfo {
 			name: replay.body.client_name.clone(),
 		}
 		.into(),
 	)?;
 	send(
 		&player2.ctos_sender,
-		ctos::JoinGame {
-			version: *ygopro::PRO_VERSION,
+		JoinGame {
+			version: *PRO_VERSION,
 			gameid: 0,
 			pass: FixedLengthString::allocate(),
 		}
@@ -200,68 +237,68 @@ async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	)?;
 	wait_for(
 		&mut player2.stoc_stream,
-		stoc::MessageType::TypeChange,
+		TypeChange,
 		None,
 	)
 	.await?;
 
 	wait_for(
 		&mut player1.stoc_stream,
-		stoc::MessageType::HsPlayerEnter,
+		HsPlayerEnter,
 		Some(messages),
 	)
 	.await?;
 
 	send(
 		&player1.ctos_sender,
-		ctos::UpdateDeck {
+		UpdateDeck {
 			deck: replay.body.host_deck.clone().into(),
 		}
 		.into(),
 	)?;
-	send(&player1.ctos_sender, ctos::HsReady.into())?;
+	send(&player1.ctos_sender, HsReady.into())?;
 	send(
 		&player2.ctos_sender,
-		ctos::UpdateDeck {
+		UpdateDeck {
 			deck: replay.body.client_deck.clone().into(),
 		}
 		.into(),
 	)?;
-	send(&player2.ctos_sender, ctos::HsReady.into())?;
+	send(&player2.ctos_sender, HsReady.into())?;
 	wait_for(
 		&mut player2.stoc_stream,
-		stoc::MessageType::HsPlayerChange,
+		HsPlayerChange,
 		None,
 	)
 	.await?;
 
-	send(&player1.ctos_sender, ctos::HsStart.into())?;
+	send(&player1.ctos_sender, HsStart.into())?;
 	wait_for(
 		&mut player1.stoc_stream,
-		stoc::MessageType::SelectHand,
+		SelectHand,
 		Some(messages),
 	)
 	.await?;
 
 	send(
 		&player1.ctos_sender,
-		ctos::HandResult { res: Hand::Paper }.into(),
+		HandResult { res: Paper }.into(),
 	)?;
 	send(
 		&player2.ctos_sender,
-		ctos::HandResult { res: Hand::Rock }.into(),
+		HandResult { res: Rock }.into(),
 	)?;
 	wait_for(
 		&mut player1.stoc_stream,
-		stoc::MessageType::SelectTp,
+		SelectTp,
 		Some(messages),
 	)
 	.await?;
 
 	send(
 		&player1.ctos_sender,
-		ctos::TpResult {
-			result: CorePlayer::FirstAttackPlayer,
+		TpResult {
+			result: FirstAttackPlayer,
 		}
 		.into(),
 	)?;
@@ -269,19 +306,19 @@ async fn start_duel<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
 	Ok((player1, player2))
 }
 
-async fn wait_for<Stream> (
-	stream: &mut Stream,
-	message_type: stoc::MessageType,
+async fn wait_for<DuelStream> (
+	stream: &mut DuelStream,
+	message_type: MessageType,
 	mut collector: Option<&mut Vec<Vec<u8>>>,
 ) -> Result<()>
 where
-	Stream: futures::Stream<Item = Complex<stoc::Message>> + Unpin,
+	DuelStream: FuturesStream<Item = Complex<StocMessage>> + Unpin,
 {
 	while let Some(message) = stream.next().await {
 		if let Some(messages) = collector.as_deref_mut() {
 			collect_game_message(messages, &message);
 		}
-		if stoc::MessageType::from(message.deref()) == message_type {
+		if MessageType::from(message.deref()) == message_type {
 			return Ok(());
 		}
 	}
@@ -289,15 +326,15 @@ where
 }
 
 fn should_respond (
-	ctos_sender: &mpsc::UnboundedSender<ctos::Message>,
+	ctos_sender: &UnboundedSender<CtosMessage>,
 	player: CorePlayer,
-	message: &Complex<stoc::Message>,
+	message: &Complex<StocMessage>,
 ) -> Result<bool> {
 	match message.deref() {
-		stoc::Message::TimeLimit(limit) if limit.player == player => {
-			ctos_sender.send(ctos::TimeConfirm.into())?;
+		TimeLimit(limit) if limit.player == player => {
+			ctos_sender.send(TimeConfirm.into())?;
 		}
-		stoc::Message::GameMessage(game_message)
+		StocGameMessage(game_message)
 			if game_message.message.waiting_for().is_some() =>
 		{
 			return Ok(true);
@@ -307,42 +344,42 @@ fn should_respond (
 	Ok(false)
 }
 
-fn collect_game_message (messages: &mut Vec<Vec<u8>>, message: &Complex<stoc::Message>) {
-	if let stoc::Message::GameMessage(_) = message.deref()
+fn collect_game_message (messages: &mut Vec<Vec<u8>>, message: &Complex<StocMessage>) {
+	if let StocGameMessage(_) = message.deref()
 		&& message.data.len() > 1
 	{
 		messages.push(message.data[1..].to_vec());
 	}
 }
 
-async fn drain_messages<Room: RoomProvider<ctos::Message, Complex<stoc::Message>>> (
+async fn drain_messages<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	player1: &mut Player<Room>,
 	player2: &mut Player<Room>,
 	messages: &mut Vec<Vec<u8>>,
 ) -> Result<()> {
 	loop {
-		tokio::select! {
+		select! {
 			message = player1.stoc_stream.next() => {
 				let Some(message) = message else { return Ok(()); };
 				collect_game_message(messages, &message);
-				if should_respond(&player1.ctos_sender, CorePlayer::FirstAttackPlayer, &message)? {
+				if should_respond(&player1.ctos_sender, FirstAttackPlayer, &message)? {
 					return Ok(());
 				}
 			}
 			message = player2.stoc_stream.next() => {
 				let Some(message) = message else { return Ok(()); };
-				if should_respond(&player2.ctos_sender, CorePlayer::SecondAttackPlayer, &message)? {
+				if should_respond(&player2.ctos_sender, SecondAttackPlayer, &message)? {
 					return Ok(());
 				}
 			}
-			_ = tokio::time::sleep(DRAIN_TIMEOUT).fuse() => {
+			_ = sleep(DRAIN_TIMEOUT).fuse() => {
 				return Ok(());
 			}
 		}
 	}
 }
 
-fn send (sender: &mpsc::UnboundedSender<ctos::Message>, message: ctos::Message) -> Result<()> {
+fn send (sender: &UnboundedSender<CtosMessage>, message: CtosMessage) -> Result<()> {
 	sender.send(message)?;
 	Ok(())
 }

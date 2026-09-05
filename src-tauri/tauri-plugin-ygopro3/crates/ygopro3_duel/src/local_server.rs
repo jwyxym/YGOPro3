@@ -1,46 +1,45 @@
 use anyhow::{Error, Result, anyhow};
 use parking_lot::{Mutex, MutexGuard};
 use std::{
-	borrow::Cow,
-	ffi::{CStr, c_char, c_int},
-	fs::read,
-	ptr::null_mut,
 	sync::OnceLock,
-	sync::mpsc::{Receiver, Sender, channel},
-	thread::JoinHandle,
+	sync::mpsc::{Receiver as StartResultReceiver, Sender as StartResultSender, channel},
+	thread::{JoinHandle, spawn},
 	time::Duration,
 };
-use tokio::{net::TcpListener, sync::oneshot};
+use tokio::{
+	net::TcpListener,
+	runtime::{Builder, Runtime},
+	select,
+	sync::oneshot::{
+		Receiver as ShutdownReceiver,
+		Sender as ShutdownSender,
+		channel as shutdown_channel,
+	},
+};
 use ygopru::{
 	ygopro::{
 		DuelHost,
-		cli::{build_duel_host, start_local_server_with_listener},
-		managers::{
-			config_manager::{self, ConfigManager},
-			data_manager::{self, DataManager},
-			deck_manager::{self, DeckManager},
-		},
+		cli::{
+			build_duel_host,
+			start_local_server_with_listener
+		}
 	},
-	ygopro_core_wrapper::{
-		get_log_message, random::SEED_COUNT, set_card_reader, set_message_handler,
-		set_script_reader,
-	},
+	ygopro_core_wrapper::random::SEED_COUNT,
 	ygopro_data::{
-		constants::{Attribute, Category, Linkmarkers, MasterRule, Mode, OT, Race, Rule, Type},
-		data::{Card, CoreCard, ReplayMode},
+		constants::{MasterRule, Mode, Rule},
+		data::ReplayMode,
 		message::HostInfo,
 	},
 };
 
 static SERVER_CONTROL: OnceLock<Mutex<Option<ServerControl>>> = OnceLock::new();
-static SCRIPT_BUFFER: Mutex<[u8; 0x100000]> = Mutex::new([0u8; 0x100000]);
 
 struct ServerControl {
-	shutdown_sender: oneshot::Sender<()>,
+	shutdown_sender: ShutdownSender<()>,
 	server_thread: JoinHandle<()>,
 }
 
-pub fn start_server(
+pub fn start_server (
 	lflist: u32,
 	rule: u8,
 	mode: u8,
@@ -84,14 +83,14 @@ pub fn start_server(
 		i.server_thread.join().ok();
 	}
 
-	let (shutdown_sender, shutdown_receiver): (oneshot::Sender<()>, oneshot::Receiver<()>) =
-		oneshot::channel();
+	let (shutdown_sender, shutdown_receiver): (ShutdownSender<()>, ShutdownReceiver<()>) =
+		shutdown_channel();
 	let (start_result_sender, start_result_receiver): (
-		Sender<Result<u16, i32>>,
-		Receiver<Result<u16, i32>>,
+		StartResultSender<Result<u16, i32>>,
+		StartResultReceiver<Result<u16, i32>>,
 	) = channel();
-	let server_thread: JoinHandle<()> = std::thread::spawn(move || {
-		let runtime: tokio::runtime::Runtime = match tokio::runtime::Builder::new_multi_thread()
+	let server_thread: JoinHandle<()> = spawn(move || {
+		let runtime: Runtime = match Builder::new_multi_thread()
 			.enable_all()
 			.build()
 		{
@@ -103,7 +102,7 @@ pub fn start_server(
 		};
 
 		runtime.block_on(async move {
-			let init_result: Result<(), Error> = init().await;
+			let init_result: Result<(), Error> = super::init().await;
 			if let Err(_) = init_result {
 				start_result_sender.send(Err(-1)).ok();
 				return;
@@ -130,7 +129,7 @@ pub fn start_server(
 		.map_err(|_| anyhow!("ygoserver runtime error"))
 }
 
-pub fn stop_server() {
+pub fn stop_server () {
 	let server_control: Option<ServerControl> = {
 		let server_control_lock: &Mutex<Option<ServerControl>> =
 			SERVER_CONTROL.get_or_init(|| Mutex::new(None));
@@ -144,12 +143,12 @@ pub fn stop_server() {
 	}
 }
 
-async fn run_tcp_server(
+async fn run_tcp_server (
 	replay_mode: ReplayMode,
 	host_info: HostInfo,
 	seeds: Vec<[u32; SEED_COUNT]>,
-	shutdown_receiver: oneshot::Receiver<()>,
-	start_result_sender: Sender<Result<u16, i32>>,
+	shutdown_receiver: ShutdownReceiver<()>,
+	start_result_sender: StartResultSender<Result<u16, i32>>,
 ) -> Result<(), Error> {
 	let listener: TcpListener = TcpListener::bind("0.0.0.0:0").await?;
 	let port: u16 = listener.local_addr()?.port();
@@ -157,114 +156,10 @@ async fn run_tcp_server(
 	start_result_sender.send(Ok(port)).ok();
 
 	let duel: DuelHost = build_duel_host(host_info, replay_mode, seeds);
-	tokio::select! {
+	select! {
 		_ = shutdown_receiver => {}
 		_ = start_local_server_with_listener(listener, duel) => {}
 	}
 
 	Ok(())
-}
-
-pub async fn init() -> Result<(), Error> {
-	let mut data_manager: DataManager = DataManager::new();
-	let cards: Vec<ygopro3_card::Card> = ygopro3_game::get::cards().await?;
-	for i in cards {
-		let i: ygopro3_card::Card = i;
-		data_manager.cards.insert(
-			i.code,
-			Card {
-				card: CoreCard {
-					code: i.code,
-					alias: i.alias,
-					setcode: i.setcode,
-					card_type: Type::from_bits_retain(i.card_type),
-					level: i.level,
-					attribute: Attribute::from_bits_retain(i.attribute),
-					race: Race::from_bits_retain(i.race),
-					attack: i.attack,
-					defense: i.defense,
-					left_scale: i.lscale,
-					right_scale: i.rscale,
-					link_marker: Linkmarkers::from_bits_retain(i.link_marker),
-					rule_code: 0,
-				},
-				ot: OT::from_bits_retain(i.ot),
-				category: Category::from_bits_retain(i.category),
-				name: i.name,
-				text: i.desc,
-				desc: i.hint,
-			},
-		);
-	}
-	data_manager.finalize_db();
-	let deck_manager: DeckManager = DeckManager::new();
-	let config_manager: ConfigManager = ConfigManager::new();
-	config_manager::set_global(config_manager);
-	data_manager::set_global(data_manager);
-	deck_manager::set_global(deck_manager);
-	unsafe {
-		set_script_reader(Some(script_reader));
-		set_card_reader(Some(data_manager::card_reader));
-		set_message_handler(Some(core_message_handler));
-	}
-	Ok(())
-}
-
-extern "C" fn script_reader(script_path: *const c_char, slen: *mut c_int) -> *mut u8 {
-	fn read_file(file_path: &str, buffer: &mut [u8]) -> Result<usize, Error> {
-		let data: Vec<u8> = read(file_path)?;
-		let len: usize = data.len();
-		if len >= buffer.len() {
-			Err(anyhow!("too long memory"))
-		} else {
-			buffer[..len].copy_from_slice(&data);
-			Ok(len)
-		}
-	}
-	if script_path.is_null() || slen.is_null() {
-		return null_mut();
-	}
-	let path: Cow<'_, str> = unsafe { CStr::from_ptr(script_path).to_string_lossy() };
-	let mut buffer: MutexGuard<'_, [u8; 0x100000]> = SCRIPT_BUFFER.lock();
-
-	if path.starts_with("./script") {
-		(move || -> Result<*mut u8, Error> {
-			let script_name: &str = &path[9..];
-			let data: Vec<u8> = ygopro3_game::get::script(script_name)?;
-			let len: usize = data.len();
-			if len >= buffer.len() {
-				Err(anyhow!("too long memory"))
-			} else {
-				buffer[..len].copy_from_slice(&data);
-				unsafe {
-					*slen = len as c_int;
-				}
-				Ok(buffer.as_mut_ptr())
-			}
-		})()
-		.unwrap_or(null_mut())
-	} else {
-		(move || -> Result<*mut u8, Error> {
-			let len: usize = read_file(path.as_ref(), &mut *buffer)?;
-			unsafe {
-				*slen = len as c_int;
-			}
-			Ok(buffer.as_mut_ptr())
-		})()
-		.unwrap_or(null_mut())
-	}
-}
-
-extern "C" fn core_message_handler(pduel: isize, message_type: u32) -> u32 {
-	let mut buffer: [u8; 1024] = [0u8; 1024];
-	unsafe {
-		get_log_message(pduel, buffer.as_mut_ptr());
-	}
-	let c_message: &CStr = unsafe { CStr::from_ptr(buffer.as_ptr() as *const c_char) };
-	println!(
-		"core message[{}]: {}",
-		message_type,
-		c_message.to_string_lossy()
-	);
-	0
 }
