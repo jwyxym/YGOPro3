@@ -7872,6 +7872,7 @@ dependencies = [
  "chrono",
  "walkdir",
  "ygopro3_const",
+ "ygopro3_duel",
  "ygopro3_fs",
 ]
 

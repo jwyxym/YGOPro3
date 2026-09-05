@@ -10,3 +10,4 @@ chrono.workspace = true
 
 ygopro3_fs.workspace = true
 ygopro3_const.workspace = true
+ygopro3_duel.workspace = true
