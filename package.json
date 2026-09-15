@@ -28,7 +28,8 @@
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.4",
-		"@jwyxym/dice": "^0.0.1",
+		"@jwyxym/coin": "^0.0.2",
+		"@jwyxym/dice": "^0.0.2",
 		"@kuyoonjo/tauri-plugin-tcp": "^0.1.2",
 		"@tauri-apps/api": "^2",
 		"@tauri-apps/plugin-clipboard-manager": "^2.3.0",
