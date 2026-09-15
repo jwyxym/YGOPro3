@@ -10,6 +10,7 @@ import 'fake-qq-ui/styles/light.scss';
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css';
 import 'highlight.js/styles/github-dark.css';
 import 'shinycard/style.css';
+import '@jwyxym/dice/style.css';
 
 const ygopro = createApp(YGO);
 
