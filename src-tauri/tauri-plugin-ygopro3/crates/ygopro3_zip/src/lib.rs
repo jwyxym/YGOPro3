@@ -188,36 +188,39 @@ impl Zip {
 			if let Ok(code) = _match.as_str().parse::<u32>() {
 				pics.insert(code, index);
 			}
-		} else if name.ends_with(".ini") {
-			let mut content: String = String::new();
-			if file.read_to_string(&mut content).is_ok() {
-				ini.push(content);
-			}
-		} else if name.ends_with("strings.conf") {
-			let mut content: String = String::new();
-			if file.read_to_string(&mut content).is_ok() {
-				strings.push(content);
-			}
-		} else if name.ends_with("lflist.conf") {
-			let mut content: String = String::new();
-			if file.read_to_string(&mut content).is_ok() {
-				lflist.push(content);
-			}
-		} else if name.ends_with("servers.conf") {
-			let mut content: String = String::new();
-			if file.read_to_string(&mut content).is_ok() {
-				servers.push(content);
-			}
-		} else if name.ends_with(".cdb") {
-			let mut content: Vec<u8> = Vec::new();
-			if file.read_to_end(&mut content).is_ok() {
-				let mut cdb: Cdb = Cdb::new();
-				if cdb.init_by_buffer(content).is_ok() {
-					db.push(cdb);
+		} else if name.starts_with("script/") && name.ends_with(".lua") {
+			let script_name: &str = name.strip_prefix("script/").unwrap_or(name);
+			scripts.insert(String::from(script_name), index);
+		} else if !name.contains('/') {
+			if name.ends_with(".ini") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					ini.push(content);
+				}
+			} else if name.ends_with("strings.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					strings.push(content);
+				}
+			} else if name.ends_with("lflist.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					lflist.push(content);
+				}
+			} else if name.ends_with("servers.conf") {
+				let mut content: String = String::new();
+				if file.read_to_string(&mut content).is_ok() {
+					servers.push(content);
+				}
+			} else if name.ends_with(".cdb") {
+				let mut content: Vec<u8> = Vec::new();
+				if file.read_to_end(&mut content).is_ok() {
+					let mut cdb: Cdb = Cdb::new();
+					if cdb.init_by_buffer(content).is_ok() {
+						db.push(cdb);
+					}
 				}
 			}
-		} else if name.ends_with(".lua") {
-			scripts.insert(String::from(name), index);
 		}
 	}
 }
