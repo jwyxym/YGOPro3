@@ -1,5 +1,6 @@
 import lodash from 'lodash';
 import { YGOProYrp3d } from 'ygopro-yrp3d-encode';
+import { rollDice } from '@jwyxym/dice';
 
 import mainGame from '@/script/game';
 import invoke from '@/script/invoke';
@@ -2184,16 +2185,33 @@ class Protocol {
 		}],
 		[MSG.TOSS_COIN, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1623);
-			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
+			msg.index ++;
+			const ct = msg.read.uint8() ?? 0;
+			for (let i = 0; i < ct; i ++)
 				str += ` [${mainGame.get.strings.system(msg.read.uint8() ? 60 : 61)}] `;
 			await voice.play.sound_effect(KEYS.SOUND_EFFECT_COINFLIP);
 			this.hint(str);
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1624);
-			for (let i = 0; i <( msg.read.uint8() ?? 0); i ++)
-				str += ` [${msg.read.uint8() ?? 0}] `;
-			await voice.play.sound_effect(KEYS.SOUND_EFFECT_DICEROLL);
+			msg.index ++;
+			const ct = msg.read.uint8() ?? 0;
+			for (let i = 0; i < ct; i ++) {
+				const dot = msg.read.uint8() ?? 0;
+				str += ` [${dot}] `;
+				await Promise.all([
+					rollDice({
+						sides : 6,
+						result : dot,
+						duration : 800,
+						stay : 800,
+						size : 80,
+						diceColor : 'white',
+						dotColor : 'black'
+					}),
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_DICEROLL)
+				]);
+			}
 			this.hint(str);
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {
