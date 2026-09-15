@@ -1,6 +1,7 @@
 import lodash from 'lodash';
 import { YGOProYrp3d } from 'ygopro-yrp3d-encode';
 import { rollDice } from '@jwyxym/dice';
+import { rollCoin } from '@jwyxym/coin';
 
 import mainGame from '@/script/game';
 import invoke from '@/script/invoke';
@@ -2187,9 +2188,19 @@ class Protocol {
 			let str = mainGame.get.strings.system(1623);
 			msg.index ++;
 			const ct = msg.read.uint8() ?? 0;
-			for (let i = 0; i < ct; i ++)
-				str += ` [${mainGame.get.strings.system(msg.read.uint8() ? 60 : 61)}] `;
-			await voice.play.sound_effect(KEYS.SOUND_EFFECT_COINFLIP);
+			for (let i = 0; i < ct; i ++) {
+				const pos = msg.read.uint8();
+				str += ` [${mainGame.get.strings.system(pos ? 60 : 61)}] `;
+				await Promise.all([
+					rollCoin({
+						result : pos ? 'front' : 'back',
+						duration : 1050,
+						stay : 550,
+						size : 80
+					}),
+					voice.play.sound_effect(KEYS.SOUND_EFFECT_COINFLIP)
+				]);
+			}
 			this.hint(str);
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
