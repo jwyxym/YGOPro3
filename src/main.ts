@@ -20,8 +20,8 @@ ygopro.use(FakeQQUI);
 
 ygopro.mount('#ygopro');
 
-document.addEventListener('keydown', (e : KeyboardEvent) : void => {
-	if (!import.meta.env.DEV)
+if (!import.meta.env.DEV) {
+	document.addEventListener('keydown', (e : KeyboardEvent) : void => {
 		if (e.key === 'F5') {
 			e.preventDefault();
 			e.stopPropagation();
@@ -29,8 +29,8 @@ document.addEventListener('keydown', (e : KeyboardEvent) : void => {
 			e.preventDefault();
 			e.stopPropagation();
 		}
-});
-document.addEventListener('contextmenu', (e : MouseEvent) : void => {
-	if (!import.meta.env.DEV)
+	});
+	document.addEventListener('contextmenu', (e : MouseEvent) : void => {
 		e.preventDefault();
-});
+	});
+}
