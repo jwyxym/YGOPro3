@@ -2168,9 +2168,27 @@ class Protocol {
 			if (cards[0] === undefined)
 				return;
 			this.attack_code = cards[0].id;
-			this.event = cards[1]
-				? mainGame.get.strings.system(1619, [mainGame.get.name(this.attack_code), mainGame.get.name(cards[1].id)])
-				: mainGame.get.strings.system(1620, mainGame.get.name(this.attack_code));
+			if (cards[1]) {
+				this.event = mainGame.get.strings.system(
+					1619,
+					[mainGame.get.name(this.attack_code), mainGame.get.name(cards[1].id)]
+				);
+				history.push(HISTORY.BATTLE, {
+					self : Boolean(card_I.tp),
+					cards : [
+						{ id : cards[0].id, pos : cards[0].pos },
+						{ id : cards[1].id, pos : cards[1].pos },
+					]
+				});
+			} else {
+				this.event = mainGame.get.strings.system(1620, mainGame.get.name(this.attack_code));
+				history.push(HISTORY.BATTLE, {
+					self : Boolean(card_I.tp),
+					cards : [
+						{ id : cards[0].id, pos : cards[0].pos }
+					]
+				});
+			}
 			await Promise.all([
 				voice.play.sound_effect(KEYS.SOUND_EFFECT_ATTACK),
 				duel.attack(...(cards as [Client_Card, Client_Card | undefined]))

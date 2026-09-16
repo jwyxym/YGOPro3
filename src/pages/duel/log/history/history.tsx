@@ -15,7 +15,7 @@ import Cover from './cover'
 
 const HISTORY = {
 	MOVE : 0,
-	BATTEL : 1,
+	BATTLE : 1,
 	ANNOUNCE : 2,
 	LP : 3,
 	DRAW : 4,
@@ -116,24 +116,37 @@ const History  = defineComponent({
 									desc = {item.content.from + ' → ' + item.content.to}
 								/>
 							</div>;
-						case HISTORY.BATTEL:
-							return <div class = {['history__card__battel',
-									item.content.self ? 'history__self' : 'history__oppo'
-								]}>
-								<Pic
-									id = {item.content.cards[0].id}
-									pos = {item.content.cards[0].pos}
-									onClick = {(v : number | string) => emit('click', v)}
-								/>
-								<Desc
-									desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
-								/>
-								<Pic
-									id = {item.content.cards[1].id}
-									pos = {item.content.cards[1].pos}
-									onClick = {(v : number | string) => emit('click', v)}
-								/>
-							</div>;
+						case HISTORY.BATTLE:
+							return item.content.cards[1]
+								? <div class = {['history__card__battel',
+										item.content.self ? 'history__self' : 'history__oppo'
+									]}>
+									<Pic
+										id = {item.content.cards[0].id}
+										pos = {item.content.cards[0].pos}
+										onClick = {(v : number | string) => emit('click', v)}
+									/>
+									<Desc
+										desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE) + ' →'}
+									/>
+									<Pic
+										id = {item.content.cards[1].id}
+										pos = {item.content.cards[1].pos}
+										onClick = {(v : number | string) => emit('click', v)}
+									/>
+								</div>
+								: <div class = {['history__card__battel',
+										item.content.self ? 'history__self' : 'history__oppo'
+									]}>
+									<Pic
+										id = {item.content.cards[0].id}
+										pos = {item.content.cards[0].pos}
+										onClick = {(v : number | string) => emit('click', v)}
+									/>
+									<Desc
+										desc = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_BATTLE)}
+									/>
+								</div>;
 						case HISTORY.ANNOUNCE:
 							let content
 							{
