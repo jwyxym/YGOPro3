@@ -1520,8 +1520,13 @@ class Protocol {
 					cards : codes_self.map(i => { return { id : i[1], pos : POS.FACEUP_ATTACK }; }),
 					avatar : mainGame.get.avatar(0)
 				});
-			await duel.confrim.hand(codes_self.map(i => i[0]));
-			await duel.confrim.hand(codes_oppo.map(i => i[0]));
+			const cards_self = codes_self.map(i => i[0]);
+			const cards_oppo = codes_oppo.map(i => i[0]);
+			const filter = (i : Client_Card) => (i.location & LOCATION.DECK) || (i.location & LOCATION.EXTRA);
+			await duel.confrim.hand(cards_self.filter(i => !filter(i)));
+			await duel.confrim.decktop(cards_self.filter(filter));
+			await duel.confrim.hand(cards_oppo.filter(i => !filter(i)));
+			await duel.confrim.decktop(cards_oppo.filter(filter));
 		}],
 		[MSG.SHUFFLE_DECK, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
