@@ -311,7 +311,7 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 							pics.insert(*k, PicContent::ZipFile(*v));
 						});
 						zip.scripts().into_iter().for_each(|(k, v)| {
-							scripts.insert(k.clone(), ScriptContent::ZipFile(*v));
+							scripts.insert(k.clone(), *v);
 						});
 						zip.servers().into_iter().for_each(|text: String| {
 							server.init_by_conf(text);
@@ -370,7 +370,7 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 				db,
 				server,
 				lflist,
-				scripts: Script::new().read_dir(path.join("expansions").join("script")),
+				scripts: Script::new(),
 				pics: Pic::new().read_dir(path.join("expansions").join("pics")),
 				archive: None
 			}
@@ -414,7 +414,7 @@ pub async fn zip (name: String) -> Result<(), Error> {
 			pics.insert(*k, PicContent::ZipFile(*v));
 		});
 		zip.scripts().into_iter().for_each(|(k, v)| {
-			scripts.insert(k.clone(), ScriptContent::ZipFile(*v));
+			scripts.insert(k.clone(), *v);
 		});
 		zip.servers().into_iter().for_each(|text: String| {
 			server.init_by_conf(text);

@@ -97,7 +97,7 @@ impl Game {
 		}
 		progress::emit(Event::Progress, 1);
 
-		let scripts: Script = Script::new().read_dir(path.join("script"));
+		let scripts: Script = Script::new();
 		let pics: Pic = Pic::new().read_dir(path.join("pics"));
 		let sound: Sound = Sound::new().read_dir(path.join("sound"), resource.sound());
 		progress::emit(Event::Progress, 1);

@@ -34,7 +34,9 @@
 	:deep(.history__cover),
 	:deep(.history__turn),
 	:deep(.history__phase),
-	:deep(.history__lp) {
+	:deep(.history__lp),
+	:deep(.history__coin),
+	:deep(.history__dice) {
 		> div:first-child {
 			width: 20%;
 		}

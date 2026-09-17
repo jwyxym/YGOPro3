@@ -158,7 +158,7 @@ class _Duel {
 				const back = mainGame.back.pic;
 				if (card.pos & POS.FACEDOWN) {
 					tl.to(card.three.position, {
-						x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						x : `${card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
 						duration : 0.1
 					}, 0);
 					tl.to(img, {
@@ -186,17 +186,17 @@ class _Duel {
 						duration : 0.05
 					}, 0.55);
 					tl.to(card.three.position, {
-						x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						x : `${card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
 						duration : 0.1
 					}, 0.6);
 				} else {
 					img.src = pic;
 					tl.to(card.three.position, {
-						x : `${!!card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
+						x : `${card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
 						duration : 0.1
 					}, 0);
 					tl.to(card.three.position, {
-						x : `${!!card.owner ? '-' : '+'}=${SIZE.WIDTH}px`,
+						x : `${card.owner ? '+' : '-'}=${SIZE.WIDTH}px`,
 						duration : 0.1
 					}, 0.2);
 				}

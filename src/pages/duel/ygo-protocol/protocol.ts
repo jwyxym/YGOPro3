@@ -1520,8 +1520,13 @@ class Protocol {
 					cards : codes_self.map(i => { return { id : i[1], pos : POS.FACEUP_ATTACK }; }),
 					avatar : mainGame.get.avatar(0)
 				});
-			await duel.confrim.hand(codes_self.map(i => i[0]));
-			await duel.confrim.hand(codes_oppo.map(i => i[0]));
+			const cards_self = codes_self.map(i => i[0]);
+			const cards_oppo = codes_oppo.map(i => i[0]);
+			const filter = (i : Client_Card) => (i.location & LOCATION.DECK) || (i.location & LOCATION.EXTRA);
+			await duel.confrim.hand(cards_self.filter(i => !filter(i)));
+			await duel.confrim.decktop(cards_self.filter(filter));
+			await duel.confrim.hand(cards_oppo.filter(i => !filter(i)));
+			await duel.confrim.decktop(cards_oppo.filter(filter));
 		}],
 		[MSG.SHUFFLE_DECK, async (msg : Msg) => {
 			const tp = this.to.player(msg.read.uint8() ?? 0);
@@ -2203,11 +2208,14 @@ class Protocol {
 		}],
 		[MSG.TOSS_COIN, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1623);
-			msg.index ++;
+			const result : Array<string> = [];
+			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8() ?? 0;
 			for (let i = 0; i < ct; i ++) {
 				const pos = msg.read.uint8();
-				str += ` [${mainGame.get.strings.system(pos ? 60 : 61)}] `;
+				const value = mainGame.get.strings.system(pos ? 60 : 61);
+				result.push(value);
+				str += ` [${value}] `;
 				await Promise.all([
 					rollCoin({
 						result : pos ? 'front' : 'back',
@@ -2219,13 +2227,21 @@ class Protocol {
 				]);
 			}
 			this.hint(str);
+			history.push(HISTORY.COIN, {
+				self : !!tp,
+				avatar : mainGame.get.avatar(connect.duel.turn),
+				cards : [],
+				number : result.join(' ')
+			});
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1624);
-			msg.index ++;
+			const result : Array<number> = [];
+			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8() ?? 0;
 			for (let i = 0; i < ct; i ++) {
 				const dot = msg.read.uint8() ?? 0;
+				result.push(dot);
 				str += ` [${dot}] `;
 				await Promise.all([
 					rollDice({
@@ -2241,6 +2257,12 @@ class Protocol {
 				]);
 			}
 			this.hint(str);
+			history.push(HISTORY.DICE, {
+				self : !!tp,
+				avatar : mainGame.get.avatar(connect.duel.turn),
+				cards : [],
+				number : result.join(' ')
+			});
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {
 			connect.duel.rps.head = CTOS.RESPONSE;

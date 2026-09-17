@@ -26,6 +26,8 @@ const HISTORY = {
 	CONFIRM : 9,
 	PHASE : 10,
 	TURN : 11,
+	COIN : 12,
+	DICE : 13,
 }
 
 interface HistoryContent {
@@ -287,6 +289,24 @@ const History  = defineComponent({
 								<Num
 									number = {mainGame.get.text(I18N_KEYS.DUEL_HISTORY_TURN, item.content.number!)}
 								/>
+							</div>;
+						case HISTORY.COIN:
+						case HISTORY.DICE:
+							return <div class = {[item.type === HISTORY.COIN ? 'history__coin' : 'history__dice',
+									item.content.self ? 'history__self' : 'history__oppo'
+								]}>
+								<Avatar
+									avatar = {item.content.avatar!}
+									self = {item.content.self}
+								/>
+								<div>
+									<Desc
+										desc = {item.type === HISTORY.COIN
+										? mainGame.get.strings.system(1623)
+										: mainGame.get.strings.system(1624)}
+									/>
+									<Num number = {item.content.number!} />
+								</div>
 							</div>;
 					}
 				}

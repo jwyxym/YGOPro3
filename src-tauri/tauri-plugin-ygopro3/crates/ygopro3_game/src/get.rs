@@ -45,31 +45,25 @@ macro_rules! script_reader {
 			let mut game: RwLockWriteGuard<'_, Game> = game.write();
 			let mut content: $content = Default::default();
 			for pack in game.pack.values_mut() {
-				if !pack.on {
-					continue;
-				}
-				if let Some(script) = pack.scripts.get(key) {
-					match script {
-						ScriptContent::ZipFile(index) => {
-							if let Some(archive) = pack.archive.as_mut()
-								&& let Ok(mut file) = archive.by_index(*index)
-							{
-								file.$archive_read(&mut content)?;
-								break;
-							}
-						}
-						ScriptContent::Path(path) => {
-							content = $path_read(path)?;
-							break;
-						}
-					}
+				if pack.on
+					&& let Some(index) = pack.scripts.get(key)
+					&& let Some(archive) = pack.archive.as_mut()
+					&& let Ok(mut file) = archive.by_index(*index) {
+					file.$archive_read(&mut content)?;
+					break;
 				}
 			}
-			if content.is_empty() {
-				Err(anyhow!("cannot find script"))
-			} else {
-				Ok(content)
+			if !content.is_empty() {
+				return Ok(content);
 			}
+			let path: &PathBuf = PATH.get().ok_or_else(|| anyhow!("get path error"))?;
+			[
+				path.join("expansions").join("script").join(key),
+				path.join("script").join(key)
+			]
+			.into_iter()
+			.find_map(|path| $path_read(path).ok())
+			.ok_or_else(|| anyhow!("cannot find script"))
 		}
 	};
 }
