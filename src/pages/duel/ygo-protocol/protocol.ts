@@ -1184,7 +1184,6 @@ class Protocol {
 							.write.uint8(CTOS.RESPONSE)
 							.write.uint32(i)
 					);
-					duel.clear.activate();
 				};
 				connect.duel.select.cards.confirm = async (i ?: Client_Card) => {
 					connect.duel.select.cards.show = false;
