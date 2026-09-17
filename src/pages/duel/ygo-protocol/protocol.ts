@@ -2203,11 +2203,14 @@ class Protocol {
 		}],
 		[MSG.TOSS_COIN, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1623);
-			msg.index ++;
+			const result : Array<string> = [];
+			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8() ?? 0;
 			for (let i = 0; i < ct; i ++) {
 				const pos = msg.read.uint8();
-				str += ` [${mainGame.get.strings.system(pos ? 60 : 61)}] `;
+				const value = mainGame.get.strings.system(pos ? 60 : 61);
+				result.push(value);
+				str += ` [${value}] `;
 				await Promise.all([
 					rollCoin({
 						result : pos ? 'front' : 'back',
@@ -2219,13 +2222,21 @@ class Protocol {
 				]);
 			}
 			this.hint(str);
+			history.push(HISTORY.COIN, {
+				self : !!tp,
+				avatar : mainGame.get.avatar(connect.duel.turn),
+				cards : [],
+				number : result.join(' ')
+			});
 		}],
 		[MSG.TOSS_DICE, async (msg : Msg) => {
 			let str = mainGame.get.strings.system(1624);
-			msg.index ++;
+			const result : Array<number> = [];
+			const tp = this.to.player(msg.read.uint8() ?? 0);
 			const ct = msg.read.uint8() ?? 0;
 			for (let i = 0; i < ct; i ++) {
 				const dot = msg.read.uint8() ?? 0;
+				result.push(dot);
 				str += ` [${dot}] `;
 				await Promise.all([
 					rollDice({
@@ -2241,6 +2252,12 @@ class Protocol {
 				]);
 			}
 			this.hint(str);
+			history.push(HISTORY.DICE, {
+				self : !!tp,
+				avatar : mainGame.get.avatar(connect.duel.turn),
+				cards : [],
+				number : result.join(' ')
+			});
 		}],
 		[MSG.ROCK_PAPER_SCISSORS, async () => {
 			connect.duel.rps.head = CTOS.RESPONSE;
