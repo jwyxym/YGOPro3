@@ -592,13 +592,6 @@ jobs:
           cd .ci
           python write_version.py ${{ github.ref_name }}
 
-      - name: proxy
-        uses: jwyxym/jwyxym/shadowsocks@master
-        with:
-          ss_server: ${{ secrets.SS_SERVER }}
-          ss_server_port: ${{ secrets.SS_SERVER_PORT }}
-          ss_pass: ${{ secrets.SS_PASS }}
-
       - name: Upload to Bucket
         uses: jwyxym/jwyxym/s3@master
         with:
