@@ -7793,8 +7793,6 @@ dependencies = [
 name = "ygopro3_scripts"
 version = "0.1.0"
 dependencies = [
- "serde",
- "walkdir",
  "ygopro3_fs",
 ]
 
