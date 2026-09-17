@@ -527,7 +527,10 @@ class _Duel {
 			window.removeEventListener('click', duel.click);
 		},
 		activate : () : Array<Client_Card> => {
-			const cards = this.cards.filter(i => Array.from(i.activatable.values()).length);
+			const cards = this.cards.filter(i => Array
+				.from(i.activatable.values())
+				.some(effects => effects.length)
+			);
 			cards.forEach(i => i.clear.activate());
 			if (duel.btn)
 				duel.btn.enable.length = 0;
