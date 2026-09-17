@@ -292,6 +292,7 @@
 	watch(() => props.lflist, (n) => card.count(cards.flat(), n));
 
 	onMounted(async () => {
+		await mainGame.load.pic(props.deck);
 		const width = (props.width - 4) / props.count;
 		const height = width * 1.45;
 		page.height = height * 2;
@@ -396,6 +397,7 @@
 			const copy = source.cloneNode(true) as HTMLDivElement;
 			copy.style.width = width + 'px';
 			copy.style.height = height + 'px';
+			page.callback(copy);
 			if (copy.children[0] instanceof HTMLElement) {
 				copy.children[0].style.width = width * 0.4 + 'px';
 				copy.children[0].style.height = width * 0.4 + 'px';
