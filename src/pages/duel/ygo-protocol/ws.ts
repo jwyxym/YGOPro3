@@ -32,7 +32,10 @@ class Ws extends Socket {
 					break;
 				case 'Close': 
 					this.queue.add(
-						async () => await this.on_disconnect?.()
+						async () => {
+							await this.on_disconnect?.();
+							this.ws = undefined;
+						}
 					);
 			};
 		});
@@ -45,7 +48,6 @@ class Ws extends Socket {
 		try {
 			await this.ws?.disconnect();
 		} catch {};
-		this.ws = undefined;
 	};
 };
 
