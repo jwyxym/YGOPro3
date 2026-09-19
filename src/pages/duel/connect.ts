@@ -12,6 +12,7 @@ import { toast } from '@/pages/toast/toast';
 
 import ws from './ygo-protocol/ws';
 import tcp from './ygo-protocol/tcp';
+import udp from './ygo-protocol/udp';
 import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
 import Socket from './ygo-protocol/socket';
 import Msg from './ygo-protocol/msg';
@@ -224,7 +225,7 @@ const connect = reactive({
 		name : string;
 		pass : string;
 		address : string;
-		protocal : 0 | 1 | 2;
+		protocal : 0 | 1 | 2 | 3;
 	} | {
 		name : string;
 		args : [any, string];
@@ -314,7 +315,7 @@ const connect = reactive({
 								name : string;
 								pass : string;
 								address : string;
-								protocal : 0 | 1 | 2;
+								protocal : 0 | 1 | 2 | 3;
 							};
 							if (!para.name)
 								throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
@@ -344,6 +345,10 @@ const connect = reactive({
 								case 2:
 									para.address = `wss://${para.address}`;
 									connect.protocol = ws;
+									break;
+								case 3:
+									para.address = `udp://${para.address}`;
+									connect.protocol = udp;
 									break;
 							}
 							const promise = await Promise.all([

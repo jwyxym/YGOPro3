@@ -13,6 +13,7 @@ dependencies = [
  "tauri-plugin-dialog",
  "tauri-plugin-fs",
  "tauri-plugin-http",
+ "tauri-plugin-kcp",
  "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-process",
@@ -572,6 +573,12 @@ name = "bumpalo"
 version = "3.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46c5e41b57b8bba42a04676d81cb89e9ee8e859a1a66f80a5a72e1cb76b34d43"
+
+[[package]]
+name = "byte_string"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "11aade7a05aa8c3a351cedc44c3fc45806430543382fcc4743a9b757a2a0b4ed"
 
 [[package]]
 name = "bytemuck"
@@ -2697,6 +2704,17 @@ checksum = "5dea2b27dd239b2556ed7a25ba842fe47fd602e7fc7433c2a8d6106d4d9edd70"
 dependencies = [
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "kcp"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0e387a924f42063d380be14857714a2f0c177e44dbeab8895244e5370d8a8e68"
+dependencies = [
+ "bytes",
+ "log",
+ "thiserror 1.0.69",
 ]
 
 [[package]]
@@ -4879,6 +4897,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "spin"
+version = "0.9.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3763264f6b73151db08c50ff20d7d8a0b8796e021cdea7ceedad07b80155fa0e"
+dependencies = [
+ "lock_api",
+]
+
+[[package]]
 name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5435,6 +5462,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-plugin-kcp"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b42c5ed58169d98f13de3eea6deb5d5ec0d560b8a3b8e446936768bd2237601"
+dependencies = [
+ "debug_print",
+ "lazy_static",
+ "serde",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 1.0.69",
+ "tokio",
+ "tokio_kcp",
+]
+
+[[package]]
 name = "tauri-plugin-opener"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5871,6 +5914,22 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
+name = "tokio_kcp"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e29e2ec62565bc70b02413615745fede2eb72e0e29843f60e7206c1f633659cb"
+dependencies = [
+ "byte_string",
+ "bytes",
+ "futures-util",
+ "kcp",
+ "log",
+ "rand 0.8.5",
+ "spin",
  "tokio",
 ]
 

@@ -66,7 +66,7 @@
 	const server = reactive({
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		address : mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string,
-		protocal : 0 as 0 | 1 | 2,
+		protocal : 0 as 0 | 1 | 2 | 3,
 		model : [] as Array<string>,
 		input_pass : mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string,
 		pass : computed(() : string => {
@@ -101,7 +101,7 @@
 			name : string;
 			pass : string;
 			address : string;
-			protocal : 0 | 1 | 2
+			protocal : 0 | 1 | 2 | 3
 		}];
 	}>();
 
@@ -114,6 +114,9 @@
 			} else if (v.startsWith('wss://')) {
 				server.address = v.slice(6);
 				server.protocal = 2;
+			} else if (v.startsWith('udp://')) {
+				server.address = v.slice(6);
+				server.protocal = 3;
 			} else if (options.find(i => i.value === v.trim())) {
 				server.address = v.trim();
 				server.protocal = 0;

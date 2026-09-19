@@ -78,7 +78,8 @@
 				select.map = new Map([
 					[0, 'SOCKET'],
 					[1, 'WS'],
-					[2, 'WSS']
+					[2, 'WSS'],
+					[3, 'UDP'],
 				]);
 				break;
 			case 'waveform':
@@ -91,5 +92,4 @@
 				break;
 		}
 	});
-
 </script>

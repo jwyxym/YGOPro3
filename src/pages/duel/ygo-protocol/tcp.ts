@@ -54,6 +54,7 @@ class Tcp extends Socket {
 
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;
+		this.address = '';
 		this.queue.add(async () => await on_disconnect?.());
 	};
 };

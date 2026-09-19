@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import lodash from 'lodash';
 import { YGOProYrp3d } from 'ygopro-yrp3d-encode';
 import { rollDice } from '@jwyxym/dice';
@@ -22,6 +23,7 @@ import Plaid from '@/pages/duel/scene/plaid';
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
 import extend from './extend';
+import { Udp } from './udp';
 
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -442,10 +444,16 @@ class Protocol {
 			connect.wait.self.is_host = !!((type >> 4) & 0xf);
 			connect.wait.self.position = type & 0xf;
 		}],
+		[STOC.LEAVE_GAME, async () => {
+			if (toRaw(connect.protocol!) instanceof Udp)
+				await connect.protocol?.disconnect?.();
+		}],
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
 		}],
 		[STOC.DUEL_END, async () => {
+			if (toRaw(connect.protocol!) instanceof Udp)
+				await connect.protocol?.disconnect?.();
 		}],
 		[STOC.TIME_LIMIT, async (msg : Msg, send : (msg: Msg) => Promise<void>) => {
 			const player = msg.read.uint8();
