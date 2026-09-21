@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
@@ -12,7 +12,7 @@ import { toast } from '@/pages/toast/toast';
 
 import ws from './ygo-protocol/ws';
 import tcp from './ygo-protocol/tcp';
-import udp from './ygo-protocol/udp';
+import udp, { Udp } from './ygo-protocol/udp';
 import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
 import Socket from './ygo-protocol/socket';
 import Msg from './ygo-protocol/msg';
@@ -210,6 +210,25 @@ const connect = reactive({
 	wait : new Wait(),
 	duel : new Duel(),
 	protocol : undefined as undefined | Socket | Replay3D,
+	timeout : {
+		timer : undefined as ReturnType<typeof setTimeout> | undefined,
+		generation : 0,
+		stop : () : void => {
+			clearTimeout(connect.timeout.timer);
+			connect.timeout.timer = undefined;
+			connect.timeout.generation ++;
+		},
+		start : () : void => {
+			connect.timeout.stop();
+			const generation = connect.timeout.generation;
+			connect.timeout.timer = setTimeout(() => {
+				if (generation !== connect.timeout.generation) return;
+				connect.timeout.stop();
+				invoke.log.write('udp connect timeout')
+				connect.close();
+			}, 5000);
+		}
+	},
 	chat : {
 		show : false,
 		on : () : void => connect.chat.show ? connect.chat.off()
@@ -233,12 +252,13 @@ const connect = reactive({
 	} | {
 		replay : string
 	} | Deck) => {
-		if (connect.debouncing)
+		if (connect.debouncing || connect.timeout.timer !== undefined)
 			return;
 		connect.debouncing = true;
 		try {
 			switch (connect.state) {
 				case 0:
+					connect.timeout.stop();
 					const protocol = new (await import('./ygo-protocol/protocol')).default();
 					if (i && 'replay' in i) {
 						connect.replay = true;
@@ -263,7 +283,8 @@ const connect = reactive({
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
-									connect.state = 1;
+									if (!(toRaw(connect.protocol!) instanceof Udp))
+										connect.state = 1;
 									await send(new Msg()
 										.write.uint8(CTOS.EXTERNAL_ADDRESS)
 										.write.uint32(0)
@@ -356,10 +377,17 @@ const connect = reactive({
 								mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
 								get_srv()
 							]);
-							await Promise.all([
+							const socket = toRaw(connect.protocol);
+							if (socket instanceof Udp) connect.timeout.start();
+							const [, connected] = await Promise.all([
 								mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
-								connect.protocol.connect(promise[2], p)
+								socket.connect(promise[2], p)
 							]);
+							if (!connected && socket instanceof Udp) {
+								connect.timeout.stop();
+								await socket.disconnect();
+								connect.clear();
+							}
 						}
 					}
 					break;
@@ -395,6 +423,7 @@ const connect = reactive({
 					break;
 			}
 		} catch (e) {
+			if (connect.timeout.timer !== undefined) connect.close();
 			await invoke.log.write(e);
 			connect.clear();
 		} finally {
@@ -402,6 +431,7 @@ const connect = reactive({
 		}
 	},
 	close : () => {
+		connect.timeout.stop();
 		try {
 			connect.protocol
 				? connect.protocol.disconnect()
@@ -409,6 +439,7 @@ const connect = reactive({
 		} catch {}
 	},
 	clear : () => {
+		connect.timeout.stop();
 		connect.chat.off();
 		history.clear();
 		chat.clear();

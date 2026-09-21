@@ -24,7 +24,10 @@ const STOC = {
 	HS_WATCH_CHANGE : 0x22,		// STOC_HS_WatchChange
 	TEAMMATE_SURRENDER : 0x23,	// no data
 	FIELD_FINISH : 0x30,
-	SRVPRO_ROOMLIST : 0x31
+	SRVPRO_ROOMLIST : 0x31,
+	// UDP
+	PING : 0xF0,
+	PONG : 0xF1
 };
 
 const CTOS = {
@@ -46,7 +49,10 @@ const CTOS = {
 	HS_NOTREADY : 0x23,			// no data
 	HS_KICK : 0x24,				// CTOS_Kick
 	HS_START : 0x25,			// no data
-	REQUEST_FIELD : 0x30
+	REQUEST_FIELD : 0x30,
+	// UDP
+	PING : 0xF0,
+	PONG : 0xF1
 };
 
 const MSG = {
