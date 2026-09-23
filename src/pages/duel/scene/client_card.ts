@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 import { gsap } from 'gsap';
 import lodash from 'lodash';
@@ -8,6 +9,7 @@ import mainGame from '@/script/game';
 
 import { COMMAND, LOCATION, POS, STATUS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
+import { Replay3D } from '@/pages/duel/ygo-protocol/yrp3d';
 
 import * as SIZE from './scene-size';
 import Axis from './axis';
@@ -302,7 +304,7 @@ class Client_Card {
 			return this;
 		},
 		activate : (flag : number, index : number, desc ?: number, chk : boolean = false) : Client_Card => {
-			if (!connect.replay) {
+			if (!(toRaw(connect.protocol!) instanceof Replay3D)) {
 				this.need_change.activate = chk;
 				this.activatable
 					.get(flag)?.push({ index : index, desc : desc});

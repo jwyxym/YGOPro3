@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import * as CSS from 'three/examples/jsm/renderers/CSS3DRenderer.js';
 
 import mainGame from '@/script/game';
@@ -6,6 +7,7 @@ import { TYPE } from '@/script/card';
 
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
+import { Replay3D } from '@/pages/duel//ygo-protocol/yrp3d';
 
 import Client_Card from './client_card';
 import Axis from './axis';
@@ -18,7 +20,7 @@ class Activate {
 
 	_btnable : boolean = false;
 	set btnable (btnable : boolean) {
-		if (connect.replay)
+		if (toRaw(connect.protocol!) instanceof Replay3D)
 			return;
 		this._btnable = btnable;
 	};

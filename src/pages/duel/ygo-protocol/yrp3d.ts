@@ -29,6 +29,7 @@ class Replay3D {
 			);
 		}
 		this.queue.add(async () => {
+			await mainGame.sleep(200);
 			connect.duel.win.await = new Promise<string | void>((r) => connect.duel.win.resolve = r);
 			connect.duel.win.title = mainGame.get.text(I18N_KEYS.DUEL_REPLAY_END);
 			connect.duel.win.message = '';

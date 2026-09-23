@@ -24,7 +24,7 @@ import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
 import extend from './extend';
 import { Udp } from './udp';
-
+import { Replay3D } from './yrp3d';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
@@ -736,8 +736,10 @@ class Protocol {
 			})();
 			connect.duel.player[0].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
-			connect.duel.player[0].name = players[0].name;
-			connect.duel.player[1].name = players[players.length - 1].name;
+			if (!(toRaw(connect.protocol!) instanceof Replay3D)) {
+				connect.duel.player[0].name = players[0].name;
+				connect.duel.player[1].name = players[players.length - 1].name;
+			}
 			connect.duel.player[0].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[1].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[0].index = 0;

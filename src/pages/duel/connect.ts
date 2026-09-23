@@ -204,7 +204,6 @@ class Duel {
 };
 const connect = reactive({
 	debouncing : false,
-	replay : false,
 	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
@@ -261,9 +260,8 @@ const connect = reactive({
 					connect.timeout.stop();
 					const protocol = new (await import('./ygo-protocol/protocol')).default();
 					if (i && 'replay' in i) {
-						connect.replay = true;
-						const bytes = await invoke.replay.read(i.replay);
 						connect.protocol = replay3d;
+						const bytes = await invoke.replay.read(i.replay);
 						await connect.protocol.on(bytes, {
 							on_connect : async (name : [string, string], duel_rule : number) : Promise<void> => {
 								connect.duel.player[0].name = name[0];
@@ -449,7 +447,6 @@ const connect = reactive({
 		connect.response = undefined;
 		connect.send = undefined;
 		connect.protocol = undefined;
-		connect.replay = false;
 	}
 });
 

@@ -1,15 +1,17 @@
+mod read;
+
 use std::{
 	io::Cursor,
 	ops::Deref,
 	time::Duration
 };
 use anyhow::{Result, Error, anyhow};
-use binrw::BinRead;
-use futures::{FutureExt, Stream as FuturesStream};
+use binrw::BinWrite;
+use futures::Stream as FuturesStream;
 use tokio::{
 	select,
 	sync::mpsc::{UnboundedSender, unbounded_channel},
-	time::sleep,
+	time::{timeout, Instant, sleep_until},
 };
 use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use ygopro_core_wrapper::DuelSeed;
@@ -27,8 +29,8 @@ use ygopro_data::{
 		CorePlayer::{FirstAttackPlayer, SecondAttackPlayer},
 		Hand::{Paper, Rock},
 	},
-	data::Replay,
-	message::gm::GameMessage,
+	data::{forge, Replay, ReplayHeader, ReplayVersion, DuelOptions},
+	message::gm::{self, GameMessage},
 	message::{
 		ctos::{
 			HandResult,
@@ -58,115 +60,52 @@ use ygopro_data::{
 	string::FixedLengthString,
 };
 
-const RESPONSE_TIMEOUT: Duration = Duration::from_millis(300);
-const DRAIN_TIMEOUT: Duration = Duration::from_millis(100);
-const YRP3D_SIBYL_NAME: u8 = 235;
-const YRP3D_NAME_FIELD_CHARS: usize = 50;
+const RESPONSE_TIMEOUT: Duration = Duration::from_secs(30);
 
 pub async fn collect_messages (yrp: Vec<u8>) -> Result<Vec<u8>, Error> {
+	let (replay, mut responses) = read::read(&yrp)?;
+	validate_replay(&replay)?;
+	let seed = replay_seed(&replay.header)?;
 	super::init().await?;
 
-	let replay: Replay = Replay::read_le(&mut Cursor::new(yrp))?;
-	if replay.is_tag() {
-		return Err(anyhow!("tag replay is not supported"));
-	}
-
-	let seed_sequence: [u32; 8] = replay.header.seed_sequence;
 	let mut configuration: Configuration = Configuration::default();
 	configuration.no_mask = true;
 	configuration.enable_plugin(NO_INIT_SHUFFLE_DECK);
-	configuration.seed_generator = Some(Box::new(move |_| DuelSeed::Complicated(seed_sequence)));
+	configuration.seed_generator = Some(Box::new(move |_| seed.clone()));
 
-	let mut messages: Vec<Vec<u8>> = Vec::new();
+	let mut messages: Vec<Complex<StocMessage>> = Vec::new();
 	let mut host: DuelHost = DuelHost::new(replay.host_info(), configuration);
-	let (mut player1, mut player2) = start_duel(&replay, &mut host, &mut messages).await?;
-
-	'replay: for data in &replay.body.datas {
-		let response: Response = Response {
-			response: data.data.clone(),
-		};
-
-		loop {
-			select! {
-				message = player1.stoc_stream.next() => {
-					let message = message.ok_or_else(|| anyhow!("player1 disconnected"))?;
-					collect_game_message(&mut messages, &message);
-					if should_respond(&player1.ctos_sender, FirstAttackPlayer, &message)? {
-						player1.ctos_sender.send(response.into())?;
-						break;
-					}
-				}
-				message = player2.stoc_stream.next() => {
-					let message = message.ok_or_else(|| anyhow!("player2 disconnected"))?;
-					if should_respond(&player2.ctos_sender, SecondAttackPlayer, &message)? {
-						player2.ctos_sender.send(response.into())?;
-						break;
-					}
-				}
-				_ = sleep(RESPONSE_TIMEOUT) => break 'replay
-			}
-		}
-	}
-
-	drain_messages(&mut player1, &mut player2, &mut messages).await?;
-	write_yrp3d(&replay, messages)
+	let (mut player1, mut player2, mut observer) = timeout(
+		RESPONSE_TIMEOUT, start_duel(&replay, &mut host, &mut messages),
+	).await.map_err(|error| anyhow!("timed out starting replay: {error}"))??;
+	drive_replay(&mut responses, &mut player1, &mut player2, &mut observer, &mut messages).await?;
+	write_yrp3d(messages)
 }
 
-fn write_yrp3d (replay: &Replay, messages: Vec<Vec<u8>>) -> Result<Vec<u8>, Error> {
-	let name_payload: Vec<u8> = write_yrp3d_name_payload(replay);
-	let has_start_message: bool = messages
-		.iter()
-		.any(|message: &Vec<u8>| message.first() == Some(&4));
-	let mut wrote_name: bool = false;
-	let mut out: Vec<u8> = Vec::new();
-	if !has_start_message {
-		write_yrp3d_packet(&mut out, YRP3D_SIBYL_NAME, &name_payload)?;
-		wrote_name = true;
+fn replay_seed(header: &ReplayHeader) -> Result<DuelSeed> {
+	match header.id {
+		id if id == ReplayVersion::V1 as u32 => Ok(DuelSeed::Single(header.seed)),
+		id if id == ReplayVersion::V2 as u32 => Ok(DuelSeed::Complicated(header.seed_sequence)),
+		id => return Err(anyhow!("unsupported replay magic: {id:#010x}")),
 	}
-	for message in messages {
-		let Some((&packet_type, payload)) = message.split_first() else {
-			continue;
-		};
-		write_yrp3d_packet(&mut out, packet_type, payload)?;
-		if !wrote_name && packet_type == 4 {
-			write_yrp3d_packet(&mut out, YRP3D_SIBYL_NAME, &name_payload)?;
-			wrote_name = true;
-		}
-	}
-	Ok(out)
 }
 
-fn write_yrp3d_packet (out: &mut Vec<u8>, packet_type: u8, payload: &[u8]) -> Result<(), Error> {
-	if payload.len() > u32::MAX as usize {
-		return Err(anyhow!("yrp3d packet payload is too large"));
+fn validate_replay(replay: &Replay) -> Result<()> {
+	if replay.is_tag() { return Err(anyhow!("tag replay is not supported")); }
+	let supported = DuelOptions::PseudoShuffle | DuelOptions::ObsoleteRuling;
+	if replay.body.duel_options.bits() & !supported.bits() != 0 {
+		return Err(anyhow!("unsupported replay duel options: {:?}", replay.body.duel_options));
 	}
-	out.push(packet_type);
-	out.extend_from_slice(&(payload.len() as u32).to_le_bytes());
-	out.extend_from_slice(payload);
 	Ok(())
 }
 
-fn write_yrp3d_name_payload (replay: &Replay) -> Vec<u8> {
-	let mut payload: Vec<u8> = Vec::with_capacity(YRP3D_NAME_FIELD_CHARS * 2 * 6 + 4);
-	write_yrp3d_name_field(&mut payload, &replay.body.host_name);
-	write_yrp3d_name_field(&mut payload, "");
-	write_yrp3d_name_field(&mut payload, &replay.body.host_name);
-	write_yrp3d_name_field(&mut payload, &replay.body.client_name);
-	write_yrp3d_name_field(&mut payload, "");
-	write_yrp3d_name_field(&mut payload, &replay.body.client_name);
-	payload.extend_from_slice(&(replay.duel_rule() as i32).to_le_bytes());
-	payload
-}
-
-fn write_yrp3d_name_field (out: &mut Vec<u8>, value: &str) {
-	let mut len: usize = 0;
-	for code in value.encode_utf16().take(YRP3D_NAME_FIELD_CHARS) {
-		out.extend_from_slice(&code.to_le_bytes());
-		len += 1;
-	}
-	for _ in len..YRP3D_NAME_FIELD_CHARS {
-		out.extend_from_slice(&0u16.to_le_bytes());
-	}
+fn write_yrp3d (recorded: Vec<Complex<StocMessage>>) -> Result<Vec<u8>, Error> {
+	let replay: forge::Replay = forge::Replay {
+		messages: ygopro_data::message::stoc_to_forge(&recorded),
+	};
+	let mut writer: Cursor<Vec<u8>> = Cursor::new(Vec::new());
+	replay.write_le(&mut writer).map_err(|error| anyhow!("failed to encode YRP3D: {error}"))?;
+	Ok(writer.into_inner())
 }
 
 struct Player<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> {
@@ -178,7 +117,7 @@ fn create_player<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	room: &mut Room,
 ) -> Player<Room> {
 	let (ctos_sender, ctos_receiver) = unbounded_channel();
-	let stoc_stream = room.add(UnboundedReceiverStream::new(ctos_receiver));
+	let stoc_stream: <Room as RoomProvider<CtosMessage, Complex<StocMessage>>>::ServerToClientStream = room.add(UnboundedReceiverStream::new(ctos_receiver));
 	Player {
 		ctos_sender,
 		stoc_stream,
@@ -188,8 +127,8 @@ fn create_player<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	replay: &Replay,
 	room: &mut Room,
-	messages: &mut Vec<Vec<u8>>,
-) -> Result<(Player<Room>, Player<Room>)> {
+	messages: &mut Vec<Complex<StocMessage>>,
+) -> Result<(Player<Room>, Player<Room>, Player<Room>)> {
 	let mut player1 = create_player(room);
 	send(
 		&player1.ctos_sender,
@@ -210,7 +149,7 @@ async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	wait_for(
 		&mut player1.stoc_stream,
 		TypeChange,
-		Some(messages),
+		None,
 	)
 	.await?;
 
@@ -241,7 +180,7 @@ async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	wait_for(
 		&mut player1.stoc_stream,
 		HsPlayerEnter,
-		Some(messages),
+		None,
 	)
 	.await?;
 
@@ -268,11 +207,18 @@ async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	)
 	.await?;
 
+	let mut observer = create_player(room);
+	send(&observer.ctos_sender, PlayerInfo { name: FixedLengthString::allocate() }.into())?;
+	send(&observer.ctos_sender, JoinGame {
+		version: *PRO_VERSION, gameid: 0, pass: FixedLengthString::allocate(),
+	}.into())?;
+	wait_for(&mut observer.stoc_stream, TypeChange, Some(messages)).await?;
+
 	send(&player1.ctos_sender, HsStart.into())?;
 	wait_for(
 		&mut player1.stoc_stream,
 		SelectHand,
-		Some(messages),
+		None,
 	)
 	.await?;
 
@@ -287,7 +233,7 @@ async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 	wait_for(
 		&mut player1.stoc_stream,
 		SelectTp,
-		Some(messages),
+		None,
 	)
 	.await?;
 
@@ -299,20 +245,20 @@ async fn start_duel<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
 		.into(),
 	)?;
 
-	Ok((player1, player2))
+	Ok((player1, player2, observer))
 }
 
 async fn wait_for<DuelStream> (
 	stream: &mut DuelStream,
 	message_type: MessageType,
-	mut collector: Option<&mut Vec<Vec<u8>>>,
+	mut collector: Option<&mut Vec<Complex<StocMessage>>>,
 ) -> Result<()>
 where
 	DuelStream: FuturesStream<Item = Complex<StocMessage>> + Unpin,
 {
 	while let Some(message) = stream.next().await {
 		if let Some(messages) = collector.as_deref_mut() {
-			collect_game_message(messages, &message);
+			messages.push(message.clone());
 		}
 		if MessageType::from(message.deref()) == message_type {
 			return Ok(());
@@ -327,11 +273,14 @@ fn should_respond (
 	message: &Complex<StocMessage>,
 ) -> Result<bool> {
 	match message.deref() {
+		StocGameMessage(game_message) if matches!(game_message.message, gm::Message::Retry(_)) => {
+			return Err(anyhow!("replay desynced: engine rejected the recorded response"));
+		}
 		TimeLimit(limit) if limit.player == player => {
 			ctos_sender.send(TimeConfirm.into())?;
 		}
 		StocGameMessage(game_message)
-			if game_message.message.waiting_for().is_some() =>
+			if game_message.message.waiting_for() == Some(player) =>
 		{
 			return Ok(true);
 		}
@@ -340,37 +289,47 @@ fn should_respond (
 	Ok(false)
 }
 
-fn collect_game_message (messages: &mut Vec<Vec<u8>>, message: &Complex<StocMessage>) {
-	if let StocGameMessage(_) = message.deref()
-		&& message.data.len() > 1
-	{
-		messages.push(message.data[1..].to_vec());
-	}
-}
-
-async fn drain_messages<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
+async fn drive_replay<Room: RoomProvider<CtosMessage, Complex<StocMessage>>> (
+	responses: &mut Cursor<Vec<u8>>,
 	player1: &mut Player<Room>,
 	player2: &mut Player<Room>,
-	messages: &mut Vec<Vec<u8>>,
+	observer: &mut Player<Room>,
+	messages: &mut Vec<Complex<StocMessage>>,
 ) -> Result<()> {
+	let mut response_index: usize = 0;
+	let mut deadline: Instant = Instant::now() + RESPONSE_TIMEOUT;
 	loop {
-		select! {
-			message = player1.stoc_stream.next() => {
-				let Some(message) = message else { return Ok(()); };
-				collect_game_message(messages, &message);
-				if should_respond(&player1.ctos_sender, FirstAttackPlayer, &message)? {
+		let (sender, player, message) = select! {
+			biased;
+			_ = sleep_until(deadline) => return Err(anyhow!("replay timed out after {response_index} responses")),
+			message = observer.stoc_stream.next() => {
+				let message = message.ok_or(anyhow!("replay observer disconnected before completion"))?;
+				messages.push(message.clone());
+				if let StocGameMessage(game) = message.deref()
+					&& let gm::Message::Win(_) = &game.message
+				{
 					return Ok(());
 				}
+				continue;
+			}
+			message = player1.stoc_stream.next() => {
+				let message = message.ok_or(anyhow!("replay player1 disconnected before completion"))?;
+				(&player1.ctos_sender, FirstAttackPlayer, message)
 			}
 			message = player2.stoc_stream.next() => {
-				let Some(message) = message else { return Ok(()); };
-				if should_respond(&player2.ctos_sender, SecondAttackPlayer, &message)? {
-					return Ok(());
-				}
+				let message = message.ok_or(anyhow!("replay player2 disconnected before completion"))?;
+				(&player2.ctos_sender, SecondAttackPlayer, message)
 			}
-			_ = sleep(DRAIN_TIMEOUT).fuse() => {
-				return Ok(());
-			}
+		};
+		let respond: bool = should_respond(sender, player, &message)
+			.map_err(|error: Error| anyhow!("after {response_index} replay responses: {error:#}"))?;
+		if respond {
+			let Some(data) = read::next_response(responses)
+				.map_err(|error: Error| anyhow!("reading replay response {response_index}: {error:#}"))?
+			else { return Ok(()); };
+			sender.send(Response { response: data.data }.into())?;
+			response_index += 1;
+			deadline = Instant::now() + RESPONSE_TIMEOUT;
 		}
 	}
 }

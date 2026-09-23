@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anyhow.workspace = true
 binrw.workspace = true
+lzma-rs.workspace = true
 futures.workspace = true
 hashbrown.workspace = true
 parking_lot.workspace = true
