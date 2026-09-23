@@ -358,16 +358,16 @@ const connect = reactive({
 									connect.protocol = tcp;
 									break;
 								case 1:
+									para.address = `udp://${para.address}`;
+									connect.protocol = udp;
+									break;
+								case 2:
 									para.address = `ws://${para.address}`;
 									connect.protocol = ws;
 									break;
-								case 2:
+								case 3:
 									para.address = `wss://${para.address}`;
 									connect.protocol = ws;
-									break;
-								case 3:
-									para.address = `udp://${para.address}`;
-									connect.protocol = udp;
 									break;
 							}
 							const promise = await Promise.all([

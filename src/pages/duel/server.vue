@@ -108,13 +108,13 @@
 	const address = computed({
 		get : () => server.address,
 		set : (v : string) => {
-			if (v.startsWith('ws://')) {
-				server.address = v.slice(5);
-				server.protocal = 1;
-			} else if (v.startsWith('wss://')) {
+			if (v.startsWith('udp://')) {
 				server.address = v.slice(6);
+				server.protocal = 1;
+			} else if (v.startsWith('ws://')) {
+				server.address = v.slice(5);
 				server.protocal = 2;
-			} else if (v.startsWith('udp://')) {
+			} else if (v.startsWith('wss://')) {
 				server.address = v.slice(6);
 				server.protocal = 3;
 			} else if (options.find(i => i.value === v.trim())) {
