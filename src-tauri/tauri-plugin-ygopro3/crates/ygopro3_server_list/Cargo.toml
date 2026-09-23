@@ -6,5 +6,6 @@ edition = "2024"
 [dependencies]
 serde.workspace = true
 basic-toml.workspace = true
+rust-ini.workspace = true
 indexmap.workspace = true
 anyhow.workspace = true
