@@ -7697,6 +7697,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "ygopro-server"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9fd664668d1a57effeb7f14ada42419cb7cdc5228297061b33b785acf826a41"
+dependencies = [
+ "parking_lot",
+ "tokio",
+ "ygopro",
+ "ygopro-core-wrapper",
+ "ygopro-data",
+ "ygopro-handler",
+]
+
+[[package]]
+name = "ygopro-yrp-decoding"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "476012d8ae9bb684cec9dadf7822b0aa44df775183b73b80b37481f1cb204a8d"
+dependencies = [
+ "anyhow",
+ "binrw",
+ "futures",
+ "lzma-rs",
+ "parking_lot",
+ "tokio",
+ "tokio-stream",
+ "ygopro",
+ "ygopro-core-wrapper",
+ "ygopro-data",
+ "ygopro-handler",
+]
+
+[[package]]
 name = "ygopro3_api"
 version = "0.1.0"
 dependencies = [
@@ -7755,22 +7788,11 @@ name = "ygopro3_duel"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "arc-swap",
- "binrw",
- "futures",
- "hashbrown 0.17.1",
- "lzma-rs",
  "parking_lot",
- "tokio",
- "tokio-stream",
- "tokio-util",
- "ygopro",
- "ygopro-core-wrapper",
- "ygopro-data",
- "ygopro-handler",
+ "ygopro-server",
+ "ygopro-yrp-decoding",
  "ygopro3_card",
  "ygopro3_emit",
- "ygopro3_ex_code",
  "ygopro3_game",
 ]
 

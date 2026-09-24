@@ -5,21 +5,10 @@ edition = "2024"
 
 [dependencies]
 anyhow.workspace = true
-binrw.workspace = true
-lzma-rs.workspace = true
-futures.workspace = true
-hashbrown.workspace = true
 parking_lot.workspace = true
-tokio.workspace = true
-tokio-stream.workspace = true
-tokio-util.workspace = true
-arc-swap.workspace = true
-ygopro.workspace = true
-ygopro-data.workspace = true
-ygopro-core-wrapper.workspace = true
-ygopro-handler.workspace = true
+ygopro-server.workspace = true
+ygopro-yrp-decoding.workspace = true
 
-ygopro3_ex_code.workspace = true
 ygopro3_game.workspace = true
 ygopro3_card.workspace = true
 ygopro3_emit.workspace = true
