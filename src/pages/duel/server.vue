@@ -49,7 +49,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { computed, onBeforeMount, reactive, useTemplateRef } from 'vue';
+	import { computed, nextTick, onBeforeMount, reactive, ref, useTemplateRef } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -105,9 +105,11 @@
 		}];
 	}>();
 
+	const addressInput = ref(server.address);
 	const address = computed({
-		get : () => server.address,
+		get : () => addressInput.value,
 		set : (v : string) => {
+			addressInput.value = v;
 			if (v.startsWith('udp://')) {
 				server.address = v.slice(6);
 				server.protocal = 1;
@@ -122,6 +124,7 @@
 				server.protocal = 0;
 			} else
 				server.address = v.trim();
+			nextTick(() => addressInput.value = server.address);
 			lock ? lock = false
 				: input.value?.exported?.blur?.();
 		}
