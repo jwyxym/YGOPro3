@@ -5621,9 +5621,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-sound-player"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f44de1674f057d4cb908eff90f12c0885195ad51005fc85aa413c7b8b11166c9"
+checksum = "90ded9ebe6c68a509c0e4ad2453c86c14a5abc81c070e401ebaa6a464cbb93b0"
 dependencies = [
  "parking_lot",
  "rodio",
