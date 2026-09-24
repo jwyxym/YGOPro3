@@ -11,6 +11,7 @@ futures.workspace = true
 indexmap.workspace = true
 anyhow.workspace = true
 parking_lot.workspace = true
+ygopro_lflist_reader.workspace = true
 
 ygopro3_strings.workspace = true
 ygopro3_system.workspace = true

@@ -271,18 +271,21 @@ class Invoke {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_lflist');
 				return (bincode.decode(bincode.Collection(
-					bincode.Tuple(bincode.String, bincode.Struct({
-						hash : bincode.u32,
+					bincode.Struct({
+						name : bincode.String,
 						genesys : bincode.u32,
-						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
-						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32))
-					}))
-				), result).value as Array<[string, {
-					hash : number,
+						hash : bincode.u32,
+						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
+						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u8))
+					})
+				), result).value as Array<{
+					name : string,
 					genesys : number,
-					lflist : Array<[number, number]>,
-					glist : Array<[number, number]>
-				}]>).map(i => [i[0], new LFList(i[0], i[1])]);
+					hash : number,
+					glist : Array<[number, number]>,
+					lflist : Array<[number, number]>
+				}>)
+					.map(i => [i.name, new LFList(i)]);
 			} catch (error) {
 				await this.log.write(error);
 				return [];

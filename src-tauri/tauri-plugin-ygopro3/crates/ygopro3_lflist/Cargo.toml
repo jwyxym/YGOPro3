@@ -6,6 +6,4 @@ edition = "2024"
 [dependencies]
 serde.workspace = true
 indexmap.workspace = true
-lazy_static.workspace = true
-
-ygopro3_const.workspace = true
+ygopro_lflist_reader.workspace = true

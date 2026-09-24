@@ -1,5 +1,6 @@
 use super::*;
 use super::game::*;
+use ygopro_lflist_reader::LFList;
 
 pub async fn pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
@@ -121,19 +122,20 @@ pub async fn server () -> Result<Vec<(String, String)>, Error> {
 	Ok(servers.into_iter().collect())
 }
 
-pub async fn lflist () -> Result<Vec<(String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>))>, Error> {
+pub async fn lflist () -> Result<Vec<LFList>, Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let game: RwLockReadGuard<'_, Game> = game.read();
-	let mut lflist: IndexMap<String, (u32, u32, Vec<(u32, u32)>, Vec<(u32, u32)>)> = IndexMap::new();
+	let mut lflists: IndexMap<&str, LFList> = IndexMap::new();
 	game.pack
 		.values()
 		.filter(|pack: &&GamePack| pack.on)
 		.for_each(|pack: &GamePack| {
-			pack.lflist.content().into_iter().for_each(|(k, v)| {
-				lflist.insert(String::from(k), v.to_array());
-			});
+			let list: &IndexMap<String, LFList> = pack.lflist.content();
+			for (k, v) in list {
+				lflists.insert(k, v.clone());
+			}
 		});
-	Ok(lflist.into_iter().collect())
+	Ok(lflists.values().cloned().collect())
 }
 
 pub async fn strings () -> Result<(Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>), Error> {
