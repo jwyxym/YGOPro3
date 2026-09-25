@@ -39,8 +39,8 @@ syn = { version = "3.0.4", features = ["full"] }
 quote = "1.0.47"
 ygopro_cdb_reader = { version = "0.1.6", features = ["bincode"] }
 ygopro_lflist_reader = { version = "0.1.0", features = ["bincode"] }
-ygopro-server = "0.1.1"
-ygopro-yrp-decoding = "0.1.0"
+ygopro-server = "0.1.2"
+ygopro-yrp-decoding = "0.1.1"
 
 ygopro3_api = { path = "./crates/ygopro3_api", default-features = false }
 ygopro3_card = { path = "./crates/ygopro3_card" }

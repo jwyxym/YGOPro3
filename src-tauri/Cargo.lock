@@ -7687,9 +7687,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-core-wrapper"
-version = "0.1.3"
+version = "0.1.5+3209cd866a"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8208f3c9c6187867ce776e290176271f1e2e0abdd4e27c7a9780c959d8797cfc"
+checksum = "6943b8b57985762fc3cece3f31b0976305007777f6ec54db05f6333b958c5eff"
 dependencies = [
  "cc",
  "glob",
@@ -7750,9 +7750,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-server"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9fd664668d1a57effeb7f14ada42419cb7cdc5228297061b33b785acf826a41"
+checksum = "0c9750a54572737a7e0adf7288cd1fd1c8f2cb76bc03162571d83396e632ae9f"
 dependencies = [
  "parking_lot",
  "tokio",
@@ -7764,9 +7764,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-yrp-decoding"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476012d8ae9bb684cec9dadf7822b0aa44df775183b73b80b37481f1cb204a8d"
+checksum = "89a966a5ccba9b0918b7c29276b6186ebde2c3d6c0d7ea6ff21d117b630478a4"
 dependencies = [
  "anyhow",
  "binrw",
