@@ -102,7 +102,7 @@ class Game {
 			this.avatars = textures.avatar;
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
-			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
+			this.lflist.set(CONSTANT.KEYS.NA, new LFList({ name : this.get.text(I18N_KEYS.LFLIST_NA), hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(room);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
@@ -150,7 +150,7 @@ class Game {
 				? this.lflist.get(key)
 				: Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
 			)
-			?? new LFList(this.get.text(I18N_KEYS.UNKNOW), { hash : 0, genesys : 0, lflist : [], glist : [] }),
+			?? new LFList({ name : this.get.text(I18N_KEYS.LFLIST_NA), hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }),
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:
