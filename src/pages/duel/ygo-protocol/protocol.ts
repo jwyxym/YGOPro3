@@ -23,8 +23,7 @@ import Plaid from '@/pages/duel/scene/plaid';
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
 import extend from './extend';
-import { Udp } from './udp';
-import { Replay3D } from './yrp3d';
+import { type Udp } from './udp';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
@@ -461,7 +460,7 @@ class Protocol {
 			});
 		}],
 		[STOC.JOIN_GAME, async (msg : Msg) => {
-			if (toRaw(connect.protocol!) instanceof Udp) {
+			if (connect.protocol?.kind === 'udp') {
 				connect.timeout.stop();
 				connect.state = 1;
 			}
@@ -493,8 +492,8 @@ class Protocol {
 			connect.wait.self.position = type & 0xf;
 		}],
 		[STOC.LEAVE_GAME, async () => {
-			const socket = toRaw(connect.protocol!);
-			if (socket instanceof Udp) await socket.disconnect(true);
+			if (connect.protocol?.kind === 'udp')
+				await connect.protocol.disconnect(true);
 		}],
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
@@ -599,21 +598,32 @@ class Protocol {
 			this.hint(str);
 		}],
 		[STOC.PING, async (msg : Msg) => {
-			const socket = toRaw(connect.protocol!);
-			if (!(socket instanceof Udp) || !socket.address) return;
+			if (connect.protocol?.kind !== 'udp')
+				return;
+			const socket = toRaw(connect.protocol) as Udp;
+			if (!socket.address)
+				return;
 			if (this.heartbeat.socket !== socket) {
 				this.heartbeat.stop();
 				this.heartbeat.socket = socket;
 				socket.on_heartbeat_end = this.heartbeat.stop;
 			}
-			if (msg.index !== msg.length) { await this.heartbeat.fail(); return; }
-			if (!this.heartbeat.phase || this.heartbeat.phase === 'wait_ping')
-				this.heartbeat.wait('send_ping', 5000);
+			if (msg.index !== msg.length)
+				return await this.heartbeat.fail();
+			if (!this.heartbeat.phase
+				|| this.heartbeat.phase === 'wait_ping'
+			)
+				this.heartbeat
+					.wait('send_ping', 5000);
 			await this.heartbeat.send(CTOS.PONG);
 		}],
 		[STOC.PONG, async (msg : Msg) => {
-			if (!this.heartbeat.socket || toRaw(connect.protocol!) !== this.heartbeat.socket) return;
-			if (msg.index !== msg.length) { await this.heartbeat.fail(); return; }
+			if (!this.heartbeat.socket
+				|| toRaw(connect.protocol!) !== this.heartbeat.socket
+			)
+				return;
+			if (msg.index !== msg.length)
+				return await this.heartbeat.fail();
 			if (this.heartbeat.phase === 'wait_pong')
 				this.heartbeat.wait('wait_ping', 20000);
 		}]
@@ -736,7 +746,7 @@ class Protocol {
 			})();
 			connect.duel.player[0].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
-			if (!(toRaw(connect.protocol!) instanceof Replay3D)) {
+			if (connect.protocol?.kind !== 'replay') {
 				connect.duel.player[0].name = players[0].name;
 				connect.duel.player[1].name = players[players.length - 1].name;
 			}

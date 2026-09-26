@@ -11,13 +11,15 @@ abstract class Socket {
 	on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>;
 	on_disconnect ?: () => Promise<void>;
 
+	abstract kind : 'tcp' | 'udp' | 'ws' | 'replay';
+
 	abstract send : (msg : Msg) => Promise<void>;
 
-	async connect (address : string, call_back : {
+	async connect (address : string | Uint8Array, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}, connect ?: (address : string) => Promise<void>) : Promise<boolean> {
+	}, connect ?: (address : string | Uint8Array) => Promise<void>) : Promise<boolean> {
 		try {
 			this.on_message = call_back.on_message;
 			this.on_disconnect = async () => {
@@ -38,7 +40,7 @@ abstract class Socket {
 		return true;
 	};
 
-	disconnect () : void {
+	async disconnect (_confirmed : boolean = false) : Promise<void> {
 		this.queue.clear();
 	};
 };

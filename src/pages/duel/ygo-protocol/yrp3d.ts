@@ -13,6 +13,7 @@ class Replay3D {
 		concurrency: 1,
 		autoStart: true
 	});
+	kind : 'replay' = 'replay';
 	on_disconnect ?: () => Promise<void>;
 	on = async (bytes : Uint8Array, call_back : {
 		on_connect ?: (name : [string, string], duel_rule : number) => Promise<void>

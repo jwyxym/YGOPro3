@@ -1,22 +1,18 @@
-import { invoke as tauri_invoke, type InvokeArgs } from '@tauri-apps/api/core';
+import { type InvokeArgs } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
-import Card from './card';
-import LFList from './lflist';
 import { toast } from '@/pages/toast/toast';
+import Card from '@/script/card';
+import LFList from '@/script/lflist';
+import BaseInvoke from './base';
+import Srv from './type';
 
-interface Srv {
-	priority : number;
-	weight : number;
-	port : number;
-	target : string;
+const _invoke = async <T>(command : string, args ?: InvokeArgs) : Promise<T> => {
+	const api = await import('@tauri-apps/api/core');
+	return api.invoke<T>(`plugin:ygopro3|${command}`, args);
 };
 
-const _invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
-	tauri_invoke<T>(`plugin:ygopro3|${command}`, args)
-);
-
-class Invoke {
+class Invoke extends BaseInvoke {
 	game = {
 		init : async () : Promise<boolean> => {
 			try {
@@ -73,7 +69,7 @@ class Invoke {
 				return false;
 			}
 		},
-		set_textures : async (key : string, value : string, content ?: Uint8Array<ArrayBuffer>) : Promise<boolean> => {
+		set_textures : async (key : string, value : string, content ?: Uint8Array) : Promise<boolean> => {
 			try {
 				const buffer = new ArrayBuffer(256);
 				bincode.encode(
@@ -534,9 +530,10 @@ class Invoke {
 		}
 	};
 	replay = {
-		read : async (name : string) : Promise<Uint8Array> => {
+		read : async (name : string | Blob) : Promise<Uint8Array> => {
 			try {
-				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name : name}));
+				name = name as string;
+				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name }));
 			} catch (error) {
 				await this.log.write(error);
 				return new Uint8Array();
@@ -601,7 +598,7 @@ class Invoke {
 		unload : async (name : string) : Promise<boolean> => {
 			try {
 				await _invoke<void>('js_unload', { name });
-				return true
+				return true;
 			} catch (error) {
 				await this.log.write(error);
 				return false;
@@ -660,4 +657,3 @@ class Invoke {
 
 const invoke = new Invoke();
 export default invoke;
-export type { Srv };

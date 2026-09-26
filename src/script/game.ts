@@ -1,6 +1,4 @@
 import { reactive } from 'vue';
-import { exit } from '@tauri-apps/plugin-process';
-import { fetch } from '@tauri-apps/plugin-http';
 
 import Deck from '@/pages/deck/deck';
 import recognizer from '@/pages/deck/recognizer';
@@ -335,7 +333,8 @@ class Game {
 				return this.chk.result.game;
 			},
 			superpre : async () : Promise<boolean> => {
-				const time = await fetch(CONSTANT.URL.SUPER_PRE_VERSION, {
+				const f = __WEB__ ? fetch : (await import('@tauri-apps/plugin-http')).fetch;
+				const time = await f(CONSTANT.URL.SUPER_PRE_VERSION, {
 					method: 'GET',
 				});
 				if (time.ok) {
@@ -367,7 +366,10 @@ class Game {
 	};
 
 	exit = async () : Promise<void> => {
-		return await exit(1);
+		if (!__WEB__) {
+			const { exit } = await import('@tauri-apps/plugin-process');
+			return await exit(1);
+		}
 	};
 
 	sleep = async (time : number,

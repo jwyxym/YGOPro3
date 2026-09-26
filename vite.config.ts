@@ -9,7 +9,15 @@ export default defineConfig(async ({ mode }) => ({
 	plugins: [vue(), vueJsx()],
 	resolve: {
 		alias: {
-			'@': fileURLToPath(new URL('./src', import.meta.url))
+			'@': fileURLToPath(new URL('./src', import.meta.url)),
+			'@invoke': fileURLToPath(new URL(
+				mode === 'web' ? './src/script/invoke/web.ts' : './src/script/invoke/tauri.ts',
+				import.meta.url
+			)),
+			'@voice': fileURLToPath(new URL(
+				mode === 'web' ? './src/script/voice/web.ts' : './src/script/voice/tauri.ts',
+				import.meta.url
+			))
 		},
 	},
 	define: {

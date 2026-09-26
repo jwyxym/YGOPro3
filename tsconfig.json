@@ -23,7 +23,9 @@
 
     "useUnknownInCatchVariables": false,
     "paths": {
-      "@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@invoke": ["./src/script/invoke/tauri.ts"],
+			"@voice": ["./src/script/voice/tauri.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],

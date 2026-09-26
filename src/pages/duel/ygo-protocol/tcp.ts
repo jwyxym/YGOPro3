@@ -7,6 +7,7 @@ class Tcp extends Socket {
 	cid = 'YGOPro3';
 	address = '';
 	cache : Msg = new Msg([]);
+	kind : 'tcp' = 'tcp';
 
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>

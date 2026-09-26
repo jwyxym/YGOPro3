@@ -12,7 +12,6 @@
 </template>
 <script setup lang = 'ts'>
 	import { onMounted, reactive } from 'vue';
-	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
@@ -28,8 +27,12 @@
 		show : false,
 		swipe : [] as Array<swipe>,
 		open : async (url : string) => {
-			Opener.openUrl(url)
-				.catch();
+			if (__WEB__)
+				window.open(url);
+			else {
+				const { openUrl } = await import('@tauri-apps/plugin-opener');
+				openUrl(url).catch();
+			}
 		}
 	});
 

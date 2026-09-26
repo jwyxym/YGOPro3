@@ -1,5 +1,5 @@
-import { KEYS } from "./constant";
-import mainGame from "./game";
+import { KEYS } from './constant';
+import mainGame from './game';
 
 class LFList {
 	name : string;

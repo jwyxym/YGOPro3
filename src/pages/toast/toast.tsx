@@ -2,8 +2,6 @@ import { defineComponent, reactive } from 'vue';
 import PQueue from 'p-queue';
 import { prepare, layout } from '@chenglou/pretext';
 
-import mainGame from '@/script/game';
-
 type HintType = 'info' | 'warn' | 'err';
 type HintStatus = 'unshow' | 'show' | 'leave';
 interface Hint {
@@ -29,6 +27,7 @@ class _Toast {
 
 	clear = () => this.queue.add(async () => {
 		this.list.forEach(i => i.status = 'leave');
+		const { default : mainGame } = await import('@/script/game');
 		await mainGame.sleep(200);
 		this.list.length = 0;
 	});
@@ -68,6 +67,7 @@ class _Toast {
 					this.list.splice(ct, 1);
 			}, 200 + time);
 
+			const { default : mainGame } = await import('@/script/game');
 			await mainGame.sleep(200);
 		});
 	};
