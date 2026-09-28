@@ -2,6 +2,7 @@ import * as toml from 'smol-toml';
 import initSqlJs from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { YGOProCdb } from 'ygopro-cdb-encode';
+import { YGOProLFList, YGOProLFListItem } from 'ygopro-lflist-encode';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
@@ -327,7 +328,21 @@ class Invoke extends BaseInvoke {
 		},
 		get_lflist : async () : Promise<Array<[string, LFList]>> => {
 			try {
-				return [];
+				const text = await http.get<string>(CONSTANT.URL.LFLIST, 'text');
+				const list = new YGOProLFList()
+					.fromText(text);
+				return list.items.map(i => {
+					const genesys = i.creditLimits.find(i => i.identifier === 'genesys');
+					return [
+						i.name, new LFList({
+							name : i.name,
+							hash : i.getHash(),
+							genesys : genesys?.limit ?? 0,
+							glist : genesys?.entries.map(i => [i.code, i.credit]) ?? [],
+							lflist : i.entries.map(i => [i.code, i.limit])
+						})
+					];
+				});
 			} catch (error) {
 				await this.log.write(error);
 				return [];
@@ -340,6 +355,7 @@ class Invoke extends BaseInvoke {
 			setname : Array<[number, string]>,
 		}> => {
 			try {
+				const text = await http.get<string>(CONSTANT.URL.STRINGS, 'text');
 				return {
 					system : [],
 					victory : [],

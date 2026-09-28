@@ -67,6 +67,7 @@
 		"ygopic-best": "^1.0.0",
 		"ygopro-cdb-encode": "^1.1.1",
 		"ygopro-deck-encode": "^1.0.14",
+		"ygopro-lflist-encode": "^1.0.3",
 		"ygopro-yrp3d-encode": "github:jwyxym/ygopro-yrp3d-encode"
 	},
 	"devDependencies": {
