@@ -1,13 +1,20 @@
 import * as toml from 'smol-toml';
+import initSqlJs from 'sql.js';
+import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
+import { YGOProCdb } from 'ygopro-cdb-encode';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
 import Card from '@/script/card';
 import LFList from '@/script/lflist';
 import db from '@/script/db';
-import { KEYS } from '@/script/constant';
+import * as CONSTANT from '@/script/constant';
 import http from '@/script/http';
 import BaseInvoke from './base';
+
+const SQL = await initSqlJs({
+	locateFile : () => wasmUrl
+});
 
 class Invoke extends BaseInvoke {
 	game = {
@@ -58,7 +65,11 @@ class Invoke extends BaseInvoke {
 		get_srv : async (url : string) : Promise<string> => url,
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
-				return [];
+				return deck.map(i => [i,
+					Math.floor(Math.log10(Math.abs(i))) < 8
+						? `https://cdn.233.momobako.com/ygopro/pics/${i}.jpg!half`
+						: `https://cdn02.moecube.com:444/ygopro-super-pre/data/pics/${i}.jpg`
+				]);
 			} catch (error) {
 				await this.log.write(error);
 				return [];
@@ -97,12 +108,12 @@ class Invoke extends BaseInvoke {
 				const path = (value : string) : string => value ? `./textures/${value}` : '';
 				const other = new Map(Object.entries(data.other).map(i => [i[0], path(i[1] as string)]));
 				const back = new Map(b);
-				const back_i = back.get(KEYS.BACKI);
-				const back_ii = back.get(KEYS.BACKII);
+				const back_i = back.get(CONSTANT.KEYS.BACKI);
+				const back_ii = back.get(CONSTANT.KEYS.BACKII);
 				if (back_i)
-					other.set(KEYS.BACKI, URL.createObjectURL(back_i));
+					other.set(CONSTANT.KEYS.BACKI, URL.createObjectURL(back_i));
 				if (back_ii)
-					other.set(KEYS.BACKII, URL.createObjectURL(back_ii));
+					other.set(CONSTANT.KEYS.BACKII, URL.createObjectURL(back_ii));
 				return {
 					ot : new Map(Object.entries(data.ot).map(i => [Number(i[0]), path(i[1] as string)])),
 					attribute : new Map(Object.entries(data.attribute).map(i => [Number(i[0]), path(i[1] as string)])),
@@ -141,7 +152,34 @@ class Invoke extends BaseInvoke {
 		},
 		get_cards : async () : Promise<Array<[number, Card]>> => {
 			try {
-				return [];
+				const [db, pre_db] = await Promise.all([
+					http.get<ArrayBuffer>(CONSTANT.URL.CDB, 'arrayBuffer'),
+					http.get<ArrayBuffer>(CONSTANT.URL.PRE_CDB, 'arrayBuffer')
+				]);
+				const cdb = new YGOProCdb(SQL)
+					.from(new Uint8Array(db));
+				const pre_cdb = new YGOProCdb(SQL)
+					.from(new Uint8Array(pre_db));
+				const cards = cdb.find().concat(pre_cdb.find());
+				return cards.map(c => [c.code, new Card({
+					name : c.name,
+					desc : c.desc,
+					hint : c.strings,
+					code : c.code,
+					alias : c.alias,
+					setcode : c.setcode,
+					card_type : c.type,
+					level : c.level,
+					attribute : c.attribute,
+					race : c.race,
+					attack : c.attack,
+					defense : c.defense,
+					lscale : c.lscale,
+					rscale : c.rscale,
+					link : c.linkMarker,
+					ot : c.ot,
+					category : c.category
+				})]);
 			} catch (error) {
 				await this.log.write(error);
 				return [];
@@ -165,89 +203,89 @@ class Invoke extends BaseInvoke {
 				const number = new Map(i[2]);
 				const array = new Map(i[3]);
 				[
-					KEYS.SETTING_LOADING_EXPANSION,
-					KEYS.SETTING_EXTEND,
-					KEYS.SETTING_DGLAB_WAVEFORM,
+					CONSTANT.KEYS.SETTING_LOADING_EXPANSION,
+					CONSTANT.KEYS.SETTING_EXTEND,
+					CONSTANT.KEYS.SETTING_DGLAB_WAVEFORM,
 				]
 					.forEach(i => {
 						if (!array.has(i))
 							array.set(i, []);
 					});
 				[
-					KEYS.SETTING_CHK_HIDDEN_NAME,
-					KEYS.SETTING_CHK_HIDDEN_CHAT,
-					KEYS.SETTING_CHK_PLUGIN_GET,
-					KEYS.SETTING_CHK_PLUGIN_POST,
-					KEYS.SETTING_CHK_PLUGIN_PUT,
-					KEYS.SETTING_CHK_PLUGIN_PATCH,
-					KEYS.SETTING_CHK_PLUGIN_DELETE,
-					KEYS.SETTING_CHK_PLUGIN_HEAD,
-					KEYS.SETTING_CHK_PLUGIN_OPTIONS
+					CONSTANT.KEYS.SETTING_CHK_HIDDEN_NAME,
+					CONSTANT.KEYS.SETTING_CHK_HIDDEN_CHAT,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_GET,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_POST,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_PUT,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_PATCH,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_DELETE,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_HEAD,
+					CONSTANT.KEYS.SETTING_CHK_PLUGIN_OPTIONS
 				]
 					.forEach(i => {
 						if (!bool.has(i))
 							bool.set(i, false);
 					});
 				[
-					KEYS.SETTING_CHK_DELETE_YPK,
-					KEYS.SETTING_CHK_DELETE_REPLAY,
-					KEYS.SETTING_CHK_DELETE_DECK,
-					KEYS.SETTING_CHK_EXIT_DECK,
-					KEYS.SETTING_CHK_SWAP_BUTTON,
-					KEYS.SETTING_CHK_SORT_DECK,
-					KEYS.SETTING_CHK_DISRUPT_DECK,
-					KEYS.SETTING_CHK_CLEAR_DECK,
-					KEYS.SETTING_CHK_EXIT_SERVER,
-					KEYS.SETTING_CHK_SURRENDER,
-					KEYS.SETTING_CHK_DGLAB_SCRIPT
+					CONSTANT.KEYS.SETTING_CHK_DELETE_YPK,
+					CONSTANT.KEYS.SETTING_CHK_DELETE_REPLAY,
+					CONSTANT.KEYS.SETTING_CHK_DELETE_DECK,
+					CONSTANT.KEYS.SETTING_CHK_EXIT_DECK,
+					CONSTANT.KEYS.SETTING_CHK_SWAP_BUTTON,
+					CONSTANT.KEYS.SETTING_CHK_SORT_DECK,
+					CONSTANT.KEYS.SETTING_CHK_DISRUPT_DECK,
+					CONSTANT.KEYS.SETTING_CHK_CLEAR_DECK,
+					CONSTANT.KEYS.SETTING_CHK_EXIT_SERVER,
+					CONSTANT.KEYS.SETTING_CHK_SURRENDER,
+					CONSTANT.KEYS.SETTING_CHK_DGLAB_SCRIPT
 				]
 					.forEach(i => {
 						if (!bool.has(i))
 							bool.set(i, true);
 					});
 				([
-					[KEYS.SETTING_VOICE_SOUND_EFFECT, 0.2],
-					[KEYS.SETTING_VOICE_BGM, 0.2],
-					[KEYS.SETTING_FRAME, 60],
-					[KEYS.SETTING_CT_CARD, 3],
-					[KEYS.SETTING_CT_DECK_MAIN, 60],
-					[KEYS.SETTING_CT_DECK_EX, 15],
-					[KEYS.SETTING_CT_DECK_SIDE, 15],
-					[KEYS.SETTING_CT_DOWNLOADCHUNKS_RETRIES, 8],
-					[KEYS.SETTING_DGLAB_MIN_TIME, 1],
-					[KEYS.SETTING_DGLAB_MAX_TIME, 4],
-					[KEYS.SETTING_DGLAB_RATIO_TIME, 2000],
-					[KEYS.SETTING_DGLAB_MIN_INTENSITY, 10],
-					[KEYS.SETTING_DGLAB_MAX_INTENSITY, 40],
-					[KEYS.SETTING_DGLAB_RATIO_INTENSITY, 200],
-					[KEYS.SETTING_CT_DECK_PRELINE, 10],
-					[KEYS.SETTING_CT_SIDE_PRELINE, 15],
-					[KEYS.SETTING_CT_ABOUT_PRELINE, 10],
-					[KEYS.SETTING_AVATAR_SELF, 0],
-					[KEYS.SETTING_AVATAR_OPPO, 0],
-					[KEYS.SETTING_AVATAR_SERVER, 0],
-					[KEYS.SETTING_AVATAR_WATCHER, 0],
+					[CONSTANT.KEYS.SETTING_VOICE_SOUND_EFFECT, 0.2],
+					[CONSTANT.KEYS.SETTING_VOICE_BGM, 0.2],
+					[CONSTANT.KEYS.SETTING_FRAME, 60],
+					[CONSTANT.KEYS.SETTING_CT_CARD, 3],
+					[CONSTANT.KEYS.SETTING_CT_DECK_MAIN, 60],
+					[CONSTANT.KEYS.SETTING_CT_DECK_EX, 15],
+					[CONSTANT.KEYS.SETTING_CT_DECK_SIDE, 15],
+					[CONSTANT.KEYS.SETTING_CT_DOWNLOADCHUNKS_RETRIES, 8],
+					[CONSTANT.KEYS.SETTING_DGLAB_MIN_TIME, 1],
+					[CONSTANT.KEYS.SETTING_DGLAB_MAX_TIME, 4],
+					[CONSTANT.KEYS.SETTING_DGLAB_RATIO_TIME, 2000],
+					[CONSTANT.KEYS.SETTING_DGLAB_MIN_INTENSITY, 10],
+					[CONSTANT.KEYS.SETTING_DGLAB_MAX_INTENSITY, 40],
+					[CONSTANT.KEYS.SETTING_DGLAB_RATIO_INTENSITY, 200],
+					[CONSTANT.KEYS.SETTING_CT_DECK_PRELINE, 10],
+					[CONSTANT.KEYS.SETTING_CT_SIDE_PRELINE, 15],
+					[CONSTANT.KEYS.SETTING_CT_ABOUT_PRELINE, 10],
+					[CONSTANT.KEYS.SETTING_AVATAR_SELF, 0],
+					[CONSTANT.KEYS.SETTING_AVATAR_OPPO, 0],
+					[CONSTANT.KEYS.SETTING_AVATAR_SERVER, 0],
+					[CONSTANT.KEYS.SETTING_AVATAR_WATCHER, 0],
 				] as Array<[string, number]>)
 					.forEach(i => {
 						if (!number.has(i[0]))
 							number.set(i[0], i[1]);
 					});
 				([
-					[KEYS.SETTING_SERVER_PLAYER_NAME, ''],
-					[KEYS.SETTING_SERVER_ADDRESS, ''],
-					[KEYS.SETTING_SERVER_PASS, ''],
-					[KEYS.SETTING_DGLAB_SERVER, ''],
-					[KEYS.SETTING_SEARCH_SPLIT, '%%'],
-					[KEYS.I18N, 'zh-CN'],
+					[CONSTANT.KEYS.SETTING_SERVER_PLAYER_NAME, ''],
+					[CONSTANT.KEYS.SETTING_SERVER_ADDRESS, ''],
+					[CONSTANT.KEYS.SETTING_SERVER_PASS, ''],
+					[CONSTANT.KEYS.SETTING_DGLAB_SERVER, ''],
+					[CONSTANT.KEYS.SETTING_SEARCH_SPLIT, '%%'],
+					[CONSTANT.KEYS.I18N, 'zh-CN'],
 				] as Array<[string, string]>)
 					.forEach(i => {
 						if (!string.has(i[0]))
 							string.set(i[0], i[1]);
 					});
-				if (string.get(KEYS.SETTING_SEARCH_SPLIT) === '')
-					string.set(KEYS.SETTING_SEARCH_SPLIT, '%%');
-				if (!['zh-CN', 'ko-KR', 'ja-JP', 'en-US', 'zh-TW'].includes(string.get(KEYS.I18N)!))
-					string.set(KEYS.I18N, 'zh-CN');
+				if (string.get(CONSTANT.KEYS.SETTING_SEARCH_SPLIT) === '')
+					string.set(CONSTANT.KEYS.SETTING_SEARCH_SPLIT, '%%');
+				if (!['zh-CN', 'ko-KR', 'ja-JP', 'en-US', 'zh-TW'].includes(string.get(CONSTANT.KEYS.I18N)!))
+					string.set(CONSTANT.KEYS.I18N, 'zh-CN');
 
 				const write = <T>(
 					values : Map<string, T>,
