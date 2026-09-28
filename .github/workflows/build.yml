@@ -93,7 +93,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build android 2026.08.29
+        npm run json:build android 2026.09.24
 
     - name: NPM Init
       run: |
@@ -227,7 +227,7 @@ jobs:
     - name: Write Tauri Config
       shell: cmd
       run: |
-        npm run json:build windows 2026.08.29
+        npm run json:build windows 2026.09.24
 
     - name: NPM Init
       run: |
@@ -321,7 +321,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build macos 2026.08.29
+        npm run json:build macos 2026.09.24
 
     - name: NPM Init
       run: |
@@ -457,7 +457,7 @@ jobs:
 
     - name: Write Tauri Config
       run: |
-        npm run json:build linux 2026.08.29 ${{ matrix.bundle }}
+        npm run json:build linux 2026.09.24 ${{ matrix.bundle }}
 
     - name: NPM Init
       run: |
