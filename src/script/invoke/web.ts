@@ -1,7 +1,12 @@
+import * as toml from 'smol-toml';
+
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
 import Card from '@/script/card';
 import LFList from '@/script/lflist';
+import db from '@/script/db';
+import { KEYS } from '@/script/constant';
+import http from '@/script/http';
 import BaseInvoke from './base';
 
 class Invoke extends BaseInvoke {
@@ -12,15 +17,44 @@ class Invoke extends BaseInvoke {
 		version : async () : Promise<string> => '',
 		chk_version : async () : Promise<boolean> => false,
 		download : async () : Promise<string> => '',
-		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>, write : boolean) : Promise<boolean> => {
+		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>) : Promise<boolean> => {
 			try {
+				switch (ct) {
+					case 0:
+						await db.system.string.set(key, value as string);
+						break;
+					case 1:
+						await db.system.bool.set(key, value as boolean);
+						break;
+					case 2:
+						await db.system.number.set(key, value as number);
+						break;
+					case 3:
+						await db.system.array.set(key, value as Array<string>);
+						break;
+				}
 				return true;
 			} catch (error) {
 				await this.log.write(error);
 				return false;
 			}
 		},
-		set_textures : async (key : string, value : string, content ?: Uint8Array) : Promise<boolean> => false,
+		set_textures : async (key : string, _ : string, content ?: Uint8Array) : Promise<boolean> => {
+			if (!content)
+				return false;
+			try {
+				return Boolean(await db.textures.set(
+					key,
+					new Blob(
+						[content as Uint8Array<ArrayBuffer>],
+						{ type : 'image/png' }
+					))
+				);
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		},
 		get_srv : async (url : string) : Promise<string> => url,
 		get_pic : async (deck : Array<number>) : Promise<Array<[number, string]>> => {
 			try {
@@ -32,52 +66,75 @@ class Invoke extends BaseInvoke {
 		},
 		get_sound : async () : Promise<Array<[string, string]>> => {
 			try {
-				return [];
+				const i : string = await http.get<string>('./config/resource.toml', 'text');
+				const data = toml.parse(i);
+				const path = (value : string) : string => value ? `./sound/${value}` : '';
+				return Object.entries(data.sound).map(i => [i[0], path(i[1] as string)]);
 			} catch (error) {
 				await this.log.write(error);
 				return [];
 			}
 		},
 		get_textures : async () : Promise<{
-			ot : Array<[number, string]>,
-			attribute : Array<[number, string]>,
-			category : Array<[number, string]>,
-			race : Array<[number, string]>,
-			types : Array<[number, string]>,
-			counter : Array<[number, string]>,
-			link : Array<[number, [string, string]]>,
-			info : Array<[string, string]>,
-			other : Array<[string, string]>,
-			btn : Array<[string, [string, string]]>,
+			ot : Map<number, string>,
+			attribute : Map<number, string>,
+			category : Map<number, string>,
+			race : Map<number, string>,
+			types : Map<number, string>,
+			counter : Map<number, string>,
+			link : Map<number, [string, string]>,
+			info : Map<string, string>,
+			other : Map<string, string>,
+			btn : Map<string, [string, string]>,
 			avatar : Array<string>,
 		}> => {
 			try {
+				const [i, b] = await Promise.all([
+					http.get<string>('./config/resource.toml', 'text'),
+					db.textures.get_all()
+				]);
+				const data = toml.parse(i);
+				const path = (value : string) : string => value ? `./textures/${value}` : '';
+				const other = new Map(Object.entries(data.other).map(i => [i[0], path(i[1] as string)]));
+				const back = new Map(b);
+				const back_i = back.get(KEYS.BACKI);
+				const back_ii = back.get(KEYS.BACKII);
+				if (back_i)
+					other.set(KEYS.BACKI, URL.createObjectURL(back_i));
+				if (back_ii)
+					other.set(KEYS.BACKII, URL.createObjectURL(back_ii));
 				return {
-					ot : [],
-					attribute : [],
-					link : [],
-					category : [],
-					race : [],
-					types : [],
-					counter : [],
-					info : [],
-					other : [],
-					btn : [],
-					avatar : []
+					ot : new Map(Object.entries(data.ot).map(i => [Number(i[0]), path(i[1] as string)])),
+					attribute : new Map(Object.entries(data.attribute).map(i => [Number(i[0]), path(i[1] as string)])),
+					link : new Map(Object.entries(data.link).map(i => [
+						Number(i[0]),
+						(i[1] as [string, string]).map(path) as [string, string]
+					])),
+					category : new Map(Object.entries(data.category).map(i => [Number(i[0]), path(i[1] as string)])),
+					race : new Map(Object.entries(data.race).map(i => [Number(i[0]), path(i[1] as string)])),
+					types : new Map(Object.entries(data.types).map(i => [Number(i[0]), path(i[1] as string)])),
+					counter : new Map(Object.entries(data.counter).map(i => [Number(i[0]), path(i[1] as string)])),
+					info : new Map(Object.entries(data.info).map(i => [i[0], path(i[1] as string)])),
+					btn : new Map(Object.entries(data.btn).map(i => [
+						i[0],
+						(i[1] as [string, string]).map(path) as [string, string]
+					])),
+					avatar : ((data.avatar as any).AVATAR as string[]).map(path),
+					other
 				};
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					ot : [],
-					attribute : [],
-					link : [],
-					category : [],
-					race : [],
-					types : [],
-					counter : [],
-					info : [],
-					other : [],
-					btn : [],
+					ot : new Map(),
+					attribute : new Map(),
+					link : new Map(),
+					category : new Map(),
+					race : new Map(),
+					types : new Map(),
+					counter : new Map(),
+					info : new Map(),
+					other : new Map(),
+					btn : new Map(),
 					avatar : []
 				};
 			}
@@ -91,38 +148,149 @@ class Invoke extends BaseInvoke {
 			}
 		},
 		get_system : async () : Promise<{
-			string : Array<[string, string]>,
-			bool : Array<[string, boolean]>,
-			number : Array<[string, number]>,
-			array : Array<[string, Array<string>]>,
+			string : Map<string, string>,
+			bool : Map<string, boolean>,
+			number : Map<string, number>,
+			array : Map<string, Array<string>>,
 		}> => {
 			try {
+				const i = await Promise.all([
+					db.system.string.get_all(),
+					db.system.bool.get_all(),
+					db.system.number.get_all(),
+					db.system.array.get_all(),
+				]);
+				const string = new Map(i[0]);
+				const bool = new Map(i[1]);
+				const number = new Map(i[2]);
+				const array = new Map(i[3]);
+				[
+					KEYS.SETTING_LOADING_EXPANSION,
+					KEYS.SETTING_EXTEND,
+					KEYS.SETTING_DGLAB_WAVEFORM,
+				]
+					.forEach(i => {
+						if (!array.has(i))
+							array.set(i, []);
+					});
+				[
+					KEYS.SETTING_CHK_HIDDEN_NAME,
+					KEYS.SETTING_CHK_HIDDEN_CHAT,
+					KEYS.SETTING_CHK_PLUGIN_GET,
+					KEYS.SETTING_CHK_PLUGIN_POST,
+					KEYS.SETTING_CHK_PLUGIN_PUT,
+					KEYS.SETTING_CHK_PLUGIN_PATCH,
+					KEYS.SETTING_CHK_PLUGIN_DELETE,
+					KEYS.SETTING_CHK_PLUGIN_HEAD,
+					KEYS.SETTING_CHK_PLUGIN_OPTIONS
+				]
+					.forEach(i => {
+						if (!bool.has(i))
+							bool.set(i, false);
+					});
+				[
+					KEYS.SETTING_CHK_DELETE_YPK,
+					KEYS.SETTING_CHK_DELETE_REPLAY,
+					KEYS.SETTING_CHK_DELETE_DECK,
+					KEYS.SETTING_CHK_EXIT_DECK,
+					KEYS.SETTING_CHK_SWAP_BUTTON,
+					KEYS.SETTING_CHK_SORT_DECK,
+					KEYS.SETTING_CHK_DISRUPT_DECK,
+					KEYS.SETTING_CHK_CLEAR_DECK,
+					KEYS.SETTING_CHK_EXIT_SERVER,
+					KEYS.SETTING_CHK_SURRENDER,
+					KEYS.SETTING_CHK_DGLAB_SCRIPT
+				]
+					.forEach(i => {
+						if (!bool.has(i))
+							bool.set(i, true);
+					});
+				([
+					[KEYS.SETTING_VOICE_SOUND_EFFECT, 0.2],
+					[KEYS.SETTING_VOICE_BGM, 0.2],
+					[KEYS.SETTING_FRAME, 60],
+					[KEYS.SETTING_CT_CARD, 3],
+					[KEYS.SETTING_CT_DECK_MAIN, 60],
+					[KEYS.SETTING_CT_DECK_EX, 15],
+					[KEYS.SETTING_CT_DECK_SIDE, 15],
+					[KEYS.SETTING_CT_DOWNLOADCHUNKS_RETRIES, 8],
+					[KEYS.SETTING_DGLAB_MIN_TIME, 1],
+					[KEYS.SETTING_DGLAB_MAX_TIME, 4],
+					[KEYS.SETTING_DGLAB_RATIO_TIME, 2000],
+					[KEYS.SETTING_DGLAB_MIN_INTENSITY, 10],
+					[KEYS.SETTING_DGLAB_MAX_INTENSITY, 40],
+					[KEYS.SETTING_DGLAB_RATIO_INTENSITY, 200],
+					[KEYS.SETTING_CT_DECK_PRELINE, 10],
+					[KEYS.SETTING_CT_SIDE_PRELINE, 15],
+					[KEYS.SETTING_CT_ABOUT_PRELINE, 10],
+					[KEYS.SETTING_AVATAR_SELF, 0],
+					[KEYS.SETTING_AVATAR_OPPO, 0],
+					[KEYS.SETTING_AVATAR_SERVER, 0],
+					[KEYS.SETTING_AVATAR_WATCHER, 0],
+				] as Array<[string, number]>)
+					.forEach(i => {
+						if (!number.has(i[0]))
+							number.set(i[0], i[1]);
+					});
+				([
+					[KEYS.SETTING_SERVER_PLAYER_NAME, ''],
+					[KEYS.SETTING_SERVER_ADDRESS, ''],
+					[KEYS.SETTING_SERVER_PASS, ''],
+					[KEYS.SETTING_DGLAB_SERVER, ''],
+					[KEYS.SETTING_SEARCH_SPLIT, '%%'],
+					[KEYS.I18N, 'zh-CN'],
+				] as Array<[string, string]>)
+					.forEach(i => {
+						if (!string.has(i[0]))
+							string.set(i[0], i[1]);
+					});
+				if (string.get(KEYS.SETTING_SEARCH_SPLIT) === '')
+					string.set(KEYS.SETTING_SEARCH_SPLIT, '%%');
+				if (!['zh-CN', 'ko-KR', 'ja-JP', 'en-US', 'zh-TW'].includes(string.get(KEYS.I18N)!))
+					string.set(KEYS.I18N, 'zh-CN');
+
+				const write = <T>(
+					values : Map<string, T>,
+					stored : Array<[string, T]>,
+					set : (key : string, value : T) => Promise<IDBValidKey>
+				) : Array<Promise<IDBValidKey>> => {
+					const previous = new Map(stored);
+					return Array.from(values)
+						.filter(([key, value]) => !previous.has(key) || previous.get(key) !== value)
+						.map(([key, value]) => set(key, value));
+				};
+				await Promise.all([
+					...write(string, i[0], db.system.string.set),
+					...write(bool, i[1], db.system.bool.set),
+					...write(number, i[2], db.system.number.set),
+					...write(array, i[3], db.system.array.set),
+				]);
+
 				return {
-					string : [],
-					bool : [],
-					number : [],
-					array : []
-				}
+					string,
+					bool,
+					number,
+					array
+				};
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					string : [],
-					bool : [],
-					number : [],
-					array : []
+					string : new Map(),
+					bool : new Map(),
+					number : new Map(),
+					array : new Map()
 				};
 			}
 		},
-		get_server : async () : Promise<Array<[string, string]>> => [
-			['wss://ygopro3.cn/ws', 'YGOPro3服'],
-			['koishi.momobako.com:7210', 'Koishi 主服'],
-			['koishi.momobako.com:7373', 'Koishi DL 服'],
-			['koishi.momobako.com:2337', 'Koishi 无禁服'],
-			['dc.momobako.com:2333', '决斗编年史'],
-			['s1.ygo233.com:233', '233 服'],
-			['s2.ygo233.com:233', '233 服 2 区'],
-			['s1.ygo233.com:2333', '2333 约战服']
-		],
+		get_server : async () : Promise<Array<[string, string]>> => {
+			try {
+				const i : string = await http.get<string>('./config/servers.toml', 'text');
+				return Object.entries(toml.parse(i)) as any;
+			} catch (error) {
+				await this.log.write(error);
+				return [];
+			}
+		},
 		get_lflist : async () : Promise<Array<[string, LFList]>> => {
 			try {
 				return [];
@@ -221,10 +389,44 @@ class Invoke extends BaseInvoke {
 		}
 	};
 	deck = {
-		get : async () : Promise<Array<Deck>> => [],
-		write : async () => true,
-		rename : async () => true,
-		del : async () => true
+		get : async () : Promise<Array<Deck>> => {
+			try {
+				return await db.deck.get_all();
+			} catch (error) {
+				await this.log.write(error);
+				return [];
+			}
+		},
+		write : async (name : string, deck : string) : Promise<boolean> => {
+			try {
+				await db.deck.set(Deck.fromYdkString(deck).set_name(name));
+				return true;
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		},
+		rename : async (old_name : string, new_name : string) : Promise<boolean> => {
+			try {
+				const deck = await db.deck.get(old_name);
+				deck.name = new_name;
+				await db.deck.del(old_name);
+				await db.deck.set(deck);
+				return true;
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		},
+		del : async (name : string) : Promise<boolean> => {
+			try {
+				await db.deck.del(name);
+				return true;
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		}
 	};
 	ypk = {
 		del : async () => false,
@@ -275,6 +477,7 @@ class Invoke extends BaseInvoke {
 	log = {
 		write : async (line : string) : Promise<boolean> => {
 			toast.error(line);
+			console.error(line);
 			return true;
 		}
 	};

@@ -22,7 +22,6 @@ import Plaid from '@/pages/duel/scene/plaid';
 
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
-import extend from './extend';
 import { type Udp } from './udp';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
@@ -339,10 +338,15 @@ class Protocol {
 				await duel.update();
 				this.need_update = false;
 			}
-			await Promise.all([
-				this.msg.get(protocol)?.(msg.to_end(), send),
-				extend.get(protocol)?.(msg.to_end())
-			]);
+			if (__WEB__)
+				await this.msg.get(protocol)?.(msg.to_end(), send);
+			else {
+				const extend = (await import('./extend')).default;
+				await Promise.all([
+					this.msg.get(protocol)?.(msg.to_end(), send),
+					extend.get(protocol)?.(msg.to_end())
+				]);
+			}
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();

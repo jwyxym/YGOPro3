@@ -62,10 +62,10 @@ class Game {
 				invoke.game.version()
 			]);
 			this.version = version;
-			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
-			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
-			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
-			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
+			this.system.set(CONSTANT.KEYS.STRING, systems.string);
+			this.system.set(CONSTANT.KEYS.BOOL, systems.bool);
+			this.system.set(CONSTANT.KEYS.NUMBER, systems.number);
+			this.system.set(CONSTANT.KEYS.ARRAY, systems.array);
 
 			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
 			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
@@ -78,24 +78,16 @@ class Game {
 			this.strings.set(CONSTANT.KEYS.RACE, new Map(info.race));
 			this.strings.set(CONSTANT.KEYS.TYPE, new Map(info.types));
 
-			const other = new Map(textures.other);
-			const t = Date.now();
-			for (const i of [CONSTANT.KEYS.BACKI, CONSTANT.KEYS.BACKII]) {
-				const url = other.get(i);
-				if (url)
-					other.set(i, `${url}?t=${t}`);
-			}
-
-			this.textures.set(CONSTANT.KEYS.OT, new Map(textures.ot));
-			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, new Map(textures.attribute));
-			this.textures.set(CONSTANT.KEYS.CATEGORY, new Map(textures.category));
-			this.textures.set(CONSTANT.KEYS.RACE, new Map(textures.race));
-			this.textures.set(CONSTANT.KEYS.TYPE, new Map(textures.types));
-			this.textures.set(CONSTANT.KEYS.LINK, new Map(textures.link));
-			this.textures.set(CONSTANT.KEYS.COUNTER, new Map(textures.counter));
-			this.textures.set(CONSTANT.KEYS.INFO, new Map(textures.info));
-			this.textures.set(CONSTANT.KEYS.OTHER, other);
-			this.textures.set(CONSTANT.KEYS.BTN, new Map(textures.btn));
+			this.textures.set(CONSTANT.KEYS.OT, textures.ot);
+			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, textures.attribute);
+			this.textures.set(CONSTANT.KEYS.CATEGORY, textures.category);
+			this.textures.set(CONSTANT.KEYS.RACE, textures.race);
+			this.textures.set(CONSTANT.KEYS.TYPE, textures.types);
+			this.textures.set(CONSTANT.KEYS.LINK, textures.link);
+			this.textures.set(CONSTANT.KEYS.COUNTER, textures.counter);
+			this.textures.set(CONSTANT.KEYS.INFO, textures.info);
+			this.textures.set(CONSTANT.KEYS.OTHER, textures.other);
+			this.textures.set(CONSTANT.KEYS.BTN, textures.btn);
 
 			this.avatars = textures.avatar;
 			this.servers = new Map(servers);

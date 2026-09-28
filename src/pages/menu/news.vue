@@ -37,19 +37,18 @@
 	});
 
 	onMounted(async () => {
-		if (!__DEV__) {
-			const data = await http.get<Array<{
-				id : string;
-				news : {
-					['zh-CN'] : Array<swipe>;
-				};
-			}>>(URL.MYCARD_NEWS);
-			if (data) {
+		if (!__DEV__)
+			try {
+				const data = await http.get<Array<{
+					id : string;
+					news : {
+						['zh-CN'] : Array<swipe>;
+					};
+				}>>(URL.MYCARD_NEWS);
 				const news = data.filter(i => i.id === 'ygopro' && i.news);
 				if (news.length > 0)
 					page.swipe = news[0].news['zh-CN'].slice(0, 8);
-			}
-		}
+			} catch {}
 		page.show = true;
 	});
 </script>

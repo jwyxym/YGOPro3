@@ -25,7 +25,7 @@ Ko_KR[I18N_KEYS.START_TITLE] = '게임 리소스 오류';
 Ko_KR[I18N_KEYS.START_MESSAGE] = '확인을 클릭하여 게임을 종료하세요';
 
 Ko_KR[I18N_KEYS.MENU_SINGLE] = 'AI 모드';
-Ko_KR[I18N_KEYS.MENU_CONENCT] = '온라인 모드';
+Ko_KR[I18N_KEYS.MENU_CONNECT] = '온라인 모드';
 Ko_KR[I18N_KEYS.MENU_REPLAY] = '리플레이 보기';
 Ko_KR[I18N_KEYS.MENU_DECK] = '덱 편집';
 Ko_KR[I18N_KEYS.MENU_CARD] = '카드 목록';

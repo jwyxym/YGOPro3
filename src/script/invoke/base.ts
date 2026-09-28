@@ -16,24 +16,24 @@ abstract class BaseInvoke {
 		get_pic : (deck : Array<number>) => Promise<Array<[number, string]>>;
 		get_sound : () => Promise<Array<[string, string]>>;
 		get_textures : () => Promise<{
-			ot : Array<[number, string]>;
-			attribute : Array<[number, string]>;
-			category : Array<[number, string]>;
-			race : Array<[number, string]>;
-			types : Array<[number, string]>;
-			counter : Array<[number, string]>;
-			link : Array<[number, [string, string]]>;
-			info : Array<[string, string]>;
-			other : Array<[string, string]>;
-			btn : Array<[string, [string, string]]>;
-			avatar : Array<string>;
+			ot : Map<number, string>,
+			attribute : Map<number, string>,
+			category : Map<number, string>,
+			race : Map<number, string>,
+			types : Map<number, string>,
+			counter : Map<number, string>,
+			link : Map<number, [string, string]>,
+			info : Map<string, string>,
+			other : Map<string, string>,
+			btn : Map<string, [string, string]>,
+			avatar : Array<string>,
 		}>;
 		get_cards : () => Promise<Array<[number, Card]>>;
 		get_system : () => Promise<{
-			string : Array<[string, string]>;
-			bool : Array<[string, boolean]>;
-			number : Array<[string, number]>;
-			array : Array<[string, Array<string>]>;
+			string : Map<string, string>,
+			bool : Map<string, boolean>,
+			number : Map<string, number>,
+			array : Map<string, Array<string>>,
 		}>;
 		get_server : () => Promise<Array<[string, string]>>;
 		get_lflist : () => Promise<Array<[string, LFList]>>;

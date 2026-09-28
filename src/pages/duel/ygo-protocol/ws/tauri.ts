@@ -1,7 +1,7 @@
 import { connect, WebSocket, type Message } from '@/script/websocket';
 
-import Msg from './msg';
-import Socket from './socket';
+import Msg from '@/pages/duel/ygo-protocol/msg';
+import Socket from '@/pages/duel/ygo-protocol/socket';
 
 class Ws extends Socket {
 	ws ?: WebSocket;
@@ -41,6 +41,7 @@ class Ws extends Socket {
 					);
 			};
 		});
+		this.queue.start();
 	});
 
 	send = async (msg : Msg) => this.ws?.send(msg.array());

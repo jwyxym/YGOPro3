@@ -23,9 +23,10 @@
 
     "useUnknownInCatchVariables": false,
     "paths": {
-			"@/*": ["./src/*"],
-			"@invoke": ["./src/script/invoke/tauri.ts"],
-			"@voice": ["./src/script/voice/tauri.ts"]
+		"@/*": ["./src/*"],
+		"@invoke": ["./src/script/invoke/tauri.ts"],
+		"@voice": ["./src/script/voice/tauri.ts"],
+		"@ws": ["./src/pages/duel/ygo-protocol/ws/tauri.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],

@@ -71,7 +71,7 @@
 						@blur = 'page.change(i)'/>
 				</template>
 			</var-cell>
-			<var-cell class = 'extend'>
+			<var-cell class = 'extend' v-if = '!web'>
 				<template #default>
 					<Input
 						:placeholder = 'mainGame.get.text(page.extend.i18n)'
@@ -88,6 +88,7 @@
 				</template>
 			</var-cell>
 			<Plugin
+				v-if = '!web'
 				class = 'extend'
 				:height = 'GLOBAL.SCALE < 0.6 ? 100 : 60'
 				@change = 'page.change'
@@ -95,7 +96,7 @@
 			/>
 			<Dglab
 				class = 'extend'
-				v-if = 'page.extend.dglab'
+				v-if = 'page.extend.dglab && !web'
 				:height = 'GLOBAL.SCALE < 0.6 ? 100 : 60'
 				:icon = 'true'
 				@change = 'page.change'
@@ -125,6 +126,7 @@
 	import Dglab from './extend/dglab.vue';
 
 	const system = useTemplateRef('system');
+	const web = __WEB__;
 
 	class Sound_Setting {
 		key : number;

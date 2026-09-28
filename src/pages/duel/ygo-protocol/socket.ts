@@ -31,7 +31,6 @@ abstract class Socket {
 				async () => await call_back.on_connect?.(this.send)
 			);
 			await connect?.(address);
-			this.queue.start();
 		} catch (e) {
 			await invoke.log.write(e);
 			this.queue.clear();

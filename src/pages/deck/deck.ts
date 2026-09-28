@@ -79,6 +79,21 @@ class Deck extends YGOProDeck {
 			return new Deck();
 		}
 	};
+
+	static fromEncodedString (str: string) : Deck {
+		try {
+			const deck = YGOProDeck.fromEncodedString(str);
+			return new Deck({
+				main : deck.main,
+				side : deck.side,
+				extra : deck.extra,
+				name : deck.name
+			})
+		} catch (e) {
+			invoke.log.write(mainGame.get.text(I18N_KEYS.DECK_INPUT_ERROR))
+			return new Deck();
+		}
+	};
 }
 
 export default Deck;

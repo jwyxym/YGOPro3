@@ -13,10 +13,12 @@ class Tcp extends Socket {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}) : Promise<boolean> => await super.connect(address, call_back, async (i : string) => {
+	}) : Promise<boolean> => await super.connect(address, call_back, async (i : string | Uint8Array) => {
+		i = i as string;
 		this.cache = new Msg([]);
 		this.address = i;
 		await tcp.connect(this.cid, i);
+		this.queue.start();
 	});
 
 	listen = async () : Promise<void> => {

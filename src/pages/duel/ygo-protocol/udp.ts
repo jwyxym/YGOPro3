@@ -26,6 +26,7 @@ class Udp extends Socket {
 			this.on_heartbeat_end?.();
 			this.address = i.slice(6);
 			await udp.connect(this.cid, this.address);
+			this.queue.start();
 		});
 	};
 

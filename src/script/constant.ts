@@ -27,6 +27,10 @@ const FRAME = [
 
 const URL = {
 	DECK_SHARE : 'http://deck.ourygo.top',
+	LFLIST : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/lflist.conf',
+	STRINGS : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/strings.conf',
+	CDB : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/cards.cdb',
+	PRE_CDB : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/test-release.cdb',
 	SUPER_PRE : 'https://cdn02.moecube.com:444/ygopro-super-pre/archive/ygopro-super-pre.ypk',
 	SUPER_PRE_VERSION : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/version.txt',
 	MYCARD_NEWS : 'https://sapi.moecube.com:444/apps.json',
