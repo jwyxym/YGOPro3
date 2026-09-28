@@ -38,12 +38,12 @@ abstract class BaseInvoke {
 		get_server : () => Promise<Array<[string, string]>>;
 		get_lflist : () => Promise<Array<[string, LFList]>>;
 		get_strings : () => Promise<{
-			system : Array<[number, string]>;
-			victory : Array<[number, string]>;
-			counter : Array<[number, string]>;
-			setname : Array<[number, string]>;
+			system : Map<number, string>,
+			victory : Map<number, string>,
+			counter : Map<number, string>,
+			setname : Map<number, string>
 		}>;
-		get_info : () => Promise<{
+		get_info : (i18n : string) => Promise<{
 			ot : Array<[number, string]>;
 			attribute : Array<[number, string]>;
 			link : Array<[number, string]>;

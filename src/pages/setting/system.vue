@@ -1,6 +1,6 @@
 <template>
-	<div class = 'system no-scrollbar' ref = 'system' v-if = '!page.i18n.changing'>
-		<var-list>
+	<div class = 'system no-scrollbar' ref = 'system'>
+		<var-list v-if = '!page.i18n.changing'>
 			<var-cell>
 				<template #default>
 					<Select

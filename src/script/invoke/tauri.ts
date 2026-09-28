@@ -333,30 +333,41 @@ class Invoke extends BaseInvoke {
 			}
 		},
 		get_strings : async () : Promise<{
-			system : Array<[number, string]>,
-			victory : Array<[number, string]>,
-			counter : Array<[number, string]>,
-			setname : Array<[number, string]>,
+			system : Map<number, string>,
+			victory : Map<number, string>,
+			counter : Map<number, string>,
+			setname : Map<number, string>
 		}> => {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_strings');
-				return bincode.decode(bincode.Struct({
+				const i = bincode.decode(bincode.Struct({
 					system : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					victory : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					counter : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					setname : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
-				}), result).value as any;
+				}), result).value as {
+					system : Array<[number, string]>,
+					victory : Array<[number, string]>,
+					counter : Array<[number, string]>,
+					setname : Array<[number, string]>,
+				};
+				return {
+					system : new Map(i.system),
+					victory : new Map(i.victory),
+					counter : new Map(i.counter),
+					setname : new Map(i.setname)
+				};
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					system : [],
-					victory : [],
-					counter : [],
-					setname : []
+					system : new Map(),
+					victory : new Map(),
+					counter : new Map(),
+					setname : new Map()
 				};
 			}
 		},
-		get_info : async () : Promise<{
+		get_info : async (_ ?: string) : Promise<{
 			ot : Array<[number, string]>,
 			attribute : Array<[number, string]>,
 			link : Array<[number, string]>,

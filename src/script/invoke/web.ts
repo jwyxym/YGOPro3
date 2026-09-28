@@ -349,30 +349,48 @@ class Invoke extends BaseInvoke {
 			}
 		},
 		get_strings : async () : Promise<{
-			system : Array<[number, string]>,
-			victory : Array<[number, string]>,
-			counter : Array<[number, string]>,
-			setname : Array<[number, string]>,
+			system : Map<number, string>,
+			victory : Map<number, string>,
+			counter : Map<number, string>,
+			setname : Map<number, string>
 		}> => {
 			try {
 				const text = await http.get<string>(CONSTANT.URL.STRINGS, 'text');
-				return {
-					system : [],
-					victory : [],
-					counter : [],
-					setname : []
+				const data = {
+					system : new Map<number, string>(),
+					victory : new Map<number, string>(),
+					counter : new Map<number, string>(),
+					setname : new Map<number, string>()
 				};
+
+				for (const line of text.split(CONSTANT.REG.LINE_FEED)) {
+					const match = line.trim().match(CONSTANT.REG.STRINGS);
+					if (!match)
+						continue;
+
+					const type = match[1] as keyof typeof data;
+					const key = Number(match[2]);
+					if (!Number.isInteger(key) || key < 0 || key > 0xffffffff)
+						continue;
+
+					const value = type === 'setname'
+						? match[3].split('\t')[0].trim()
+						: match[3];
+
+					data[type].set(key, value);
+				}
+				return data;
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					system : [],
-					victory : [],
-					counter : [],
-					setname : []
+					system : new Map(),
+					victory : new Map(),
+					counter : new Map(),
+					setname : new Map()
 				};
 			}
 		},
-		get_info : async () : Promise<{
+		get_info : async (i18n : string = 'zh-CN') : Promise<{
 			ot : Array<[number, string]>,
 			attribute : Array<[number, string]>,
 			link : Array<[number, string]>,
@@ -381,13 +399,15 @@ class Invoke extends BaseInvoke {
 			types : Array<[number, string]>
 		}> => {
 			try {
+				const text = await http.get<string>(`./config/cardinfo-${i18n}.toml`, 'text');
+				const data = toml.parse(text);
 				return {
-					ot : [],
-					attribute : [],
-					link : [],
-					category : [],
-					race : [],
-					types : []
+					ot : Object.entries(data.ot).map(i => [Number(i[0]), i[1] as string]),
+					attribute : Object.entries(data.attribute).map(i => [Number(i[0]), i[1] as string]),
+					link : Object.entries(data.link).map(i => [Number(i[0]), i[1] as string]),
+					category : Object.entries(data.category).map(i => [Number(i[0]), i[1] as string]),
+					race : Object.entries(data.race).map(i => [Number(i[0]), i[1] as string]),
+					types : Object.entries(data.types).map(i => [Number(i[0]), i[1] as string])
 				};
 			} catch (error) {
 				await this.log.write(error);

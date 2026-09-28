@@ -57,7 +57,7 @@ class Game {
 				invoke.game.get_lflist(),
 				invoke.game.get_strings(),
 				invoke.game.get_room(),
-				invoke.game.get_info(),
+				invoke.game.get_info(this.get.system(CONSTANT.KEYS.I18N) as string | undefined),
 				invoke.game.get_hash(),
 				invoke.game.version()
 			]);
@@ -67,10 +67,10 @@ class Game {
 			this.system.set(CONSTANT.KEYS.NUMBER, systems.number);
 			this.system.set(CONSTANT.KEYS.ARRAY, systems.array);
 
-			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
-			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
-			this.strings.set(CONSTANT.KEYS.COUNTER, new Map(strings.counter));
-			this.strings.set(CONSTANT.KEYS.SETCODE, new Map(strings.setname));
+			this.strings.set(CONSTANT.KEYS.SYSTEM, strings.system);
+			this.strings.set(CONSTANT.KEYS.VICTORY, strings.victory);
+			this.strings.set(CONSTANT.KEYS.COUNTER, strings.counter);
+			this.strings.set(CONSTANT.KEYS.SETCODE, strings.setname);
 			this.strings.set(CONSTANT.KEYS.OT, new Map(info.ot));
 			this.strings.set(CONSTANT.KEYS.ATTRIBUTE, new Map(info.attribute));
 			this.strings.set(CONSTANT.KEYS.CATEGORY, new Map(info.category));
@@ -186,9 +186,8 @@ class Game {
 			victory : (key : number, replace : Array<string | number> | string | number = []) : string => {
 				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
 				replace = typeof replace === 'object' ? replace : [replace];
-				for (const str of replace) {
+				for (const str of replace)
 					value = value.replace(typeof str === 'string' ? '%ls' : '%d', `${str}`);
-				}
 				return value;
 			},
 			race : (data : number) : string => {

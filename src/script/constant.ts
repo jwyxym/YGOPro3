@@ -5,7 +5,8 @@ const REG = {
 	LINE_FEED : /\r?\n/,
 	NUMBER : /^\d+$/,
 	KEY_WORDS : /「([^「」]*)」/g,
-	URL : /"([^"]*)"/
+	URL : /"([^"]*)"/,
+	STRINGS : /^!(system|victory|counter|setname)\s+(0[xX][0-9a-fA-F]+|\d+)\s+(.+)$/
 };
 
 const LANGUAGE = {
