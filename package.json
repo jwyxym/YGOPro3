@@ -24,12 +24,15 @@
 		"tauri:android:init": "tauri android init&&npm run icon",
 		"tauri:android:init:cmd": "npm run tauri:android:init&&mkdir kotlin\\jniLibs",
 		"tauri:android:init:sh": "npm run tauri:android:init&&mkdir kotlin/jniLibs",
-		"tauri": "tauri"
+		"tauri": "tauri",
+		"h5:dev": "npm run dev -- --mode web --host 0.0.0.0 --port 80",
+		"h5:build": "npm run build -- --mode web"
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.4",
 		"@jwyxym/coin": "^0.0.2",
 		"@jwyxym/dice": "^0.0.2",
+		"@jwyxym/tauri-plugin-kcp": "^0.1.1",
 		"@kuyoonjo/tauri-plugin-tcp": "^0.1.2",
 		"@tauri-apps/api": "^2",
 		"@tauri-apps/plugin-clipboard-manager": "^2.3.0",
@@ -49,18 +52,22 @@
 		"gsap": "^3.13.0",
 		"highlight.js": "^11.12.0",
 		"hotkeys-js": "^4.0.3",
+		"idb": "^8.0.3",
 		"lodash": "^4.17.23",
 		"mathjs": "^15.1.0",
 		"p-queue": "^9.1.0",
 		"qrcode": "^1.5.4",
 		"shinycard": "^0.1.1",
+		"smol-toml": "^1.9.0",
 		"tauri-plugin-dglab-ws-server": "^0.1.0",
 		"tauri-plugin-sound-player": "^0.1.0",
 		"vue": "^3.5.13",
 		"vue-virtual-scroller": "^3.0.3",
 		"vue3-starry-sky": "^0.1.0",
 		"ygopic-best": "^1.0.0",
+		"ygopro-cdb-encode": "^1.1.1",
 		"ygopro-deck-encode": "^1.0.14",
+		"ygopro-lflist-encode": "^1.0.3",
 		"ygopro-yrp3d-encode": "github:jwyxym/ygopro-yrp3d-encode"
 	},
 	"devDependencies": {
@@ -77,6 +84,7 @@
 		"sass-embedded": "^1.90.0",
 		"typescript": "~5.6.2",
 		"vite": "^6.0.3",
+		"vite-plugin-static-copy": "^4.1.1",
 		"vue-tsc": "^2.1.10"
 	}
 }

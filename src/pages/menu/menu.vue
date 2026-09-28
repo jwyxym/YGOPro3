@@ -11,10 +11,10 @@
 		</div>
 		<div>
 			<span
-				v-for = '(i, v) in page.menu'
-				:class = "{ 'select' : page.select === v }"
-				@click = 'page.click(v)'
-				@mouseenter = 'page.mouseenter(v)'
+				v-for = 'i in page.menu'
+				:class = "{ 'select' : page.select === i }"
+				@click = 'page.click(i)'
+				@mouseenter = 'page.mouseenter(i)'
 				@mouseleave = 'page.mouseleave'
 				class = 'pointer'
 			>{{ mainGame.get.text(i) }}</span>
@@ -41,15 +41,21 @@
 			interval : null as null | number
 		},
 		select : - 1,
-		menu : [
-			I18N_KEYS.MENU_SINGLE,
-			I18N_KEYS.MENU_CONENCT,
-			I18N_KEYS.MENU_REPLAY,
-			I18N_KEYS.MENU_DECK,
-			I18N_KEYS.MENU_CARD,
-			I18N_KEYS.MENU_SETTING,
-			I18N_KEYS.MENU_EXIT
-		],
+		menu : __WEB__ ? [
+				I18N_KEYS.MENU_CONNECT,
+				I18N_KEYS.MENU_REPLAY,
+				I18N_KEYS.MENU_DECK,
+				I18N_KEYS.MENU_CARD,
+				I18N_KEYS.MENU_SETTING
+			] : [
+				I18N_KEYS.MENU_SINGLE,
+				I18N_KEYS.MENU_CONNECT,
+				I18N_KEYS.MENU_REPLAY,
+				I18N_KEYS.MENU_DECK,
+				I18N_KEYS.MENU_CARD,
+				I18N_KEYS.MENU_SETTING,
+				I18N_KEYS.MENU_EXIT
+			],
 		pointer : new Array(2).fill(-1000),
 		click : (v : number) : void => {
 			if (page.select !== v)
@@ -68,25 +74,25 @@
 			if (__ANDROID__)
 				await mainGame.sleep(200);
 			switch (page.select) {
-				case 0:
+				case I18N_KEYS.MENU_SINGLE:
 					emit('single');
 					break;
-				case 1:
+				case I18N_KEYS.MENU_CONNECT:
 					emit('server');
 					break;
-				case 2:
+				case I18N_KEYS.MENU_REPLAY:
 					emit('replay');
 					break;
-				case 3:
+				case I18N_KEYS.MENU_DECK:
 					emit('deck');
 					break;
-				case 4:
+				case I18N_KEYS.MENU_CARD:
 					emit('card');
 					break;
-				case 5:
+				case I18N_KEYS.MENU_SETTING:
 					emit('setting');
 					break;
-				case 6:
+				case I18N_KEYS.MENU_EXIT:
 					await mainGame.exit();
 					break;
 			}

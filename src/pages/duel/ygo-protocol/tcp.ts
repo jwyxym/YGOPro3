@@ -7,15 +7,18 @@ class Tcp extends Socket {
 	cid = 'YGOPro3';
 	address = '';
 	cache : Msg = new Msg([]);
+	kind : 'tcp' = 'tcp';
 
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}) : Promise<boolean> => await super.connect(address, call_back, async (i : string) => {
+	}) : Promise<boolean> => await super.connect(address, call_back, async (i : string | Uint8Array) => {
+		i = i as string;
 		this.cache = new Msg([]);
 		this.address = i;
 		await tcp.connect(this.cid, i);
+		this.queue.start();
 	});
 
 	listen = async () : Promise<void> => {
@@ -54,6 +57,7 @@ class Tcp extends Socket {
 
 	clear = () : void => {
 		const on_disconnect = this.on_disconnect;
+		this.address = '';
 		this.queue.add(async () => await on_disconnect?.());
 	};
 };

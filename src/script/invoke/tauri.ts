@@ -1,22 +1,19 @@
-import { invoke as tauri_invoke, type InvokeArgs } from '@tauri-apps/api/core';
+import { type InvokeArgs } from '@tauri-apps/api/core';
 import * as bincode from 'bincode-ts';
 import Deck from '@/pages/deck/deck';
-import Card from './card';
-import LFList from './lflist';
 import { toast } from '@/pages/toast/toast';
+import Card from '@/script/card';
+import LFList from '@/script/lflist';
+import { KEYS } from '@/script/constant';
+import BaseInvoke from './base';
+import Srv from './type';
 
-interface Srv {
-	priority : number;
-	weight : number;
-	port : number;
-	target : string;
+const _invoke = async <T>(command : string, args ?: InvokeArgs) : Promise<T> => {
+	const api = await import('@tauri-apps/api/core');
+	return api.invoke<T>(`plugin:ygopro3|${command}`, args);
 };
 
-const _invoke = <T>(command : string, args ?: InvokeArgs) : Promise<T> => (
-	tauri_invoke<T>(`plugin:ygopro3|${command}`, args)
-);
-
-class Invoke {
+class Invoke extends BaseInvoke {
 	game = {
 		init : async () : Promise<boolean> => {
 			try {
@@ -73,7 +70,7 @@ class Invoke {
 				return false;
 			}
 		},
-		set_textures : async (key : string, value : string, content ?: Uint8Array<ArrayBuffer>) : Promise<boolean> => {
+		set_textures : async (key : string, value : string, content ?: Uint8Array | Blob) : Promise<boolean> => {
 			try {
 				const buffer = new ArrayBuffer(256);
 				bincode.encode(
@@ -83,10 +80,11 @@ class Invoke {
 				);
 				const bytes = (() => {
 					if (__ANDROID__) {
+						content = content ? content as Uint8Array : new Uint8Array();
 						const encoded = new Uint8Array(buffer);
-						const bytes = new Uint8Array(encoded.length + content!.length);
+						const bytes = new Uint8Array(encoded.length + content.length);
 						bytes.set(encoded, 0);
-						bytes.set(content!, encoded.length);
+						bytes.set(content, encoded.length);
 						return bytes;
 					} else
 						return new Uint8Array(buffer);
@@ -140,21 +138,21 @@ class Invoke {
 			}
 		},
 		get_textures : async () : Promise<{
-			ot : Array<[number, string]>,
-			attribute : Array<[number, string]>,
-			category : Array<[number, string]>,
-			race : Array<[number, string]>,
-			types : Array<[number, string]>,
-			counter : Array<[number, string]>,
-			link : Array<[number, [string, string]]>,
-			info : Array<[string, string]>,
-			other : Array<[string, string]>,
-			btn : Array<[string, [string, string]]>,
+			ot : Map<number, string>,
+			attribute : Map<number, string>,
+			category : Map<number, string>,
+			race : Map<number, string>,
+			types : Map<number, string>,
+			counter : Map<number, string>,
+			link : Map<number, [string, string]>,
+			info : Map<string, string>,
+			other : Map<string, string>,
+			btn : Map<string, [string, string]>,
 			avatar : Array<string>,
 		}> => {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_textures');
-				return bincode.decode(bincode.Struct({
+				const i = bincode.decode(bincode.Struct({
 					ot : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					attribute : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					category : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
@@ -166,20 +164,52 @@ class Invoke {
 					other : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
 					btn : bincode.Collection(bincode.Tuple(bincode.String, bincode.Tuple(bincode.String, bincode.String))),
 					avatar : bincode.Collection(bincode.String)
-				}), result).value as any;
+				}), result).value as {
+					ot : Array<[number, string]>,
+					attribute : Array<[number, string]>,
+					category : Array<[number, string]>,
+					race : Array<[number, string]>,
+					types : Array<[number, string]>,
+					counter : Array<[number, string]>,
+					link : Array<[number, [string, string]]>,
+					info : Array<[string, string]>,
+					other : Array<[string, string]>,
+					btn : Array<[string, [string, string]]>,
+					avatar : Array<string>,
+				};
+				const other = new Map(i.other);
+				const t = Date.now();
+				for (const i of [KEYS.BACKI, KEYS.BACKII]) {
+					const url = other.get(i);
+					if (url)
+						other.set(i, `${url}?t=${t}`);
+				}
+				return {
+					ot : new Map(i.ot),
+					attribute : new Map(i.attribute),
+					link : new Map(i.link),
+					category : new Map(i.category),
+					race : new Map(i.race),
+					types : new Map(i.types),
+					counter : new Map(i.counter),
+					info : new Map(i.info),
+					btn : new Map(i.btn),
+					avatar : i.avatar,
+					other
+				}
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					ot : [],
-					attribute : [],
-					link : [],
-					category : [],
-					race : [],
-					types : [],
-					counter : [],
-					info : [],
-					other : [],
-					btn : [],
+					ot : new Map(),
+					attribute : new Map(),
+					link : new Map(),
+					category : new Map(),
+					race : new Map(),
+					types : new Map(),
+					counter : new Map(),
+					info : new Map(),
+					other : new Map(),
+					btn : new Map(),
 					avatar : []
 				};
 			}
@@ -232,27 +262,38 @@ class Invoke {
 			}
 		},
 		get_system : async () : Promise<{
-			string : Array<[string, string]>,
-			bool : Array<[string, boolean]>,
-			number : Array<[string, number]>,
-			array : Array<[string, Array<string>]>,
+			string : Map<string, string>,
+			bool : Map<string, boolean>,
+			number : Map<string, number>,
+			array : Map<string, Array<string>>,
 		}> => {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_system');
-				return bincode.decode(
+				const i =  bincode.decode(
 					bincode.Struct({
 						string : bincode.Collection(bincode.Tuple(bincode.String, bincode.String)),
 						bool : bincode.Collection(bincode.Tuple(bincode.String, bincode.bool)),
 						number : bincode.Collection(bincode.Tuple(bincode.String, bincode.f64)),
 						array : bincode.Collection(bincode.Tuple(bincode.String,  bincode.Collection(bincode.String))),
-					}), result).value as any;
+					}), result).value as {
+						string : Array<[string, string]>,
+						bool : Array<[string, boolean]>,
+						number : Array<[string, number]>,
+						array : Array<[string, Array<string>]>,
+					};
+				return {
+					string : new Map(i.string),
+					bool : new Map(i.bool),
+					number : new Map(i.number),
+					array : new Map(i.array)
+				};
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					string : [],
-					bool : [],
-					number : [],
-					array : []
+					string : new Map(),
+					bool : new Map(),
+					number : new Map(),
+					array : new Map()
 				};
 			}
 		},
@@ -271,48 +312,62 @@ class Invoke {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_lflist');
 				return (bincode.decode(bincode.Collection(
-					bincode.Tuple(bincode.String, bincode.Struct({
-						hash : bincode.u32,
+					bincode.Struct({
+						name : bincode.String,
 						genesys : bincode.u32,
-						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
-						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32))
-					}))
-				), result).value as Array<[string, {
-					hash : number,
+						hash : bincode.u32,
+						glist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u32)),
+						lflist : bincode.Collection(bincode.Tuple(bincode.u32, bincode.u8))
+					})
+				), result).value as Array<{
+					name : string,
 					genesys : number,
-					lflist : Array<[number, number]>,
-					glist : Array<[number, number]>
-				}]>).map(i => [i[0], new LFList(i[0], i[1])]);
+					hash : number,
+					glist : Array<[number, number]>,
+					lflist : Array<[number, number]>
+				}>)
+					.map(i => [i.name, new LFList(i)]);
 			} catch (error) {
 				await this.log.write(error);
 				return [];
 			}
 		},
 		get_strings : async () : Promise<{
-			system : Array<[number, string]>,
-			victory : Array<[number, string]>,
-			counter : Array<[number, string]>,
-			setname : Array<[number, string]>,
+			system : Map<number, string>,
+			victory : Map<number, string>,
+			counter : Map<number, string>,
+			setname : Map<number, string>
 		}> => {
 			try {
 				const result = await _invoke<ArrayBuffer>('get_strings');
-				return bincode.decode(bincode.Struct({
+				const i = bincode.decode(bincode.Struct({
 					system : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					victory : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					counter : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String)),
 					setname : bincode.Collection(bincode.Tuple(bincode.u32, bincode.String))
-				}), result).value as any;
+				}), result).value as {
+					system : Array<[number, string]>,
+					victory : Array<[number, string]>,
+					counter : Array<[number, string]>,
+					setname : Array<[number, string]>,
+				};
+				return {
+					system : new Map(i.system),
+					victory : new Map(i.victory),
+					counter : new Map(i.counter),
+					setname : new Map(i.setname)
+				};
 			} catch (error) {
 				await this.log.write(error);
 				return {
-					system : [],
-					victory : [],
-					counter : [],
-					setname : []
+					system : new Map(),
+					victory : new Map(),
+					counter : new Map(),
+					setname : new Map()
 				};
 			}
 		},
-		get_info : async () : Promise<{
+		get_info : async (_ ?: string) : Promise<{
 			ot : Array<[number, string]>,
 			attribute : Array<[number, string]>,
 			link : Array<[number, string]>,
@@ -533,7 +588,7 @@ class Invoke {
 	replay = {
 		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name : name}));
+				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name }));
 			} catch (error) {
 				await this.log.write(error);
 				return new Uint8Array();
@@ -598,7 +653,7 @@ class Invoke {
 		unload : async (name : string) : Promise<boolean> => {
 			try {
 				await _invoke<void>('js_unload', { name });
-				return true
+				return true;
 			} catch (error) {
 				await this.log.write(error);
 				return false;
@@ -657,4 +712,3 @@ class Invoke {
 
 const invoke = new Invoke();
 export default invoke;
-export type { Srv };

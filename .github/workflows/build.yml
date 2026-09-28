@@ -478,3 +478,36 @@ jobs:
         name: YGOPro3-linux-${{ matrix.target }}.${{ matrix.extension }}
         retention-days: 1
         path: ./build/YGOPro3.${{ matrix.extension }}
+
+  build-html:
+    name: build-html
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+    
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.18.0'
+
+    - name: NPM Init
+      run: |
+        npm ci
+
+    - name: HTML build
+      run: |
+        npm run h5:build
+
+    - name: Zip
+      run: |
+        zip -r YGOPro3-html.zip dist
+
+    - name: Upload File
+      uses: actions/upload-artifact@v4
+      with:
+        name: YGOPro3-html.zip
+        retention-days: 1
+        path: ./YGOPro3-html.zip

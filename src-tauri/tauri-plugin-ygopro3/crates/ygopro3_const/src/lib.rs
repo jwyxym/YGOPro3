@@ -5,7 +5,6 @@ use regex::Regex;
 
 lazy_static! {
 	pub static ref PIC_REGEX: Regex = Regex::new(r"^pics/(\d+)\.(jpg|png|jpeg)$").unwrap();
-	pub static ref COMMENTS_REGEX: Regex = Regex::new(r"#.*").unwrap();
 }
 
 pub static RESOURCE_PATH: OnceLock<PathBuf> = OnceLock::new();

@@ -10,9 +10,7 @@ import voice from '@/script/voice';
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
 
-import ws from './ygo-protocol/ws';
-import tcp from './ygo-protocol/tcp';
-import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
+import { type Replay3D } from './ygo-protocol/yrp3d';
 import Socket from './ygo-protocol/socket';
 import Msg from './ygo-protocol/msg';
 import { CTOS, VERSION } from './ygo-protocol/network';
@@ -203,12 +201,30 @@ class Duel {
 };
 const connect = reactive({
 	debouncing : false,
-	replay : false,
 	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
 	duel : new Duel(),
 	protocol : undefined as undefined | Socket | Replay3D,
+	timeout : {
+		timer : undefined as ReturnType<typeof setTimeout> | undefined,
+		generation : 0,
+		stop : () : void => {
+			clearTimeout(connect.timeout.timer);
+			connect.timeout.timer = undefined;
+			connect.timeout.generation ++;
+		},
+		start : () : void => {
+			connect.timeout.stop();
+			const generation = connect.timeout.generation;
+			connect.timeout.timer = setTimeout(() => {
+				if (generation !== connect.timeout.generation) return;
+				connect.timeout.stop();
+				invoke.log.write('udp connect timeout')
+				connect.close();
+			}, 5000);
+		}
+	},
 	chat : {
 		show : false,
 		on : () : void => connect.chat.show ? connect.chat.off()
@@ -224,7 +240,7 @@ const connect = reactive({
 		name : string;
 		pass : string;
 		address : string;
-		protocal : 0 | 1 | 2;
+		protocal : 0 | 1 | 2 | 3;
 	} | {
 		name : string;
 		args : [any, string];
@@ -232,17 +248,17 @@ const connect = reactive({
 	} | {
 		replay : string
 	} | Deck) => {
-		if (connect.debouncing)
+		if (connect.debouncing || connect.timeout.timer !== undefined)
 			return;
 		connect.debouncing = true;
 		try {
 			switch (connect.state) {
 				case 0:
+					connect.timeout.stop();
 					const protocol = new (await import('./ygo-protocol/protocol')).default();
 					if (i && 'replay' in i) {
-						connect.replay = true;
+						connect.protocol = (await import('./ygo-protocol/yrp3d')).default;
 						const bytes = await invoke.replay.read(i.replay);
-						connect.protocol = replay3d;
 						await connect.protocol.on(bytes, {
 							on_connect : async (name : [string, string], duel_rule : number) : Promise<void> => {
 								connect.duel.player[0].name = name[0];
@@ -262,7 +278,8 @@ const connect = reactive({
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
-									connect.state = 1;
+									if (connect.protocol?.kind !== 'udp')
+										connect.state = 1;
 									await send(new Msg()
 										.write.uint8(CTOS.EXTERNAL_ADDRESS)
 										.write.uint32(0)
@@ -303,7 +320,7 @@ const connect = reactive({
 							if (port) {
 								const address = `localhost:${port}`;
 								const p = callback(i.name, '', address, port);
-								connect.protocol = tcp;
+								connect.protocol = (await import('./ygo-protocol/tcp')).default;
 								await Promise.all([
 									connect.protocol.connect(address, p),
 									mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
@@ -314,7 +331,7 @@ const connect = reactive({
 								name : string;
 								pass : string;
 								address : string;
-								protocal : 0 | 1 | 2;
+								protocal : 0 | 1 | 2 | 3;
 							};
 							if (!para.name)
 								throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
@@ -333,28 +350,54 @@ const connect = reactive({
 										})();
 								return address;
 							};
-							switch (para.protocal) {
-								case 0:
-									connect.protocol = tcp;
-									break;
-								case 1:
-									para.address = `ws://${para.address}`;
-									connect.protocol = ws;
-									break;
-								case 2:
-									para.address = `wss://${para.address}`;
-									connect.protocol = ws;
-									break;
-							}
+							if (__WEB__)
+									switch (para.protocal) {
+									case 0:
+									case 1:
+									case 2:
+										para.address = `ws://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									case 3:
+										para.address = `wss://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+								}
+							else
+								switch (para.protocal) {
+									case 0:
+										connect.protocol = (await import('./ygo-protocol/tcp')).default;
+										break;
+									case 1:
+										para.address = `udp://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/udp')).default;
+										break;
+									case 2:
+										para.address = `ws://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									case 3:
+										para.address = `wss://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+								}
 							const promise = await Promise.all([
 								mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
 								mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
 								get_srv()
 							]);
-							await Promise.all([
+							const check = connect.protocol.kind === 'udp';
+							if (check)
+								connect.timeout.start();
+							const [, connected] = await Promise.all([
 								mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
 								connect.protocol.connect(promise[2], p)
 							]);
+							if (!connected && check) {
+								connect.timeout.stop();
+								await connect.protocol.disconnect();
+								connect.clear();
+							}
 						}
 					}
 					break;
@@ -390,6 +433,7 @@ const connect = reactive({
 					break;
 			}
 		} catch (e) {
+			if (connect.timeout.timer !== undefined) connect.close();
 			await invoke.log.write(e);
 			connect.clear();
 		} finally {
@@ -397,6 +441,7 @@ const connect = reactive({
 		}
 	},
 	close : () => {
+		connect.timeout.stop();
 		try {
 			connect.protocol
 				? connect.protocol.disconnect()
@@ -404,6 +449,7 @@ const connect = reactive({
 		} catch {}
 	},
 	clear : () => {
+		connect.timeout.stop();
 		connect.chat.off();
 		history.clear();
 		chat.clear();
@@ -413,7 +459,6 @@ const connect = reactive({
 		connect.response = undefined;
 		connect.send = undefined;
 		connect.protocol = undefined;
-		connect.replay = false;
 	}
 });
 

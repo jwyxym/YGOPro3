@@ -12,7 +12,7 @@
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, onUnmounted, reactive } from 'vue';
-	import { UnlistenFn } from '@tauri-apps/api/event';
+	import { type UnlistenFn } from '@tauri-apps/api/event';
 
 	import listen from '@/script/listen';
 	import mainGame from '@/script/game';
@@ -42,20 +42,22 @@
 	});
 
 	onBeforeMount(async () => {
-		page.funcs.push(await listen.start((all : number) => {
-			page.all = all;
-			page.now = 0;
-			page.show.value = true;
-		}));
-		page.funcs.push(await listen.progress((progress : number) => page.now += progress));
-		page.funcs.push(await listen.end(async () => {
-			page.now = page.all;
-			page.show.value = false;
-			await mainGame.sleep(100);
-			page.all = 0;
-			page.now = 0;
-		}));
-		page.funcs.push(await listen.debug(invoke.log.write));
+		if (!__WEB__) {
+			page.funcs.push(await listen.start((all : number) => {
+				page.all = all;
+				page.now = 0;
+				page.show.value = true;
+			}));
+			page.funcs.push(await listen.progress((progress : number) => page.now += progress));
+			page.funcs.push(await listen.end(async () => {
+				page.now = page.all;
+				page.show.value = false;
+				await mainGame.sleep(100);
+				page.all = 0;
+				page.now = 0;
+			}));
+			page.funcs.push(await listen.debug(invoke.log.write));
+		}
 	});
 
 	onUnmounted(() => {

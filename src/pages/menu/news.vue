@@ -1,7 +1,7 @@
 <template>
 	<transition name = 'move_left'>
 		<var-swipe :autoplay = '2000' class = 'swipe' v-show = 'page.show'>
-			<var-swipe-item v-for = 'i in page.swipe' @click = 'page.open(i.url)'>
+			<var-swipe-item v-for = 'i in page.swipe' @click = 'open(i.url)'>
 				<div>
 					<img :src = 'i.image'/>
 					<span>{{ i.title }}</span>
@@ -12,10 +12,10 @@
 </template>
 <script setup lang = 'ts'>
 	import { onMounted, reactive } from 'vue';
-	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
+	import { open } from '@/script/tauri';
 	
 	interface swipe {
 		url : string;
@@ -26,27 +26,22 @@
 
 	const page = reactive({
 		show : false,
-		swipe : [] as Array<swipe>,
-		open : async (url : string) => {
-			Opener.openUrl(url)
-				.catch();
-		}
+		swipe : [] as Array<swipe>
 	});
 
 	onMounted(async () => {
-		if (!__DEV__) {
-			const data = await http.get<Array<{
-				id : string;
-				news : {
-					['zh-CN'] : Array<swipe>;
-				};
-			}>>(URL.MYCARD_NEWS);
-			if (data) {
+		if (!__DEV__)
+			try {
+				const data = await http.get<Array<{
+					id : string;
+					news : {
+						['zh-CN'] : Array<swipe>;
+					};
+				}>>(URL.MYCARD_NEWS);
 				const news = data.filter(i => i.id === 'ygopro' && i.news);
 				if (news.length > 0)
 					page.swipe = news[0].news['zh-CN'].slice(0, 8);
-			}
-		}
+			} catch {}
 		page.show = true;
 	});
 </script>

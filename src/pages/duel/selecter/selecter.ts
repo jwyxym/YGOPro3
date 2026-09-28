@@ -1,6 +1,8 @@
+import { toRaw } from 'vue';
 import type Client_Card from '@/pages/duel/scene/client_card';
 import type Plaid from '@/pages/duel/scene/plaid';
 import connect from '@/pages/duel/connect';
+import { Replay3D } from '@/pages/duel/ygo-protocol/yrp3d';
 
 class Base {
 	private _show : boolean = false;
@@ -8,7 +10,7 @@ class Base {
 		return this._show;
 	};
 	set show (show : boolean) {
-		if (connect.replay)
+		if (toRaw(connect.protocol!) instanceof Replay3D)
 			return;
 		this._show = show;
 	};

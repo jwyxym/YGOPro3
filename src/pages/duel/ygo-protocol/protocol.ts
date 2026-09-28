@@ -1,3 +1,4 @@
+import { toRaw } from 'vue';
 import lodash from 'lodash';
 import { YGOProYrp3d } from 'ygopro-yrp3d-encode';
 import { rollDice } from '@jwyxym/dice';
@@ -21,14 +22,57 @@ import Plaid from '@/pages/duel/scene/plaid';
 
 import Msg from './msg';
 import { ERROR, STOC, MSG, HINT, LOCATION, CTOS, PLAYERCHANGE, QUERY, COMMAND, POS, DESC, OPCODE, REASON } from './network';
-import extend from './extend';
-
+import { type Udp } from './udp';
 
 const SERVER = mainGame.get.text(I18N_KEYS.SERVER);
 
 type Protocol_Func = (msg : Msg, send : (msg : Msg) => Promise<void>) => Promise<void> | ((msg : Msg) => Promise<void>) | (() => Promise<void>);
 
 class Protocol {
+	heartbeat = {
+		timer : undefined as ReturnType<typeof setTimeout> | undefined,
+		socket : undefined as Udp | undefined,
+		phase : undefined as 'send_ping' | 'wait_pong' | 'wait_ping' | undefined,
+		generation : 0,
+		stop : () : void => {
+			clearTimeout(this.heartbeat.timer);
+			this.heartbeat.timer = undefined;
+			if (this.heartbeat.socket?.on_heartbeat_end === this.heartbeat.stop)
+				this.heartbeat.socket.on_heartbeat_end = undefined;
+			this.heartbeat.socket = undefined;
+			this.heartbeat.phase = undefined;
+			this.heartbeat.generation ++;
+		},
+		fail : async () : Promise<void> => {
+			const socket = this.heartbeat.socket;
+			this.heartbeat.stop();
+			await socket?.disconnect();
+		},
+		send : async (opcode : number) : Promise<void> => {
+			const socket = this.heartbeat.socket;
+			const generation = this.heartbeat.generation;
+			if (!socket) return;
+			try {
+				await socket.send(new Msg().write.uint8(opcode));
+			} catch {
+				if (generation === this.heartbeat.generation)
+					await this.heartbeat.fail();
+			}
+		},
+		wait : (phase : 'send_ping' | 'wait_pong' | 'wait_ping', delay : number) : void => {
+			clearTimeout(this.heartbeat.timer);
+			this.heartbeat.phase = phase;
+			this.heartbeat.timer = setTimeout(() => {
+				if (phase === 'send_ping') {
+					// 先开始等待，避免发送完成前收到 PONG 的竞态。
+					this.heartbeat.wait('wait_pong', 15000);
+					void this.heartbeat.send(CTOS.PING);
+				} else {
+					void this.heartbeat.fail();
+				}
+			}, delay);
+		},
+	};
 	event : string;
 	current_msg ?: Msg;
 	current_protocol : number;
@@ -294,10 +338,15 @@ class Protocol {
 				await duel.update();
 				this.need_update = false;
 			}
-			await Promise.all([
-				this.msg.get(protocol)?.(msg.to_end(), send),
-				extend.get(protocol)?.(msg.to_end())
-			]);
+			if (__WEB__)
+				await this.msg.get(protocol)?.(msg.to_end(), send);
+			else {
+				const extend = (await import('./extend')).default;
+				await Promise.all([
+					this.msg.get(protocol)?.(msg.to_end(), send),
+					extend.get(protocol)?.(msg.to_end())
+				]);
+			}
 		}],
 		[STOC.ERROR_MSG, async (msg : Msg) => {
 			const protocol = msg.read.uint8();
@@ -415,6 +464,10 @@ class Protocol {
 			});
 		}],
 		[STOC.JOIN_GAME, async (msg : Msg) => {
+			if (connect.protocol?.kind === 'udp') {
+				connect.timeout.stop();
+				connect.state = 1;
+			}
 			connect.wait.info.lflist = msg.read.uint32() ?? 0;
 			connect.wait.info.rule = msg.read.uint8() ?? 0;
 			connect.wait.info.mode = msg.read.uint8() ?? 0;
@@ -441,6 +494,10 @@ class Protocol {
 			if (type === undefined) return;
 			connect.wait.self.is_host = !!((type >> 4) & 0xf);
 			connect.wait.self.position = type & 0xf;
+		}],
+		[STOC.LEAVE_GAME, async () => {
+			if (connect.protocol?.kind === 'udp')
+				await connect.protocol.disconnect(true);
 		}],
 		[STOC.DUEL_START, async () => {
 			connect.state = 2;
@@ -543,6 +600,36 @@ class Protocol {
 		[STOC.TEAMMATE_SURRENDER, async () => {
 			const str = mainGame.get.strings.system(1355);
 			this.hint(str);
+		}],
+		[STOC.PING, async (msg : Msg) => {
+			if (connect.protocol?.kind !== 'udp')
+				return;
+			const socket = toRaw(connect.protocol) as Udp;
+			if (!socket.address)
+				return;
+			if (this.heartbeat.socket !== socket) {
+				this.heartbeat.stop();
+				this.heartbeat.socket = socket;
+				socket.on_heartbeat_end = this.heartbeat.stop;
+			}
+			if (msg.index !== msg.length)
+				return await this.heartbeat.fail();
+			if (!this.heartbeat.phase
+				|| this.heartbeat.phase === 'wait_ping'
+			)
+				this.heartbeat
+					.wait('send_ping', 5000);
+			await this.heartbeat.send(CTOS.PONG);
+		}],
+		[STOC.PONG, async (msg : Msg) => {
+			if (!this.heartbeat.socket
+				|| toRaw(connect.protocol!) !== this.heartbeat.socket
+			)
+				return;
+			if (msg.index !== msg.length)
+				return await this.heartbeat.fail();
+			if (this.heartbeat.phase === 'wait_pong')
+				this.heartbeat.wait('wait_ping', 20000);
 		}]
 	]);
 	msg = new Map<number, Protocol_Func>([
@@ -663,8 +750,10 @@ class Protocol {
 			})();
 			connect.duel.player[0].lp = msg.read.uint32() ?? 0;
 			connect.duel.player[1].lp = msg.read.uint32() ?? 0;
-			connect.duel.player[0].name = players[0].name;
-			connect.duel.player[1].name = players[players.length - 1].name;
+			if (connect.protocol?.kind !== 'replay') {
+				connect.duel.player[0].name = players[0].name;
+				connect.duel.player[1].name = players[players.length - 1].name;
+			}
 			connect.duel.player[0].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[1].time = connect.wait.info.time_limit * 1000;
 			connect.duel.player[0].index = 0;

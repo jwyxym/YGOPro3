@@ -1,7 +1,8 @@
 use basic_toml::{from_str, to_string};
 use indexmap::{IndexMap, map::Entry};
 use serde::{Serialize, Deserialize};
-use anyhow::{Error, Result};
+use anyhow::{Error, Result, anyhow};
+use ini::Ini;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Server {
@@ -52,27 +53,27 @@ impl Server {
 			});
 	}
 	pub fn init_by_ini (&mut self, text: String) -> () {
-		let mut host: String = String::new();
-		let mut port: String = String::new();
-		let mut name: String = String::new();
-		text
-			.lines()
-			.filter_map(|i| {
-				let parts: Vec<&str> = i.split("=").collect();
-				if parts.len() > 1 { Some(parts) } else { None }
-			})
-			.map(|i| [i[0].trim(), i[1].trim()])
-			.for_each(|i: [&str; 2]| {
-				if i[0] == "ServerName" {
-					name = String::from(i[1]);
-				} else if i[0] == "ServerHost" {
-					host = String::from(i[1]);
-				} else if i[0] == "ServerPort" {
-					port = String::from(i[1]);
-				}
-			});
-		if !name.is_empty() && !host.is_empty() {
-			self.servers.insert(if port.is_empty() { host } else { format!("{}:{}", host, port) }, name);
+		if let Ok((name, host, port)) = (|| -> Result<(String, String, u16), Error> {
+			let config: Ini = Ini::load_from_str(&text)?;
+			let server: &ini::Properties = config
+				.section(Some("YGOMobileAddServer"))
+				.ok_or(anyhow!("cannot find server config"))?;
+			let name: &str = server
+				.get("ServerName").ok_or(anyhow!("cannot find server name"))?;
+			let host: &str = server
+				.get("ServerHost").ok_or(anyhow!("cannot find server host"))?;
+			let port: u16 = server
+				.get("ServerPort")
+				.and_then(|v| v.parse().ok())
+				.unwrap_or(0);
+			Ok((String::from(name), String::from(host), port))
+		})() {
+			self.servers
+				.insert(if port == 0 {
+					host
+				} else {
+					format!("{}:{}", host, port)
+				}, name);
 		}
 	}
 	pub fn content (&self) -> &IndexMap<String, String> {

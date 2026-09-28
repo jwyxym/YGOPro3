@@ -323,7 +323,7 @@
 		/>
 		<Win
 			v-model:show = 'connect.duel.win.show'
-			:replay = 'connect.replay'
+			:replay = 'toRaw(connect.protocol!) instanceof Replay3D'
 			:title = 'connect.duel.win.title'
 			:message = 'connect.duel.win.message'
 			@confirm = '(name : string) => connect.duel.win.resolve?.(name)'
@@ -332,7 +332,8 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { onUnmounted, reactive, watch } from 'vue';
+	import { onUnmounted, reactive, toRaw, watch } from 'vue';
+	import { Replay3D } from './ygo-protocol/yrp3d';
 
 	import Button from '@/ui/button.vue';
 	import dialog, { close } from '@/ui/dialog';

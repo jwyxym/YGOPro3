@@ -115,10 +115,10 @@ pub async fn config (path: &Path, config: &Vec<(String, String)>) -> (System, Re
 	}
 	if let Some((_, text)) = config
 		.iter()
-		.find(|i| i.0.ends_with("room_room.toml"))
+		.find(|i| i.0.ends_with("room_model.toml"))
 		&& room.merge(text) {
 		let p: PathBuf = config_path
-			.join("room_room.toml");
+			.join("room_model.toml");
 		if let Ok(text) = room.to_string() {
 			tasks.push(spawn(async move {
 				write(p, text)?;

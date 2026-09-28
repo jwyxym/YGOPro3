@@ -25,7 +25,7 @@ Ja_JP[I18N_KEYS.START_TITLE] = 'リソースエラー';
 Ja_JP[I18N_KEYS.START_MESSAGE] = 'OKをクリックしてゲームを終了します';
 
 Ja_JP[I18N_KEYS.MENU_SINGLE] = 'ＡＩ対戦';
-Ja_JP[I18N_KEYS.MENU_CONENCT] = 'ネット対戦';
+Ja_JP[I18N_KEYS.MENU_CONNECT] = 'ネット対戦';
 Ja_JP[I18N_KEYS.MENU_REPLAY] = 'リプレイを見る';
 Ja_JP[I18N_KEYS.MENU_DECK] = 'デッキ編集';
 Ja_JP[I18N_KEYS.MENU_CARD] = 'カードリスト';

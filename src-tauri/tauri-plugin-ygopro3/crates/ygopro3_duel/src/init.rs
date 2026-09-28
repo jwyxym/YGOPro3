@@ -5,28 +5,17 @@ use std::{
 	fs::read,
 	ptr::null_mut
 };
-use parking_lot::{Mutex, MutexGuard};
+use parking_lot::MutexGuard;
 use anyhow::{Error, Result, anyhow};
-use ygopro::managers::{
-	config_manager::{ConfigManager, set_global as set_config_manager},
-	data_manager::{DataManager, card_reader, set_global as set_data_manager},
-	deck_manager::{DeckManager, set_global as set_deck_manager},
-};
-use ygopro_core_wrapper::{
-	get_log_message,
-	set_card_reader,
-	set_message_handler,
-	set_script_reader,
-};
-use ygopro_data::{
-	constants::{Attribute, Category, Linkmarkers, OT, Race, Type},
-	data::{CoreCard, Card},
-};
+use ygopro_server::defalut::*;
 use ygopro3_emit::progress::*;
 
-static SCRIPT_BUFFER: Mutex<[u8; 0x100000]> = Mutex::new([0u8; 0x100000]);
-
-pub async fn init () -> Result<(), Error> {
+pub async fn init () -> Result<(
+	DataManager, DeckManager, ConfigManager,
+	Option<extern "C" fn(*const c_char, *mut c_int) -> *mut u8>,
+	Option<extern "C" fn(u32, *mut CoreCard) -> u32>,
+	Option<extern "C" fn(isize, u32) -> u32>
+), Error> {
 	let mut data_manager: DataManager = DataManager::new();
 	let cards: Vec<ygopro3_card::Card> = ygopro3_game::get::cards().await?;
 	for i in cards {
@@ -58,17 +47,14 @@ pub async fn init () -> Result<(), Error> {
 		);
 	}
 	data_manager.finalize_db();
-	let deck_manager: DeckManager = DeckManager::new();
-	let config_manager: ConfigManager = ConfigManager::new();
-	set_config_manager(config_manager);
-	set_data_manager(data_manager);
-	set_deck_manager(deck_manager);
-	unsafe {
-		set_script_reader(Some(script_reader));
-		set_card_reader(Some(card_reader));
-		set_message_handler(Some(core_message_handler));
-	}
-	Ok(())
+	Ok((
+		data_manager,
+		DeckManager::new(),
+		ConfigManager::new(),
+		Some(script_reader),
+		Some(card_reader),
+		Some(core_message_handler)
+	))
 }
 
 extern "C" fn script_reader (script_path: *const c_char, slen: *mut c_int) -> *mut u8 {
@@ -117,12 +103,7 @@ extern "C" fn script_reader (script_path: *const c_char, slen: *mut c_int) -> *m
 }
 
 extern "C" fn core_message_handler (pduel: isize, _message_type: u32) -> u32 {
-	let mut buffer: [u8; 1024] = [0u8; 1024];
-	unsafe {
-		get_log_message(pduel, buffer.as_mut_ptr());
-	}
-	let c_message: &CStr = unsafe { CStr::from_ptr(buffer.as_ptr() as *const c_char) };
-	let msg: Cow<'_, str> = c_message.to_string_lossy();
+	let msg: String = ygopro_server::defalut::get_log_message(pduel);
 	emit(Event::Debug, msg);
 	0
 }

@@ -75,11 +75,14 @@
 				break;
 			case 'protocol':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SERVER_PROTOCOL);
-				select.map = new Map([
-					[0, 'SOCKET'],
-					[1, 'WS'],
-					[2, 'WSS']
-				]);
+				const map = new Map();
+				if (!__WEB__) {
+					map.set(0, 'TCP');
+					map.set(1, 'UDP');
+				}
+				map.set(2, 'WS');
+				map.set(3, 'WSS');
+				select.map = map;
 				break;
 			case 'waveform':
 				select.placeholder = mainGame.get.text(I18N_KEYS.SETTING_DGLAB_WAVEFORM);
@@ -91,5 +94,4 @@
 				break;
 		}
 	});
-
 </script>

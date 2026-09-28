@@ -303,7 +303,7 @@ pub async fn ygoserver_start (
 	draw_count: u8,
 	time_limit: u16
 ) -> Result<u16, String> {
-	ygopro3_duel::start_server(
+	ygopro3_duel::start(
 		lflist,
 		rule,
 		mode,
@@ -315,13 +315,13 @@ pub async fn ygoserver_start (
 		start_hand,
 		draw_count,
 		time_limit
-	).map_err(|e| e.to_string())
+	).await.map_err(|e| e.to_string())
 }
 
 #[ygopro3_macros::duel]
 #[tauri::command]
 pub async fn ygoserver_stop () -> Result<(), String> {
-	Ok(ygopro3_duel::stop_server())
+	Ok(ygopro3_duel::stop())
 }
 
 #[ygopro3_macros::windbot]

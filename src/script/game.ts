@@ -1,11 +1,10 @@
 import { reactive } from 'vue';
-import { exit } from '@tauri-apps/plugin-process';
-import { fetch } from '@tauri-apps/plugin-http';
 
 import Deck from '@/pages/deck/deck';
 import recognizer from '@/pages/deck/recognizer';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
+import { fetch } from './tauri';
 import * as CONSTANT from './constant';
 import Card from './card';
 import LFList from './lflist';
@@ -59,20 +58,20 @@ class Game {
 				invoke.game.get_lflist(),
 				invoke.game.get_strings(),
 				invoke.game.get_room(),
-				invoke.game.get_info(),
+				invoke.game.get_info(this.get.system(CONSTANT.KEYS.I18N) as string | undefined),
 				invoke.game.get_hash(),
 				invoke.game.version()
 			]);
 			this.version = version;
-			this.system.set(CONSTANT.KEYS.STRING, new Map(systems.string));
-			this.system.set(CONSTANT.KEYS.BOOL, new Map(systems.bool));
-			this.system.set(CONSTANT.KEYS.NUMBER, new Map(systems.number));
-			this.system.set(CONSTANT.KEYS.ARRAY, new Map(systems.array));
+			this.system.set(CONSTANT.KEYS.STRING, systems.string);
+			this.system.set(CONSTANT.KEYS.BOOL, systems.bool);
+			this.system.set(CONSTANT.KEYS.NUMBER, systems.number);
+			this.system.set(CONSTANT.KEYS.ARRAY, systems.array);
 
-			this.strings.set(CONSTANT.KEYS.SYSTEM, new Map(strings.system));
-			this.strings.set(CONSTANT.KEYS.VICTORY, new Map(strings.victory));
-			this.strings.set(CONSTANT.KEYS.COUNTER, new Map(strings.counter));
-			this.strings.set(CONSTANT.KEYS.SETCODE, new Map(strings.setname));
+			this.strings.set(CONSTANT.KEYS.SYSTEM, strings.system);
+			this.strings.set(CONSTANT.KEYS.VICTORY, strings.victory);
+			this.strings.set(CONSTANT.KEYS.COUNTER, strings.counter);
+			this.strings.set(CONSTANT.KEYS.SETCODE, strings.setname);
 			this.strings.set(CONSTANT.KEYS.OT, new Map(info.ot));
 			this.strings.set(CONSTANT.KEYS.ATTRIBUTE, new Map(info.attribute));
 			this.strings.set(CONSTANT.KEYS.CATEGORY, new Map(info.category));
@@ -80,29 +79,21 @@ class Game {
 			this.strings.set(CONSTANT.KEYS.RACE, new Map(info.race));
 			this.strings.set(CONSTANT.KEYS.TYPE, new Map(info.types));
 
-			const other = new Map(textures.other);
-			const t = Date.now();
-			for (const i of [CONSTANT.KEYS.BACKI, CONSTANT.KEYS.BACKII]) {
-				const url = other.get(i);
-				if (url)
-					other.set(i, `${url}?t=${t}`);
-			}
-
-			this.textures.set(CONSTANT.KEYS.OT, new Map(textures.ot));
-			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, new Map(textures.attribute));
-			this.textures.set(CONSTANT.KEYS.CATEGORY, new Map(textures.category));
-			this.textures.set(CONSTANT.KEYS.RACE, new Map(textures.race));
-			this.textures.set(CONSTANT.KEYS.TYPE, new Map(textures.types));
-			this.textures.set(CONSTANT.KEYS.LINK, new Map(textures.link));
-			this.textures.set(CONSTANT.KEYS.COUNTER, new Map(textures.counter));
-			this.textures.set(CONSTANT.KEYS.INFO, new Map(textures.info));
-			this.textures.set(CONSTANT.KEYS.OTHER, other);
-			this.textures.set(CONSTANT.KEYS.BTN, new Map(textures.btn));
+			this.textures.set(CONSTANT.KEYS.OT, textures.ot);
+			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, textures.attribute);
+			this.textures.set(CONSTANT.KEYS.CATEGORY, textures.category);
+			this.textures.set(CONSTANT.KEYS.RACE, textures.race);
+			this.textures.set(CONSTANT.KEYS.TYPE, textures.types);
+			this.textures.set(CONSTANT.KEYS.LINK, textures.link);
+			this.textures.set(CONSTANT.KEYS.COUNTER, textures.counter);
+			this.textures.set(CONSTANT.KEYS.INFO, textures.info);
+			this.textures.set(CONSTANT.KEYS.OTHER, textures.other);
+			this.textures.set(CONSTANT.KEYS.BTN, textures.btn);
 
 			this.avatars = textures.avatar;
 			this.servers = new Map(servers);
 			this.lflist = new Map(lflist);
-			this.lflist.set(CONSTANT.KEYS.NA, new LFList(this.get.text(I18N_KEYS.LFLIST_NA), { hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
+			this.lflist.set(CONSTANT.KEYS.NA, new LFList({ name : this.get.text(I18N_KEYS.LFLIST_NA), hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(room);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
 
@@ -150,7 +141,7 @@ class Game {
 				? this.lflist.get(key)
 				: Array.from(this.lflist).find(i => i[1].hash === key)?.[1]
 			)
-			?? new LFList(this.get.text(I18N_KEYS.UNKNOW), { hash : 0, genesys : 0, lflist : [], glist : [] }),
+			?? new LFList({ name : this.get.text(I18N_KEYS.LFLIST_NA), hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }),
 		text : (key : number, replace : string | number | Array<string> | Array<number> | Array<string | number> = []) : string => {
 			switch (this.get.system(CONSTANT.KEYS.I18N)) {
 				case CONSTANT.LANGUAGE.Zh_CN:
@@ -196,9 +187,8 @@ class Game {
 			victory : (key : number, replace : Array<string | number> | string | number = []) : string => {
 				let value = this.strings.get(CONSTANT.KEYS.VICTORY)!.get(key) ?? this.get.text(I18N_KEYS.UNKNOW);
 				replace = typeof replace === 'object' ? replace : [replace];
-				for (const str of replace) {
+				for (const str of replace)
 					value = value.replace(typeof str === 'string' ? '%ls' : '%d', `${str}`);
-				}
 				return value;
 			},
 			race : (data : number) : string => {
@@ -367,7 +357,10 @@ class Game {
 	};
 
 	exit = async () : Promise<void> => {
-		return await exit(1);
+		if (!__WEB__) {
+			const { exit } = await import('@tauri-apps/plugin-process');
+			return await exit(1);
+		}
 	};
 
 	sleep = async (time : number,

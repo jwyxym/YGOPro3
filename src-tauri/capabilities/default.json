@@ -28,6 +28,7 @@
     "clipboard-manager:default",
     "tcp:allow-connect",
     "tcp:default",
+    "kcp:default",
     {
       "identifier": "http:default",
       "allow": [

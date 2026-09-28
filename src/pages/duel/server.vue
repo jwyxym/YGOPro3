@@ -49,7 +49,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { computed, onBeforeMount, reactive, useTemplateRef } from 'vue';
+	import { computed, nextTick, onBeforeMount, reactive, ref, useTemplateRef } from 'vue';
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import { KEYS } from '@/script/constant';
@@ -66,7 +66,7 @@
 	const server = reactive({
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		address : mainGame.get.system(KEYS.SETTING_SERVER_ADDRESS) as string,
-		protocal : 0 as 0 | 1 | 2,
+		protocal : 0 as 0 | 1 | 2 | 3,
 		model : [] as Array<string>,
 		input_pass : mainGame.get.system(KEYS.SETTING_SERVER_PASS) as string,
 		pass : computed(() : string => {
@@ -101,24 +101,30 @@
 			name : string;
 			pass : string;
 			address : string;
-			protocal : 0 | 1 | 2
+			protocal : 0 | 1 | 2 | 3
 		}];
 	}>();
 
+	const addressInput = ref(server.address);
 	const address = computed({
-		get : () => server.address,
+		get : () => addressInput.value,
 		set : (v : string) => {
-			if (v.startsWith('ws://')) {
-				server.address = v.slice(5);
+			addressInput.value = v;
+			if (v.startsWith('udp://')) {
+				server.address = v.slice(6);
 				server.protocal = 1;
+			} else if (v.startsWith('ws://')) {
+				server.address = v.slice(5);
+				server.protocal = 2;
 			} else if (v.startsWith('wss://')) {
 				server.address = v.slice(6);
-				server.protocal = 2;
+				server.protocal = 3;
 			} else if (options.find(i => i.value === v.trim())) {
 				server.address = v.trim();
 				server.protocal = 0;
 			} else
 				server.address = v.trim();
+			nextTick(() => addressInput.value = server.address);
 			lock ? lock = false
 				: input.value?.exported?.blur?.();
 		}

@@ -1,5 +1,5 @@
-import { KEYS } from "./constant";
-import mainGame from "./game";
+import { KEYS } from './constant';
+import mainGame from './game';
 
 class LFList {
 	name : string;
@@ -7,13 +7,14 @@ class LFList {
 	genesys : number;
 	lflist : Map<number, number>;
 	glist : Map<number, number>;
-	constructor (name : string, obj : {
+	constructor (obj : {
+		name : string;
 		hash : number;
 		genesys : number;
 		lflist : Array<[number, number]>;
 		glist : Array<[number, number]>;
 	}) {
-		this.name = name;
+		this.name = obj.name;
 		this.hash = obj.hash;
 		this.genesys = obj.genesys;
 		this.lflist = new Map(obj.lflist);

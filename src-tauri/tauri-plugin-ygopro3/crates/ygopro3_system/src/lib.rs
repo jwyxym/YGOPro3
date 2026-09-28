@@ -142,6 +142,24 @@ impl System {
 		self.number
 			.entry(String::from("CT_DOWNLOADCHUNKS_RETRIES"))
 			.or_insert(8.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MIN_TIME"))
+			.or_insert(1.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MAX_TIME"))
+			.or_insert(4.0);
+		self.number
+			.entry(String::from("CT_DGLAB_RATIO_TIME"))
+			.or_insert(2000.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MIN_INTENSITY"))
+			.or_insert(10.0);
+		self.number
+			.entry(String::from("CT_DGLAB_MAX_INTENSITY"))
+			.or_insert(40.0);
+		self.number
+			.entry(String::from("CT_DGLAB_RATIO_INTENSITY"))
+			.or_insert(200.0);
 		#[cfg(not(target_os = "android"))]
 		{
 			self.number
@@ -194,24 +212,6 @@ impl System {
 		if !["zh-CN", "ko-KR", "ja-JP", "en-US", "zh-TW"].contains(&i18n.as_str()) {
 			*i18n = String::from("zh-CN");
 		}
-		self.number
-			.entry(String::from("CT_DGLAB_MIN_TIME"))
-			.or_insert(1.0);
-		self.number
-			.entry(String::from("CT_DGLAB_MAX_TIME"))
-			.or_insert(4.0);
-		self.number
-			.entry(String::from("CT_DGLAB_RATIO_TIME"))
-			.or_insert(2000.0);
-		self.number
-			.entry(String::from("CT_DGLAB_MIN_INTENSITY"))
-			.or_insert(10.0);
-		self.number
-			.entry(String::from("CT_DGLAB_MAX_INTENSITY"))
-			.or_insert(40.0);
-		self.number
-			.entry(String::from("CT_DGLAB_RATIO_INTENSITY"))
-			.or_insert(200.0);
 		self
 	}
 }

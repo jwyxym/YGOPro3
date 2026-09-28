@@ -187,6 +187,12 @@
 0x5f = "counter/counter_5f.webp"
 0x64 = "counter/counter_64.webp"
 0x6a = "counter/counter_6a.webp"
+0x6c = "counter/counter_6c.webp"
+0x6d = "counter/counter_6d.webp"
+0x6e = "counter/counter_6e.webp"
+0x6f = "counter/counter_6f.webp"
+0x70 = "counter/counter_70.webp"
+0x71 = "counter/counter_71.webp"
 0x1002 = "counter/counter_1002.webp"
 0x1009 = "counter/counter_1009.webp"
 0x100e = "counter/counter_100e.webp"
@@ -205,6 +211,7 @@
 0x105c = "counter/counter_105c.webp"
 0x1063 = "counter/counter_1063.webp"
 0x1065 = "counter/counter_1065.webp"
+0x106b = "counter/counter_106b.webp"
 0x1072 = "counter/counter_1072.webp"
 
 [avatar]

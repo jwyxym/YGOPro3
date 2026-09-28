@@ -13,6 +13,7 @@ class Replay3D {
 		concurrency: 1,
 		autoStart: true
 	});
+	kind : 'replay' = 'replay';
 	on_disconnect ?: () => Promise<void>;
 	on = async (bytes : Uint8Array, call_back : {
 		on_connect ?: (name : [string, string], duel_rule : number) => Promise<void>
@@ -29,6 +30,7 @@ class Replay3D {
 			);
 		}
 		this.queue.add(async () => {
+			await mainGame.sleep(200);
 			connect.duel.win.await = new Promise<string | void>((r) => connect.duel.win.resolve = r);
 			connect.duel.win.title = mainGame.get.text(I18N_KEYS.DUEL_REPLAY_END);
 			connect.duel.win.message = '';
