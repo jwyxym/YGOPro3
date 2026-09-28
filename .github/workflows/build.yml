@@ -566,13 +566,14 @@ jobs:
       - name: Deploy
         uses: wlixcc/SFTP-Deploy-Action@v1.2.5
         with:
-          username: ${{ secrets.SSH_USER }}
-          server: ${{ secrets.SSH_SERVER }}
-          port: 22
+          username: ${{ secrets.S3_ACCESS_KEY }}
+          server: ${{ secrets.S3_ENDPOINT }}
+          port: ${{ secrets.SFTP_PORT }}
           local_path: './ygopro3/*'
-          remote_path: ${{ secrets.SSH_PATH }}
+          remote_path: /${{ secrets.S3_BUCKET }}/
           sftp_only: true
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.S3_SECRET_KEY }}
+          sftpArgs: '-o ConnectTimeout=60 -o ServerAliveInterval=90 -o ServerAliveCountMax=5'
 
   update-version:
     runs-on: ubuntu-latest
