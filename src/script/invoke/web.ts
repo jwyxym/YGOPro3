@@ -46,17 +46,13 @@ class Invoke extends BaseInvoke {
 				return false;
 			}
 		},
-		set_textures : async (key : string, _ : string, content ?: Uint8Array) : Promise<boolean> => {
-			if (!content)
-				return false;
+		set_textures : async (key : string, _ : string, content ?: Uint8Array | Blob) : Promise<boolean> => {
 			try {
-				return Boolean(await db.textures.set(
-					key,
-					new Blob(
-						[content as Uint8Array<ArrayBuffer>],
-						{ type : 'image/png' }
-					))
-				);
+				if (!content) {
+					await db.textures.del(key);
+					return true;
+				}
+				return Boolean(await db.textures.set(key, content as Blob));
 			} catch (error) {
 				await this.log.write(error);
 				return false;

@@ -104,27 +104,48 @@
 				},
 			] as Array<Back>,
 			click : async (i : Back) => {
-				const file = await open({
-					multiple: false,
-					directory: false,
-					filters: [{
-						name : 'Image',
-						extensions : ['png', 'jpeg', 'jpg', 'webp']
-					}]
-				});
-				if (!file) return;
+				const file = await (__WEB__ ?
+					new Promise<File | undefined>((resolve) => {
+						const input = document.createElement('input')
+						input.type = 'file'
+						input.accept = '.jpg,.png,jpeg,.webp'
+						input.onchange = () => {
+							resolve(input.files?.[0]);
+							input.remove();
+						};
+						input.oncancel = () => {
+							resolve(undefined);
+							input.remove();
+						};
+						input.click();
+					}) : open({
+						multiple: false,
+						directory: false,
+						filters: [{
+							name : 'Image',
+							extensions : ['png', 'jpeg', 'jpg', 'webp']
+						}]
+					}));
+				if (!file && !__WEB__) return;
 				let v : string;
 				let pic : string;
-				let buffer : Uint8Array<ArrayBuffer> | undefined = undefined;
-				if (__ANDROID__) {
+				let buffer : Uint8Array<ArrayBuffer> | Blob | undefined = undefined;
+				if (__WEB__) {
+					if (file) {
+						buffer = file as File;
+						pic = URL.createObjectURL(file as File);
+					} else
+						pic = '';
+					v = '';
+				} else if (__ANDROID__) {
 					const { readFile } = await import('@tauri-apps/plugin-fs');
-					buffer = await readFile(file);
+					buffer = await readFile(file as string);
 					pic = URL.createObjectURL(new Blob([buffer]));
 					v = `other/back_I${i.key === KEYS.BACKI ? '' : 'I'}`;
 				} else {
 					const { convertFileSrc } = await import('@tauri-apps/api/core');
-					pic = `${convertFileSrc(file)}?t=${Date.now()}`;
-					v = file;
+					pic = `${convertFileSrc(file as string)}?t=${Date.now()}`;
+					v = file as string;
 				}
 				if (i.pic.startsWith('blob:http'))
 					URL.revokeObjectURL(i.pic);
@@ -139,7 +160,7 @@
 					URL.revokeObjectURL(i.pic);
 				i.pic = '';
 				mainGame.textures.get(KEYS.OTHER)?.set(i.key, '');
-				await invoke.game.set_textures(i.key, '', new Uint8Array());
+				await invoke.game.set_textures(i.key, '');
 			}
 		}
 	});

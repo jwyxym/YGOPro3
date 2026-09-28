@@ -20,6 +20,9 @@ class Getter<T> {
 		return i?.value;
 	};
 
+	del = async (key : string) : Promise<void> => await this.db
+		.delete(this.key, key);
+
 	set = async (key : string, value : T) : Promise<IDBValidKey> => await this.db
 		.put(this.key, { key, value });
 }

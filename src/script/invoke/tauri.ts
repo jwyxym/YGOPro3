@@ -70,7 +70,7 @@ class Invoke extends BaseInvoke {
 				return false;
 			}
 		},
-		set_textures : async (key : string, value : string, content ?: Uint8Array) : Promise<boolean> => {
+		set_textures : async (key : string, value : string, content ?: Uint8Array | Blob) : Promise<boolean> => {
 			try {
 				const buffer = new ArrayBuffer(256);
 				bincode.encode(
@@ -80,10 +80,11 @@ class Invoke extends BaseInvoke {
 				);
 				const bytes = (() => {
 					if (__ANDROID__) {
+						content = content ? content as Uint8Array : new Uint8Array();
 						const encoded = new Uint8Array(buffer);
-						const bytes = new Uint8Array(encoded.length + content!.length);
+						const bytes = new Uint8Array(encoded.length + content.length);
 						bytes.set(encoded, 0);
-						bytes.set(content!, encoded.length);
+						bytes.set(content, encoded.length);
 						return bytes;
 					} else
 						return new Uint8Array(buffer);

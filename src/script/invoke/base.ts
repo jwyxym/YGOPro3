@@ -11,7 +11,7 @@ abstract class BaseInvoke {
 		chk_version : () => Promise<boolean>;
 		download : (url : string, name ?: string, chunk ?: number) => Promise<string>;
 		set_system : (key : string, ct : number, value : string | number | boolean | Array<string>, write : boolean) => Promise<boolean>;
-		set_textures : (key : string, value : string, content ?: Uint8Array) => Promise<boolean>;
+		set_textures : (key : string, value : string, content ?: Uint8Array | Blob) => Promise<boolean>;
 		get_srv : (url : string) => Promise<string>;
 		get_pic : (deck : Array<number>) => Promise<Array<[number, string]>>;
 		get_sound : () => Promise<Array<[string, string]>>;
