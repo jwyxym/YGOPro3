@@ -62,6 +62,7 @@ class DB {
 				db.createObjectStore('system:number', key);
 				db.createObjectStore('system:array', key);
 				db.createObjectStore('textures', key);
+				db.createObjectStore('replay', key);
 				db.createObjectStore('deck', key);
 			}
 		});

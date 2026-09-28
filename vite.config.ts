@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from "vite";
+import { defineConfig, type Rollup } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -79,6 +79,11 @@ export default defineConfig(async ({ mode }) => ({
 		target: "esnext",
 		rollupOptions: {
 			output: {
+				assetFileNames(asset : Rollup.PreRenderedAsset) {
+					return asset.names.some(name => name.endsWith('.mjs'))
+						? 'assets/[name]-[hash].js'
+						: 'assets/[name]-[hash][extname]';
+				},
 				manualChunks(id : string) {
 					if (
 						id.includes('node_modules')
