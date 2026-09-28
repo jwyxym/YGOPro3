@@ -1,5 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig, type Rollup } from "vite";
+import { defineConfig, loadEnv, type Rollup } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
@@ -7,6 +7,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 const host = process.env.TAURI_DEV_HOST;
 
 export default defineConfig(async ({ mode }) => ({
+	base: loadEnv(mode, process.cwd(), 'BASE_URL').BASE_URL || '/',
 	plugins: [
 		vue(), vueJsx(),
 		...(mode === 'web' ? [
