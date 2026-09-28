@@ -76,7 +76,12 @@ class Invoke extends BaseInvoke {
 			try {
 				const i : string = await http.get<string>('./config/resource.toml', 'text');
 				const data = toml.parse(i);
-				const path = (value : string) : string => value ? `./sound/${value}` : '';
+				const path = (value : string) : string => value
+					? new URL(
+						`${import.meta.env.BASE_URL}sound/${value}`,
+						document.baseURI
+					).href
+					: '';
 				return Object.entries(data.sound).map(i => [i[0], path(i[1] as string)]);
 			} catch (error) {
 				await this.log.write(error);
@@ -102,7 +107,12 @@ class Invoke extends BaseInvoke {
 					db.textures.get_all()
 				]);
 				const data = toml.parse(i);
-				const path = (value : string) : string => value ? `./textures/${value}` : '';
+				const path = (value : string) : string => value
+					? new URL(
+						`${import.meta.env.BASE_URL}textures/${value}`,
+						document.baseURI
+					).href
+					: '';
 				const other = new Map(Object.entries(data.other).map(i => [i[0], path(i[1] as string)]));
 				const back = new Map(b);
 				const back_i = back.get(CONSTANT.KEYS.BACKI);
@@ -319,8 +329,9 @@ class Invoke extends BaseInvoke {
 		},
 		get_server : async () : Promise<Array<[string, string]>> => {
 			try {
-				const i : string = await http.get<string>('./config/servers.toml', 'text');
-				return Object.entries(toml.parse(i)) as any;
+				return [
+					['wss://ygopro3.cn/ws', 'YGOPro3服']
+				];
 			} catch (error) {
 				await this.log.write(error);
 				return [];
@@ -423,19 +434,8 @@ class Invoke extends BaseInvoke {
 		},
 		get_room : async () : Promise<Array<[string, string]>> => {
 			try {
-				return [
-					['T', '双打'],
-					['S', '单局'],
-					['M', '三局'],
-					['TM0', '不限时长'],
-					['NF', '无禁限'],
-					['NS', '不洗牌'],
-					['NC', '不检查卡组'],
-					['TO', '仅TCG'],
-					['TLP4000', '4000基本分'],
-					['ST8', '8张起手'],
-					['DR', '每轮抽2']
-				];
+				const i : string = await http.get<string>('./config/room_model.toml', 'text');
+				return Object.entries(toml.parse(i)) as any;
 			} catch (error) {
 				await this.log.write(error);
 				return [];
