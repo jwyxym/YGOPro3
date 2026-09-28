@@ -2,7 +2,7 @@ import * as toml from 'smol-toml';
 import initSqlJs from 'sql.js';
 import wasmUrl from 'sql.js/dist/sql-wasm.wasm?url';
 import { YGOProCdb } from 'ygopro-cdb-encode';
-import { YGOProLFList, YGOProLFListItem } from 'ygopro-lflist-encode';
+import { YGOProLFList } from 'ygopro-lflist-encode';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
@@ -443,7 +443,7 @@ class Invoke extends BaseInvoke {
 		},
 		get_script : async (id : number) : Promise<string> => {
 			try {
-				return '';
+				return await http.get<string>(`${CONSTANT.URL.LUA}c${id}.lua`, 'text');
 			} catch (error) {
 				await this.log.write(error);
 				return '';
@@ -451,7 +451,7 @@ class Invoke extends BaseInvoke {
 		},
 		get_hash : async () : Promise<ArrayBuffer | undefined> => {
 			try {
-				return undefined;
+				return await http.get<ArrayBuffer>(CONSTANT.URL.HASH, 'arrayBuffer');
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
@@ -515,10 +515,12 @@ class Invoke extends BaseInvoke {
 		list : async () => []
 	};
 	replay = {
-		read : async (name : string | Blob) : Promise<Uint8Array> => {
+		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				name = name as Blob;
-				return new Uint8Array();
+				const replay = await db.replay.get(name);
+				if (!replay)
+					throw Error('cannot find replay');
+				return replay;
 			} catch (error) {
 				await this.log.write(error);
 				return new Uint8Array();
@@ -526,14 +528,50 @@ class Invoke extends BaseInvoke {
 		},
 		save : async (name : string, content : Uint8Array) : Promise<string | void> => {
 			try {
-				
+				if (!name.endsWith('.yrp3d') && !name.endsWith('.yrp'))
+					name += '.yrp3d';
+				if (await db.replay.has(name)) {
+					const ext = name.split('.')[1] ?? 'yrp3d';
+					name = new Date()
+						.toLocaleString('sv-SE', { timeZoneName : 'short' })
+						.slice(0, 19) + '.' + ext;
+				}
+				await db.replay.set(name, content);
+				return name;
 			} catch (error) {
 				await this.log.write(error);
 			}
 		},
-		list : async () => [],
-		rename : async () => true,
-		del : async () => true
+		list : async () : Promise<Array<string>> => {
+			try {
+				return (await db.replay.get_all()).map(i => i[0]);
+			} catch (error) {
+				await this.log.write(error);
+				return [];
+			}
+		},
+		rename : async (old_name : string, new_name : string) : Promise<boolean> => {
+			try {
+				const replay = await db.replay.get(old_name);
+				if (!replay)
+					throw Error('cannot find replay');
+				await db.replay.del(old_name);
+				await db.replay.set(new_name, replay);
+				return true;
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		},
+		del : async (name : string) : Promise<boolean> => {
+			try {
+				await db.replay.del(name);
+				return true;
+			} catch (error) {
+				await this.log.write(error);
+				return false;
+			}
+		}
 	};
 	js = {
 		load : async () =>undefined,

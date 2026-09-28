@@ -25,6 +25,9 @@ class Getter<T> {
 
 	set = async (key : string, value : T) : Promise<IDBValidKey> => await this.db
 		.put(this.key, { key, value });
+
+	has = async (key : string) : Promise<boolean> => Boolean(await this.db
+		.get(this.key, key));
 }
 
 class DB {
@@ -36,6 +39,7 @@ class DB {
 		array : Getter<Array<string>>;
 	};
 	textures : Getter<Blob>;
+	replay : Getter<Uint8Array>;
 	constructor (db : idb.IDBPDatabase) {
 		this.db = db;
 		const string = new Getter<string>(db, 'system:string');
@@ -43,6 +47,7 @@ class DB {
 		const number = new Getter<number>(db, 'system:number');
 		const array = new Getter<Array<string>>(db, 'system:array');
 		this.textures = new Getter<Blob>(db, 'textures');
+		this.replay = new Getter<Uint8Array>(db, 'replay');
 		this.system = {
 			string, bool, number, array
 		};

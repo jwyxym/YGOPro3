@@ -95,7 +95,7 @@ abstract class BaseInvoke {
 	};
 
 	abstract replay : {
-		read : (name : string | Blob) => Promise<Uint8Array>;
+		read : (name : string) => Promise<Uint8Array>;
 		save : (name : string, content : Uint8Array) => Promise<string | void>;
 		list : () => Promise<Array<string>>;
 		rename : (from : string, to : string) => Promise<boolean>;

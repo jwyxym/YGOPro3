@@ -586,9 +586,8 @@ class Invoke extends BaseInvoke {
 		}
 	};
 	replay = {
-		read : async (name : string | Blob) : Promise<Uint8Array> => {
+		read : async (name : string) : Promise<Uint8Array> => {
 			try {
-				name = name as string;
 				return new Uint8Array(await _invoke<ArrayBuffer>('replay_read', { name }));
 			} catch (error) {
 				await this.log.write(error);
