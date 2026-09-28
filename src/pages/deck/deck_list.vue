@@ -120,8 +120,6 @@
 <script setup lang = 'ts'>
 	import { computed, reactive, onMounted } from 'vue';
 	import { RecycleScroller } from 'vue-virtual-scroller';
-	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-	import { open } from '@tauri-apps/plugin-dialog';
 
 	import DeckPage from './deck.vue';
 	import Button from '@/ui/button.vue';
@@ -135,6 +133,7 @@
 	import GLOBAL from '@/script/scale';
 	import invoke from '@/script/invoke';
 	import * as CONSTANT from '@/script/constant';
+	import { file, copy } from '@/script/tauri';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
 	const page = reactive({
@@ -142,7 +141,7 @@
 		button : 0,
 		deck : undefined as undefined | Deck,
 		copy : async (deck : Deck) : Promise<void> => {
-			await writeText(deck.toYGOMobileDeckURL());
+			await copy(deck.toYGOMobileDeckURL());
 			toast.info(mainGame.get.text(I18N_KEYS.COPY_COMPELETE));
 		},
 		update : (name : string) : void => {
@@ -235,7 +234,7 @@
 			return input.clear();
 		},
 		by_pic : async () => {
-			const file = await open({
+			const f = await file({
 				multiple: false,
 				directory: false,
 				filters: [{
@@ -243,9 +242,9 @@
 					extensions : ['png', 'jpeg', 'jpg', 'webp']
 				}]
 			});
-			if (file) {
+			if (f) {
 				input.loading = true;
-				const deck = await recognizer.on(file);
+				const deck = await recognizer.on(f);
 				await page.indeck(deck);
 				input.loading = false;
 			}

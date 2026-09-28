@@ -1,7 +1,7 @@
 <template>
 	<transition name = 'move_left'>
 		<var-swipe :autoplay = '2000' class = 'swipe' v-show = 'page.show'>
-			<var-swipe-item v-for = 'i in page.swipe' @click = 'page.open(i.url)'>
+			<var-swipe-item v-for = 'i in page.swipe' @click = 'open(i.url)'>
 				<div>
 					<img :src = 'i.image'/>
 					<span>{{ i.title }}</span>
@@ -15,6 +15,7 @@
 
 	import { URL } from '@/script/constant';
 	import http from '@/script/http';
+	import { open } from '@/script/tauri';
 	
 	interface swipe {
 		url : string;
@@ -25,15 +26,7 @@
 
 	const page = reactive({
 		show : false,
-		swipe : [] as Array<swipe>,
-		open : async (url : string) => {
-			if (__WEB__)
-				window.open(url);
-			else {
-				const { openUrl } = await import('@tauri-apps/plugin-opener');
-				openUrl(url).catch();
-			}
-		}
+		swipe : [] as Array<swipe>
 	});
 
 	onMounted(async () => {

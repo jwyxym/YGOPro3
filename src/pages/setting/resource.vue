@@ -42,12 +42,12 @@
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
 	import { RecycleScroller } from 'vue-virtual-scroller';
-	import { open } from '@tauri-apps/plugin-dialog';
 
 	import mainGame from '@/script/game';
 	import { KEYS } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import invoke from '@/script/invoke';
+	import { file } from '@/script/tauri';
 
 	interface Base {
 		title : string;
@@ -104,48 +104,34 @@
 				},
 			] as Array<Back>,
 			click : async (i : Back) => {
-				const file = await (__WEB__ ?
-					new Promise<File | undefined>((resolve) => {
-						const input = document.createElement('input')
-						input.type = 'file'
-						input.accept = '.jpg,.png,jpeg,.webp'
-						input.onchange = () => {
-							resolve(input.files?.[0]);
-							input.remove();
-						};
-						input.oncancel = () => {
-							resolve(undefined);
-							input.remove();
-						};
-						input.click();
-					}) : open({
-						multiple: false,
-						directory: false,
-						filters: [{
-							name : 'Image',
-							extensions : ['png', 'jpeg', 'jpg', 'webp']
-						}]
-					}));
-				if (!file && !__WEB__) return;
+				const f = await file({
+					multiple: false,
+					directory: false,
+					filters: [{
+						name : 'Image',
+						extensions : ['png', 'jpeg', 'jpg', 'webp']
+					}]
+				});
+				if (!f && !__WEB__) return;
 				let v : string;
 				let pic : string;
 				let buffer : Uint8Array<ArrayBuffer> | Blob | undefined = undefined;
 				if (__WEB__) {
-					if (file) {
-						buffer = file as File;
-						pic = URL.createObjectURL(file as File);
+					if (f) {
+						buffer = f as File;
+						pic = URL.createObjectURL(f as File);
 					} else
 						pic = '';
 					v = '';
 				} else if (__ANDROID__) {
 					const { readFile } = await import('@tauri-apps/plugin-fs');
-					buffer = await readFile(file as string);
+					buffer = await readFile(f as string);
 					pic = URL.createObjectURL(new Blob([buffer]));
 					v = `other/back_I${i.key === KEYS.BACKI ? '' : 'I'}`;
 				} else {
 					const { convertFileSrc } = await import('@tauri-apps/api/core');
-					pic = `${convertFileSrc(file as string)}?t=${Date.now()}`;
-					v = file as string;
+					pic = `${convertFileSrc(f as string)}?t=${Date.now()}`;
+					v = f as string;
 				}
 				if (i.pic.startsWith('blob:http'))
 					URL.revokeObjectURL(i.pic);

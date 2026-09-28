@@ -4,6 +4,7 @@ import Deck from '@/pages/deck/deck';
 import recognizer from '@/pages/deck/recognizer';
 import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 
+import { fetch } from './tauri';
 import * as CONSTANT from './constant';
 import Card from './card';
 import LFList from './lflist';
@@ -324,8 +325,7 @@ class Game {
 				return this.chk.result.game;
 			},
 			superpre : async () : Promise<boolean> => {
-				const f = __WEB__ ? fetch : (await import('@tauri-apps/plugin-http')).fetch;
-				const time = await f(CONSTANT.URL.SUPER_PRE_VERSION, {
+				const time = await fetch(CONSTANT.URL.SUPER_PRE_VERSION, {
 					method: 'GET',
 				});
 				if (time.ok) {

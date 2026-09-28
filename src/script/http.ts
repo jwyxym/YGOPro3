@@ -1,3 +1,5 @@
+import { fetch } from './tauri';
+
 class Http {
 	private cache : Map<string, any> = new Map();
 	private pending : Map<string, Promise<any>> = new Map();
@@ -11,8 +13,7 @@ class Http {
 			return pending as Promise<T>;
 
 		const request = (async () : Promise<T> => {
-			const f = __WEB__ ? fetch : (await import('@tauri-apps/plugin-http')).fetch;
-			const response = await f(url);
+			const response = await fetch(url);
 			const data : T = await response[encoding]();
 			this.cache.set(key, data);
 			return data;

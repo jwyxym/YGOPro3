@@ -37,12 +37,12 @@
 </template>
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
-	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import mainGame from '@/script/game';
 	import { URL } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import invoke from '@/script/invoke';
+	import { open } from '@/script/tauri';
 
 	import Button from '@/ui/button.vue';
 
@@ -63,7 +63,7 @@
 				btn : mainGame.get.text(I18N_KEYS.SETTING_GOTO_GIT),
 				click : async () => {
 					try {
-						await Opener.openUrl(URL.GIT_HOME);
+						await open(URL.GIT_HOME);
 					} catch (e) {
 						await invoke.log.write(e);
 					}
@@ -75,7 +75,7 @@
 				btn : mainGame.get.text(I18N_KEYS.SETTING_GOTO_HOME),
 				click : async () => {
 					try {
-						await Opener.openUrl(URL.AUTHOR_HOME);
+						await open(URL.AUTHOR_HOME);
 					} catch (e) {
 						await invoke.log.write(e);
 					}
@@ -94,7 +94,7 @@
 				btn : mainGame.get.text(I18N_KEYS.SETTING_GOTO_HOME),
 				click : async () => {
 					try {
-						await Opener.openUrl(URL.HOME_OTHER.get('幽影櫻')!);
+						await open(URL.HOME_OTHER.get('幽影櫻')!);
 					} catch (e) {
 						await invoke.log.write(e);
 					}
@@ -106,7 +106,7 @@
 				btn : mainGame.get.text(I18N_KEYS.SETTING_GOTO_HOME),
 				click : async () => {
 					try {
-						await Opener.openUrl(URL.HOME_OTHER.get('乌鸦Producer')!);
+						await open(URL.HOME_OTHER.get('乌鸦Producer')!);
 					} catch (e) {
 						await invoke.log.write(e);
 					}
