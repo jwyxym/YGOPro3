@@ -539,9 +539,11 @@ jobs:
 
   push-to-server:
     needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -563,17 +565,26 @@ jobs:
           fileName: "assets.zip"
           out-file-path: "./ygopro3/"
 
-      - name: Deploy
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
         with:
-          username: ${{ secrets.S3_ACCESS_KEY }}
-          server: ${{ secrets.S3_ENDPOINT }}
-          port: ${{ secrets.SFTP_PORT }}
-          local_path: './ygopro3/*'
-          remote_path: /${{ secrets.S3_BUCKET }}/
-          sftp_only: true
-          password: ${{ secrets.S3_SECRET_KEY }}
-          sftpArgs: '-o ConnectTimeout=60 -o ServerAliveInterval=90 -o ServerAliveCountMax=5'
+          path: build
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: PrePare
+        run: |
+          python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
+          pip install requests
+
+      - name: Upload Setup Exe
+        run: |
+          cd build
+          export TOKEN="${{ secrets.GITCODE_ACCESS_TOKEN }}"
+          find . -type f -print0 | xargs -0 -I {} python ../.ci/upload.py "$TOKEN" {}
 
   update-version:
     runs-on: ubuntu-latest
