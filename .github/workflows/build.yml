@@ -572,8 +572,8 @@ jobs:
 
       - name: PrePare
         run: |
-          python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
           pip install requests
+          python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
       - name: Upload Setup Exe
         run: |
