@@ -567,7 +567,7 @@ jobs:
         uses: wlixcc/SFTP-Deploy-Action@v1.2.5
         with:
           username: ${{ secrets.S3_ACCESS_KEY }}
-          server: ${{ secrets.SFTP_HOST }}
+          server: ${{ secrets.S3_ENDPOINT }}
           port: ${{ secrets.SFTP_PORT }}
           local_path: './ygopro3/*'
           remote_path: /${{ secrets.S3_BUCKET }}/
