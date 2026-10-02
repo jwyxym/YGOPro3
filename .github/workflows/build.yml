@@ -572,6 +572,7 @@ jobs:
           path: build/${{ matrix.file_name }}
 
       - name: Rename artifact file
+        if: matrix.file_name != 'assets.zip'
         run: |
           cd build
           sh ../.ci/rename.sh
