@@ -565,11 +565,6 @@ jobs:
           fileName: "assets.zip"
           out-file-path: "./ygopro3/"
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: build
-
       - name: Install Python
         uses: actions/setup-python@v4
         with:
@@ -582,7 +577,7 @@ jobs:
 
       - name: Upload Setup Exe
         run: |
-          cd build
+          cd ygopro3
           export TOKEN="${{ secrets.GITCODE_ACCESS_TOKEN }}"
           find . -type f -print0 | xargs -0 -I {} python ../.ci/upload.py "$TOKEN" {}
 
