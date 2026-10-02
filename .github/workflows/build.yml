@@ -575,7 +575,7 @@ jobs:
           pip install requests
           python .ci/update.py ${{ secrets.GITCODE_ACCESS_TOKEN }}
 
-      - name: Upload Setup Exe
+      - name: Upload Setup
         run: |
           cd ygopro3
           export TOKEN="${{ secrets.GITCODE_ACCESS_TOKEN }}"
