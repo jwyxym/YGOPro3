@@ -537,9 +537,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  push-to-bucket:
+  push-to-server:
     needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -576,8 +576,8 @@ jobs:
           sftpArgs: '-o ConnectTimeout=60 -o ServerAliveInterval=90 -o ServerAliveCountMax=5'
 
   update-version:
-    runs-on: self-hosted
-    needs: push-to-bucket
+    runs-on: ubuntu-latest
+    needs: push-to-server
     steps:
       - uses: actions/checkout@v4
         with:
@@ -604,7 +604,7 @@ jobs:
           file_path: ./.ci/version.txt
 
   flush-cdn:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     needs: update-version
     steps:
       - uses: actions/checkout@v4
