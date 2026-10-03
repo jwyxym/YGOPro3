@@ -5,6 +5,8 @@ import vueJsx from '@vitejs/plugin-vue-jsx';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 const host = process.env.TAURI_DEV_HOST;
+const arg = (process.env.YGOPRO3_VERSION ?? '0.1.0').split('.');
+const version = `${arg[0].slice(-2)}.${Number(arg[1])}.${Number(arg[2])}`;
 
 export default defineConfig(async ({ mode }) => ({
 	base: loadEnv(mode, process.cwd(), 'BASE_URL').BASE_URL || '/',
@@ -57,6 +59,7 @@ export default defineConfig(async ({ mode }) => ({
 	},
 	define: {
 		__WEB__: JSON.stringify(mode === 'web'),
+		__VERSION__: JSON.stringify(version),
 		__ANDROID__: JSON.stringify(process.env.TAURI_ENV_PLATFORM === 'android'),
 		__DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
 	},

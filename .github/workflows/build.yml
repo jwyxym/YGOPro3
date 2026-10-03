@@ -531,7 +531,7 @@ jobs:
 
     - name: HTML build
       run: |
-        npm run h5:build
+        npm run h5:build -- ${{ github.ref_name }}
 
     - name: Zip
       run: |

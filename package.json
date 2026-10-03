@@ -25,8 +25,8 @@
 		"tauri:android:init:cmd": "npm run tauri:android:init&&mkdir kotlin\\jniLibs",
 		"tauri:android:init:sh": "npm run tauri:android:init&&mkdir kotlin/jniLibs",
 		"tauri": "tauri",
-		"h5:dev": "npm run dev -- --mode web --host 0.0.0.0 --port 80",
-		"h5:build": "npm run build -- --mode web"
+		"h5:dev": "node .ci/build-html.cjs dev",
+		"h5:build": "node .ci/build-html.cjs build"
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.4",

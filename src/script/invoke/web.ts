@@ -22,7 +22,7 @@ class Invoke extends BaseInvoke {
 		init : async () : Promise<boolean> => true,
 		reload : async () : Promise<boolean> => true,
 		time : async () : Promise<Date | undefined> => undefined,
-		version : async () : Promise<string> => '',
+		version : async () : Promise<string> => __VERSION__,
 		chk_version : async () : Promise<boolean> => false,
 		download : async () : Promise<string> => '',
 		set_system : async (key : string, ct : number, value : string | number | boolean | Array<string>) : Promise<boolean> => {
