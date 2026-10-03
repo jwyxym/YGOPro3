@@ -10,3 +10,4 @@ tokio.workspace = true
 serde_json.workspace = true
 
 ygopro3_const.workspace = true
+ygopro3_emit.workspace = true

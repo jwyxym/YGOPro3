@@ -8047,6 +8047,7 @@ dependencies = [
  "serde_json",
  "tokio",
  "ygopro3_const",
+ "ygopro3_emit",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 use libloading::{Library, Symbol};
-use anyhow::{Error, Result};
+use anyhow::{Error, Result, anyhow};
 use std::{
 	os::raw::c_char,
 	sync::{Arc, Mutex},
@@ -7,6 +7,7 @@ use std::{
 	ffi::{CString, CStr},
 	thread::{self, JoinHandle}
 };
+use ygopro3_emit::progress::*;
 
 #[derive(Debug)]
 pub struct WindBot {
@@ -47,7 +48,7 @@ impl WindBot {
 				let windbot_list: Symbol<unsafe extern "C" fn() -> *const c_char> = self.lib.get(b"windbot_list")?;
 				let windbot_free: Symbol<unsafe extern "C" fn(*const c_char)> = self.lib.get(b"windbot_free")?;
 
-				let ptr = windbot_list();
+				let ptr: *const i8 = windbot_list();
 
 				if !ptr.is_null() {
 					let s: &CStr = CStr::from_ptr(ptr);
@@ -64,17 +65,22 @@ impl WindBot {
 
 	pub fn start_bot (&self, args: String) {
 		let lib: Arc<Library> = self.lib.clone();
-
 		let handle: JoinHandle<()> = thread::spawn(move || {
-			unsafe {
-				if let Ok(start) = lib.get::<Symbol<unsafe extern "C" fn(*const c_char) -> i32>>(b"windbot_start") {
-					if let Ok(c_args) = CString::new(args) {
-						start(c_args.as_ptr());
+			if let Err(e) = || -> Result<(), Error> {
+				unsafe {
+					let start = lib
+						.get::<Symbol<unsafe extern "C" fn(*const c_char) -> i32>>(b"windbot_start")?;
+					let c_args: CString = CString::new(args)?;
+					if start(c_args.as_ptr()) == 0 {
+						Ok(())
+					} else {
+						Err(anyhow!("windbot start error"))
 					}
 				}
+			}() {
+				emit(Event::Debug, e.to_string());
 			}
 		});
-
 		if let Ok(mut lock) = self.thread.lock() {
 			*lock = Some(handle);
 		}
@@ -86,7 +92,6 @@ impl WindBot {
 				let _ = handle.join();
 			}
 		}
-
 		Ok(())
 	}
 }
