@@ -1,4 +1,4 @@
-import { reactive, toRaw } from 'vue';
+import { reactive } from 'vue';
 
 import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
@@ -10,10 +10,7 @@ import voice from '@/script/voice';
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
 
-import ws from './ygo-protocol/ws';
-import tcp from './ygo-protocol/tcp';
-import udp, { Udp } from './ygo-protocol/udp';
-import replay3d, { Replay3D } from './ygo-protocol/yrp3d';
+import { type Replay3D } from './ygo-protocol/yrp3d';
 import Socket from './ygo-protocol/socket';
 import Msg from './ygo-protocol/msg';
 import { CTOS, VERSION } from './ygo-protocol/network';
@@ -260,7 +257,7 @@ const connect = reactive({
 					connect.timeout.stop();
 					const protocol = new (await import('./ygo-protocol/protocol')).default();
 					if (i && 'replay' in i) {
-						connect.protocol = replay3d;
+						connect.protocol = (await import('./ygo-protocol/yrp3d')).default;
 						const bytes = await invoke.replay.read(i.replay);
 						await connect.protocol.on(bytes, {
 							on_connect : async (name : [string, string], duel_rule : number) : Promise<void> => {
@@ -281,7 +278,7 @@ const connect = reactive({
 							return {
 								on_connect : async (send : (msg : Msg) => Promise<void>) : Promise<void> => {
 									connect.send = send;
-									if (!(toRaw(connect.protocol!) instanceof Udp))
+									if (connect.protocol?.kind !== 'udp')
 										connect.state = 1;
 									await send(new Msg()
 										.write.uint8(CTOS.EXTERNAL_ADDRESS)
@@ -323,7 +320,7 @@ const connect = reactive({
 							if (port) {
 								const address = `localhost:${port}`;
 								const p = callback(i.name, '', address, port);
-								connect.protocol = tcp;
+								connect.protocol = (await import('./ygo-protocol/tcp')).default;
 								await Promise.all([
 									connect.protocol.connect(address, p),
 									mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
@@ -353,37 +350,52 @@ const connect = reactive({
 										})();
 								return address;
 							};
-							switch (para.protocal) {
-								case 0:
-									connect.protocol = tcp;
-									break;
-								case 1:
-									para.address = `udp://${para.address}`;
-									connect.protocol = udp;
-									break;
-								case 2:
-									para.address = `ws://${para.address}`;
-									connect.protocol = ws;
-									break;
-								case 3:
-									para.address = `wss://${para.address}`;
-									connect.protocol = ws;
-									break;
-							}
+							if (__WEB__)
+									switch (para.protocal) {
+									case 0:
+									case 1:
+									case 2:
+										para.address = `ws://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									case 3:
+										para.address = `wss://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+								}
+							else
+								switch (para.protocal) {
+									case 0:
+										connect.protocol = (await import('./ygo-protocol/tcp')).default;
+										break;
+									case 1:
+										para.address = `udp://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/udp')).default;
+										break;
+									case 2:
+										para.address = `ws://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									case 3:
+										para.address = `wss://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+								}
 							const promise = await Promise.all([
 								mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, para.name, false),
 								mainGame.set.system(KEYS.SETTING_SERVER_PASS, para.pass, false),
 								get_srv()
 							]);
-							const socket = toRaw(connect.protocol);
-							if (socket instanceof Udp) connect.timeout.start();
+							const check = connect.protocol.kind === 'udp';
+							if (check)
+								connect.timeout.start();
 							const [, connected] = await Promise.all([
 								mainGame.set.system(KEYS.SETTING_SERVER_ADDRESS, para.address),
-								socket.connect(promise[2], p)
+								connect.protocol.connect(promise[2], p)
 							]);
-							if (!connected && socket instanceof Udp) {
+							if (!connected && check) {
 								connect.timeout.stop();
-								await socket.disconnect();
+								await connect.protocol.disconnect();
 								connect.clear();
 							}
 						}

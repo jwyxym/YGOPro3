@@ -5,7 +5,7 @@
 				<div>
 					<div class = 'input'>
 						<Input
-							:placeholder = 'mainGame.get.text(I18N_KEYS.DECK_INPUT)'
+							:placeholder = 'mainGame.get.text(I18N_KEYS.CARD_INFO_NAME)'
 							variant = 'outlined'
 							@enter = 'input.confirm'
 							v-model = 'input.value'

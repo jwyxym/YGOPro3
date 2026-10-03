@@ -19,7 +19,7 @@ class Pic_Recognizer {
 		});
 	};
 
-	on = async (file : string) : Promise<Deck> => {
+	on = async (file : string | Blob) : Promise<Deck> => {
 		const deck = new Deck({
 			main : [],
 			side : [],
@@ -32,13 +32,15 @@ class Pic_Recognizer {
 				throw 'recognizer init error';
 
 			const path = await (async () => {
-				if (__ANDROID__) {
+				if (__WEB__)
+					return URL.createObjectURL(file as Blob);
+				else if (__ANDROID__) {
 					const { readFile } = await import('@tauri-apps/plugin-fs');
-					const buffer = await readFile(file);
+					const buffer = await readFile(file as string);
 					return URL.createObjectURL(new Blob([buffer]));
 				} else {
 					const { convertFileSrc } = await import('@tauri-apps/api/core');
-					return convertFileSrc(file);
+					return convertFileSrc(file as string);
 				}
 			})();
 			const img = new Image();
@@ -56,7 +58,7 @@ class Pic_Recognizer {
 			const cards = result
 				.map(i => i.matches[0]?.id)
 				.filter(i => i);
-			if (__ANDROID__)
+			if (path.startsWith('blob:http'))
 				URL.revokeObjectURL(path);
 
 			for (const id of cards) {

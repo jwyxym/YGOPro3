@@ -147,8 +147,6 @@
 	import { computed, onBeforeMount, onMounted, reactive, useTemplateRef, watch } from 'vue';
 	import { DGLAB_SOCKET_STATE } from 'dglab-kit';
 	import QRCode from 'qrcode';
-	import { writeText } from '@tauri-apps/plugin-clipboard-manager';
-	import * as Opener from '@tauri-apps/plugin-opener';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
@@ -157,6 +155,7 @@
 	import dg from '@/script/dglab';
 	import invoke from '@/script/invoke';
 	import GLOBAL from '@/script/scale';
+	import { open, copy } from '@/script/tauri';
 
 	import { toast } from '@/pages/toast/toast';
 	import Input from '@/ui/input.vue';
@@ -265,7 +264,7 @@
 			if (!dg.url.value)
 				return;
 			try {
-				await writeText(dg.url.value);
+				await copy(dg.url.value);
 				toast.info(mainGame.get.text(I18N_KEYS.COPY_COMPELETE));
 			} catch (e) {
 				await invoke.log.write(e);
@@ -286,7 +285,7 @@
 		open_url : async () => {
 			try {
 				if (dg.qrcode.value)
-					await Opener.openUrl(dg.qrcode.value);
+					await open(dg.qrcode.value);
 			} catch (e) {
 				await invoke.log.write(e);
 			}

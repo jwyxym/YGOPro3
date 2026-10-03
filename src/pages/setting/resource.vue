@@ -42,12 +42,12 @@
 <script setup lang = 'ts'>
 	import { reactive } from 'vue';
 	import { RecycleScroller } from 'vue-virtual-scroller';
-	import { open } from '@tauri-apps/plugin-dialog';
 
 	import mainGame from '@/script/game';
 	import { KEYS } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import invoke from '@/script/invoke';
+	import { file } from '@/script/tauri';
 
 	interface Base {
 		title : string;
@@ -104,7 +104,7 @@
 				},
 			] as Array<Back>,
 			click : async (i : Back) => {
-				const file = await open({
+				const f = await file({
 					multiple: false,
 					directory: false,
 					filters: [{
@@ -112,19 +112,26 @@
 						extensions : ['png', 'jpeg', 'jpg', 'webp']
 					}]
 				});
-				if (!file) return;
+				if (!f && !__WEB__) return;
 				let v : string;
 				let pic : string;
-				let buffer : Uint8Array<ArrayBuffer> | undefined = undefined;
-				if (__ANDROID__) {
+				let buffer : Uint8Array<ArrayBuffer> | Blob | undefined = undefined;
+				if (__WEB__) {
+					if (f) {
+						buffer = f as File;
+						pic = URL.createObjectURL(f as File);
+					} else
+						pic = '';
+					v = '';
+				} else if (__ANDROID__) {
 					const { readFile } = await import('@tauri-apps/plugin-fs');
-					buffer = await readFile(file);
+					buffer = await readFile(f as string);
 					pic = URL.createObjectURL(new Blob([buffer]));
 					v = `other/back_I${i.key === KEYS.BACKI ? '' : 'I'}`;
 				} else {
 					const { convertFileSrc } = await import('@tauri-apps/api/core');
-					pic = `${convertFileSrc(file)}?t=${Date.now()}`;
-					v = file;
+					pic = `${convertFileSrc(f as string)}?t=${Date.now()}`;
+					v = f as string;
 				}
 				if (i.pic.startsWith('blob:http'))
 					URL.revokeObjectURL(i.pic);
@@ -139,7 +146,7 @@
 					URL.revokeObjectURL(i.pic);
 				i.pic = '';
 				mainGame.textures.get(KEYS.OTHER)?.set(i.key, '');
-				await invoke.game.set_textures(i.key, '', new Uint8Array());
+				await invoke.game.set_textures(i.key, '');
 			}
 		}
 	});

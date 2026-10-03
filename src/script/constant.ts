@@ -5,7 +5,8 @@ const REG = {
 	LINE_FEED : /\r?\n/,
 	NUMBER : /^\d+$/,
 	KEY_WORDS : /「([^「」]*)」/g,
-	URL : /"([^"]*)"/
+	URL : /"([^"]*)"/,
+	STRINGS : /^!(system|victory|counter|setname)\s+(0[xX][0-9a-fA-F]+|\d+)\s+(.+)$/
 };
 
 const LANGUAGE = {
@@ -27,6 +28,11 @@ const FRAME = [
 
 const URL = {
 	DECK_SHARE : 'http://deck.ourygo.top',
+	LFLIST : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/lflist.conf',
+	STRINGS : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/strings.conf',
+	CDB : 'https://cdn02.moecube.com:444/ygopro-database/zh-CN/cards.cdb',
+	PRE_CDB : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/test-release.cdb',
+	LUA : 'https://qizhifeng00.github.io/YGO_build/scripts/',
 	SUPER_PRE : 'https://cdn02.moecube.com:444/ygopro-super-pre/archive/ygopro-super-pre.ypk',
 	SUPER_PRE_VERSION : 'https://cdn02.moecube.com:444/ygopro-super-pre/data/version.txt',
 	MYCARD_NEWS : 'https://sapi.moecube.com:444/apps.json',
@@ -36,6 +42,7 @@ const URL = {
 	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
 	DGLAB : 'https://dungeon-lab.cn/s/?v=1&action=socket&url=',
 	YGOPRO3_HOME : 'https://www.ygopro3.cn',
+	HASH : 'https://s3-1.nexusmc.cn/ygopro3/card_data',
 	HOME_OTHER : new Map([
 		['乌鸦Producer', 'https://b23.tv/STgl276'],
 		['幽影櫻', 'https://home.barian.moe'],

@@ -1,21 +1,16 @@
 import * as sound_player from 'tauri-plugin-sound-player';
-import invoke from './invoke';
-import mainGame from './game';
-import { KEYS } from './constant';
+import invoke from '@/script/invoke';
+import mainGame from '@/script/game';
+import { KEYS } from '@/script/constant';
+import BaseVoice from './base';
 
-class Voice {
+class Voice extends BaseVoice {
 	id : sound_player.SoundId = 0;
-	bgm = new Map<string, string>();
-	sound_effect = new Map<string, string>();
 
 	init = async (bgm : Array<[string, string]>) : Promise<void> => {
-		for (const [i, v] of bgm) {
-			(i.startsWith('SOUND_EFFECT_')
-				? this.sound_effect
-				: this.bgm)
-				.set(i, v);
-		}
+		this.load(bgm);
 		await sound_player.stopAll();
+		this.id = 0;
 		await this.play.bgm(KEYS.BACK_BGM);
 	};
 

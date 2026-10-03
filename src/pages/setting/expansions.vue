@@ -99,12 +99,12 @@
 </template>
 <script setup lang = 'ts'>
 	import { onBeforeMount, reactive, ref } from 'vue';
-	import * as Opener from '@tauri-apps/plugin-opener';
 	import { all, create } from 'mathjs';
 
 	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
 	import { I18N_KEYS } from '@/script/language/i18n';
+	import { open } from '@/script/tauri';
 	import { KEYS, REG, URL } from '@/script/constant';
 	import { toast } from '@/pages/toast/toast';
 	import dialog from '@/ui/dialog';
@@ -144,7 +144,7 @@
 			new Version({
 				title : I18N_KEYS.SETTING_GAME_VERSION,
 				chk : mainGame.chk.version.game,
-				update : async () => await Opener.openUrl(URL.YGOPRO3_HOME)
+				update : async () => await open(URL.YGOPRO3_HOME)
 			}),
 			new Version({
 				title : I18N_KEYS.SETTING_SUPER_PRE_VERSION,

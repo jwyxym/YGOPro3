@@ -1,16 +1,18 @@
 import { connect, WebSocket, type Message } from '@/script/websocket';
 
-import Msg from './msg';
-import Socket from './socket';
+import Msg from '@/pages/duel/ygo-protocol/msg';
+import Socket from '@/pages/duel/ygo-protocol/socket';
 
 class Ws extends Socket {
 	ws ?: WebSocket;
+	kind : 'ws' = 'ws';
 
 	connect = async (address : string, call_back : {
 		on_connect ?: (send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_message ?: (messgae : Msg, send : (msg : Msg) => Promise<void>) => Promise<void>
 		on_disconnect ?: () => Promise<void>
-	}) : Promise<boolean> => await super.connect(address, call_back, async (ad : string) => {
+	}) : Promise<boolean> => await super.connect(address, call_back, async (ad : string | Uint8Array) => {
+		ad = ad as string;
 		if (this.ws)
 			throw Error('webscoket is connected');
 		this.ws = await connect(ad, (i : Message) => {
@@ -39,6 +41,7 @@ class Ws extends Socket {
 					);
 			};
 		});
+		this.queue.start();
 	});
 
 	send = async (msg : Msg) => this.ws?.send(msg.array());

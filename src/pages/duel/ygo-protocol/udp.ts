@@ -8,6 +8,7 @@ class Udp extends Socket {
 	on_heartbeat_end ?: () => void;
 	cid = 'YGOPro3';
 	address = '';
+	kind : 'udp' = 'udp';
 	closing = {
 		task : undefined as Promise<void> | undefined,
 		confirm : undefined as (() => void) | undefined,
@@ -20,11 +21,12 @@ class Udp extends Socket {
 	}) : Promise<boolean> => {
 		if (this.closing.task) await this.closing.task;
 		if (this.address) await this.disconnect();
-		return await super.connect(address, call_back, async (i : string) => {
-		
-		this.on_heartbeat_end?.();
-		this.address = i.slice(6);
-		await udp.connect(this.cid, this.address);
+		return await super.connect(address, call_back, async (i : string | Uint8Array) => {
+			i = i as string;
+			this.on_heartbeat_end?.();
+			this.address = i.slice(6);
+			await udp.connect(this.cid, this.address);
+			this.queue.start();
 		});
 	};
 

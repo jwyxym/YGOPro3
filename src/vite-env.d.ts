@@ -9,4 +9,5 @@ declare module 'vue3-starry-sky';
 declare module 'mark.js';
 
 declare const __ANDROID__: boolean;
+declare const __WEB__: boolean;
 declare const __DEV__: boolean;
