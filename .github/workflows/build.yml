@@ -482,51 +482,30 @@ jobs:
   push-to-bucket:
     needs: [build-android, build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        file_name:
-          - YGOPro3-arm64-v8a.apk
-          - YGOPro3-armeabi-v7a.apk
-          - YGOPro3-x86.apk
-          - YGOPro3-x86_64.apk
-          - YGOPro3-windows-x86_64.exe
-          - YGOPro3-windows-x86_64.msi
-          - YGOPro3-windows-aarch64.exe
-          - YGOPro3-windows-aarch64.msi
-          - YGOPro3-macos-x86_64.dmg
-          - YGOPro3-macos-x86_64.app.zip
-          - YGOPro3-macos-aarch64.dmg
-          - YGOPro3-macos-aarch64.app.zip
-          - YGOPro3-linux-x86_64.deb
-          - YGOPro3-linux-aarch64.deb
-          - YGOPro3-linux-x86_64.rpm
-          - YGOPro3-linux-aarch64.rpm
-          - YGOPro3-linux-x86_64.AppImage
-          - YGOPro3-linux-aarch64.AppImage
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download artifact
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ matrix.file_name }}
-          path: build/${{ matrix.file_name }}
+          pattern: YGOPro3-*
+          path: build
+          merge-multiple: false
 
-      - name: Rename artifact file
+      - name: Rename artifact files
         run: |
           cd build
           sh ../.ci/rename.sh
 
-      - name: Upload ${{ matrix.file_name }} to Bucket
+      - name: Upload artifacts to Bucket
         uses: jwyxym/jwyxym/s3@master
         with:
           s3_endpoint: ${{ secrets.S3_ENDPOINT }}
           access_key: ${{ secrets.S3_ACCESS_KEY }}
           secret_key: ${{ secrets.S3_SECRET_KEY }}
           bucket: ${{ secrets.S3_BUCKET }}
-          file_name: ${{ matrix.file_name }}
-          file_path: ./build/${{ matrix.file_name }}/${{ matrix.file_name }}
+          file_name: /
+          file_path: "./build/YGOPro3-*/*"
 
   update-version:
     runs-on: ubuntu-latest
