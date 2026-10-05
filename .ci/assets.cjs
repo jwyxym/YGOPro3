@@ -5,13 +5,12 @@ const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
 
 const os = process.argv[2] || '';
-const URL = 'https://www.ygopro3.cn/assets.zip';
+const URL = 'https://github.com/jwyxym/YGOPro3/releases/download/assets-latest/assets.zip';
 const LOCAL_ASSETS = [
 	'./src-tauri/assets.zip',
 	'./src-tauri/assets',
 	'./src-tauri/gen/android/app/src/main/assets/assets',
 	'./src-tauri/target/debug/assets'
-
 ];
 const WINDBOT_ANDROID = [
 	{
@@ -27,6 +26,20 @@ const WINDBOT_ANDROID = [
 		url: 'https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-armeabi-v7a.zip'
 	}
 ];
+const WINDBOT_DESKTOP = {
+	win32: {
+		archives: { x64: 'windbot-win-x64.zip', arm64: 'windbot-win-arm64.zip' },
+		files: ['WindBot.dll', 'e_sqlite3.dll']
+	},
+	linux: {
+		archives: { x64: 'windbot-linux-x64.zip', arm64: 'windbot-linux-arm64.zip' },
+		files: ['WindBot.so', 'libe_sqlite3.so']
+	},
+	darwin: {
+		archives: { x64: 'windbot-macos-universal.zip', arm64: 'windbot-macos-universal.zip' },
+		files: ['WindBot.dylib', 'libe_sqlite3.dylib']
+	}
+};
 
 async function download(url, dest) {
 	try {
@@ -164,11 +177,38 @@ async function downloadWindbotAndroid() {
 			continue;
 		}
 
-		if (!await download(target.url, zipFile)) {
-			throw new Error(`Failed to download WindBot for ${target.abi}`);
-		}
+		await download(target.url, zipFile);
 
 		unzip(zipFile, targetDir);
+		fs.rmSync(zipFile, { force: true });
+	}
+}
+
+async function downloadWindbot() {
+	const target = WINDBOT_DESKTOP[process.platform];
+	const archive = target?.archives[process.arch];
+	if (!archive) {
+		throw new Error(`Unsupported WindBot platform: ${process.platform}/${process.arch}`);
+	}
+
+	const targetDir = './src-tauri/target/debug';
+	fs.mkdirSync(targetDir, { recursive: true });
+	if (target.files.every((file) => fs.existsSync(path.join(targetDir, file)))) {
+		console.log(`WindBot already exists for ${process.platform}/${process.arch}`);
+		return;
+	}
+
+	const zipFile = path.join(targetDir, archive);
+	const url = `https://github.com/jwyxym/windbot/releases/download/release-latest/${archive}`;
+	await download(url, zipFile);
+	try {
+		unzip(zipFile, targetDir);
+		for (const file of target.files) {
+			if (!fs.existsSync(path.join(targetDir, file))) {
+				throw new Error(`Missing ${file} in ${archive}`);
+			}
+		}
+	} finally {
 		fs.rmSync(zipFile, { force: true });
 	}
 }
@@ -187,6 +227,7 @@ async function main () {
 		if (!fs.existsSync(dest) && !copyLocalAsset(dest)) {
 			await download(URL, dest);
 		}
+		await downloadWindbot();
 	}
 }
 
