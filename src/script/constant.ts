@@ -42,7 +42,7 @@ const URL = {
 	AUTHOR_HOME : 'https://b23.tv/0NdYyL8',
 	DGLAB : 'https://dungeon-lab.cn/s/?v=1&action=socket&url=',
 	YGOPRO3_HOME : 'https://www.ygopro3.cn',
-	HASH : 'https://s3-1.nexusmc.cn/ygopro3/card_data',
+	HASH : 'https://s3.ygopro3.cn/ygopro3/card_data',
 	HOME_OTHER : new Map([
 		['乌鸦Producer', 'https://b23.tv/STgl276'],
 		['幽影櫻', 'https://home.barian.moe'],
