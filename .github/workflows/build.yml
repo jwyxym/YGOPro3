@@ -601,7 +601,7 @@ jobs:
 
   update-version:
     runs-on: ubuntu-latest
-    needs: push-to-server
+    needs: push-to-bucket
     steps:
       - uses: actions/checkout@v4
         with:
