@@ -481,7 +481,7 @@ jobs:
 
   push-to-bucket:
     needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
 
