@@ -46,7 +46,8 @@
 				I18N_KEYS.MENU_REPLAY,
 				I18N_KEYS.MENU_DECK,
 				I18N_KEYS.MENU_CARD,
-				I18N_KEYS.MENU_SETTING
+				I18N_KEYS.MENU_SETTING,
+				I18N_KEYS.MENU_EXIT
 			] : [
 				I18N_KEYS.MENU_SINGLE,
 				I18N_KEYS.MENU_CONNECT,
@@ -93,7 +94,7 @@
 					emit('setting');
 					break;
 				case I18N_KEYS.MENU_EXIT:
-					await mainGame.exit();
+					emit('exit');
 					break;
 			}
 		}
@@ -131,6 +132,7 @@
 		deck : [];
 		card : [];
 		setting : [];
+		exit : [];
 	}>();
 </script>
 <style scoped lang = 'scss'>

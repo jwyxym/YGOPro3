@@ -17,6 +17,13 @@ import En_US from './language/En-US';
 import Ja_JP from './language/Ja-JP';
 import Ko_KR from './language/Ko-KR';
 import YGOPRO_STR from './language/string';
+import listenner from './listen';
+
+const track = async <T>(promise : Promise<T>): Promise<T> => {
+	const result = await promise;
+	listenner.emit('progress', 1);
+	return result;
+};
 
 class Game {
 	system :  Map<string, Map<string, string | number | boolean | Array<string>>> = new Map();
@@ -37,6 +44,7 @@ class Game {
 		try {
 			if (!await invoke.game.init())
 				return false;
+			listenner.emit('started', 17);
 			const [
 				sounds,
 				textures,
@@ -50,23 +58,24 @@ class Game {
 				hash,
 				version
 			] = await Promise.all([
-				invoke.game.get_sound(),
-				invoke.game.get_textures(),
-				invoke.game.get_cards(),
-				invoke.game.get_system(),
-				invoke.game.get_server(),
-				invoke.game.get_lflist(),
-				invoke.game.get_strings(),
-				invoke.game.get_room(),
-				invoke.game.get_info(this.get.system(CONSTANT.KEYS.I18N) as string | undefined),
-				invoke.game.get_hash(),
-				invoke.game.version()
+				track(invoke.game.get_sound()),
+				track(invoke.game.get_textures()),
+				track(invoke.game.get_cards()),
+				track(invoke.game.get_system()),
+				track(invoke.game.get_server()),
+				track(invoke.game.get_lflist()),
+				track(invoke.game.get_strings()),
+				track(invoke.game.get_room()),
+				track(invoke.game.get_info(this.get.system(CONSTANT.KEYS.I18N) as string | undefined)),
+				track(invoke.game.get_hash()),
+				track(invoke.game.version())
 			]);
 			this.version = version;
 			this.system.set(CONSTANT.KEYS.STRING, systems.string);
 			this.system.set(CONSTANT.KEYS.BOOL, systems.bool);
 			this.system.set(CONSTANT.KEYS.NUMBER, systems.number);
 			this.system.set(CONSTANT.KEYS.ARRAY, systems.array);
+			listenner.emit('progress', 1);
 
 			this.strings.set(CONSTANT.KEYS.SYSTEM, strings.system);
 			this.strings.set(CONSTANT.KEYS.VICTORY, strings.victory);
@@ -78,6 +87,7 @@ class Game {
 			this.strings.set(CONSTANT.KEYS.LINK, new Map(info.link));
 			this.strings.set(CONSTANT.KEYS.RACE, new Map(info.race));
 			this.strings.set(CONSTANT.KEYS.TYPE, new Map(info.types));
+			listenner.emit('progress', 1);
 
 			this.textures.set(CONSTANT.KEYS.OT, textures.ot);
 			this.textures.set(CONSTANT.KEYS.ATTRIBUTE, textures.attribute);
@@ -89,6 +99,7 @@ class Game {
 			this.textures.set(CONSTANT.KEYS.INFO, textures.info);
 			this.textures.set(CONSTANT.KEYS.OTHER, textures.other);
 			this.textures.set(CONSTANT.KEYS.BTN, textures.btn);
+			listenner.emit('progress', 1);
 
 			this.avatars = textures.avatar;
 			this.servers = new Map(servers);
@@ -96,19 +107,24 @@ class Game {
 			this.lflist.set(CONSTANT.KEYS.NA, new LFList({ name : this.get.text(I18N_KEYS.LFLIST_NA), hash : 0x7dfcee6a, genesys : 0, lflist : [], glist : [] }));
 			this.model = new Map(room);
 			this.cards = new Map(cards.map(i => [i[0], reactive(i[1])]));
+			listenner.emit('progress', 1);
 
 			await Promise.all([
 				voice.init(sounds),
 				hash ? recognizer.init(hash) : Promise.resolve()
 			]);
+			listenner.emit('progress', 1);
 
 			this.unknown
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.UNKNOWN) as string ?? '');
 			this.back
 				.update_pic(this.textures.get(CONSTANT.KEYS.OTHER)!.get(CONSTANT.KEYS.COVER) as string ?? '');
+			listenner.emit('progress', 1);
 		} catch (error) {
 			await invoke.log.write(error);
 			return false;
+		}  finally {
+			listenner.emit('end');
 		}
 		return true;
 	};

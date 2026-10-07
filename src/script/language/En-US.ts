@@ -23,6 +23,7 @@ En_US[I18N_KEYS.RULE_NAME_EXIST] = 'Deck already exists';
 
 En_US[I18N_KEYS.START_TITLE] = 'Game Resource Error';
 En_US[I18N_KEYS.START_MESSAGE] = 'Click OK to exit the game';
+En_US[I18N_KEYS.START_LANDSCAPE] = 'Click to enter full screen';
 
 En_US[I18N_KEYS.MENU_SINGLE] = 'SOLO';
 En_US[I18N_KEYS.MENU_CONNECT] = 'ONLINE';

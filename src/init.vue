@@ -32,6 +32,7 @@
 				@server = 'page.select.server'
 				@replay = 'page.select.replay'
 				@setting = 'page.select.setting'
+				@exit = 'page.select.exit'
 			/>
 		</TransitionGroup>
 	</div>
@@ -50,6 +51,7 @@
 
 	import mainGame from './script/game';
 	import { I18N_KEYS } from './script/language/i18n';
+	import landscape from './script/landscape';
 
 	const page = reactive({
 		loading : false,
@@ -118,13 +120,18 @@
 				setTimeout(() => {
 					page.show.setting = true;
 				}, 600);
-			}
+			},
+			exit : () : Promise<void> => __WEB__
+				? landscape.exit()
+				: mainGame.exit()
 		}
 	});
 
 	onMounted(async () : Promise<void> => {
-		if (await mainGame.init())
+		if (await mainGame.init()) {
 			page.show.menu = true;
+			landscape.to();
+		}
 		else {
 			await dialog({
 				title : mainGame.get.text(I18N_KEYS.START_TITLE),

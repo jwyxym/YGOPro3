@@ -23,6 +23,7 @@ Ja_JP[I18N_KEYS.RULE_NAME_EXIST] = 'デッキが既に存在します';
 
 Ja_JP[I18N_KEYS.START_TITLE] = 'リソースエラー';
 Ja_JP[I18N_KEYS.START_MESSAGE] = 'OKをクリックしてゲームを終了します';
+Ja_JP[I18N_KEYS.START_LANDSCAPE] = 'クリックして全画面表示に切り替え';
 
 Ja_JP[I18N_KEYS.MENU_SINGLE] = 'ＡＩ対戦';
 Ja_JP[I18N_KEYS.MENU_CONNECT] = 'ネット対戦';

@@ -23,6 +23,7 @@ Ko_KR[I18N_KEYS.RULE_NAME_EXIST] = '덱이 이미 존재합니다';
 
 Ko_KR[I18N_KEYS.START_TITLE] = '게임 리소스 오류';
 Ko_KR[I18N_KEYS.START_MESSAGE] = '확인을 클릭하여 게임을 종료하세요';
+Ko_KR[I18N_KEYS.START_LANDSCAPE] = '클릭하여 전체 화면으로 전환';
 
 Ko_KR[I18N_KEYS.MENU_SINGLE] = 'AI 모드';
 Ko_KR[I18N_KEYS.MENU_CONNECT] = '온라인 모드';
