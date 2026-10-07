@@ -5,7 +5,6 @@ import GLOBAL from './scale';
 
 const landscape = {
 	to : async () => {
-		console.log(GLOBAL)
 		if (!__WEB__
 			|| GLOBAL.CURRENT.WIDTH > GLOBAL.CURRENT.HEIGHT
 			|| !window.matchMedia('(pointer: coarse) and (hover: none)').matches
