@@ -77,7 +77,7 @@ class _Duel {
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
 		this.interval = 1000 / (mainGame.get.system(KEYS.SETTING_FRAME) as number);
-		requestAnimationFrame(this.animate);
+		this.animation_id = requestAnimationFrame(this.animate);
 		this.renderer.domElement.classList.add('show')
 		window.addEventListener('click', duel.click);
 		this.resolve?.();
@@ -436,6 +436,10 @@ class _Duel {
 						child.classList.add('ygopro3__duel__back_oppo');
 					dom.appendChild(child);
 				}
+				const border : HTMLDivElement = document.createElement('div');
+				border.classList.add('ygopro3__duel__back__border');
+				border.setAttribute('aria-hidden', 'true');
+				dom.appendChild(border);
 				return new CSS.CSS3DObject(dom);
 			};
 			const pic : Array<string> = [mainGame.get.textures(KEYS.OTHER, KEYS.BACKI), mainGame.get.textures(KEYS.OTHER, KEYS.BACKII)] as [string, string];

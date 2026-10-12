@@ -219,7 +219,7 @@
 		> div {
 			overflow-y: auto;
 			h2 {
-				transition: all 0.2s ease;
+				transition: text-shadow 0.2s ease;
 				transform: translateX(10px);
 				[media = 'mobile'] & {
 					font-size: 32px;

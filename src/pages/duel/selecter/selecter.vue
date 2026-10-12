@@ -83,7 +83,7 @@
 		bottom: 10px;
 		transform: translateY(calc(var(--top) / var(--scale)));
 		color: white;
-		transition: all 0.1s ease;
+		transition: height 0.1s ease, transform 0.1s ease;
 		width: var(--width);
 		left: var(--left);
 		[media = 'mobile'] & {

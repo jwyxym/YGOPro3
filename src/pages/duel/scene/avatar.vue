@@ -157,7 +157,7 @@
 			top: 0;
 			opacity: 0;
 			color: var(--color);
-			transition: all 0.15s ease;
+			transition: transform 0.15s ease, opacity 0.15s ease;
 		}
 		> div:last-child {
 			position: absolute;

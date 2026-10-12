@@ -67,7 +67,7 @@
 	.loading {
 		position: relative;
 		opacity: var(--opacity);
-		transition: all 0.1s ease;
+		transition: opacity 0.1s ease;
 		color: white;
 		z-index: 11;
 		user-select: none;
