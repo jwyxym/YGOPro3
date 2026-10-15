@@ -249,35 +249,20 @@ class _Duel {
 			await tl.then();
 		},
 		hand : async (owner : 0 | 1, hands : Array<number>) : Promise<Array<Client_Card>> => {
-			const sort = (a : Array<Client_Card>, b : Array<number>) : void => {
-				const groups = new Map<number, Array<Client_Card>>();
-				a.forEach(i => {
-					if (!groups.has(i.id))
-						groups.set(i.id, []);
-					groups.get(i.id)!.push(i);
-				});
-				
-				const pointers = new Map();
-				groups.forEach((_, code) => pointers.set(code, 0));
-				
-				b.forEach((i, v) => {
-					const group = groups.get(i);
-					const pointer = pointers.get(i) ?? 0;
-					if (group && pointer < group.length) {
-						const card = group[pointer];
-						card
-							.set.seq(v);
-						pointers
-							.set(i, pointer + 1);
-					}
-				});
-			}
-			const cards = this.cards
-				.filter(i => i.owner === owner && i.location === LOCATION.HAND);
+			const cards : Array<Client_Card> = lodash.sortBy(
+				this.cards.filter((card : Client_Card) : boolean => card.owner === owner && card.location === LOCATION.HAND),
+				(card : Client_Card) : number => card.seq
+			);
 			cards
 				.filter(i => i.clicked)
 				.forEach(i => i.click.img());
-			sort(cards, hands);
+			await mainGame.load.pic(hands);
+			cards.forEach((card : Client_Card, index : number) : void => {
+				const code : number = hands[index] ?? 0;
+				if (card.id !== code || !code)
+					card.set.public(false);
+				card.set.id(code);
+			});
 			await Promise.all(cards.map(i => i.update()));
 			return cards;
 		}
@@ -293,8 +278,7 @@ class _Duel {
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
 
 		deck.forEach((i, v) => {
-			if (!player && codes[v])
-				i.set.id(codes[v]);
+			i.set.id(codes[v] ?? 0);
 			i
 				.set.location(LOCATION.HAND)
 				.set.seq(v + hands.length)
@@ -566,7 +550,7 @@ class _Duel {
 							.forEach((i, v) => {
 								i.set.seq(v);
 								if (loc === LOCATION.HAND)
-									i.set.pos(i.id ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK);
+									i.set.pos(i.get.hand_pos());
 								else {
 									if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY)))
 										i.set.pos(POS.FACEUP_ATTACK);

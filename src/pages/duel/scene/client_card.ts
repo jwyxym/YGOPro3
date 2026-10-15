@@ -40,6 +40,7 @@ class Client_Card {
 	overlay : number;
 	overlays : Array<Client_Card>;
 	status : number;
+	is_public : boolean = false;
 	equip ?: Client_Card;
 	chain : number;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
@@ -155,6 +156,11 @@ class Client_Card {
 	}
 
 	get = {
+		hand_pos : () : number => {
+			const own_hand : boolean = this.owner === 0 && connect.wait.self.position <= 3;
+			const visible : boolean = !!this.id && (this.is_public || own_hand || connect.protocol?.kind === 'replay');
+			return visible ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK;
+		},
 		el : {
 			img : () : HTMLCardsElement => this.three.element.children[0] as HTMLCardsElement,
 			chain : () : HTMLDivElement => {
@@ -249,6 +255,8 @@ class Client_Card {
 			return this;
 		},
 		location : (location : number) : Client_Card => {
+			if (this.location !== location)
+				this.is_public = false;
 			this.need_change.loc = this.need_change.loc || this.location !== location;
 			this.need_change.type = this.need_change.type || this.location !== location;
 			this.location = location;
@@ -337,6 +345,10 @@ class Client_Card {
 			this.status = status;
 			return this;
 		},
+		public : (value : boolean) : Client_Card => {
+			this.is_public = value;
+			return this;
+		},
 		equip : (c : Client_Card) : Client_Card => {
 			this.equip = c;
 			return this;
@@ -350,15 +362,16 @@ class Client_Card {
 
 	update = async () : Promise<void> => {
 		const status = async () : Promise<void> => {
-			if (!this.need_change.status)
-				return;
 			this.need_change.status = false;
-			const img = this.get.el.img();
-			if (!this.status && img.classList.contains('forbbiden'))
-				img.classList.remove('forbbiden');
-			else if (this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
-				img.classList.add('forbbiden');
-			await mainGame.sleep(200);
+			const img : HTMLCardsElement = this.get.el.img();
+			const invalid : boolean = !!(this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
+				&& !!(this.location & LOCATION.ONFIELD)
+				&& !(this.location & LOCATION.OVERLAY)
+				&& !!(this.pos & POS.FACEUP);
+			if (img.classList.contains('forbbiden') !== invalid) {
+				img.classList.toggle('forbbiden', invalid);
+				await mainGame.sleep(200);
+			}
 		}
 		const activate = async () : Promise<void> => {
 			if (!this.need_change.activate)
@@ -703,11 +716,8 @@ class Client_Card {
 		};
 		if (this.clicked && !(this.location & LOCATION.HAND))
 			this.click.img();
-		if (this.location & LOCATION.HAND)
-			if ((this.pos & POS.FACEDOWN) && this.id)
-				this.set.pos(POS.FACEUP_ATTACK);
-			else if ((this.pos & POS.FACEUP) && !this.id)
-				this.set.pos(POS.FACEDOWN_ATTACK);
+		if (this.location === LOCATION.HAND)
+			this.set.pos(this.get.hand_pos());
 		await Promise.all([
 			run(),
 			activate(),
@@ -719,6 +729,7 @@ class Client_Card {
 	clear = {
 		self : () : Client_Card => {
 			this.id = 0;
+			this.is_public = false;
 			this.card = undefined;
 			this.alias = 0;
 			this.type = 0;
