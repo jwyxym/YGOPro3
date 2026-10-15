@@ -88,6 +88,7 @@
 		left: var(--left);
 		[media = 'mobile'] & {
 			height: calc(var(--height) + 20px);
+			transition: transform 0.1s ease;
 		}
 		[media = 'pc'] & {
 			height: var(--height);

@@ -32,6 +32,7 @@
 			/>
 			<Scene
 				v-if = 'connect.state === 2'
+				class = 'scene__host'
 				key = '2'
 			/>
 			<Card_info
@@ -510,6 +511,10 @@
 				[media = 'pc'] & {
 					transform: translate(calc(var(--left) / var(--scale) + 500px), 0);
 				}
+			}
+			[media = 'mobile'] .scene__host {
+				opacity: 1 !important;
+				transition: none !important;
 			}
 		}
 		> div:nth-child(2) {

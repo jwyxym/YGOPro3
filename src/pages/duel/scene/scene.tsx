@@ -439,18 +439,25 @@ class _Duel {
 				const border : HTMLDivElement = document.createElement('div');
 				border.classList.add('ygopro3__duel__back__border');
 				border.setAttribute('aria-hidden', 'true');
+				['top', 'right', 'bottom', 'left'].forEach((side : string) : void => {
+					const edge : HTMLSpanElement = document.createElement('span');
+					edge.setAttribute('data-side', side);
+					border.appendChild(edge);
+				});
 				dom.appendChild(border);
 				return new CSS.CSS3DObject(dom);
 			};
 			const pic : Array<string> = [mainGame.get.textures(KEYS.OTHER, KEYS.BACKI), mainGame.get.textures(KEYS.OTHER, KEYS.BACKII)] as [string, string];
 			const back = create_back(pic);
 			back.position.set(...Axis.computed.back(new Axis(0, 0, 0)).get.xyz());
+			back.position.z = -2;
 			this.back = back;
 			this.scene.add(back);
 		},
 		plaid : (x : number, y : number) : void => {
 			const plaid = new Plaid(x, y)
 			plaid.three.position.set(...Axis.computed.back(new Axis(x, y, 0)).get.xyz());
+			plaid.three.position.z = -1;
 			this.scene.add(plaid.three);
 			this.plaids.push(plaid);
 		},

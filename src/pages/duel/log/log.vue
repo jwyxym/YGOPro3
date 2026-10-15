@@ -7,7 +7,7 @@
 			<var-tabs v-model:active = 'page.select'>
 				<var-tab>{{ mainGame.get.text(I18N_KEYS.DUEL_CHAT) }}</var-tab>
 				<var-tab>{{ mainGame.get.text(I18N_KEYS.DUEL_HISTORY) }}</var-tab>
-				<var-tab>{{ mainGame.get.text(I18N_KEYS.SETTING_EXTEND) }}</var-tab>
+				<var-tab v-if = 'page.extend'>{{ mainGame.get.text(I18N_KEYS.SETTING_EXTEND) }}</var-tab>
 			</var-tabs>
 		</div>
 		<TransitionGroup tag = 'div' name = 'opacity'>
@@ -73,6 +73,7 @@
 	});
 
 	const page = reactive({
+		extend : !__WEB__,
 		select : 0,
 		input : '',
 		dglab : false,
