@@ -640,11 +640,3 @@ jobs:
           zone_id: ${{ secrets.EDGE_ZONE_ID }}
           url_target: ${{ secrets.EDGE_URL }}
           flush_type: "purge_prefix"
-
-      - uses: jwyxym/jwyxym/aliyun-esa-cache@master
-        with:
-          access_key_id: ${{ secrets.ESA_ID }}
-          access_key_secret: ${{ secrets.ESA_KEY }}
-          site_id: ${{ secrets.ESA_SITE_ID }}
-          url_target: ${{ secrets.ESA_URL }}
-          flush_type: "directory"
