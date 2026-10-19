@@ -13,7 +13,7 @@ concurrency:
 jobs:
   push-to-bucket:
     name: Push ${{ matrix.artifact }}
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       fail-fast: false
       max-parallel: 1
