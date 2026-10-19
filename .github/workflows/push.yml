@@ -12,50 +12,30 @@ concurrency:
 
 jobs:
   push-to-bucket:
-    name: Push ${{ matrix.artifact }}
+    name: Push all artifacts
     runs-on: self-hosted
-    strategy:
-      fail-fast: false
-      max-parallel: 1
-      matrix:
-        artifact:
-          - YGOPro3-arm64-v8a.apk
-          - YGOPro3-armeabi-v7a.apk
-          - YGOPro3-x86.apk
-          - YGOPro3-x86_64.apk
-          - YGOPro3-windows-x86_64.exe
-          - YGOPro3-windows-x86_64.msi
-          - YGOPro3-windows-aarch64.exe
-          - YGOPro3-windows-aarch64.msi
-          - YGOPro3-macos-x86_64.dmg
-          - YGOPro3-macos-x86_64.app.zip
-          - YGOPro3-macos-aarch64.dmg
-          - YGOPro3-macos-aarch64.app.zip
-          - YGOPro3-linux-x86_64.deb
-          - YGOPro3-linux-aarch64.deb
-          - YGOPro3-linux-x86_64.rpm
-          - YGOPro3-linux-aarch64.rpm
-          - YGOPro3-linux-x86_64.AppImage
-          - YGOPro3-linux-aarch64.AppImage
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Download ${{ matrix.artifact }}
+      - name: Download all artifacts
         uses: robinraju/release-downloader@v1.10
         with:
           tag: release-latest
-          fileName: ${{ matrix.artifact }}
+          fileName: "*"
           out-file-path: "./build/"
 
-      - name: Upload artifact to Bucket (${{ matrix.artifact }})
+      - name: rm artifacts
+        run: |
+          cd build
+          rm YGOPro3-html.zip
+
+      - name: Upload all artifacts to Bucket
         uses: jwyxym/jwyxym/s3@master
         with:
           s3_endpoint: ${{ secrets.S3_ENDPOINT }}
           access_key: ${{ secrets.S3_ACCESS_KEY }}
           secret_key: ${{ secrets.S3_SECRET_KEY }}
           bucket: ${{ secrets.S3_BUCKET }}
-          file_name: ${{ matrix.artifact }}
-          file_path: ./build/${{ matrix.artifact }}
+          file_name: "/"
+          file_path: "./build/*"
 
   update-version:
     runs-on: ubuntu-latest
