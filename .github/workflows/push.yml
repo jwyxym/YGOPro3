@@ -38,7 +38,7 @@ jobs:
           file_path: "./build/*"
 
   update-version:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: push-to-bucket
     steps:
       - uses: actions/checkout@v4
