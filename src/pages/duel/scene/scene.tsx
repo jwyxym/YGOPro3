@@ -48,9 +48,11 @@ class _Duel {
 	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);
 		
-		if (time - this.time < this.interval) return;
-
-		this.time = time;
+		if (this.interval) {
+			if (time - this.time < this.interval)
+				return;
+			this.time = time;
+		}
 		this.renderer.render(this.scene, this.camera);
 	};
 
@@ -76,7 +78,9 @@ class _Duel {
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
-		this.interval = 1000 / (mainGame.get.system(KEYS.SETTING_FRAME) as number);
+		const frame = mainGame.get.system(KEYS.SETTING_FRAME) as number;
+		if (frame)
+			this.interval = 1000 / frame;
 		this.animation_id = requestAnimationFrame(this.animate);
 		this.renderer.domElement.classList.add('show')
 		window.addEventListener('click', duel.click);
