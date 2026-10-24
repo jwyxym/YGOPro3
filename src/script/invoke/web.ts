@@ -451,9 +451,9 @@ class Invoke extends BaseInvoke {
 		},
 		get_hash : async () : Promise<ArrayBuffer | undefined> => {
 			try {
-				if (!__YOLO__)
-					return undefined;
-				return await http.get<ArrayBuffer>(CONSTANT.URL.HASH, 'arrayBuffer');
+				return __YOLO__
+					? await http.get<ArrayBuffer>(CONSTANT.URL.HASH, 'arrayBuffer')
+					: undefined;
 			} catch (error) {
 				await this.log.write(error);
 				return undefined;
