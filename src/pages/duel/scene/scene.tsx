@@ -265,15 +265,15 @@ class _Duel {
 			await mainGame.load.pic(hands);
 			if (cards.length > 1) {
 				const center : number = cards.reduce((sum : number, card : Client_Card) : number => sum + card.three.position.x, 0) / cards.length;
-				const gather : gsap.core.Timeline = gsap.timeline();
+				const tl : gsap.core.Timeline = gsap.timeline();
 				cards.forEach((card : Client_Card) : void => {
-					gather.to(card.three.position, {
+					tl.to(card.three.position, {
 						x : center,
 						duration : 0.12,
 						ease : 'power1.inOut'
 					}, 0);
 				});
-				await gather.then();
+				await tl.then();
 			}
 			cards.forEach((card : Client_Card, index : number) : void => {
 				const code : number = hands[index] ?? 0;
@@ -283,10 +283,10 @@ class _Duel {
 			});
 			await Promise.all(cards.map((card : Client_Card) : Promise<void> => card.update()));
 			if (cards.length > 1) {
-				const spread : gsap.core.Timeline = gsap.timeline();
+				const tl : gsap.core.Timeline = gsap.timeline();
 				cards.forEach((card : Client_Card) : void => {
 					const axis : Axis = Axis.computed.card(card);
-					spread.to(card.three.position, {
+					tl.to(card.three.position, {
 						x : axis.x,
 						y : axis.y,
 						z : axis.z,
@@ -294,7 +294,7 @@ class _Duel {
 						ease : 'power1.inOut'
 					}, 0);
 				});
-				await spread.then();
+				await tl.then();
 			}
 			return cards;
 		}
