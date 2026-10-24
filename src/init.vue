@@ -1,6 +1,12 @@
 <template>
 	<div class = 'main'>
-		<starry-sky :stars-count = '1500' :distance = '800'/>
+		<StarrySky
+			position = 'fixed'
+			:z-index = '-1'
+			:layers = '2'
+			:density = '1'
+			:speed = '2'
+		/>
 		<Loading
 			v-model:loading = 'page.loading'
 		/>
@@ -168,9 +174,6 @@
 			display: flex;
 			justify-content: center;
 			align-items: center;
-		}
-		.starry-sky-bg {
-			background: linear-gradient(#1c1a2e, #2f2434);
 		}
 	}
 
