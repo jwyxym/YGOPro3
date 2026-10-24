@@ -59,6 +59,7 @@ export default defineConfig(async ({ mode }) => ({
 	},
 	define: {
 		__WEB__: JSON.stringify(mode === 'web'),
+		__YOLO__: loadEnv(mode, process.cwd(), 'YOLO').YOLO ?? 'true',
 		__VERSION__: JSON.stringify(version),
 		__ANDROID__: JSON.stringify(process.env.TAURI_ENV_PLATFORM === 'android'),
 		__DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),

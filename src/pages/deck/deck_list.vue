@@ -17,6 +17,7 @@
 								:loading = 'input.loading'
 							/>
 							<Button
+								v-show = 'page.yolo'
 								:content = 'mainGame.get.text(I18N_KEYS.DECK_INPUT_BY_PIC)'
 								@click = 'input.by_pic'
 								:loading = 'input.loading'
@@ -137,6 +138,7 @@
 	import { I18N_KEYS } from '@/script/language/i18n';
 
 	const page = reactive({
+		yolo : __YOLO__,
 		list : true,
 		button : 0,
 		deck : undefined as undefined | Deck,
@@ -292,11 +294,11 @@
 					gap: 40px;
 				}
 				.input {
-					margin-top: 10px;
 					width: 50%;
 					height: 100px;
 					display: flex;
 					flex-direction: column;
+					transform: translateY(10px);
 					[media = 'mobile'] & {
 						gap: 40px;
 					}
@@ -305,9 +307,16 @@
 					}
 					> div {
 						width: 100%;
-						display: flex;
-						justify-content: center;
-						gap: 30%;
+					}
+					> div:last-child {
+						display: grid;
+						grid-template-columns: 1fr 1fr 1fr;
+						[media = 'mobile'] & {
+							transform: translateX(20%);
+						}
+						> .var-button:last-child {
+							grid-column: 3;
+						}
 					}
 				}
 				.deck-list {
