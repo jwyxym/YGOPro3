@@ -1,13 +1,8 @@
 <template>
 	<main class = 'ygopro3__menu'>
 		<div>
-			<div>
-				<span>
-					{{ page.time.hour }} : {{ page.time.minute }} : {{ page.time.second }}
-				</span>
-				<span>{{ page.time.year }} - {{ page.time.month }} - {{ page.time.day }}</span>
-			</div>
-			<News/>
+			<Title/>
+			<Cards/>
 		</div>
 		<div>
 			<span
@@ -22,24 +17,15 @@
 	</main>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, onUnmounted, onBeforeMount } from 'vue';
+	import { reactive } from 'vue';
 
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
-	import News from './news.vue';
+	import Cards from './cards.vue';
+	import Title from './title.vue';
 
 	const page = reactive({
-		time : {
-			y : -1,
-			year : '',
-			month : '',
-			day : '',
-			hour : '',
-			minute : '',
-			second : '',
-			interval : null as null | number
-		},
 		select : - 1,
 		menu : __WEB__ ? [
 				I18N_KEYS.MENU_CONNECT,
@@ -100,31 +86,6 @@
 		}
 	});
 
-	onBeforeMount(async () : Promise<void> => {
-		const time = () => {
-			const now = new Date();
-			const year = now.getFullYear().toString();
-			const month = (now.getMonth() + 1).toString();
-			const day = now.getDate().toString();
-			const hour = now.getHours().toString();
-			const minute = now.getMinutes().toString();
-			const second = now.getSeconds().toString();
-			page.time.year = `${year.length > 1 ? '' : '0'}${year}`;
-			page.time.month = `${month.length > 1 ? '' : '0'}${month}`;
-			page.time.day = `${day.length > 1 ? '' : '0'}${day}`;
-			page.time.hour = `${hour.length > 1 ? '' : '0'}${hour}`;
-			page.time.minute = `${minute.length > 1 ? '' : '0'}${minute}`;
-			page.time.second = `${second.length > 1 ? '' : '0'}${second}`;
-		};
-		time();
-		page.time.interval = setInterval(time, 1000) as any as number;
-	})
-
-	onUnmounted(() => {
-		if (page.time.interval)
-			clearInterval(page.time.interval);
-	});
-
 	const emit = defineEmits<{
 		single : [];
 		server : [];
@@ -147,7 +108,6 @@
 		width: calc(var(--width) * 0.9);
 		display: flex;
 		color: white;
-		font-weight: 900;
 		> div {
 			display: flex;
 			flex-direction: column;
@@ -155,19 +115,6 @@
 		}
 		> div:first-child {
 			width: 70%;
-			> div:first-child {
-				width: 100%;
-				height: 50%;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				justify-content: center;
-				text-shadow:
-					0 0 5px aqua,
-					0 0 10px aqua,
-					0 0 20px aqua,
-					0 0 40px aqua;
-			}
 		}
 		> div:nth-child(2) {
 			width: 30%;
@@ -175,6 +122,7 @@
 			span {
 				width: 300px;
 				position: relative;
+				font-weight: 900;
 				transition: all 0.2s ease;
 				&::after {
 					transition: all 0.2s ease;

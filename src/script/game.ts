@@ -295,7 +295,7 @@ class Game {
 	};
 
 	load = {
-		pic : async (deck : Deck | Array<number | string>) : Promise<void> => {
+		pic : async (deck : Deck | Array<number | string | Card>) : Promise<void> => {
 			if (deck instanceof Deck)
 				deck = deck.main
 					.concat(
@@ -304,7 +304,7 @@ class Game {
 					);
 			const d : Array<number> = deck
 				.map(i => {
-					const c = this.get.card(i);
+					const c = i instanceof Card ? i : this.get.card(i);
 					return c.has_pic() ? 0 : c.id;
 				})
 				.filter(i => i);
