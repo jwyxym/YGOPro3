@@ -1,14 +1,14 @@
-import { fileURLToPath, URL } from 'node:url'
-import { defineConfig, loadEnv, type Rollup } from "vite";
+import { fileURLToPath, URL } from 'node:url';
+import { defineConfig, loadEnv, type ConfigEnv, type UserConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import vueJsx from '@vitejs/plugin-vue-jsx';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 
-const host = process.env.TAURI_DEV_HOST;
-const arg = (process.env.YGOPRO3_VERSION ?? '0.1.0').split('.');
-const version = `${arg[0].slice(-2)}.${Number(arg[1])}.${Number(arg[2])}`;
+const host : string | undefined = process.env.TAURI_DEV_HOST;
+const arg : Array<string> = (process.env.YGOPRO3_VERSION ?? '0.1.0').split('.');
+const version : string = `${arg[0].slice(-2)}.${Number(arg[1])}.${Number(arg[2])}`;
 
-export default defineConfig(async ({ mode }) => ({
+export default defineConfig(({ mode } : ConfigEnv) : UserConfig => ({
 	base: loadEnv(mode, process.cwd(), 'BASE_URL').BASE_URL || '/',
 	plugins: [
 		vue(), vueJsx(),
@@ -82,19 +82,20 @@ export default defineConfig(async ({ mode }) => ({
 	},
 	build: {
 		target: "esnext",
-		rollupOptions: {
+		rolldownOptions: {
 			output: {
-				assetFileNames(asset : Rollup.PreRenderedAsset) {
-					return asset.names.some(name => name.endsWith('.mjs'))
+				assetFileNames: (asset : { names : Array<string> }) : string => {
+					return asset.names.some((name : string) : boolean => name.endsWith('.mjs'))
 						? 'assets/[name]-[hash].js'
 						: 'assets/[name]-[hash][extname]';
 				},
-				manualChunks(id : string) {
-					if (
-						id.includes('node_modules')
-						&& (id.endsWith('.js') || id.endsWith('.ts'))) {
-						return 'vendor';
-					}
+				codeSplitting: {
+					groups: [
+						{
+							name: 'vendor',
+							test: /[\\/]node_modules[\\/]/,
+						},
+					],
 				}
 			}
 		}
