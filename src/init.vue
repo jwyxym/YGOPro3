@@ -31,7 +31,9 @@
 				@exit = 'page.select.menu'
 			/>
 			<YGOMenu
-				v-if = 'page.show.menu'
+				v-if = 'page.ready'
+				v-show = 'page.show.menu'
+				:active = 'page.show.menu'
 				@deck = 'page.select.deck'
 				@card = 'page.select.card'
 				@single = 'page.select.single'
@@ -61,6 +63,7 @@
 
 	const page = reactive({
 		loading : false,
+		ready : false,
 		duel : {
 			model : 0 as 0 | 1 | 2
 		},
@@ -135,6 +138,7 @@
 
 	onMounted(async () : Promise<void> => {
 		if (await mainGame.init()) {
+			page.ready = true;
 			page.show.menu = true;
 			landscape.to();
 		}

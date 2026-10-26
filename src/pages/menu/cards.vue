@@ -2,13 +2,18 @@
 	<canvas ref = 'canvas'/>
 </template>
 <script setup lang = 'ts'>
-	import { onMounted, onUnmounted, useTemplateRef, type TemplateRef } from 'vue';
+	import { onMounted, onUnmounted, watch, useTemplateRef, type TemplateRef } from 'vue';
 	import Matter from 'matter-js';
 
 	import mainGame from '@/script/game';
 	import Card from '@/script/card';
 
 	const canvas : TemplateRef<HTMLCanvasElement> = useTemplateRef('canvas');
+	const props = withDefaults(defineProps<{
+		active ?: boolean;
+	}>(), {
+		active : true
+	});
 
 	const page = {
 		width : 800,
@@ -19,6 +24,8 @@
 		spawn_interval : 50,
 		spawn_timer : undefined as number | undefined,
 		pending_images : [] as Array<HTMLImageElement>,
+		ready : false,
+		running : false,
 		engine : Matter.Engine.create(),
 		runner : Matter.Runner.create(),
 		render : undefined as Matter.Render | undefined,
@@ -88,7 +95,7 @@
 		},
 		spawn_next : function () : void {
 			this.spawn_timer = undefined;
-			if (!this.render)
+			if (!this.render || !this.running)
 				return;
 			const image : HTMLImageElement | undefined = this.pending_images.shift();
 			if (!image)
@@ -108,6 +115,28 @@
 			Matter.Composite.add(this.engine.world, body);
 			if (this.pending_images.length)
 				this.spawn_timer = window.setTimeout(() : void => this.spawn_next(), this.spawn_interval);
+		},
+		resume : function () : void {
+			if (!props.active || !this.ready || !this.render || this.running)
+				return;
+			this.running = true;
+			this.sync_mouse();
+			Matter.Runner.run(this.runner, this.engine);
+			Matter.Render.run(this.render);
+			if (this.pending_images.length)
+				this.spawn_timer = window.setTimeout(() : void => this.spawn_next(), this.spawn_interval);
+		},
+		pause : function () : void {
+			this.running = false;
+			if (this.spawn_timer !== undefined)
+				window.clearTimeout(this.spawn_timer);
+			this.spawn_timer = undefined;
+			this.release();
+			if (this.mouse)
+				Matter.Mouse.clearSourceEvents(this.mouse);
+			Matter.Runner.stop(this.runner);
+			if (this.render)
+				Matter.Render.stop(this.render);
 		},
 		init : async function () : Promise<void> {
 			if (!canvas.value)
@@ -166,7 +195,7 @@
 				Matter.Bodies.rectangle(this.width + this.wall_size / 2, this.height / 2, this.wall_size, this.height + this.wall_size * 2, wall_options)
 			];
 
-			const cards : Array<HTMLImageElement> = (await this.cards(50)).map((card : Card) : HTMLImageElement => {
+			const cards : Array<HTMLImageElement> = (await this.cards(30)).map((card : Card) : HTMLImageElement => {
 				const image : HTMLImageElement = new Image();
 				image.src = card.pic;
 				return image;
@@ -176,19 +205,15 @@
 				return;
 
 			Matter.Composite.add(this.engine.world, [ground, ...walls]);
-			Matter.Runner.run(this.runner, this.engine);
-			Matter.Render.run(this.render);
 			this.pending_images = cards;
-			this.spawn_next();
+			this.ready = true;
+			this.resume();
 		},
 		clear : function () : void {
-			if (this.spawn_timer !== undefined)
-				window.clearTimeout(this.spawn_timer);
-			this.spawn_timer = undefined;
+			this.pause();
+			this.ready = false;
 			this.pending_images = [];
-			Matter.Runner.stop(this.runner);
 			if (this.render) {
-				Matter.Render.stop(this.render);
 				this.render.canvas.removeEventListener('pointerdown', this.pointer_down);
 				this.render.canvas.removeEventListener('pointermove', this.sync_mouse);
 				this.render.canvas.removeEventListener('lostpointercapture', this.release);
@@ -209,6 +234,10 @@
 
 	onMounted(() : Promise<void> => page.init());
 	onUnmounted(() : void => page.clear());
+	watch(() : boolean => props.active,
+		(active : boolean) : void => active ? page.resume() : page.pause(),
+		{ flush : 'post' }
+	);
 </script>
 <style scoped lang = 'scss'>
 	canvas {

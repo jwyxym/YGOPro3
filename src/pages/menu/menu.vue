@@ -2,7 +2,7 @@
 	<main class = 'ygopro3__menu'>
 		<div>
 			<Title/>
-			<Cards/>
+			<Cards :active = 'active'/>
 		</div>
 		<div>
 			<span
@@ -24,6 +24,12 @@
 
 	import Cards from './cards.vue';
 	import Title from './title.vue';
+
+	const props = withDefaults(defineProps<{
+		active ?: boolean;
+	}>(), {
+		active : true
+	});
 
 	const page = reactive({
 		select : - 1,
