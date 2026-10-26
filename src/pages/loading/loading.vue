@@ -42,22 +42,20 @@
 	});
 
 	onBeforeMount(async () => {
-		if (!__WEB__) {
-			page.funcs.push(await listen.start((all : number) => {
-				page.all = all;
-				page.now = 0;
-				page.show.value = true;
-			}));
-			page.funcs.push(await listen.progress((progress : number) => page.now += progress));
-			page.funcs.push(await listen.end(async () => {
-				page.now = page.all;
-				page.show.value = false;
-				await mainGame.sleep(100);
-				page.all = 0;
-				page.now = 0;
-			}));
-			page.funcs.push(await listen.debug(invoke.log.write));
-		}
+		page.funcs.push(await listen.start((all : number) => {
+			page.all = all;
+			page.now = 0;
+			page.show.value = true;
+		}));
+		page.funcs.push(await listen.progress((progress : number) => page.now += progress));
+		page.funcs.push(await listen.end(async () => {
+			page.now = page.all;
+			page.show.value = false;
+			await mainGame.sleep(100);
+			page.all = 0;
+			page.now = 0;
+		}));
+		page.funcs.push(await listen.debug(invoke.log.write));
 	});
 
 	onUnmounted(() => {
@@ -69,7 +67,7 @@
 	.loading {
 		position: relative;
 		opacity: var(--opacity);
-		transition: all 0.1s ease;
+		transition: opacity 0.1s ease;
 		color: white;
 		z-index: 11;
 		user-select: none;

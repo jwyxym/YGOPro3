@@ -5,7 +5,14 @@ import { PHASE } from '@/pages/duel/ygo-protocol/network';
 
 class _Phase {
 	element : HTMLDivElement | null = null;
-	set_element = (el : HTMLDivElement | null) => this.element = el;
+	animation : Animation | undefined = undefined;
+	set_element = (el : HTMLDivElement | null) : void => {
+		if (this.element === el)
+			return;
+		this.animation?.cancel();
+		this.animation = undefined;
+		this.element = el;
+	};
 	map = new Map([
 		[PHASE.NONE, mainGame.get.text(I18N_KEYS.DUEL_PHASE_NEW)],
 		[PHASE.DRAW, mainGame.get.text(I18N_KEYS.DUEL_PHASE_DRAW)],
@@ -15,14 +22,30 @@ class _Phase {
 		[PHASE.MAIN2, mainGame.get.text(I18N_KEYS.DUEL_PHASE_MAIN2)],
 		[PHASE.END, mainGame.get.text(I18N_KEYS.DUEL_PHASE_END)],
 	]);
-	on = async (tp : 0 | 1, phase : number) => {
-		if (!this.element) return;
-		this.element.innerText = this.map.get(phase) ?? '';
-		this.element.style.background = `linear-gradient(to right, ${tp ? 'red' : 'blue'}, transparent)`;
-		this.element.style.width = '1000px';
-		await mainGame.sleep(250);
-		this.element.style.width = '0';
-		await mainGame.sleep(150);
+	on = async (tp : 0 | 1, phase : number) : Promise<void> => {
+		const element : HTMLDivElement | null = this.element;
+		if (!element) return;
+		this.animation?.cancel();
+		element.textContent = this.map.get(phase) ?? '';
+		element.style.background = `linear-gradient(to right, ${tp ? 'red' : 'blue'}, transparent)`;
+		const animation : Animation = element.animate([
+			{ opacity : 0, visibility : 'visible', transform : 'translate(-50%, calc(-50% + 12px))', offset : 0 },
+			{ opacity : 1, visibility : 'visible', transform : 'translate(-50%, -50%)', offset : 0.375 },
+			{ opacity : 1, visibility : 'visible', transform : 'translate(-50%, -50%)', offset : 0.625 },
+			{ opacity : 0, visibility : 'visible', transform : 'translate(-50%, calc(-50% - 12px))', offset : 1 }
+		], {
+			duration : 400,
+			easing : 'ease-in-out'
+		});
+		this.animation = animation;
+		try {
+			await animation.finished;
+		} catch {} finally {
+			if (this.animation === animation) {
+				animation.cancel();
+				this.animation = undefined;
+			}
+		}
 	};
 };
 
@@ -33,7 +56,10 @@ const Phase = defineComponent({
 		return () => <div
 			ref = {(el) => phase.set_element(el as HTMLDivElement | null)}
 			style = {{
-				'width' : '0',
+				'width' : '1000px',
+				'opacity' : '0',
+				'visibility' : 'hidden',
+				'pointer-events' : 'none',
 				'color' : 'white',
 				'position' : 'fixed',
 				'left' : '50%',
@@ -48,8 +74,7 @@ const Phase = defineComponent({
 				'justify-items' : 'center',
 				'align-content' : 'center',
 				'align-items' : 'center',
-				'overflow-x' : 'hidden',
-				'transition' : 'width 0.15s ease'
+				'white-space' : 'nowrap'
 			}}
 		>
 		</div>;

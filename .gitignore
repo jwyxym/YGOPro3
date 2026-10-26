@@ -40,3 +40,4 @@ src-tauri/*.dylib
 src-tauri/gen
 src-tauri/target
 kotlin/jniLibs
+.env.web

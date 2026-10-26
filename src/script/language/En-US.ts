@@ -23,6 +23,7 @@ En_US[I18N_KEYS.RULE_NAME_EXIST] = 'Deck already exists';
 
 En_US[I18N_KEYS.START_TITLE] = 'Game Resource Error';
 En_US[I18N_KEYS.START_MESSAGE] = 'Click OK to exit the game';
+En_US[I18N_KEYS.START_LANDSCAPE] = 'Click to enter full screen';
 
 En_US[I18N_KEYS.MENU_SINGLE] = 'SOLO';
 En_US[I18N_KEYS.MENU_CONNECT] = 'ONLINE';
@@ -208,6 +209,7 @@ En_US[I18N_KEYS.SETTING_DOWNLOAD_LEN] = 'URL cannot be empty';
 En_US[I18N_KEYS.SETTING_RULE_NAME_UNLAWFUL] = 'Invalid File Name';
 En_US[I18N_KEYS.SETTING_I18N] = 'Game Language';
 En_US[I18N_KEYS.SETTING_FRAME] = 'Game Frame Rate';
+En_US[I18N_KEYS.SETTING_FRAME_UNLIMITED] = 'Unlimited Frame Rate';
 En_US[I18N_KEYS.SETTING_AUTHOR_DESCRIPTION] = 'Author of YGOPro3';
 En_US[I18N_KEYS.SETTING_CONTRIBUTOR_DESCRIPTION] = 'Contributors to YGOPro3';
 En_US[I18N_KEYS.SETTING_BGM_DESCRIPTION] = 'YGOPro3 uses a music pack created by [Crow Producer]';

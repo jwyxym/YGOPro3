@@ -179,7 +179,7 @@ class Protocol {
 					card.clear.self();
 					return [];
 				}
-				if ((card.pos & POS.FACEDOWN) || !(card.location & LOCATION.HAND) || card.owner)
+				if (card.id !== code)
 					result.push([card, code]);
 			}
 			if (flag & QUERY.POSITION) {
@@ -191,6 +191,10 @@ class Protocol {
 						? POS.FACEUP_ATTACK
 						: POS.FACEDOWN_ATTACK
 					);
+				else if (card.location === LOCATION.HAND)
+					card.set.public(!!(pos & POS.FACEUP));
+				else
+					card.set.pos(pos);
 			}
 			if (flag & QUERY.ALIAS) {
 				const alias = msg.read.int32();
@@ -730,6 +734,8 @@ class Protocol {
 				return;
 			msg.index ++;
 			connect.duel.is_first = !(playertype & 0xf);
+			if (playertype & 0xf0)
+				connect.wait.self.position = 7;
 			const players = (() => {
 				const p = connect.wait.self.position > 3 ? 0 : connect.wait.self.position;
 				if (connect.wait.info.mode & 2) {
@@ -1296,7 +1302,7 @@ class Protocol {
 			const tp = msg.read.uint8();
 			const ct = Math.max(msg.read.uint8() ?? 1, 1);
 			const data = ~ (msg.read.int32() ?? 0);
-			const place = tp === this.to.player(0) ? data : (data >> 16) | (data << 16);
+			const place : number = tp === this.to.player(0) ? data : (data >>> 16) | (data << 16);
 			const plaids = duel.get.plaids()
 				.filter(i => i.data & place)
 				.sort((x, y) => x.owner - y.owner || x.seq - y.seq);
@@ -1881,6 +1887,8 @@ class Protocol {
 				}
 			}
 			if (card) {
+				if (to.loc === LOCATION.HAND)
+					card.set.public(!!(to.pos! & POS.FACEUP));
 				history.push(HISTORY.MOVE, {
 					self : !from.tp,
 					cards : [{
@@ -1974,11 +1982,9 @@ class Protocol {
 		[MSG.FIELD_DISABLED, async (msg : Msg) => {
 			const data = msg.read.int32();
 			if (data === undefined) return;
-			const place = connect.duel.is_first ? data : (data >> 16) | (data << 16);
-			const pre_plaids = duel.get.plaids().filter(i => i.forbbiden);
-			const plaids = duel.get.plaids().filter(i => i.data & place);
-			await Promise.all(lodash.xor(pre_plaids, plaids)
-				.map(i => i.set.forbbiden())
+			const place : number = connect.duel.is_first ? data : (data >>> 16) | (data << 16);
+			await Promise.all(duel.get.plaids()
+				.map((plaid : Plaid) : Promise<void> => plaid.set.forbbiden(!!(plaid.data & place)))
 			);
 		}],
 		[MSG.SUMMONING, async (msg : Msg) => {

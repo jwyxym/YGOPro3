@@ -40,6 +40,8 @@
                 <data android:pathPattern=".*\\.YRP" />
                 <data android:pathPattern=".*\\.yrp3d" />
                 <data android:pathPattern=".*\\.YRP3D" />
+                <data android:pathPattern=".*\\.conf" />
+                <data android:pathPattern=".*\\.CONF" />
             </intent-filter>
         </activity>
 

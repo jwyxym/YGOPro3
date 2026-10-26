@@ -10,11 +10,13 @@
 							@enter = 'input.confirm'
 							v-model = 'input.value'
 						/>
-						<Button
-							:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
-							@click = 'input.confirm'
-							:loading = 'input.loading'
-						/>
+						<div>
+							<Button
+								:content = 'mainGame.get.text(I18N_KEYS.CONFIRM)'
+								@click = 'input.confirm'
+								:loading = 'input.loading'
+							/>
+						</div>
 					</div>
 					<RecycleScroller
 						class = 'card-list no-scrollbar'
@@ -223,26 +225,27 @@
 				[media = 'mobile'] & {
 					gap: 40px;
 				}
+				
 				.input {
+					width: 50%;
 					height: 100px;
-					margin-top: 10px;
-					width: 100%;
 					display: flex;
+					flex-direction: column;
+					transform: translateY(10px);
 					[media = 'mobile'] & {
-						flex-direction: column;
-						gap: 30px;
-						.var-button {
-							width: 10%;
-						}
-						.var-input {
-							width: calc(60%);
-						}
+						gap: 40px;
 					}
 					[media = 'pc'] & {
 						gap: 10px;
-						align-items: center;
-						.var-input {
-							width: calc(75% - 10px);
+					}
+					> div {
+						width: 100%;
+					}
+					> div:last-child {
+						display: grid;
+						grid-template-columns: 1fr 1fr 1fr;
+						[media = 'mobile'] & {
+							transform: translateX(20%);
 						}
 					}
 				}

@@ -4,8 +4,12 @@ class Http {
 	private cache : Map<string, any> = new Map();
 	private pending : Map<string, Promise<any>> = new Map();
 
-	get = async <T>(url : string, encoding : 'json' | 'text' | 'blob' | 'arrayBuffer' = 'json') : Promise<T> => {
-		const key = JSON.stringify([url, encoding]);
+	get = async <T>(
+		url : string,
+		encoding : 'json' | 'text' | 'blob' | 'arrayBuffer' = 'json',
+		headers ?: HeadersInit
+	) : Promise<T> => {
+		const key = JSON.stringify([url, encoding, headers]);
 		if (this.cache.has(key))
 			return this.cache.get(key)!;
 		const pending = this.pending.get(key);
@@ -13,7 +17,7 @@ class Http {
 			return pending as Promise<T>;
 
 		const request = (async () : Promise<T> => {
-			const response = await fetch(url);
+			const response = await fetch(url, { headers });
 			const data : T = await response[encoding]();
 			this.cache.set(key, data);
 			return data;

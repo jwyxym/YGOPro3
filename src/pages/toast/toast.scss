@@ -25,13 +25,17 @@
 		}
 		> div {
 			position: absolute;
-			transition: all 0.2s ease;
+			transition: transform 0.2s ease;
 			top: 0;
 			left: 0;
 			width: 100%;
 			min-height: 70px;
 			background: rgba(255, 255, 255, 0.3);
 			backdrop-filter: blur(10px);
+			[media = 'mobile'] & {
+				backdrop-filter: none;
+				background: rgba(45, 45, 45, 0.9);
+			}
 			box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 			border-radius: 10px;
 			display: flex;
@@ -62,18 +66,20 @@
 			}
 			&::before {
 				position: absolute;
-				transition: all var(--time) linear;
+				transition: transform var(--time) linear;
 				content: '';
 				width: 100%;
 				height: 3px;
 				left: 0;
 				bottom: 0;
+				transform: scaleX(1);
+				transform-origin: left center;
 			}
 		}
 		.show {
 			transform: translate(-20px, var(--top));
 			&::before {
-				width: 0;
+				transform: scaleX(0);
 			}
 		}
 		.unshow, .leave {

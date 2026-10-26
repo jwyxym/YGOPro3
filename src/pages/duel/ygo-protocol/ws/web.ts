@@ -1,5 +1,6 @@
 import Msg from '@/pages/duel/ygo-protocol/msg';
 import Socket from '@/pages/duel/ygo-protocol/socket';
+import { toast } from '@/pages/toast/toast';
 
 class Ws extends Socket {
 	ws ?: WebSocket;
@@ -13,6 +14,10 @@ class Ws extends Socket {
 		ad = ad as string;
 		if (this.ws)
 			throw Error('webscoket is connected');
+		const close = async () => {
+			await this.on_disconnect?.();
+			this.ws = undefined;
+		};
 		this.ws = new WebSocket(ad);
 		this.ws.binaryType = 'arraybuffer';
 		this.ws.onopen = () => this.queue.start();
@@ -31,12 +36,11 @@ class Ws extends Socket {
 				);
 			}
 		};
-		this.ws.onclose = () => this.queue.add(
-			async () => {
-				await this.on_disconnect?.();
-				this.ws = undefined;
-			}
-		);
+		this.ws.onclose = () => this.queue.add(close);
+		this.ws.onerror = () => {
+			toast.error('webscoket connect error');
+			close();
+		};
 	});
 
 	send = async (msg : Msg) => this.ws?.send(msg.buffer().buffer as ArrayBuffer);

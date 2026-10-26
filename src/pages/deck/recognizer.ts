@@ -1,6 +1,4 @@
-import { createYGOPicRecognizer, type YGOPicRecognizer } from 'ygopic-best';
-import WASM_URL from 'ygopic-best/core-wasm/core_wasm_bg.wasm?url';
-import MODEL_URL from 'ygopic-best/onnx?url';
+import { type YGOPicRecognizer } from 'ygopic-best';
 
 import Deck from './deck';
 
@@ -10,13 +8,24 @@ import mainGame from '@/script/game';
 class Pic_Recognizer {
 	private recognizer ?: YGOPicRecognizer;
 	init = async (hash : ArrayBuffer) : Promise<void> => {
+		if (__YOLO__) {
 		if (this.recognizer) return;
-		this.recognizer = await createYGOPicRecognizer({
-			modelUrl : MODEL_URL,
-			hashDb : hash,
-			wasmPath : WASM_URL,
-			ortNumThreads : 1
-		});
+			const [
+				{ createYGOPicRecognizer },
+				{ default : WASM_URL },
+				{ default : MODEL_URL }
+			] = await Promise.all([
+				import('ygopic-best'),
+				import('ygopic-best/core-wasm/core_wasm_bg.wasm?url'),
+				import('ygopic-best/onnx?url')
+			])
+			this.recognizer = await createYGOPicRecognizer({
+				modelUrl : MODEL_URL,
+				hashDb : hash,
+				wasmPath : WASM_URL,
+				ortNumThreads : 1
+			});
+		}
 	};
 
 	on = async (file : string | Blob) : Promise<Deck> => {

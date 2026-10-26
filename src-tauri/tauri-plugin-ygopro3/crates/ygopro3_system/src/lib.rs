@@ -126,7 +126,7 @@ impl System {
 			
 		self.number
 			.entry(String::from("CT_FRAME"))
-			.or_insert(60.0);
+			.or_insert(0.0);
 		self.number
 			.entry(String::from("CT_CARD"))
 			.or_insert(3.0);

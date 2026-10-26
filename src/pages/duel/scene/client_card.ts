@@ -40,6 +40,7 @@ class Client_Card {
 	overlay : number;
 	overlays : Array<Client_Card>;
 	status : number;
+	is_public : boolean = false;
 	equip ?: Client_Card;
 	chain : number;
 	activatable : Map<number, Array<{ desc ?: number; index : number; }>>;
@@ -101,23 +102,20 @@ class Client_Card {
 			const dom = document.createElement('div');
 			dom.classList.add('ygopro3__duel__card', 'font-atk');
 			dom.appendChild(this.init.img(mainGame.back.pic));
-			dom.appendChild(this.init.atk());
-			dom.appendChild(this.init.info());
-			dom.appendChild(this.init.counter());
 			setTimeout(() => dom.classList.add('show'), 0);
 			return new CSS.CSS3DObject(dom);
 		},
 		img : (src : string) : HTMLDivElement => {
-			const div = document.createElement('div');
+			const div : HTMLCardsElement = document.createElement('div') as HTMLCardsElement;
 			div.classList.add('ygopro3__duel__card__img');
-			div.style.backgroundImage = `url("${src}")`;
-			const chain = document.createElement('div');
-			chain.classList.add('ygopro3__duel__card__chain');
-			chain.appendChild(document.createElement('span'));
-			div.appendChild(chain);
-			const boder = document.createElement('div');
-			boder.classList.add('ygopro3__duel__card__border');
-			div.appendChild(boder);
+			Object.defineProperty(div, 'src', {
+				get : () : string => div.style.backgroundImage.match(REG.URL)?.[1] ?? mainGame.unknown.pic,
+				set : (value : string) : void => {
+					if (div.style.backgroundImage.match(REG.URL)?.[1] !== value)
+						div.style.backgroundImage = `url("${value}")`;
+				}
+			});
+			div.src = src;
 			return div;
 		},
 		atk : () : HTMLDivElement => {
@@ -127,26 +125,8 @@ class Client_Card {
 			return child;
 		},
 		info : () : HTMLDivElement => {
-			const child = document.createElement('div');
+			const child : HTMLDivElement = document.createElement('div');
 			child.classList.add('ygopro3__duel__card__info');
-			for (const i of [
-				KEYS.LINK,
-				KEYS.RANK,
-				KEYS.OVERLAY,
-				KEYS.SCALE,
-				KEYS.TUNER,
-				KEYS.LEVEL
-			]) {
-				const div = document.createElement('div');
-				div.classList.add(i);
-				const img = document.createElement('img');
-				img.src = mainGame.get.textures(KEYS.INFO, i) as string;
-				div.appendChild(img);
-				const span = document.createElement('span');
-				span.innerText = '';
-				div.appendChild(span);
-				child.appendChild(div);
-			}
 			return child;
 		},
 		counter : () : HTMLDivElement => {
@@ -156,27 +136,72 @@ class Client_Card {
 		}
 	};
 
+	detail = {
+		elements : new Map() as Map<'atk' | 'info' | 'counter', HTMLDivElement>,
+		get : (key : 'atk' | 'info' | 'counter') : HTMLDivElement => {
+			const existing : HTMLDivElement | undefined = this.detail.elements.get(key);
+			if (existing)
+				return existing;
+			const element : HTMLDivElement = this.init[key]();
+			this.three.element.appendChild(element);
+			this.detail.elements.set(key, element);
+			return element;
+		},
+		show : (key : 'atk' | 'info' | 'counter', show : boolean) : void => {
+			const element : HTMLDivElement | undefined = show
+				? this.detail.get(key)
+				: this.detail.elements.get(key);
+			element?.classList.toggle('show', show);
+		}
+	}
+
 	get = {
+		hand_pos : () : number => {
+			const own_hand : boolean = this.owner === 0 && connect.wait.self.position <= 3;
+			const visible : boolean = !!this.id && (this.is_public || own_hand || connect.protocol?.kind === 'replay');
+			return visible ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK;
+		},
 		el : {
-			img : () : HTMLCardsElement => {
-				const el : HTMLCardsElement = this.three.element.children[0] as HTMLCardsElement;
-				Object.defineProperty(el, 'src', {
-					get () {
-						return this.style.backgroundImage.match(REG.URL)?.[1] ?? mainGame.unknown.pic;
-					},
-					set (src : string) {
-						this.style.backgroundImage = `url("${src}")`;
-					},
-					configurable : true
-				});
-				return el;
+			img : () : HTMLCardsElement => this.three.element.children[0] as HTMLCardsElement,
+			chain : () : HTMLDivElement => {
+				const img : HTMLCardsElement = this.get.el.img();
+				const existing : HTMLDivElement | null = img.querySelector('.ygopro3__duel__card__chain');
+				if (existing)
+					return existing;
+				const chain : HTMLDivElement = document.createElement('div');
+				chain.classList.add('ygopro3__duel__card__chain');
+				chain.appendChild(document.createElement('span'));
+				img.appendChild(chain);
+				return chain;
 			},
-			chain : () : HTMLDivElement => this.three.element.children[0].children[0] as HTMLDivElement,
-			border : () : HTMLDivElement => this.three.element.children[0].children[1] as HTMLDivElement,
-			atk : () : HTMLDivElement => this.three.element.children[1] as HTMLDivElement,
-			info : (query ?: string) : HTMLDivElement => query ? this.get.el.info().querySelector('.' + query) as HTMLDivElement
-				: this.three.element.children[2] as HTMLDivElement,
-			counter : () : HTMLDivElement => this.three.element.children[3] as HTMLDivElement
+			border : () : HTMLDivElement => {
+				const img : HTMLCardsElement = this.get.el.img();
+				const existing : HTMLDivElement | null = img.querySelector('.ygopro3__duel__card__border');
+				if (existing)
+					return existing;
+				const border : HTMLDivElement = document.createElement('div');
+				border.classList.add('ygopro3__duel__card__border');
+				img.appendChild(border);
+				return border;
+			},
+			atk : () : HTMLDivElement => this.detail.get('atk'),
+			info : (query ?: string) : HTMLDivElement => {
+				const container : HTMLDivElement = this.detail.get('info');
+				if (!query)
+					return container;
+				const existing : HTMLDivElement | null = container.querySelector('.' + query);
+				if (existing)
+					return existing;
+				const item : HTMLDivElement = document.createElement('div');
+				const img : HTMLImageElement = document.createElement('img');
+				item.classList.add(query);
+				img.src = mainGame.get.textures(KEYS.INFO, query) as string;
+				item.appendChild(img);
+				item.appendChild(document.createElement('span'));
+				container.appendChild(item);
+				return item;
+			},
+			counter : () : HTMLDivElement => this.detail.get('counter')
 		},
 		activate : (key : string) : Array<{ desc ?: number; index : number; }> => {
 			switch (key) {
@@ -230,12 +255,16 @@ class Client_Card {
 			return this;
 		},
 		location : (location : number) : Client_Card => {
+			if (this.location !== location)
+				this.is_public = false;
 			this.need_change.loc = this.need_change.loc || this.location !== location;
+			this.need_change.type = this.need_change.type || this.location !== location;
 			this.location = location;
 			return this;
 		},
 		seq : (seq : number) : Client_Card => {
 			this.need_change.loc = this.need_change.loc || this.seq !== seq;
+			this.need_change.type = this.need_change.type || this.seq !== seq;
 			this.seq = seq;
 			return this;
 		},
@@ -316,6 +345,10 @@ class Client_Card {
 			this.status = status;
 			return this;
 		},
+		public : (value : boolean) : Client_Card => {
+			this.is_public = value;
+			return this;
+		},
 		equip : (c : Client_Card) : Client_Card => {
 			this.equip = c;
 			return this;
@@ -329,15 +362,16 @@ class Client_Card {
 
 	update = async () : Promise<void> => {
 		const status = async () : Promise<void> => {
-			if (!this.need_change.status)
-				return;
 			this.need_change.status = false;
-			const img = this.get.el.img();
-			if (!this.status && img.classList.contains('forbbiden'))
-				img.classList.remove('forbbiden');
-			else if (this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
-				img.classList.add('forbbiden');
-			await mainGame.sleep(200);
+			const img : HTMLCardsElement = this.get.el.img();
+			const invalid : boolean = !!(this.status & (STATUS.DISABLED | STATUS.FORBIDDEN))
+				&& !!(this.location & LOCATION.ONFIELD)
+				&& !(this.location & LOCATION.OVERLAY)
+				&& !!(this.pos & POS.FACEUP);
+			if (img.classList.contains('forbbiden') !== invalid) {
+				img.classList.toggle('forbbiden', invalid);
+				await mainGame.sleep(200);
+			}
 		}
 		const activate = async () : Promise<void> => {
 			if (!this.need_change.activate)
@@ -381,6 +415,15 @@ class Client_Card {
 		const counter = () : gsap.core.Timeline | void => {
 			if (!this.need_change.counter) return;
 			this.need_change.counter = false;
+			const has_counter : boolean = Array.from(this.counter.values()).some((count : number) : boolean => count > 0);
+			if (!has_counter && !this.detail.elements.has('counter'))
+				return;
+			const container : HTMLDivElement = this.get.el.counter();
+			if (!has_counter) {
+				gsap.killTweensOf(Array.from(container.querySelectorAll('*')));
+				container.replaceChildren();
+				return;
+			}
 			const tl = gsap.timeline();
 			const create_counter = (counter : number) => {
 				const div = document.createElement('div');
@@ -395,13 +438,15 @@ class Client_Card {
 
 				div.appendChild(img);
 				div.appendChild(span);
-				this.get.el.counter().appendChild(div);
+				container.appendChild(div);
 				return div;
 			}
 			let v = - 1;
 			for (const [counter, ct] of this.counter) {
-				const el : HTMLElement = this.get.el.counter().querySelector(`.COUNTER${counter}`)
-					?? create_counter(counter);
+				const existing : HTMLElement | null = container.querySelector(`.COUNTER${counter}`);
+				if (!ct && !existing)
+					continue;
+				const el : HTMLElement = existing ?? create_counter(counter);
 				const text = ct.toString();
 				const span = el.querySelector('span')!;
 				if (ct) {
@@ -548,7 +593,9 @@ class Client_Card {
 			return tl;
 		};
 		const atk = () : gsap.core.Timeline | void => {
-			const atk = this.get.el.atk();
+			const atk : HTMLDivElement | undefined = this.detail.elements.get('atk');
+			if (!atk?.classList.contains('show'))
+				return;
 			const obj = {
 				atk : Math.max(this.atk, 0),
 				def : Math.max(this.def, 0)
@@ -576,7 +623,7 @@ class Client_Card {
 			return;
 		};
 		const type = () : gsap.core.Timeline | void => {
-			if (!this.need_change.type) return;
+			if (!this.need_change.type || !this.detail.elements.get('info')?.classList.contains('show')) return;
 			this.need_change.type = false;
 			const elements : Array<HTMLDivElement> = [];
 			if (this.type & TYPE.LINK) {
@@ -627,34 +674,30 @@ class Client_Card {
 		const chain = async () : Promise<void> => {
 			if (!this.need_change.chain) return;
 			this.need_change.chain = false;
-			const chain = this.get.el.chain();
-			const span = chain.children[0] as HTMLSpanElement;
 			if (this.chain) {
-				span.innerText = this.chain.toString();
+				const chain : HTMLDivElement = this.get.el.chain();
+				const span : HTMLSpanElement = chain.children[0] as HTMLSpanElement;
+				span.textContent = this.chain.toString();
 				chain.classList.add('show');
 			} else {
-				span.innerText = '';
-				chain.classList.remove('show');
+				const chain : HTMLDivElement | null = this.get.el.img().querySelector('.ygopro3__duel__card__chain');
+				if (chain) {
+					chain.children[0].textContent = '';
+					chain.classList.remove('show');
+				}
 			}
 			return await mainGame.sleep(100);
 		};
-		if (this.pos & POS.FACEUP
+		const onfield : boolean = !!(this.pos & POS.FACEUP
 			&& (this.location & LOCATION.ONFIELD)
 			&& !(this.location & LOCATION.OVERLAY)
-		) {
-			if (this.location === LOCATION.MZONE)
-				this.get.el.atk().classList.add('show');
-			if (this.location === LOCATION.MZONE
-				|| ((this.location & (LOCATION.SZONE | LOCATION.PZONE))
-					&& (this.type & TYPE.PENDULUM))
-			)
-				this.get.el.info().classList.add('show');
-			this.get.el.counter().classList.add('show');
-		} else {
-			this.get.el.info().classList.remove('show');
-			this.get.el.atk().classList.remove('show');
-			this.get.el.counter().classList.remove('show');
-		}
+		);
+		const show_info : boolean = onfield && (this.location === LOCATION.MZONE
+			|| !!((this.location & (LOCATION.SZONE | LOCATION.PZONE)) && (this.type & TYPE.PENDULUM)));
+		const show_counter : boolean = onfield && Array.from(this.counter.values()).some((count : number) : boolean => count > 0);
+		this.detail.show('atk', onfield && this.location === LOCATION.MZONE);
+		this.detail.show('info', show_info);
+		this.detail.show('counter', show_counter);
 		const run = async () => {
 			const tls = [
 				owner(),
@@ -673,11 +716,8 @@ class Client_Card {
 		};
 		if (this.clicked && !(this.location & LOCATION.HAND))
 			this.click.img();
-		if (this.location & LOCATION.HAND)
-			if ((this.pos & POS.FACEDOWN) && this.id)
-				this.set.pos(POS.FACEUP_ATTACK);
-			else if ((this.pos & POS.FACEUP) && !this.id)
-				this.set.pos(POS.FACEDOWN_ATTACK);
+		if (this.location === LOCATION.HAND)
+			this.set.pos(this.get.hand_pos());
 		await Promise.all([
 			run(),
 			activate(),
@@ -689,6 +729,7 @@ class Client_Card {
 	clear = {
 		self : () : Client_Card => {
 			this.id = 0;
+			this.is_public = false;
 			this.card = undefined;
 			this.alias = 0;
 			this.type = 0;

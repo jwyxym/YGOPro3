@@ -114,7 +114,11 @@
 						}
 					}
 					> .disable {
-						box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.6)
+						box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.6);
+						[media = 'mobile'] & {
+							box-shadow: none;
+							background-color: rgba(0, 255, 255, 0.2);
+						}
 					}
 				}
 				.var-radio {

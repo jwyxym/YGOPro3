@@ -2,8 +2,12 @@ $boder-color: #9ed3ff;
 .ygopro3__duel {
 	.ygopro3__duel__scene {
 		opacity: 0;
-		transition: all 0.5s ease;
+		transition: opacity 0.5s ease;
 		transform: translateX(80px);
+		[media = 'mobile'] & {
+			opacity: 1;
+			transition: none;
+		}
 		.ygopro3__duel__btn {
 			position: relative;
 			width: var(--height);
@@ -26,7 +30,7 @@ $boder-color: #9ed3ff;
 			}
 			> span {
 				opacity: 0;
-				transition: all 0.1s ease;
+				transition: opacity 0.1s ease;
 				&.show {
 					opacity: 1;
 				}
@@ -37,52 +41,112 @@ $boder-color: #9ed3ff;
 			position: relative;
 			&.turn_self {
 				box-shadow: 0 0 15px $boder-color;
+				[media = 'mobile'] & {
+					box-shadow: none;
+					outline: 1px solid $boder-color;
+				}
 			}
 			&.turn_oppo {
 				box-shadow: 0 0 15px red;
+				[media = 'mobile'] & {
+					box-shadow: none;
+					outline: 1px solid red;
+				}
 			}
-			&.turn_self::after {
-				background: conic-gradient(
-					from var(--angle),
-					$boder-color,
-					#d8f2ff,
-					#00d5ff,
-					#5f9cff,
-					$boder-color
-				);
+			&.turn_self {
+				--duel-border-colors: #{$boder-color}, #d8f2ff, #00d5ff, #5f9cff, #{$boder-color};
 			}
-			&.turn_oppo::after {
-				background: conic-gradient(
-					from var(--angle),
-					red,
-					#ffd0d0,
-					#ff4a4a,
-					#b80000,
-					red
-				);
+			&.turn_oppo {
+				--duel-border-colors: red, #ffd0d0, #ff4a4a, #b80000, red;
 			}
-			&::after {
-				content: '';
+			> .ygopro3__duel__back__border {
 				position: absolute;
 				inset: -4px;
-				padding: 4px;
 				pointer-events: none;
-				-webkit-mask:
-					linear-gradient(#fff 0 0) content-box,
-					linear-gradient(#fff 0 0);
-				mask:
-					linear-gradient(#fff 0 0) content-box,
-					linear-gradient(#fff 0 0);
-				-webkit-mask-composite: xor;
-				mask-composite: exclude;
-				animation: rotate 2s linear infinite;
+				overflow: hidden;
+				clip-path: polygon(evenodd,
+					0 0, 100% 0, 100% 100%, 0 100%, 0 0,
+					4px 4px, calc(100% - 4px) 4px,
+					calc(100% - 4px) calc(100% - 4px),
+					4px calc(100% - 4px), 4px 4px
+				);
+				&::after {
+					content: '';
+					position: absolute;
+					left: 50%;
+					top: 50%;
+					width: calc(max(var(--width) * 12 + 8px, var(--height) * 8 + 8px) * 1.42);
+					aspect-ratio: 1;
+					background: conic-gradient(var(--duel-border-colors));
+					transform: translate(-50%, -50%);
+					will-change: transform;
+					animation: duel-border-rotate 2s linear infinite;
+				}
+				> span {
+					display: none;
+				}
+				[media = 'mobile'] & {
+					// 手机端仅合成四条窄边，避免旋转整张场地大小的渐变。
+					overflow: visible;
+					clip-path: none;
+					&::after {
+						content: none;
+					}
+					> span {
+						display: block;
+						position: absolute;
+						left: 0;
+						top: 0;
+						width: 100%;
+						height: 4px;
+						overflow: hidden;
+						&::after {
+							content: '';
+							position: absolute;
+							left: 0;
+							top: 0;
+							width: 200%;
+							height: 100%;
+							background-image: linear-gradient(to right, var(--duel-border-colors));
+							background-size: 50% 100%;
+							will-change: transform;
+							animation: duel-border-slide-x 2s linear infinite;
+						}
+					}
+					> [data-side = 'bottom'] {
+						top: auto;
+						bottom: 0;
+						&::after {
+							animation-direction: reverse;
+						}
+					}
+					> [data-side = 'left'],
+					> [data-side = 'right'] {
+						width: 4px;
+						height: 100%;
+						&::after {
+							width: 100%;
+							height: 200%;
+							background-image: linear-gradient(to bottom, var(--duel-border-colors));
+							background-size: 100% 50%;
+							animation-name: duel-border-slide-y;
+						}
+					}
+					> [data-side = 'right'] {
+						left: auto;
+						right: 0;
+					}
+					> [data-side = 'left']::after {
+						animation-direction: reverse;
+					}
+				}
 			}
 			> img {
 				display: block;
 				width: 100%;
 				height: calc(var(--height) * 4);
 				opacity: 0;
-				transition: all 0.2s ease;
+				transition: opacity 0.2s ease;
 				&.show {
 					opacity: 1;
 				}
@@ -95,9 +159,13 @@ $boder-color: #9ed3ff;
 			width: var(--height);
 			height: var(--height);
 			border: 2px solid $boder-color;
-			transition: all 0.2s ease;
+			transition: border-color 0.2s ease;
 			&.disable {
 				box-shadow: inset 0 0 20px rgba(0, 255, 255, 0.6);
+				[media = 'mobile'] & {
+					box-shadow: none;
+					background-color: rgba(0, 255, 255, 0.2);
+				}
 			}
 			&.forbbiden {
 				background:
@@ -134,7 +202,7 @@ $boder-color: #9ed3ff;
 				opacity: 0;
 				display: none;
 				height: 100%;
-				transition: all 0.1s ease;
+				transition: opacity 0.1s ease;
 				pointer-events: initial;
 				&.show {
 					opacity: 1;
@@ -152,6 +220,15 @@ $boder-color: #9ed3ff;
 			opacity: 0;
 			color: white;
 			transition: opacity 0.2s ease;
+			[media = 'mobile'] & {
+				opacity: 1;
+				transition: none;
+			}
+			> .ygopro3__duel__card__atk:not(.show),
+			> .ygopro3__duel__card__info:not(.show),
+			> .ygopro3__duel__card__counter:not(.show) {
+				display: none;
+			}
 			> .show,
 			.ygopro3__duel__card__img .show,
 			&.show {
@@ -161,13 +238,15 @@ $boder-color: #9ed3ff;
 				position: absolute;
 				width: var(--width);
 				height: var(--height);
-				transition: all 0.2s ease;
+				// GSAP 控制 transform，手牌抬升使用独立的 translate。
+				translate: 0 0;
+				transition: opacity 0.2s ease, translate 0.2s ease;
 				outline-color: blue;
 			}
 			.ygopro3__duel__card__img {
 				background-size: cover;
 				&.forbbiden {
-					filter: grayscale(100%)
+					filter: grayscale(100%);
 				}
 				&.set {
 					box-shadow: 0 0 8px rgba(119, 166, 255, 1);
@@ -182,10 +261,42 @@ $boder-color: #9ed3ff;
 					filter: grayscale(100%);
 				}
 				&.selected {
-					transform: translateY(calc(var(--height) / -2)) !important;
+					translate: 0 calc(var(--height) / -2);
 				}
 				&.equip {
 					outline: 2px solid blue;
+				}
+				[media = 'mobile'] & {
+					&.set,
+					&.activate {
+						box-shadow: none;
+						outline: 2px solid rgba(119, 166, 255, 1);
+					}
+					&.activate {
+						outline-color: yellow;
+					}
+					&.equip {
+						outline: 2px solid blue;
+					}
+					&.forbbiden,
+					&.disable,
+					&.activated {
+						filter: none;
+					}
+					&.forbbiden::after,
+					&.disable::after,
+					&.activated::after {
+						content: '';
+						position: absolute;
+						inset: 0;
+						pointer-events: none;
+						background-color: black;
+						opacity: 0.45;
+					}
+					&.activated::after {
+						background-color: white;
+						opacity: 0.25;
+					}
 				}
 				> div {
 					position: absolute;
@@ -194,11 +305,14 @@ $boder-color: #9ed3ff;
 					pointer-events: none;
 				}
 				.ygopro3__duel__card__chain {
+					&:not(.show) {
+						display: none;
+					}
 					width: calc(var(--width) - 10px);
 					height: calc(var(--width) - 10px);
 					border-radius: 50%;
 					transform: translate(5px, calc((var(--height) - var(--width)) / 2));
-					transition: all 0.1s ease;
+					transition: opacity 0.1s ease;
 					color: yellow;
 					display: flex;
 					justify-content: center;
@@ -286,7 +400,7 @@ $boder-color: #9ed3ff;
 					1px 1px 0 black;
 				font-size: 20px;
 				align-items: center;
-				transition: all 0.2s ease;
+				transition: opacity 0.2s ease;
 				user-select: none;
 				pointer-events: none;
 				> div {
@@ -312,6 +426,24 @@ $boder-color: #9ed3ff;
 	syntax: '<angle>';
 	initial-value: 0deg;
 	inherits: false;
+}
+
+@keyframes duel-border-rotate {
+	to {
+		transform: translate(-50%, -50%) rotate(360deg);
+	}
+}
+
+@keyframes duel-border-slide-x {
+	to {
+		transform: translateX(-50%);
+	}
+}
+
+@keyframes duel-border-slide-y {
+	to {
+		transform: translateY(-50%);
+	}
 }
 
 @keyframes rotate {

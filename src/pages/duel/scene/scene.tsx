@@ -48,9 +48,11 @@ class _Duel {
 	animate = (time : number) => {
 		this.animation_id = requestAnimationFrame(this.animate);
 		
-		if (time - this.time < this.interval) return;
-
-		this.time = time;
+		if (this.interval) {
+			if (time - this.time < this.interval)
+				return;
+			this.time = time;
+		}
 		this.renderer.render(this.scene, this.camera);
 	};
 
@@ -76,8 +78,10 @@ class _Duel {
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
-		this.interval = 1000 / (mainGame.get.system(KEYS.SETTING_FRAME) as number);
-		requestAnimationFrame(this.animate);
+		const frame = mainGame.get.system(KEYS.SETTING_FRAME) as number;
+		if (frame)
+			this.interval = 1000 / frame;
+		this.animation_id = requestAnimationFrame(this.animate);
 		this.renderer.domElement.classList.add('show')
 		window.addEventListener('click', duel.click);
 		this.resolve?.();
@@ -249,36 +253,49 @@ class _Duel {
 			await tl.then();
 		},
 		hand : async (owner : 0 | 1, hands : Array<number>) : Promise<Array<Client_Card>> => {
-			const sort = (a : Array<Client_Card>, b : Array<number>) : void => {
-				const groups = new Map<number, Array<Client_Card>>();
-				a.forEach(i => {
-					if (!groups.has(i.id))
-						groups.set(i.id, []);
-					groups.get(i.id)!.push(i);
-				});
-				
-				const pointers = new Map();
-				groups.forEach((_, code) => pointers.set(code, 0));
-				
-				b.forEach((i, v) => {
-					const group = groups.get(i);
-					const pointer = pointers.get(i) ?? 0;
-					if (group && pointer < group.length) {
-						const card = group[pointer];
-						card
-							.set.seq(v);
-						pointers
-							.set(i, pointer + 1);
-					}
-				});
-			}
-			const cards = this.cards
-				.filter(i => i.owner === owner && i.location === LOCATION.HAND);
+			const cards : Array<Client_Card> = lodash.sortBy(
+				this.cards.filter((card : Client_Card) : boolean => card.owner === owner && card.location === LOCATION.HAND),
+				(card : Client_Card) : number => card.seq
+			);
 			cards
 				.filter(i => i.clicked)
 				.forEach(i => i.click.img());
-			sort(cards, hands);
-			await Promise.all(cards.map(i => i.update()));
+			if (!cards.length)
+				return cards;
+			await mainGame.load.pic(hands);
+			if (cards.length > 1) {
+				const center : number = cards.reduce((sum : number, card : Client_Card) : number => sum + card.three.position.x, 0) / cards.length;
+				const tl : gsap.core.Timeline = gsap.timeline();
+				cards.forEach((card : Client_Card) : void => {
+					tl.to(card.three.position, {
+						x : center,
+						duration : 0.12,
+						ease : 'power1.inOut'
+					}, 0);
+				});
+				await tl.then();
+			}
+			cards.forEach((card : Client_Card, index : number) : void => {
+				const code : number = hands[index] ?? 0;
+				if (card.id !== code || !code)
+					card.set.public(false);
+				card.set.id(code);
+			});
+			await Promise.all(cards.map((card : Client_Card) : Promise<void> => card.update()));
+			if (cards.length > 1) {
+				const tl : gsap.core.Timeline = gsap.timeline();
+				cards.forEach((card : Client_Card) : void => {
+					const axis : Axis = Axis.computed.card(card);
+					tl.to(card.three.position, {
+						x : axis.x,
+						y : axis.y,
+						z : axis.z,
+						duration : 0.15,
+						ease : 'power1.inOut'
+					}, 0);
+				});
+				await tl.then();
+			}
 			return cards;
 		}
 	};
@@ -293,8 +310,7 @@ class _Duel {
 			.filter(i => i.owner === player && i.location & LOCATION.HAND);
 
 		deck.forEach((i, v) => {
-			if (!player && codes[v])
-				i.set.id(codes[v]);
+			i.set.id(codes[v] ?? 0);
 			i
 				.set.location(LOCATION.HAND)
 				.set.seq(v + hands.length)
@@ -436,17 +452,28 @@ class _Duel {
 						child.classList.add('ygopro3__duel__back_oppo');
 					dom.appendChild(child);
 				}
+				const border : HTMLDivElement = document.createElement('div');
+				border.classList.add('ygopro3__duel__back__border');
+				border.setAttribute('aria-hidden', 'true');
+				['top', 'right', 'bottom', 'left'].forEach((side : string) : void => {
+					const edge : HTMLSpanElement = document.createElement('span');
+					edge.setAttribute('data-side', side);
+					border.appendChild(edge);
+				});
+				dom.appendChild(border);
 				return new CSS.CSS3DObject(dom);
 			};
 			const pic : Array<string> = [mainGame.get.textures(KEYS.OTHER, KEYS.BACKI), mainGame.get.textures(KEYS.OTHER, KEYS.BACKII)] as [string, string];
 			const back = create_back(pic);
 			back.position.set(...Axis.computed.back(new Axis(0, 0, 0)).get.xyz());
+			back.position.z = -2;
 			this.back = back;
 			this.scene.add(back);
 		},
 		plaid : (x : number, y : number) : void => {
 			const plaid = new Plaid(x, y)
 			plaid.three.position.set(...Axis.computed.back(new Axis(x, y, 0)).get.xyz());
+			plaid.three.position.z = -1;
 			this.scene.add(plaid.three);
 			this.plaids.push(plaid);
 		},
@@ -555,7 +582,7 @@ class _Duel {
 							.forEach((i, v) => {
 								i.set.seq(v);
 								if (loc === LOCATION.HAND)
-									i.set.pos(i.id ? POS.FACEUP_ATTACK : POS.FACEDOWN_ATTACK);
+									i.set.pos(i.get.hand_pos());
 								else {
 									if ((loc & (LOCATION.GRAVE | LOCATION.OVERLAY)))
 										i.set.pos(POS.FACEUP_ATTACK);

@@ -19,6 +19,8 @@ const resize = () => {
 	GLOBAL.SCALE < 0.6
 		? body.setAttribute('media', 'mobile')
 		: body.setAttribute('media', 'pc');
+	GLOBAL.CURRENT.HEIGHT = height;
+	GLOBAL.CURRENT.WIDTH = width;
 };
 
 const GLOBAL = reactive({
@@ -26,7 +28,11 @@ const GLOBAL = reactive({
 	WIDTH : 1600,
 	LEFT : 0,
 	TOP : 0,
-	SCALE : 1
+	SCALE : 1,
+	CURRENT : {
+		HEIGHT : 0,
+		WIDTH : 0
+	}
 });
 
 window.addEventListener('resize', resize);

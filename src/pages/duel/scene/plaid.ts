@@ -150,11 +150,11 @@ class Plaid {
 				: this.child.classList.add('disable');
 			await mainGame.sleep(200);
 		},
-		forbbiden : async () : Promise<void> => {
-			this.forbbiden = !this.forbbiden;
-			this.child.classList.contains('forbbiden')
-				? this.child.classList.remove('forbbiden')
-				: this.child.classList.add('forbbiden');
+		forbbiden : async (value : boolean = !this.forbbiden) : Promise<void> => {
+			if (this.forbbiden === value && this.child.classList.contains('forbbiden') === value)
+				return;
+			this.forbbiden = value;
+			this.child.classList.toggle('forbbiden', value);
 			await mainGame.sleep(200);
 		},
 		selected: async () : Promise<void> => {

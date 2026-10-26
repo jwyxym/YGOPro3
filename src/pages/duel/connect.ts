@@ -351,7 +351,7 @@ const connect = reactive({
 								return address;
 							};
 							if (__WEB__)
-									switch (para.protocal) {
+								switch (para.protocal) {
 									case 0:
 									case 1:
 									case 2:

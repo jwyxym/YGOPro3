@@ -10,4 +10,4 @@ lazy_static! {
 pub static RESOURCE_PATH: OnceLock<PathBuf> = OnceLock::new();
 pub static PATH: OnceLock<PathBuf> = OnceLock::new();
 
-pub const URL_GAME_VERSION: &str = "https://s3-1.nexusmc.cn/ygopro3/version.txt";
+pub const URL_GAME_VERSION: &str = "https://s3.ygopro3.cn/ygopro3/version.txt";
