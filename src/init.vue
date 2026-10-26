@@ -76,63 +76,64 @@
 			setting : false
 		},
 		select : {
-			lock : (f : () => void) : void => {
-				if (page.loading)
+			busy : false,
+			lock : async (f : () => void | Promise<void>) : Promise<void> => {
+				if (page.loading || page.select.busy)
 					return;
-				f();
+				page.select.busy = true;
+				try {
+					await f();
+				}
+				finally {
+					page.select.busy = false;
+				}
 			},
-			menu : () : void => {
+			menu : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.card = false;
 				page.show.duel = false;
 				page.show.deck = false;
 				page.show.setting = false;
-				if (!page.show.menu)
-					setTimeout(() => {
-						page.show.menu = true;
-					}, 600);
-			},
-			single : () : void => page.select.lock(() => {
-				page.show.menu = false;
-				setTimeout(() => {
-					page.duel.model = 0;
-					page.show.duel = true;
-				}, 600);
+				if (!page.show.menu) {
+					await mainGame.sleep(600);
+					page.show.menu = true;
+				}
 			}),
-			server : () : void => page.select.lock(() => {
+			single : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.menu = false;
-				setTimeout(() => {
-					page.duel.model = 1;
-					page.show.duel = true;
-				}, 600);
+				await mainGame.sleep(600);
+				page.duel.model = 0;
+				page.show.duel = true;
 			}),
-			replay : () : void => page.select.lock(() => {
+			server : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.menu = false;
-				setTimeout(() => {
-					page.duel.model = 2;
-					page.show.duel = true;
-				}, 600);
+				await mainGame.sleep(600);
+				page.duel.model = 1;
+				page.show.duel = true;
 			}),
-			deck : () : void => page.select.lock(() => {
+			replay : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.menu = false;
-				setTimeout(() => {
-					page.show.deck = true;
-				}, 600);
+				await mainGame.sleep(600);
+				page.duel.model = 2;
+				page.show.duel = true;
 			}),
-			card : () : void => page.select.lock(() => {
+			deck : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.menu = false;
-				setTimeout(() => {
-					page.show.card = true;
-				}, 600);
+				await mainGame.sleep(600);
+				page.show.deck = true;
 			}),
-			setting : () : void => {
+			card : () : Promise<void> => page.select.lock(async () : Promise<void> => {
 				page.show.menu = false;
-				setTimeout(() => {
-					page.show.setting = true;
-				}, 600);
-			},
-			exit : () : Promise<void> => __WEB__
+				await mainGame.sleep(600);
+				page.show.card = true;
+			}),
+			setting : () : Promise<void> => page.select.lock(async () : Promise<void> => {
+				page.show.menu = false;
+				await mainGame.sleep(600);
+				page.show.setting = true;
+			}),
+			exit : () : Promise<void> => page.select.lock(() : Promise<void> => __WEB__
 				? landscape.exit()
-				: mainGame.exit()
+				: mainGame.exit())
 		}
 	});
 
