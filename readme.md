@@ -59,6 +59,8 @@ npm run tauri:android:init
 <h5>Dev 模式</h5>
 
 ```bash
+# 调试网页端
+npm run h5:dev
 # 调试桌面端
 npm run tauri:dev
 # 调试Android
@@ -71,6 +73,8 @@ npm run tauri:android:dev:cmd
 <h5>编译项目</h5>
 
 ```bash
+# 编译网页端
+npm run h5:build
 # 编译桌面端
 npm run tauri:build
 # 编译Android
