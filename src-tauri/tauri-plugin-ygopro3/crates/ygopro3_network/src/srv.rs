@@ -1,6 +1,9 @@
 use serde::Serialize;
 use anyhow::{Result, Error, anyhow};
-use std::sync::OnceLock;
+use std::{
+	sync::OnceLock,
+	time::Duration
+};
 use trust_dns_resolver::{
 	config::{ResolverConfig, ResolverOpts},
 	Resolver,
@@ -20,7 +23,11 @@ static RESOLVER: OnceLock<Resolver> = OnceLock::new();
 
 pub fn srv (url: String) -> Result<Srv, Error> {
 	let resolver: &Resolver = RESOLVER.get_or_init(|| {
-		Resolver::new(ResolverConfig::default(), ResolverOpts::default())
+		let mut options: ResolverOpts = ResolverOpts::default();
+		options.cache_size = 256;
+		options.positive_max_ttl = Some(Duration::from_secs(300));
+		options.negative_max_ttl = Some(Duration::from_secs(10));
+		Resolver::new(ResolverConfig::default(), options)
 			.expect("DNS resolver error")
 	});
 	Ok(|| -> Result<Srv, Error> {

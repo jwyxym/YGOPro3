@@ -201,7 +201,6 @@ class Duel {
 };
 const connect = reactive({
 	debouncing : false,
-	srv_cache : new Map<string, string>(),
 	state : 0 as 0 | 1 | 2 | 3 | 4,
 	wait : new Wait(),
 	duel : new Duel(),
@@ -340,14 +339,9 @@ const connect = reactive({
 							const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
 							const p = callback(para.name, pass, para.address, 0);
 							const get_srv = async () : Promise<string> => {
-								const address = para.address;
+								const address : string = para.address;
 								if (!address.includes(':') && !para.protocal)
-									return connect.srv_cache.get(address) ??
-										await (async () : Promise<string> => {
-											const url = await invoke.game.get_srv(address)
-											connect.srv_cache.set(address, url);
-											return url;
-										})();
+									return await invoke.game.get_srv(address);
 								return address;
 							};
 							if (__WEB__)
