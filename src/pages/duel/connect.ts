@@ -296,7 +296,8 @@ const connect = reactive({
 										.write.str(pass, 40));
 									if (local_server && port) {
 										connect.duel.ai = async () => await invoke.bot.start(`${i.args[1]} Port=${port}`, i.deck);
-										await connect.duel.ai();
+										if (!i.args[1].startsWith('Deck'))
+											await connect.duel.ai();
 									} else
 										connect.duel.ai = async () => await connect.send?.(new Msg()
 											.write.uint8(CTOS.CHAT)
@@ -313,7 +314,8 @@ const connect = reactive({
 											invoke.bot.stop(),
 											i.p2p ? invoke.p2p.stop() : Promise.resolve()
 										]);
-									}
+									} else if (i && 'protocal' in i && i.protocal === 4)
+										await invoke.p2p.stop();
 								}
 							};
 						};
@@ -352,7 +354,10 @@ const connect = reactive({
 							const pass = para.pass.startsWith('#') && para.pass.startsWith('##') ? para.pass.slice(1) : para.pass;
 							const p = callback(para.name, pass, para.address, 0);
 							const get_srv = async () : Promise<string> => {
-								const address : string = para.address;
+								const address : string | undefined = para.protocal === 4
+									? await invoke.p2p.join(para.address) : para.address;
+								if (!address)
+									throw mainGame.get.text(I18N_KEYS.SERVER_P2P_ERROR);
 								if (!address.includes(':') && !para.protocal)
 									return await invoke.game.get_srv(address);
 								return address;
@@ -386,10 +391,7 @@ const connect = reactive({
 										connect.protocol = (await import('./ygo-protocol/ws')).default;
 										break;
 									case 4:
-										const address = await invoke.p2p.join(para.address);
-										if (!address)
-											throw mainGame.get.text(I18N_KEYS.SERVER_P2P_ERROR);
-										para.address = address;
+										para.address = `ygopro3-p2p://${para.address}`;
 										connect.protocol = (await import('./ygo-protocol/tcp')).default;
 										break;
 								}

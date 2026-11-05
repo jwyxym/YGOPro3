@@ -82,6 +82,7 @@ impl System {
 		[
 			"HIDDEN_NAME",
 			"HIDDEN_CHAT",
+			"P2P",
 			"PLUGIN_GET",
 			"PLUGIN_POST",
 			"PLUGIN_PUT",
@@ -198,14 +199,17 @@ impl System {
 					.entry(String::from(i))
 					.or_insert(String::from(""));
 			});
-
-		let split: &mut String = self.string
-			.entry(String::from("SEARCH_SPLIT"))
-			.or_insert(String::from("%%"));
-		if split.is_empty() {
-			*split = String::from("%%");
+		{
+			let split: &mut String = self.string
+				.entry(String::from("SEARCH_SPLIT"))
+				.or_insert(String::from("%%"));
+			if split.is_empty() {
+				*split = String::from("%%");
+			}
 		}
-
+		self.string
+			.entry(String::from("P2P_SERVER"))
+			.or_insert(String::from("https://p2p.ygopro3.cn"));
 		let i18n: &mut String = self.string
 			.entry(String::from("I18N"))
 			.or_insert(String::from("zh-CN"));

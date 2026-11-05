@@ -247,6 +247,7 @@
 	});
 
 	onBeforeMount(() => {
+		console.log(mainGame.system)
 		page.number = [
 			'SETTING_CT_CARD',
 			'SETTING_CT_DECK_MAIN',
@@ -263,7 +264,7 @@
 				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as number
 			};
 		});
-		page.bool = [
+		const bool = [
 			'SETTING_CHK_DELETE_YPK',
 			'SETTING_CHK_DELETE_REPLAY',
 			'SETTING_CHK_DELETE_DECK',
@@ -276,17 +277,23 @@
 			'SETTING_CHK_SWAP_BUTTON',
 			'SETTING_CHK_HIDDEN_NAME',
 			'SETTING_CHK_HIDDEN_CHAT'
-		].map(i => {
+		];
+		const string = [
+			['SETTING_SERVER_PLAYER_NAME', 20],
+			['SETTING_SEARCH_SPLIT', 5]
+		]
+		if (!__WEB__) {
+			bool.push('SETTING_CHK_P2P');
+			string.push(['SETTING_P2P_SERVER']);
+		}
+		page.bool = bool.map(i => {
 			return {
 				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],
 				key : KEYS[i as keyof typeof KEYS],
 				value : mainGame.get.system(KEYS[i as keyof typeof KEYS]) as boolean
 			};
 		});
-		page.string = [
-			['SETTING_SERVER_PLAYER_NAME', 20],
-			['SETTING_SEARCH_SPLIT', 5]
-		].map(i => {
+		page.string = string.map(i => {
 			return {
 				i18n : I18N_KEYS[i[0] as keyof typeof I18N_KEYS],
 				key : KEYS[i[0] as keyof typeof KEYS],

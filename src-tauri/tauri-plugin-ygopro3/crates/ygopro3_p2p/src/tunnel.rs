@@ -1,4 +1,4 @@
-use anyhow::{Context, Error, Result, bail};
+use anyhow::{Context, Error, bail};
 use iroh::{Endpoint, endpoint::{Connection, Incoming, RecvStream, SendStream}};
 use std::{net::{Ipv4Addr, SocketAddr}, time::Duration};
 use tokio::{
@@ -31,7 +31,7 @@ pub struct Tunnel {
 }
 
 impl Tunnel {
-	async fn forward(mut self, socket: TcpStream) -> Result<()> {
+	async fn forward(mut self, socket: TcpStream) -> Result<(), Error> {
 		socket.set_nodelay(true)?;
 		let (mut reader, mut writer): (OwnedReadHalf, OwnedWriteHalf) = socket.into_split();
 		tokio::try_join!(
@@ -51,7 +51,7 @@ impl Tunnel {
 	}
 }
 
-pub async fn connect(endpoint: &Endpoint, ticket: &Ticket) -> Result<Tunnel> {
+pub async fn connect(endpoint: &Endpoint, ticket: &Ticket) -> Result<Tunnel, Error> {
 	timeout(JOIN_TIMEOUT, async {
 		let connection: Connection = endpoint.connect(ticket.address.clone(), ALPN).await?;
 		let peer: Peer = Peer { connection };
@@ -66,7 +66,7 @@ pub async fn connect(endpoint: &Endpoint, ticket: &Ticket) -> Result<Tunnel> {
 	}).await.context("P2P connection and room handshake timed out (8 seconds)")?
 }
 
-async fn serve_peer(incoming: Incoming, local_port: u16, token: [u8; 16]) -> Result<()> {
+async fn serve_peer(incoming: Incoming, local_port: u16, token: [u8; 16]) -> Result<(), Error> {
 	let connection: Connection = timeout(CONNECT_TIMEOUT, async { incoming.await }).await??;
 	let peer: Peer = Peer { connection };
 	let (send, recv, socket): (SendStream, RecvStream, TcpStream) = timeout(
@@ -121,7 +121,7 @@ pub async fn serve_host(endpoint: Endpoint, local_port: u16, token: [u8; 16]) {
 pub async fn serve_client(endpoint: Endpoint, listener: TcpListener, ticket: Ticket, first: Tunnel) {
 	let mut first: Option<Tunnel> = Some(first);
 	loop {
-		let accepted: Result<(TcpStream, SocketAddr)> = if first.is_some() {
+		let accepted: Result<(TcpStream, SocketAddr), Error> = if first.is_some() {
 			match timeout(LOCAL_CONNECT_TIMEOUT, listener.accept()).await {
 				Ok(result) => result.map_err(Error::from),
 				Err(error) => Err(Error::from(error)),

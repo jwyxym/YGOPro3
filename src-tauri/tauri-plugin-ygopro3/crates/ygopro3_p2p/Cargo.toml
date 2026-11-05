@@ -13,3 +13,4 @@ tokio.workspace = true
 uuid.workspace = true
 
 ygopro3_log.workspace = true
+ygopro3_game.workspace = true

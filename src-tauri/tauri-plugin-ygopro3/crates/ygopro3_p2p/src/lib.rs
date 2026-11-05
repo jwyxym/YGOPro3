@@ -1,7 +1,7 @@
 mod ticket;
 mod tunnel;
 
-use anyhow::{Context, Result, bail};
+use anyhow::{Context, Error, bail};
 use iroh::{Endpoint, RelayMode, RelayUrl, endpoint::{Builder, QuicTransportConfig, presets::Minimal}};
 use serde::{Deserialize, Serialize};
 use std::{future::Future, net::{Ipv4Addr, SocketAddrV4}, sync::OnceLock, time::Duration};
@@ -17,6 +17,7 @@ use ticket::Ticket;
 
 const ALPN: &[u8] = b"ygopro3/p2p";
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
+const RELAY_TIMEOUT: Duration = Duration::from_secs(5);
 const JOIN_TIMEOUT: Duration = Duration::from_secs(8);
 static SESSION: Mutex<Option<Session>> = Mutex::const_new(None);
 static CANCEL: OnceLock<watch::Sender<()>> = OnceLock::new();
@@ -28,9 +29,9 @@ fn cancellation() -> &'static watch::Sender<()> {
 	})
 }
 
-async fn run_start<T, F>(future: F) -> Result<T>
+async fn run_start<T, F>(future: F) -> Result<T, Error>
 where
-	F: Future<Output = Result<T>>,
+	F: Future<Output = Result<T, Error>>,
 {
 	let mut cancelled: watch::Receiver<()> = cancellation().subscribe();
 	tokio::select! {
@@ -98,7 +99,7 @@ impl Drop for Session {
 	}
 }
 
-async fn available_session() -> Result<MutexGuard<'static, Option<Session>>> {
+async fn available_session() -> Result<MutexGuard<'static, Option<Session>>, Error> {
 	let mut session: MutexGuard<'static, Option<Session>> = SESSION.lock().await;
 	if session.as_ref().is_some_and(|session: &Session| !session.task.is_finished()) {
 		bail!("P2P session is already running; stop it before starting another");
@@ -110,17 +111,20 @@ async fn available_session() -> Result<MutexGuard<'static, Option<Session>>> {
 	Ok(session)
 }
 
-async fn endpoint(config: P2pConfig) -> Result<Endpoint> {
-	if config.relay_urls.len() > 8 {
-		bail!("Too many P2P relay URLs");
-	}
-	let relay_mode: RelayMode = if config.relay_urls.is_empty() {
+async fn endpoint() -> Result<Endpoint, Error> {
+	let (_, url) = ygopro3_game::get::system()
+		.await?
+		.0
+		.into_iter()
+		.find(|i|
+			i.0 == "P2P_SERVER"
+		)
+		.unwrap_or((String::new(), String::new()));
+	let relay_mode: RelayMode = if url.is_empty() {
 		RelayMode::Default
 	} else {
-		let urls: Vec<RelayUrl> = config.relay_urls.into_iter()
-			.map(|url: String| -> Result<RelayUrl> { Ok(url.parse()?) })
-			.collect::<Result<Vec<RelayUrl>>>()?;
-		RelayMode::custom(urls)
+		let url: RelayUrl = url.parse()?;
+		RelayMode::custom([url])
 	};
 	let transport: QuicTransportConfig = QuicTransportConfig::builder()
 		.max_concurrent_bidi_streams(1u32.into())
@@ -134,69 +138,65 @@ async fn endpoint(config: P2pConfig) -> Result<Endpoint> {
 	Ok(endpoint)
 }
 
-pub async fn host(local_port: u16, config: P2pConfig) -> Result<SessionInfo> {
-	run_start(start_host(local_port, config)).await
+pub async fn host(local_port: u16) -> Result<SessionInfo, Error> {
+	run_start((async move || {
+		if local_port == 0 {
+			bail!("Local duel server port must not be zero");
+		}
+		let mut session: MutexGuard<'static, Option<Session>> = available_session().await?;
+		let mut pending: PendingEndpoint = PendingEndpoint {
+			endpoint: endpoint().await?,
+			committed: false,
+		};
+		let endpoint: &Endpoint = &pending.endpoint;
+		if timeout(RELAY_TIMEOUT, endpoint.online()).await.is_err() {
+			bail!("P2P relay connection timed out (5 seconds)");
+		}
+		let ticket: Ticket = Ticket::new(endpoint.addr(), Uuid::new_v4().into_bytes());
+		let room_code: String = ticket.encode()?;
+		let info: SessionInfo = SessionInfo {
+			mode: Mode::Host,
+			endpoint_id: endpoint.id().to_string(),
+			room_code: Some(room_code),
+			local_address: SocketAddrV4::new(Ipv4Addr::LOCALHOST, local_port).to_string(),
+			running: true,
+		};
+		let task: JoinHandle<()> = tokio::spawn(tunnel::serve_host(endpoint.clone(), local_port, ticket.token));
+		*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
+		pending.committed = true;
+		Ok(info)
+	})()).await
 }
 
-async fn start_host(local_port: u16, config: P2pConfig) -> Result<SessionInfo> {
-	if local_port == 0 {
-		bail!("Local duel server port must not be zero");
-	}
-	let mut session: MutexGuard<'static, Option<Session>> = available_session().await?;
-	let mut pending: PendingEndpoint = PendingEndpoint {
-		endpoint: endpoint(config).await?,
-		committed: false,
-	};
-	let endpoint: &Endpoint = &pending.endpoint;
-	if timeout(CONNECT_TIMEOUT, endpoint.online()).await.is_err() {
-		bail!("P2P relay connection timed out");
-	}
-	let ticket: Ticket = Ticket::new(endpoint.addr(), Uuid::new_v4().into_bytes());
-	let room_code: String = ticket.encode()?;
-	let info: SessionInfo = SessionInfo {
-		mode: Mode::Host,
-		endpoint_id: endpoint.id().to_string(),
-		room_code: Some(room_code),
-		local_address: SocketAddrV4::new(Ipv4Addr::LOCALHOST, local_port).to_string(),
-		running: true,
-	};
-	let task: JoinHandle<()> = tokio::spawn(tunnel::serve_host(endpoint.clone(), local_port, ticket.token));
-	*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
-	pending.committed = true;
-	Ok(info)
-}
-
-pub async fn join(room_code: String, config: P2pConfig) -> Result<SessionInfo> {
-	run_start(start_join(room_code, config)).await
-}
-
-async fn start_join(room_code: String, config: P2pConfig) -> Result<SessionInfo> {
-	let deadline: Instant = Instant::now() + JOIN_TIMEOUT;
-	let ticket: Ticket = Ticket::decode(&room_code)?;
-	let mut session: MutexGuard<'static, Option<Session>> = timeout_at(deadline, available_session()).await
-		.context("P2P join timed out waiting for the previous session (8 seconds)")??;
-	let listener: TcpListener = timeout_at(deadline, TcpListener::bind((Ipv4Addr::LOCALHOST, 0))).await
-		.context("P2P join timed out creating the local listener (8 seconds)")??;
-	let local_address: String = listener.local_addr()?.to_string();
-	let mut pending: PendingEndpoint = PendingEndpoint {
-		endpoint: timeout_at(deadline, endpoint(config)).await
-			.context("P2P join timed out initializing the endpoint (8 seconds)")??,
-		committed: false,
-	};
-	let endpoint: &Endpoint = &pending.endpoint;
-	let first: tunnel::Tunnel = timeout_at(deadline, tunnel::connect(endpoint, &ticket)).await
-		.context("P2P join timed out connecting to the room (8 seconds)")??;
-	let info: SessionInfo = SessionInfo {
-		mode: Mode::Join,
-		endpoint_id: endpoint.id().to_string(),
-		room_code: None,
-		local_address,
-		running: true,
-	};
-	let task: JoinHandle<()> = tokio::spawn(tunnel::serve_client(endpoint.clone(), listener, ticket, first));
-	*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
-	pending.committed = true;
-	Ok(info)
+pub async fn join(room_code: String) -> Result<SessionInfo, Error> {
+	run_start((async move || {
+		let deadline: Instant = Instant::now() + JOIN_TIMEOUT;
+		let ticket: Ticket = Ticket::decode(&room_code)?;
+		let mut session: MutexGuard<'static, Option<Session>> = timeout_at(deadline, available_session()).await
+			.context("P2P join timed out waiting for the previous session (8 seconds)")??;
+		let listener: TcpListener = timeout_at(deadline, TcpListener::bind((Ipv4Addr::LOCALHOST, 0))).await
+			.context("P2P join timed out creating the local listener (8 seconds)")??;
+		let local_address: String = listener.local_addr()?.to_string();
+		let mut pending: PendingEndpoint = PendingEndpoint {
+			endpoint: timeout_at(deadline, endpoint()).await
+				.context("P2P join timed out initializing the endpoint (8 seconds)")??,
+			committed: false,
+		};
+		let endpoint: &Endpoint = &pending.endpoint;
+		let first: tunnel::Tunnel = timeout_at(deadline, tunnel::connect(endpoint, &ticket)).await
+			.context("P2P join timed out connecting to the room (8 seconds)")??;
+		let info: SessionInfo = SessionInfo {
+			mode: Mode::Join,
+			endpoint_id: endpoint.id().to_string(),
+			room_code: None,
+			local_address,
+			running: true,
+		};
+		let task: JoinHandle<()> = tokio::spawn(tunnel::serve_client(endpoint.clone(), listener, ticket, first));
+		*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
+		pending.committed = true;
+		Ok(info)
+	})()).await
 }
 
 pub async fn status() -> Option<SessionInfo> {

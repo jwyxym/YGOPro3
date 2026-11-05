@@ -1,4 +1,4 @@
-use anyhow::{Result, bail};
+use anyhow::{Error, bail};
 use base64::{Engine, engine::general_purpose::URL_SAFE_NO_PAD};
 use iroh::EndpointAddr;
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ impl Ticket {
 		Self { address, token }
 	}
 
-	pub fn encode(&self) -> Result<String> {
+	pub fn encode(&self) -> Result<String, Error> {
 		let bytes: Vec<u8> = serde_json::to_vec(self)?;
 		let code: String = format!("{}{}", PREFIX, URL_SAFE_NO_PAD.encode(bytes));
 		if code.len() > MAX_CODE_LENGTH {
@@ -26,8 +26,8 @@ impl Ticket {
 		Ok(code)
 	}
 
-	pub fn decode(code: &str) -> Result<Self> {
-		let code: String = format!("{}{}", PREFIX, code.trim());
+	pub fn decode(code: &str) -> Result<Self, Error> {
+		let code: &str = code.trim();
 		if code.len() > MAX_CODE_LENGTH {
 			bail!("P2P room code is too long");
 		}

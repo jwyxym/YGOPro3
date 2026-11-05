@@ -2,7 +2,7 @@ use ygopro3_const::*;
 use ygopro3_game::{game::{self, Game}, GAME};
 use ygopro3_log::log;
 use ygopro3_network::{Srv, srv};
-use ygopro3_p2p::{P2pConfig, SessionInfo};
+use ygopro3_p2p::SessionInfo;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
@@ -126,14 +126,14 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 }
 
 #[tauri::command]
-pub async fn p2p_host (local_port: u16, config: Option<P2pConfig>) -> Result<SessionInfo, String> {
-	ygopro3_p2p::host(local_port, config.unwrap_or_default()).await
+pub async fn p2p_host (local_port: u16) -> Result<SessionInfo, String> {
+	ygopro3_p2p::host(local_port).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 
 #[tauri::command]
-pub async fn p2p_join (room_code: String, config: Option<P2pConfig>) -> Result<SessionInfo, String> {
-	ygopro3_p2p::join(room_code, config.unwrap_or_default()).await
+pub async fn p2p_join (room_code: String) -> Result<SessionInfo, String> {
+	ygopro3_p2p::join(room_code).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 
