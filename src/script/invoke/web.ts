@@ -522,6 +522,11 @@ class Invoke extends BaseInvoke {
 		start : async () => 0,
 		stop : async () => false
 	};
+	p2p = {
+		host : async () : Promise<undefined> => undefined,
+		join : async () : Promise<undefined> => undefined,
+		stop : async () : Promise<void> => undefined
+	};
 	bot = {
 		start : async () => undefined,
 		stop : async () => false,

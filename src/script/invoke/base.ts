@@ -88,6 +88,12 @@ abstract class BaseInvoke {
 		stop : () => Promise<boolean>;
 	};
 
+	abstract p2p : {
+		host : (local_port : number) => Promise<string | undefined>;
+		join : (room_code : string) => Promise<string | undefined>;
+		stop : () => Promise<void>;
+	};
+
 	abstract bot : {
 		start : (args : string, deck : string) => Promise<void>;
 		stop : () => Promise<boolean>;

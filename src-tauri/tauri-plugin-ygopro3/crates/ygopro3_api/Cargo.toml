@@ -16,6 +16,7 @@ ygopro3_log.workspace = true
 ygopro3_const.workspace = true
 ygopro3_emit.workspace = true
 ygopro3_network.workspace = true
+ygopro3_p2p.workspace = true
 ygopro3_game.workspace = true
 ygopro3_deck.workspace = true
 ygopro3_yrp.workspace = true

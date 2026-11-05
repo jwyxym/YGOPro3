@@ -61,6 +61,7 @@
 					</template>
 				</var-cell>
 				<var-cell
+					v-if = "page.list[page.selected]?.[1] !== 'localhost'"
 					:title = 'mainGame.get.text(I18N_KEYS.SINGLE_RPS)'
 				>
 					<template #extra>
@@ -139,6 +140,7 @@
 		connect : () => {
 			const selected = page.list[page.selected];
 			if (!selected || (selected[1] === 'Lucky' && !page.deck)) return;
+			const p2p = selected[1] === 'localhost' && mainGame.get.system(KEYS.SETTING_CHK_P2P) as boolean;
 			emit('connect', {
 				name : page.name,
 				args : [{
@@ -152,17 +154,22 @@
 						startLp : page.start_lp,
 						startHand : page.start_hand,
 						drawCount : page.draw,
-						timeLimit : 0,
+						timeLimit : 0
 					},
-					`Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
+					p2p
+						? `Deck=${selected[1]}`
+						: `Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
 				],
-				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : ''
+				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : '',
+				p2p
 			});
 		}
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		page.list = await invoke.bot.list();
+		page.list = ([['本地主机', 'localhost', '']]  as Array<[string, string, string]>)
+			.concat(await invoke.bot.list());
+		page.list[0][2] = page.list[1]?.[2] ?? 'gugugu.zh-CN';
 		hotkeys('down, pagedown', () => {
 			const len = page.list.length - 1;
 			page.selected = page.selected >= len ? 0 : page.selected + 1;
@@ -183,6 +190,7 @@
 			name : string;
 			args : [any, string];
 			deck : string;
+			p2p : boolean;
 		}];
 	}>();
 </script>
