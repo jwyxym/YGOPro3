@@ -84,6 +84,7 @@
 				}
 				map.set(2, 'WS');
 				map.set(3, 'WSS');
+				map.set(4, 'P2P');
 				select.map = map;
 				break;
 			case 'waveform':

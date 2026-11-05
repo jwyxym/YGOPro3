@@ -6,6 +6,7 @@ import Card from '@/script/card';
 import { I18N_KEYS } from '@/script/language/i18n';
 import invoke from '@/script/invoke';
 import voice from '@/script/voice';
+import { copy } from '@/script/tauri';
 
 import Deck from '@/pages/deck/deck';
 import { toast } from '@/pages/toast/toast';
@@ -239,11 +240,12 @@ const connect = reactive({
 		name : string;
 		pass : string;
 		address : string;
-		protocal : 0 | 1 | 2 | 3;
+		protocal : 0 | 1 | 2 | 3 | 4;
 	} | {
 		name : string;
 		args : [any, string];
 		deck : string;
+		p2p : boolean;
 	} | {
 		replay : string
 	} | Deck) => {
@@ -308,7 +310,8 @@ const connect = reactive({
 									if (local_server) {
 										await Promise.all([
 											invoke.server.stop(),
-											invoke.bot.stop()
+											invoke.bot.stop(),
+											i.p2p ? invoke.p2p.stop() : Promise.resolve()
 										]);
 									}
 								}
@@ -322,7 +325,17 @@ const connect = reactive({
 								connect.protocol = (await import('./ygo-protocol/tcp')).default;
 								await Promise.all([
 									connect.protocol.connect(address, p),
-									mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name)
+									mainGame.set.system(KEYS.SETTING_SERVER_PLAYER_NAME, i.name),
+									(async () => {
+										if (!i.p2p)
+											return;
+										const address = await invoke.p2p.host(port);
+										if (address) {
+											await copy(address);
+											toast.info(mainGame.get.text(I18N_KEYS.SINGLE_P2P_SUCCESS));
+										} else
+											toast.error(mainGame.get.text(I18N_KEYS.SINGLE_P2P_ERROR));
+									})()
 								]);
 							}
 						} else {
@@ -330,7 +343,7 @@ const connect = reactive({
 								name : string;
 								pass : string;
 								address : string;
-								protocal : 0 | 1 | 2 | 3;
+								protocal : 0 | 1 | 2 | 3 | 4;
 							};
 							if (!para.name)
 								throw mainGame.get.text(I18N_KEYS.SERVER_NAME_ERROR);
@@ -346,14 +359,12 @@ const connect = reactive({
 							};
 							if (__WEB__)
 								switch (para.protocal) {
-									case 0:
-									case 1:
-									case 2:
-										para.address = `ws://${para.address}`;
-										connect.protocol = (await import('./ygo-protocol/ws')).default;
-										break;
 									case 3:
 										para.address = `wss://${para.address}`;
+										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									default:
+										para.address = `ws://${para.address}`;
 										connect.protocol = (await import('./ygo-protocol/ws')).default;
 										break;
 								}
@@ -373,6 +384,13 @@ const connect = reactive({
 									case 3:
 										para.address = `wss://${para.address}`;
 										connect.protocol = (await import('./ygo-protocol/ws')).default;
+										break;
+									case 4:
+										const address = await invoke.p2p.join(para.address);
+										if (!address)
+											throw mainGame.get.text(I18N_KEYS.SERVER_P2P_ERROR);
+										para.address = address;
+										connect.protocol = (await import('./ygo-protocol/tcp')).default;
 										break;
 								}
 							const promise = await Promise.all([

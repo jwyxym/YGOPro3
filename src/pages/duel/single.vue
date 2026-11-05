@@ -139,6 +139,7 @@
 		connect : () => {
 			const selected = page.list[page.selected];
 			if (!selected || (selected[1] === 'Lucky' && !page.deck)) return;
+			const p2p = selected[1] === 'localhost';
 			emit('connect', {
 				name : page.name,
 				args : [{
@@ -154,15 +155,19 @@
 						drawCount : page.draw,
 						timeLimit : 0,
 					},
-					`Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
+					p2p
+						? `Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
+						: `${page.rps ? ' Hand=1' : ''}`
 				],
-				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : ''
+				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : '',
+				p2p
 			});
 		}
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		page.list = await invoke.bot.list();
+		page.list = ([['本地主机', 'localhost', '']]  as Array<[string, string, string]>)
+			.concat(await invoke.bot.list());
 		hotkeys('down, pagedown', () => {
 			const len = page.list.length - 1;
 			page.selected = page.selected >= len ? 0 : page.selected + 1;
@@ -183,6 +188,7 @@
 			name : string;
 			args : [any, string];
 			deck : string;
+			p2p : boolean;
 		}];
 	}>();
 </script>
