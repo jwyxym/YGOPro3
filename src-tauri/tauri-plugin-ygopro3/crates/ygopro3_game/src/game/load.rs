@@ -143,7 +143,7 @@ pub async fn config (path: &Path, config: &Vec<(String, String)>) -> (System, Re
 	(system, resources, lflist, servers, room, setcodes, tasks)
 }
 
-pub async fn i18n (path: &Path, i18n: String, config: &Vec<(String, String)>) -> (CardInfo, Cdb, Strings, JoinHandle<Result<(), Error>>) {
+pub async fn i18n (path: &Path, i18n: &str, config: &Vec<(String, String)>) -> (CardInfo, Cdb, Strings, JoinHandle<Result<(), Error>>) {
 	let mut tasks: Vec<JoinHandle<Result<FileContent, Error>>> = Vec::new();
 	let info_name: String = format!("cardinfo-{}.toml", i18n);
 	let p: PathBuf = path.join("strings").join(format!("strings-{}.conf", i18n));

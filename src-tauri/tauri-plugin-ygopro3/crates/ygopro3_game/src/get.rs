@@ -1,6 +1,9 @@
 use super::*;
 use super::game::*;
 use ygopro_lflist_reader::LFList;
+use parking_lot::MappedRwLockReadGuard;
+
+pub type SystemReadGuard = MappedRwLockReadGuard<'static, System>;
 
 pub async fn pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
@@ -100,10 +103,13 @@ pub async fn cards () -> Result<Vec<Card>, Error> {
 		});
 	Ok(cards.values().cloned().collect())
 }
-pub async fn system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
-	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-	let game: RwLockReadGuard<'_, Game> = game.read();
-	Ok(game.system.to_array())
+
+pub async fn system () -> Result<SystemReadGuard, Error> {
+	let game: &'static RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
+	let game: RwLockReadGuard<'static, Game> = game.read();
+	Ok(RwLockReadGuard::map(game, |game: &Game| -> &System {
+		&game.system
+	}))
 }
 
 pub async fn server () -> Result<Vec<(String, String)>, Error> {
@@ -199,7 +205,7 @@ pub async fn room () -> Result<Vec<(String, String)>, Error> {
 pub async fn server_args () -> Result<(String, String), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let game: RwLockReadGuard<'_, Game> = game.read();
-	let i18n: String = game.system.i18n();
+	let i18n: &str = game.system.i18n();
 	let array: [&str; 2] = ["./expansions", "./"];
 	let pack: String = game.pack
 		.iter()
@@ -212,7 +218,7 @@ pub async fn server_args () -> Result<(String, String), Error> {
 		})
 		.collect::<Vec<String>>()
 		.join("/");
-	Ok((i18n, pack))
+	Ok((i18n.to_owned(), pack))
 }
 
 pub async fn hash () -> Result<Vec<u8>, Error> {

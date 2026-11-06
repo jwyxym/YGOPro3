@@ -29,12 +29,12 @@ impl System {
 				.unwrap_or(String::from(""))
 			)
 	}
-	pub fn to_array (&self) -> (Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>) {
+	pub fn to_array (&self) -> (Vec<(&String, &String)>, Vec<(&String, &bool)>, Vec<(&String, &f64)>, Vec<(&String, &Vec<String>)>) {
 		(
-			self.string.clone().into_iter().collect(),
-			self.boolean.clone().into_iter().collect(),
-			self.number.clone().into_iter().collect(),
-			self.array.clone().into_iter().collect()
+			self.string.iter().collect(),
+			self.boolean.iter().collect(),
+			self.number.iter().collect(),
+			self.array.iter().collect()
 		)
 	}
 	pub fn array (&self) -> &BTreeMap<String, Vec<String>> {
@@ -43,13 +43,17 @@ impl System {
 	pub fn string (&self) -> &BTreeMap<String, String> {
 		&self.string
 	}
-	pub fn i18n (&self) -> String {
+	pub fn i18n (&self) -> &str {
 		self.string
 			.get("I18N")
-			.map_or_else(|| "zh-CN".to_string(), Clone::clone)
+			.map(String::as_str)
+			.unwrap_or("zh-CN")
 	}
 	pub fn boolean (&self) -> &BTreeMap<String, bool> {
 		&self.boolean
+	}
+	pub fn number (&self) -> &BTreeMap<String, f64> {
+		&self.number
 	}
 	pub fn set (&mut self, key: String, ct: i8, value: String) -> Result<(), Error> {
 		Ok(match ct {

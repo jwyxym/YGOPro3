@@ -2,6 +2,7 @@ mod ticket;
 mod tunnel;
 
 use ygopro3_const::{P2P_ALPN, P2P_CONNECT_TIMEOUT, P2P_JOIN_TIMEOUT, P2P_RELAY_TIMEOUT, P2P_SHUTDOWN_TIMEOUT};
+use ygopro3_game::get::SystemReadGuard;
 
 use anyhow::{Context, Error, anyhow};
 use iroh::{Endpoint, RelayMode, RelayUrl, endpoint::{Builder, QuicTransportConfig, presets::Minimal}};
@@ -115,19 +116,17 @@ async fn available_session() -> Result<MutexGuard<'static, Option<Session>>, Err
 }
 
 async fn endpoint() -> Result<Endpoint, Error> {
-	let (_, url) = ygopro3_game::get::system()
-		.await?
-		.0
-		.into_iter()
-		.find(|i|
-			i.0 == "P2P_SERVER"
-		)
-		.unwrap_or((String::new(), String::new()));
-	let relay_mode: RelayMode = if url.is_empty() {
-		RelayMode::Default
-	} else {
-		let url: RelayUrl = url.parse()?;
-		RelayMode::custom([url])
+	let relay_mode: RelayMode = {
+		let system: SystemReadGuard = ygopro3_game::get::system().await?;
+		let url: &str = system.string().get("P2P_SERVER")
+			.map(String::as_str)
+			.unwrap_or("");
+		if url.is_empty() {
+			RelayMode::Default
+		} else {
+			let url: RelayUrl = url.parse()?;
+			RelayMode::custom([url])
+		}
 	};
 	let transport: QuicTransportConfig = QuicTransportConfig::builder()
 		.max_concurrent_bidi_streams(1u32.into())
