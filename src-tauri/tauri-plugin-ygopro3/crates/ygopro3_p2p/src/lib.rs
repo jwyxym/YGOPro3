@@ -1,10 +1,12 @@
 mod ticket;
 mod tunnel;
 
-use anyhow::{Context, Error, bail};
+use ygopro3_const::{P2P_ALPN, P2P_CONNECT_TIMEOUT, P2P_JOIN_TIMEOUT, P2P_RELAY_TIMEOUT, P2P_SHUTDOWN_TIMEOUT};
+
+use anyhow::{Context, Error, anyhow};
 use iroh::{Endpoint, RelayMode, RelayUrl, endpoint::{Builder, QuicTransportConfig, presets::Minimal}};
 use serde::{Deserialize, Serialize};
-use std::{future::Future, net::{Ipv4Addr, SocketAddrV4}, sync::OnceLock, time::Duration};
+use std::{future::Future, net::{Ipv4Addr, SocketAddrV4}, sync::OnceLock};
 use tokio::{
 	net::TcpListener,
 	sync::{Mutex, MutexGuard, watch},
@@ -15,10 +17,6 @@ use uuid::Uuid;
 
 use ticket::Ticket;
 
-const ALPN: &[u8] = b"ygopro3/p2p";
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
-const RELAY_TIMEOUT: Duration = Duration::from_secs(5);
-const JOIN_TIMEOUT: Duration = Duration::from_secs(8);
 static SESSION: Mutex<Option<Session>> = Mutex::const_new(None);
 static CANCEL: OnceLock<watch::Sender<u64>> = OnceLock::new();
 
@@ -37,11 +35,11 @@ where
 	let generation: u64 = *cancelled.borrow_and_update();
 	let result: Result<T, Error> = tokio::select! {
 		biased;
-		_ = cancelled.changed() => bail!("P2P operation cancelled"),
+		_ = cancelled.changed() => return Err(anyhow!("P2P operation cancelled")),
 		result = future => result,
 	};
 	if *cancelled.borrow() != generation {
-		bail!("P2P operation cancelled");
+		return Err(anyhow!("P2P operation cancelled"));
 	}
 	result
 }
@@ -56,7 +54,7 @@ impl Drop for PendingEndpoint {
 		if !self.committed {
 			let endpoint: Endpoint = self.endpoint.clone();
 			tokio::spawn(async move {
-				let _ = timeout(Duration::from_secs(5), endpoint.close()).await;
+				let _ = timeout(P2P_SHUTDOWN_TIMEOUT, endpoint.close()).await;
 			});
 		}
 	}
@@ -94,7 +92,7 @@ impl Session {
 	async fn shutdown(mut self) {
 		self.task.abort();
 		let _ = (&mut self.task).await;
-		let _ = timeout(Duration::from_secs(5), self.endpoint.close()).await;
+		let _ = timeout(P2P_SHUTDOWN_TIMEOUT, self.endpoint.close()).await;
 	}
 }
 
@@ -107,7 +105,7 @@ impl Drop for Session {
 async fn available_session() -> Result<MutexGuard<'static, Option<Session>>, Error> {
 	let mut session: MutexGuard<'static, Option<Session>> = SESSION.lock().await;
 	if session.as_ref().is_some_and(|session: &Session| !session.task.is_finished()) {
-		bail!("P2P session is already running; stop it before starting another");
+		return Err(anyhow!("P2P session is already running; stop it before starting another"));
 	}
 	if let Some(previous) = session.take() {
 		let previous: Session = previous;
@@ -138,15 +136,15 @@ async fn endpoint() -> Result<Endpoint, Error> {
 	let builder: Builder = Endpoint::builder(Minimal)
 		.relay_mode(relay_mode)
 		.transport_config(transport)
-		.alpns(vec![ALPN.to_vec()]);
-	let endpoint: Endpoint = timeout(CONNECT_TIMEOUT, builder.bind()).await??;
+		.alpns(vec![P2P_ALPN.to_vec()]);
+	let endpoint: Endpoint = timeout(P2P_CONNECT_TIMEOUT, builder.bind()).await??;
 	Ok(endpoint)
 }
 
 pub async fn host(local_port: u16) -> Result<String, Error> {
 	run_start((async move || {
 		if local_port == 0 {
-			bail!("Local duel server port must not be zero");
+			return Err(anyhow!("Local duel server port must not be zero"));
 		}
 		let mut session: MutexGuard<'static, Option<Session>> = available_session().await?;
 		let mut pending: PendingEndpoint = PendingEndpoint {
@@ -154,8 +152,8 @@ pub async fn host(local_port: u16) -> Result<String, Error> {
 			committed: false,
 		};
 		let endpoint: &Endpoint = &pending.endpoint;
-		if timeout(RELAY_TIMEOUT, endpoint.online()).await.is_err() {
-			bail!("P2P relay connection timed out (5 seconds)");
+		if timeout(P2P_RELAY_TIMEOUT, endpoint.online()).await.is_err() {
+			return Err(anyhow!("P2P relay connection timed out ({} seconds)", P2P_RELAY_TIMEOUT.as_secs()));
 		}
 		let ticket: Ticket = Ticket::new(endpoint.addr(), Uuid::new_v4().into_bytes());
 		let room_code: String = ticket.encode()?;
@@ -175,21 +173,21 @@ pub async fn host(local_port: u16) -> Result<String, Error> {
 
 pub async fn join(room_code: String) -> Result<String, Error> {
 	run_start((async move || {
-		let deadline: Instant = Instant::now() + JOIN_TIMEOUT;
+		let deadline: Instant = Instant::now() + P2P_JOIN_TIMEOUT;
 		let ticket: Ticket = Ticket::decode(&room_code)?;
 		let mut session: MutexGuard<'static, Option<Session>> = timeout_at(deadline, available_session()).await
-			.context("P2P join timed out waiting for the previous session (8 seconds)")??;
+			.with_context(|| format!("P2P join timed out waiting for the previous session ({} seconds)", P2P_JOIN_TIMEOUT.as_secs()))??;
 		let listener: TcpListener = timeout_at(deadline, TcpListener::bind((Ipv4Addr::LOCALHOST, 0))).await
-			.context("P2P join timed out creating the local listener (8 seconds)")??;
+			.with_context(|| format!("P2P join timed out creating the local listener ({} seconds)", P2P_JOIN_TIMEOUT.as_secs()))??;
 		let local_address: String = listener.local_addr()?.to_string();
 		let mut pending: PendingEndpoint = PendingEndpoint {
 			endpoint: timeout_at(deadline, endpoint()).await
-				.context("P2P join timed out initializing the endpoint (8 seconds)")??,
+				.with_context(|| format!("P2P join timed out initializing the endpoint ({} seconds)", P2P_JOIN_TIMEOUT.as_secs()))??,
 			committed: false,
 		};
 		let endpoint: &Endpoint = &pending.endpoint;
 		let first: tunnel::Tunnel = timeout_at(deadline, tunnel::connect(endpoint, &ticket)).await
-			.context("P2P join timed out connecting to the room (8 seconds)")??;
+			.with_context(|| format!("P2P join timed out connecting to the room ({} seconds)", P2P_JOIN_TIMEOUT.as_secs()))??;
 		let info: SessionInfo = SessionInfo {
 			mode: Mode::Join,
 			endpoint_id: endpoint.id().to_string(),

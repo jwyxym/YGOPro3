@@ -6,7 +6,7 @@ use ygopro3_p2p::SessionInfo;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
-use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}, error::DecodeError};
+use bincode::{encode_to_vec, decode_from_slice, config::Configuration, error::DecodeError};
 use serde_json::{Value::{self, Array}, Number};
 use std::{borrow::Cow, fs::metadata};
 use tauri::{
@@ -17,7 +17,6 @@ use parking_lot::{RwLock, RwLockReadGuard};
 use std::{path::PathBuf, fs::exists};
 use chrono::{DateTime, Utc};
 
-static CONFIG : Configuration = standard();
 
 fn default_response () -> Response {
 	Response::new(encode_to_vec(Vec::<u8>::new(), CONFIG).unwrap())

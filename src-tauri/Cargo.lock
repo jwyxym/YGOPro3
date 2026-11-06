@@ -9549,6 +9549,7 @@ dependencies = [
 name = "ygopro3_const"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "lazy_static",
  "regex 1.11.2",
 ]
@@ -9688,11 +9689,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
+ "bincode",
  "iroh",
  "serde",
  "serde_json",
  "tokio",
  "uuid",
+ "ygopro3_const",
  "ygopro3_game",
  "ygopro3_log",
 ]

@@ -1,6 +1,8 @@
-use anyhow::{Context, Error, bail};
+use ygopro3_const::{P2P_ALPN, P2P_CONNECT_TIMEOUT, P2P_HANDSHAKE_TIMEOUT, P2P_JOIN_TIMEOUT, P2P_LOCAL_CONNECT_TIMEOUT, P2P_MAX_CONNECTIONS};
+
+use anyhow::{Context, Error, anyhow};
 use iroh::{Endpoint, endpoint::{Connection, Incoming, RecvStream, SendStream}};
-use std::{net::{Ipv4Addr, SocketAddr}, time::Duration};
+use std::net::{Ipv4Addr, SocketAddr};
 use tokio::{
 	io::{AsyncWriteExt, copy},
 	net::{TcpListener, TcpStream, tcp::{OwnedReadHalf, OwnedWriteHalf}},
@@ -8,11 +10,7 @@ use tokio::{
 	time::timeout
 };
 
-use super::{ALPN, CONNECT_TIMEOUT, JOIN_TIMEOUT, ticket::Ticket};
-
-const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
-const LOCAL_CONNECT_TIMEOUT: Duration = Duration::from_secs(60);
-const MAX_CONNECTIONS: usize = 32;
+use super::ticket::Ticket;
 
 struct Peer {
 	connection: Connection,
@@ -52,25 +50,25 @@ impl Tunnel {
 }
 
 pub async fn connect(endpoint: &Endpoint, ticket: &Ticket) -> Result<Tunnel, Error> {
-	timeout(JOIN_TIMEOUT, async {
-		let connection: Connection = endpoint.connect(ticket.address.clone(), ALPN).await?;
+	timeout(P2P_JOIN_TIMEOUT, async {
+		let connection: Connection = endpoint.connect(ticket.address.clone(), P2P_ALPN).await?;
 		let peer: Peer = Peer { connection };
 		let (mut send, mut recv): (SendStream, RecvStream) = peer.connection.open_bi().await?;
 		send.write_all(&ticket.token).await?;
 		let mut accepted: [u8; 1] = [0];
 		recv.read_exact(&mut accepted).await?;
 		if accepted != [1] {
-			bail!("P2P room rejected the connection");
+			return Err(anyhow!("P2P room rejected the connection"));
 		}
 		Ok(Tunnel { _peer: peer, send, recv })
-	}).await.context("P2P connection and room handshake timed out (8 seconds)")?
+	}).await.with_context(|| format!("P2P connection and room handshake timed out ({} seconds)", P2P_JOIN_TIMEOUT.as_secs()))?
 }
 
 async fn serve_peer(incoming: Incoming, local_port: u16, token: [u8; 16]) -> Result<(), Error> {
-	let connection: Connection = timeout(CONNECT_TIMEOUT, async { incoming.await }).await??;
+	let connection: Connection = timeout(P2P_CONNECT_TIMEOUT, async { incoming.await }).await??;
 	let peer: Peer = Peer { connection };
 	let (send, recv, socket): (SendStream, RecvStream, TcpStream) = timeout(
-		HANDSHAKE_TIMEOUT,
+		P2P_HANDSHAKE_TIMEOUT,
 		async {
 			let (mut send, mut recv): (SendStream, RecvStream) = peer.connection.accept_bi().await?;
 			let mut supplied: [u8; 16] = [0; 16];
@@ -80,7 +78,7 @@ async fn serve_peer(incoming: Incoming, local_port: u16, token: [u8; 16]) -> Res
 					difference | (*left ^ *right)
 				});
 			if mismatch != 0 {
-				bail!("Invalid P2P room credential");
+				return Err(anyhow!("Invalid P2P room credential"));
 			}
 			let socket: TcpStream = TcpStream::connect((Ipv4Addr::LOCALHOST, local_port)).await?;
 			send.write_all(&[1]).await?;
@@ -101,7 +99,7 @@ pub async fn serve_host(endpoint: Endpoint, local_port: u16, token: [u8; 16]) {
 			incoming = endpoint.accept() => {
 				let Some(incoming) = incoming else { break; };
 				let incoming: Incoming = incoming;
-				if clients.len() >= MAX_CONNECTIONS {
+				if clients.len() >= P2P_MAX_CONNECTIONS {
 					incoming.refuse();
 					continue;
 				}
@@ -122,7 +120,7 @@ pub async fn serve_client(endpoint: Endpoint, listener: TcpListener, ticket: Tic
 	let mut first: Option<Tunnel> = Some(first);
 	loop {
 		let accepted: Result<(TcpStream, SocketAddr), Error> = if first.is_some() {
-			match timeout(LOCAL_CONNECT_TIMEOUT, listener.accept()).await {
+			match timeout(P2P_LOCAL_CONNECT_TIMEOUT, listener.accept()).await {
 				Ok(result) => result.map_err(Error::from),
 				Err(error) => Err(Error::from(error)),
 			}
