@@ -20,11 +20,11 @@ const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 const RELAY_TIMEOUT: Duration = Duration::from_secs(5);
 const JOIN_TIMEOUT: Duration = Duration::from_secs(8);
 static SESSION: Mutex<Option<Session>> = Mutex::const_new(None);
-static CANCEL: OnceLock<watch::Sender<()>> = OnceLock::new();
+static CANCEL: OnceLock<watch::Sender<u64>> = OnceLock::new();
 
-fn cancellation() -> &'static watch::Sender<()> {
+fn cancellation() -> &'static watch::Sender<u64> {
 	CANCEL.get_or_init(|| {
-		let (sender, _receiver): (watch::Sender<()>, watch::Receiver<()>) = watch::channel(());
+		let (sender, _receiver): (watch::Sender<u64>, watch::Receiver<u64>) = watch::channel(0);
 		sender
 	})
 }
@@ -33,12 +33,17 @@ async fn run_start<T, F>(future: F) -> Result<T, Error>
 where
 	F: Future<Output = Result<T, Error>>,
 {
-	let mut cancelled: watch::Receiver<()> = cancellation().subscribe();
-	tokio::select! {
+	let mut cancelled: watch::Receiver<u64> = cancellation().subscribe();
+	let generation: u64 = *cancelled.borrow_and_update();
+	let result: Result<T, Error> = tokio::select! {
 		biased;
 		_ = cancelled.changed() => bail!("P2P operation cancelled"),
 		result = future => result,
+	};
+	if *cancelled.borrow() != generation {
+		bail!("P2P operation cancelled");
 	}
+	result
 }
 
 struct PendingEndpoint {
@@ -138,7 +143,7 @@ async fn endpoint() -> Result<Endpoint, Error> {
 	Ok(endpoint)
 }
 
-pub async fn host(local_port: u16) -> Result<SessionInfo, Error> {
+pub async fn host(local_port: u16) -> Result<String, Error> {
 	run_start((async move || {
 		if local_port == 0 {
 			bail!("Local duel server port must not be zero");
@@ -157,18 +162,18 @@ pub async fn host(local_port: u16) -> Result<SessionInfo, Error> {
 		let info: SessionInfo = SessionInfo {
 			mode: Mode::Host,
 			endpoint_id: endpoint.id().to_string(),
-			room_code: Some(room_code),
+			room_code: Some(room_code.clone()),
 			local_address: SocketAddrV4::new(Ipv4Addr::LOCALHOST, local_port).to_string(),
 			running: true,
 		};
 		let task: JoinHandle<()> = tokio::spawn(tunnel::serve_host(endpoint.clone(), local_port, ticket.token));
-		*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
+		*session = Some(Session { endpoint: endpoint.clone(), task, info });
 		pending.committed = true;
-		Ok(info)
+		Ok(room_code)
 	})()).await
 }
 
-pub async fn join(room_code: String) -> Result<SessionInfo, Error> {
+pub async fn join(room_code: String) -> Result<String, Error> {
 	run_start((async move || {
 		let deadline: Instant = Instant::now() + JOIN_TIMEOUT;
 		let ticket: Ticket = Ticket::decode(&room_code)?;
@@ -189,13 +194,13 @@ pub async fn join(room_code: String) -> Result<SessionInfo, Error> {
 			mode: Mode::Join,
 			endpoint_id: endpoint.id().to_string(),
 			room_code: None,
-			local_address,
+			local_address: local_address.clone(),
 			running: true,
 		};
 		let task: JoinHandle<()> = tokio::spawn(tunnel::serve_client(endpoint.clone(), listener, ticket, first));
-		*session = Some(Session { endpoint: endpoint.clone(), task, info: info.clone() });
+		*session = Some(Session { endpoint: endpoint.clone(), task, info });
 		pending.committed = true;
-		Ok(info)
+		Ok(local_address)
 	})()).await
 }
 
@@ -209,7 +214,9 @@ pub async fn status() -> Option<SessionInfo> {
 }
 
 pub async fn stop() {
-	cancellation().send_replace(());
+	cancellation().send_modify(|generation: &mut u64| {
+		*generation = generation.wrapping_add(1);
+	});
 	let mut session: MutexGuard<'static, Option<Session>> = SESSION.lock().await;
 	if let Some(current) = session.take() {
 		let current: Session = current;

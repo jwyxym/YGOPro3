@@ -126,14 +126,14 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 }
 
 #[tauri::command]
-pub async fn p2p_host (local_port: u16) -> Result<SessionInfo, String> {
-	ygopro3_p2p::host(local_port).await
+pub async fn p2p_host (port: u16) -> Result<String, String> {
+	ygopro3_p2p::host(port).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 
 #[tauri::command]
-pub async fn p2p_join (room_code: String) -> Result<SessionInfo, String> {
-	ygopro3_p2p::join(room_code).await
+pub async fn p2p_join (code: String) -> Result<String, String> {
+	ygopro3_p2p::join(code).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 

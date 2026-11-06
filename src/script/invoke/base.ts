@@ -89,8 +89,8 @@ abstract class BaseInvoke {
 	};
 
 	abstract p2p : {
-		host : (local_port : number) => Promise<string | undefined>;
-		join : (room_code : string) => Promise<string | undefined>;
+		host : (port : number) => Promise<string | undefined>;
+		join : (code : string) => Promise<string | undefined>;
 		stop : () => Promise<void>;
 	};
 

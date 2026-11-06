@@ -7,7 +7,6 @@ import LFList from '@/script/lflist';
 import { KEYS } from '@/script/constant';
 import BaseInvoke from './base';
 import Srv from './type';
-import type { P2pSession } from './type';
 
 const _invoke = async <T>(command : string, args ?: InvokeArgs) : Promise<T> => {
 	const api = await import('@tauri-apps/api/core');
@@ -15,8 +14,6 @@ const _invoke = async <T>(command : string, args ?: InvokeArgs) : Promise<T> => 
 };
 
 class Invoke extends BaseInvoke {
-	private p2p_generation : number = 0;
-
 	game = {
 		init : async () : Promise<boolean> => {
 			try {
@@ -560,34 +557,23 @@ class Invoke extends BaseInvoke {
 		}
 	};
 	p2p = {
-		host : async (local_port : number) : Promise<string | undefined> => {
-			const generation : number = this.p2p_generation;
+		host : async (port : number) : Promise<string | undefined> => {
 			try {
-				const room : P2pSession = await _invoke<P2pSession>('p2p_host', {
-					localPort : local_port,
-					config : null
-				});
-				return generation === this.p2p_generation ? room.room_code ?? undefined : undefined;
+				return await _invoke<string>('p2p_host', { port });
 			} catch (error : unknown) {
 				await this.log.write(String(error));
 				return undefined;
 			}
 		},
-		join : async (room_code : string) : Promise<string | undefined> => {
-			const generation : number = this.p2p_generation;
+		join : async (code : string) : Promise<string | undefined> => {
 			try {
-				const room : P2pSession = await _invoke<P2pSession>('p2p_join', {
-					roomCode : room_code,
-					config : null
-				});
-				return generation === this.p2p_generation ? room.local_address : undefined;
+				return await _invoke<string>('p2p_join', { code });
 			} catch (error : unknown) {
 				await this.log.write(String(error));
 				return undefined;
 			}
 		},
 		stop : async () : Promise<void> => {
-			this.p2p_generation ++;
 			try {
 				await _invoke<void>('p2p_stop');
 			} catch (error : unknown) {
