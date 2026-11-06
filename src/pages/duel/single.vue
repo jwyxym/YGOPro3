@@ -84,13 +84,22 @@
 				</var-cell>
 				<div
 					class = 'select'
-					:class = "{ 'unshow' : page.list[page.selected]?.[1] !== 'Lucky' }"
+					v-if = "page.list[page.selected]?.[1] === 'Lucky'"
 				>
 					<Select
-						v-if = "page.list[page.selected]?.[1] === 'Lucky'"
 						name = 'deck'
 						v-model = 'page.deck'
 						:rules = 'page.rule'
+						:clearable = 'true'
+					/>
+				</div>
+				<div
+					class = 'select'
+					v-else-if = "page.list[page.selected]?.[1] === 'localhost'"
+				>
+					<Select
+						name = 'lflist'
+						v-model = 'page.lflist'
 						:clearable = 'true'
 					/>
 				</div>
@@ -121,6 +130,7 @@
 
 	const page = reactive({
 		deck : undefined as undefined | Deck,
+		lflist : undefined as undefined | string,
 		selected : -1,
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		list : [] as Array<[string, string, string]>,
@@ -144,7 +154,7 @@
 			emit('connect', {
 				name : page.name,
 				args : [{
-						lflist : 0,
+						lflist : page.lflist ? mainGame.get.lflist(page.lflist).hash : 0,
 						rule : 5,
 						mode : 0,
 						replayMode : 0,
@@ -167,7 +177,7 @@
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		page.list = ([['本地主机', 'localhost', '']]  as Array<[string, string, string]>)
+		page.list = ([[mainGame.get.text(I18N_KEYS.SINGLE_HOST), 'localhost', '']]  as Array<[string, string, string]>)
 			.concat(await invoke.bot.list());
 		page.list[0][2] = page.list[1]?.[2] ?? 'gugugu.zh-CN';
 		hotkeys('down, pagedown', () => {
@@ -281,9 +291,6 @@
 				:deep(.var-cell__extra) {
 					height: 40px;
 				}
-			}
-			.unshow {
-				opacity: 0;
 			}
 			.select {
 				width: 80%;

@@ -25,7 +25,7 @@ Ko_KR[I18N_KEYS.START_TITLE] = '게임 리소스 오류';
 Ko_KR[I18N_KEYS.START_MESSAGE] = '확인을 클릭하여 게임을 종료하세요';
 Ko_KR[I18N_KEYS.START_LANDSCAPE] = '클릭하여 전체 화면으로 전환';
 
-Ko_KR[I18N_KEYS.MENU_SINGLE] = 'AI 모드';
+Ko_KR[I18N_KEYS.MENU_SINGLE] = '로컬 호스트';
 Ko_KR[I18N_KEYS.MENU_CONNECT] = '온라인 모드';
 Ko_KR[I18N_KEYS.MENU_REPLAY] = '리플레이 보기';
 Ko_KR[I18N_KEYS.MENU_DECK] = '덱 편집';
@@ -146,6 +146,7 @@ Ko_KR[I18N_KEYS.SERVER_NAME_ERROR] = '플레이어 이름을 입력해주세요'
 Ko_KR[I18N_KEYS.SERVER_ADDRESS_ERROR] = '주소를 입력해주세요';
 Ko_KR[I18N_KEYS.SERVER_P2P_ERROR] = 'P2P 방 참가에 실패했습니다';
 
+Ko_KR[I18N_KEYS.SINGLE_HOST] = '방 만들기';
 Ko_KR[I18N_KEYS.SINGLE_LP] = '시작 LP';
 Ko_KR[I18N_KEYS.SINGLE_HAND] = '시작 패';
 Ko_KR[I18N_KEYS.SINGLE_DRAW] = '드로우 매수';

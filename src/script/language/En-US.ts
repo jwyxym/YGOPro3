@@ -25,7 +25,7 @@ En_US[I18N_KEYS.START_TITLE] = 'Game Resource Error';
 En_US[I18N_KEYS.START_MESSAGE] = 'Click OK to exit the game';
 En_US[I18N_KEYS.START_LANDSCAPE] = 'Click to enter full screen';
 
-En_US[I18N_KEYS.MENU_SINGLE] = 'SOLO';
+En_US[I18N_KEYS.MENU_SINGLE] = 'Local Host';
 En_US[I18N_KEYS.MENU_CONNECT] = 'ONLINE';
 En_US[I18N_KEYS.MENU_REPLAY] = 'Replays';
 En_US[I18N_KEYS.MENU_DECK] = 'DECK';
@@ -146,6 +146,7 @@ En_US[I18N_KEYS.SERVER_NAME_ERROR] = 'Please enter a player name';
 En_US[I18N_KEYS.SERVER_ADDRESS_ERROR] = 'Please enter an address';
 En_US[I18N_KEYS.SERVER_P2P_ERROR] = 'Failed to join the P2P room';
 
+En_US[I18N_KEYS.SINGLE_HOST] = 'Create Room';
 En_US[I18N_KEYS.SINGLE_LP] = 'Starting LP';
 En_US[I18N_KEYS.SINGLE_HAND] = 'Starting Hand';
 En_US[I18N_KEYS.SINGLE_DRAW] = 'Draw Count';

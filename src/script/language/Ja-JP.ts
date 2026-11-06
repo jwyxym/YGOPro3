@@ -25,7 +25,7 @@ Ja_JP[I18N_KEYS.START_TITLE] = 'リソースエラー';
 Ja_JP[I18N_KEYS.START_MESSAGE] = 'OKをクリックしてゲームを終了します';
 Ja_JP[I18N_KEYS.START_LANDSCAPE] = 'クリックして全画面表示に切り替え';
 
-Ja_JP[I18N_KEYS.MENU_SINGLE] = 'ＡＩ対戦';
+Ja_JP[I18N_KEYS.MENU_SINGLE] = 'ローカルホスト';
 Ja_JP[I18N_KEYS.MENU_CONNECT] = 'ネット対戦';
 Ja_JP[I18N_KEYS.MENU_REPLAY] = 'リプレイを見る';
 Ja_JP[I18N_KEYS.MENU_DECK] = 'デッキ編集';
@@ -146,6 +146,7 @@ Ja_JP[I18N_KEYS.SERVER_NAME_ERROR] = 'プレイヤー名を入力してくださ
 Ja_JP[I18N_KEYS.SERVER_ADDRESS_ERROR] = 'アドレスを入力してください';
 Ja_JP[I18N_KEYS.SERVER_P2P_ERROR] = 'P2P ルームへの参加に失敗しました';
 
+Ja_JP[I18N_KEYS.SINGLE_HOST] = 'ルーム作成';
 Ja_JP[I18N_KEYS.SINGLE_LP] = 'ライフポイント';
 Ja_JP[I18N_KEYS.SINGLE_HAND] = '初期手札';
 Ja_JP[I18N_KEYS.SINGLE_DRAW] = '通常のドロー';
