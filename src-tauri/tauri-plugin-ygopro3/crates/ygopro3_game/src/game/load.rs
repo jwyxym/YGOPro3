@@ -291,20 +291,20 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 		async {
 			while let Some(task) = zip_tasks.next().await {
 				if let Ok(task) = task {
-					if let Ok(zip) = task {
+					if let Ok(mut zip) = task {
 						let mut lflist: LFList = LFList::new();
 						let mut strings: Strings = Strings::new();
 						let mut db: Cdb = Cdb::new();
 						let mut server: Server = Server::new();
 						let mut pics: Pic = Pic::new();
 						let mut scripts: Script = Script::new();
-						zip.lflist().into_iter().for_each(|text: String| {
-							lflist.init(text);
+						zip.lflist().iter().for_each(|text: &String| {
+							lflist.init(text.clone());
 						});
-						zip.strings().into_iter().for_each(|text: String| {
+						zip.strings().iter().for_each(|text: &String| {
 							strings.init(text.clone());
 						});
-						zip.db().into_iter().for_each(|i| {
+						zip.take_db().into_iter().for_each(|i: Cdb| {
 							db.init_by_db(i);
 						});
 						zip.pics().into_iter().for_each(|(k, v)| {
@@ -313,13 +313,13 @@ pub async fn expansion (path: &Path, system: &System) -> IndexMap<String, GamePa
 						zip.scripts().into_iter().for_each(|(k, v)| {
 							scripts.insert(k.clone(), *v);
 						});
-						zip.servers().into_iter().for_each(|text: String| {
-							server.init_by_conf(text);
+						zip.servers().iter().for_each(|text: &String| {
+							server.init_by_conf(text.clone());
 						});
-						zip.ini().into_iter().for_each(|text: String| {
-							server.init_by_ini(text);
+						zip.ini().iter().for_each(|text: &String| {
+							server.init_by_ini(text.clone());
 						});
-						packs.insert(zip.name(), GamePack {
+						packs.insert(zip.name().to_owned(), GamePack {
 							on: true,
 							card_info: CardInfo::default(),
 							strings,
@@ -397,18 +397,14 @@ pub async fn zip (name: String) -> Result<(), Error> {
 		let zip: Zip = Zip::new_with_emit(String::from(path), name.clone())?;
 		let mut lflist: LFList = LFList::new();
 		let mut strings: Strings = Strings::new();
-		let mut db: Vec<Cdb> = Vec::new();
 		let mut server: Server = Server::new();
 		let mut pics: Pic = Pic::new();
 		let mut scripts: Script = Script::new();
-		zip.lflist().into_iter().for_each(|text: String| {
-			lflist.init(text);
+		zip.lflist().iter().for_each(|text: &String| {
+			lflist.init(text.clone());
 		});
-		zip.strings().into_iter().for_each(|text: String| {
+		zip.strings().iter().for_each(|text: &String| {
 			strings.init(text.clone());
-		});
-		zip.db().into_iter().for_each(|i| {
-			db.push(i);
 		});
 		zip.pics().into_iter().for_each(|(k, v)| {
 			pics.insert(*k, PicContent::ZipFile(*v));
@@ -416,11 +412,11 @@ pub async fn zip (name: String) -> Result<(), Error> {
 		zip.scripts().into_iter().for_each(|(k, v)| {
 			scripts.insert(k.clone(), *v);
 		});
-		zip.servers().into_iter().for_each(|text: String| {
-			server.init_by_conf(text);
+		zip.servers().iter().for_each(|text: &String| {
+			server.init_by_conf(text.clone());
 		});
-		zip.ini().into_iter().for_each(|text: String| {
-			server.init_by_ini(text);
+		zip.ini().iter().for_each(|text: &String| {
+			server.init_by_ini(text.clone());
 		});
 		game.pack.insert(name, GamePack {
 			on: true,

@@ -35,8 +35,8 @@ impl Room {
 		}
 		false
 	}
-	pub fn to_array (&self) -> Vec<(String, String)> {
-		self.model.clone().into_iter().collect()
+	pub fn to_array (&self) -> Vec<(&String, &String)> {
+		self.model.iter().collect()
 	}
 	pub fn to_string (&self) -> Result<String, Error> {
 		Ok(to_string(&self.model)?)

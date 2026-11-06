@@ -18,7 +18,7 @@ impl Sound {
 		self.content.insert(key, value);
 	}
 
-	pub fn read_dir<P: AsRef<Path>> (mut self, path: P, sounds: Vec<(String, String)>) -> Self {
+	pub fn read_dir<P: AsRef<Path>> (mut self, path: P, sounds: Vec<(&String, &String)>) -> Self {
 		WalkDir::new(path)
 			.max_depth(1)
 			.into_iter()
@@ -28,8 +28,8 @@ impl Sound {
 					if ["wav", "mp3", "ogg"].contains(&file.ext())
 						&& let Some(i) = sounds
 							.iter()
-							.find(|i| i.1 == String::from(file.name())) {
-						return Some((i.0.clone(), String::from(file.path())));
+							.find(|i| i.1.as_str() == file.name()) {
+						return Some((String::from(i.0.as_str()), String::from(file.path())));
 					}
 				}
 				None
@@ -40,7 +40,7 @@ impl Sound {
 		self
 	}
 
-	pub fn to_array (&self) -> Vec<(String, String)> {
-		self.content.clone().into_iter().collect()
+	pub fn to_array (&self) -> Vec<(&String, &String)> {
+		self.content.iter().collect()
 	}
 }

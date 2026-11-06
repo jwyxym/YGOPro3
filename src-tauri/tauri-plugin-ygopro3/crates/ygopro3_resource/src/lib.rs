@@ -135,87 +135,36 @@ impl Resource {
 		result
 	}
 	pub fn to_array (&self, path: &Path) -> Textures {
-		let mut resource: Resource = self.clone();
-		resource.to_url(path);
 		(
-			resource.ot.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
+			Self::code_array(&self.ot, path),
+			Self::code_array(&self.attribute, path),
+			Self::code_array(&self.category, path),
+			Self::code_array(&self.race, path),
+			Self::code_array(&self.types, path),
+			Self::code_array(&self.counter, path),
+			self.link.iter()
+				.filter_map(|(key, value): (&String, &(String, String))| -> Option<(u32, (String, String))> {
+					Some((Self::parse_code(key)?, Self::pair_url(path, value)?))
+				})
 				.collect(),
-			resource.attribute.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
+			Self::string_array(&self.info, path),
+			Self::string_array(&self.other, path),
+			self.btn.iter()
+				.filter_map(|(key, value): (&String, &(String, String))| -> Option<(String, (String, String))> {
+					let urls: (String, String) = Self::pair_url(path, value)?;
+					Some((key.clone(), urls))
+				})
 				.collect(),
-			resource.category.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			resource.race.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			resource.types.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			resource.counter.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			resource.link.clone().into_iter()
-				.filter_map(|i|
-					if let Ok(code) = u32::from_str_radix(&i.0.trim_start_matches("0x"),
-						if i.0.starts_with("0x") { 16 } else { 10 }
-					) {
-						Some((code, i.1))
-					} else {
-						None
-					})
-				.collect(),
-			resource.info.clone().into_iter().collect(),
-			resource.other.clone().into_iter().collect(),
-			resource.btn.clone().into_iter().collect(),
-			resource.avatar.get("AVATAR").unwrap_or(&Vec::new()).to_vec()
+			self.avatar.get("AVATAR").into_iter()
+				.flatten()
+				.filter_map(|value: &String| -> Option<String> {
+					Self::file_url(path, value)
+				})
+				.collect()
 		)
 	}
-	pub fn sound (&self) -> Vec<(String, String)> {
-		self.sound.clone().into_iter().collect()
+	pub fn sound (&self) -> Vec<(&String, &String)> {
+		self.sound.iter().collect()
 	}
 	pub fn recognizer (&self) -> &IndexMap<String, String> {
 		&self.recognizer
@@ -239,57 +188,32 @@ impl Resource {
 			}
 		}
 	}
-	fn to_url (&mut self, path: &Path) {
-		[
-			&mut self.ot,
-			&mut self.attribute,
-			&mut self.category,
-			&mut self.race,
-			&mut self.types,
-			&mut self.info,
-			&mut self.counter,
-			&mut self.other
-		]
-			.into_iter().for_each(|i| {
-				i.retain(|_, value| {
-					let p: PathBuf = path.join(&value);
-					if let Some(p) = File::new(&p) {
-						*value = p.url();
-						true
-					} else {
-						false
-					}
-				});
-			});
-		if let Some(avatar) = self.avatar.get_mut("AVATAR") {
-			avatar.retain_mut(|i| {
-				let p: PathBuf = path.join(i.clone());
-				if let Some(p) = File::new(&p) {
-					*i = p.url();
-					true
-				} else {
-					false
-				}
-			});
-		}
-
-		[&mut self.link, &mut self.btn]
-			.into_iter().for_each(|i| {
-				i.retain(|_, (value_i, value_ii)| {
-					let p: PathBuf = path.join(&value_i);
-					if let Some(p) = File::new(&p) {
-						*value_i = p.url();
-					} else {
-						return false;
-					}
-					let p: PathBuf = path.join(&value_ii);
-					if let Some(p) = File::new(&p) {
-						*value_ii = p.url();
-						true
-					} else {
-						false
-					}
-				});
-			});
+	fn code_array (map: &IndexMap<String, String>, path: &Path) -> Vec<(u32, String)> {
+		map.iter()
+			.filter_map(|(key, value): (&String, &String)| -> Option<(u32, String)> {
+				Some((Self::parse_code(key)?, Self::file_url(path, value)?))
+			})
+			.collect()
+	}
+	fn string_array (map: &IndexMap<String, String>, path: &Path) -> Vec<(String, String)> {
+		map.iter()
+			.filter_map(|(key, value): (&String, &String)| -> Option<(String, String)> {
+				let url: String = Self::file_url(path, value)?;
+				Some((key.clone(), url))
+			})
+			.collect()
+	}
+	fn pair_url (path: &Path, value: &(String, String)) -> Option<(String, String)> {
+		Some((Self::file_url(path, &value.0)?, Self::file_url(path, &value.1)?))
+	}
+	fn file_url (path: &Path, value: &str) -> Option<String> {
+		let path: PathBuf = path.join(value);
+		let file: File = File::new(&path)?;
+		Some(file.url())
+	}
+	fn parse_code (key: &str) -> Option<u32> {
+		u32::from_str_radix(key.trim_start_matches("0x"),
+			if key.starts_with("0x") { 16 } else { 10 }
+		).ok()
 	}
 }
