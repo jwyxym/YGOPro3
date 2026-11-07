@@ -120,23 +120,27 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 	srv(url).map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::p2p]
 #[tauri::command]
 pub async fn p2p_host (port: u16) -> Result<String, String> {
 	ygopro3_p2p::host(port).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 
+#[ygopro3_macros::p2p]
 #[tauri::command]
 pub async fn p2p_join (code: String) -> Result<String, String> {
 	ygopro3_p2p::join(code).await
 		.map_err(|error: anyhow::Error| error.to_string())
 }
 
+#[ygopro3_macros::p2p]
 #[tauri::command]
 pub async fn p2p_status () -> Option<SessionInfo> {
 	ygopro3_p2p::status().await
 }
 
+#[ygopro3_macros::p2p]
 #[tauri::command]
 pub async fn p2p_stop () {
 	ygopro3_p2p::stop().await;

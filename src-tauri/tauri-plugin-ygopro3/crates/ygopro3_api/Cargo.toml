@@ -16,7 +16,7 @@ ygopro3_log.workspace = true
 ygopro3_const.workspace = true
 ygopro3_emit.workspace = true
 ygopro3_network.workspace = true
-ygopro3_p2p.workspace = true
+ygopro3_p2p = { workspace = true, optional = true }
 ygopro3_game.workspace = true
 ygopro3_deck.workspace = true
 ygopro3_yrp.workspace = true
@@ -33,3 +33,4 @@ default = []
 windbot = ["dep:ygopro3_windbot"]
 duel = ["dep:ygopro3_duel"]
 plugin = ["dep:ygopro3_plugin"]
+p2p = ["dep:ygopro3_p2p"]
