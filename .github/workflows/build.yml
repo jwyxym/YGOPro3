@@ -8,38 +8,10 @@ on:
     
 jobs:
   push-gitcode:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Git Config
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions@github.com"
-
-      - name: Set SSH Key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan gitcode.com >> ~/.ssh/known_hosts
-
-      - name: Push to GitCode
-        run: |
-          git remote add gitcode git@gitcode.com:jwyxym/YGOPro3.git
-          git fetch gitcode
-          git checkout -b gitcode-main gitcode/main
-          git merge origin/main
-          git push gitcode gitcode-main:main
+    runs-on: ubuntu-22.04
 
   build-android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -354,7 +326,7 @@ jobs:
       matrix:
         include:
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: deb
             bundle_dir: deb
             extension: deb
@@ -364,7 +336,7 @@ jobs:
             bundle_dir: deb
             extension: deb
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: rpm
             bundle_dir: rpm
             extension: rpm
@@ -374,7 +346,7 @@ jobs:
             bundle_dir: rpm
             extension: rpm
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: appimage
             bundle_dir: appimage
             extension: AppImage
@@ -457,7 +429,7 @@ jobs:
 
   build-html:
     name: build-html
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
