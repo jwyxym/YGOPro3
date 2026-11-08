@@ -12,7 +12,7 @@ tauri-plugin = { version = "2", features = ["build"] }
 ygopro3_api.workspace = true
 
 [workspace.dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2.12", features = ["protocol-asset"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.143"
 anyhow = "1.0.100"

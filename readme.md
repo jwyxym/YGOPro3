@@ -7,6 +7,7 @@
 [![Tauri](https://img.shields.io/badge/Tauri-v2.0-blue.svg)](https://tauri.app/)
 [![Java](https://img.shields.io/badge/Java-21+-yellow.svg)](https://www.oracle.com/java/)
 [![ndk](https://img.shields.io/badge/ndk-27-darkgreen.svg)](https://developer.android.com/ndk/downloads/)
+[![.Net](https://img.shields.io/badge/.Net-10-green​​​.svg)](https://dotnet.microsoft.com/en-us/download/dotnet/)
 </div>
 
 <div>
@@ -25,6 +26,7 @@
 	<ul>
 		<li>Node.js v22</li>
 		<li>Rust 1.95.0</li>
+		<li>.Net 10（Windbot开发）</li>
 		<li>Java 21（Android开发）</li>
 		<li>NDK 27（Android开发）</li>
 	</ul>
