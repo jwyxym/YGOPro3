@@ -8,7 +8,7 @@ on:
     
 jobs:
   push-gitcode:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
           git push gitcode gitcode-main:main
 
   build-android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -354,7 +354,7 @@ jobs:
       matrix:
         include:
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: deb
             bundle_dir: deb
             extension: deb
@@ -364,7 +364,7 @@ jobs:
             bundle_dir: deb
             extension: deb
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: rpm
             bundle_dir: rpm
             extension: rpm
@@ -374,7 +374,7 @@ jobs:
             bundle_dir: rpm
             extension: rpm
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: appimage
             bundle_dir: appimage
             extension: AppImage
@@ -457,7 +457,7 @@ jobs:
 
   build-html:
     name: build-html
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4
@@ -490,7 +490,7 @@ jobs:
 
   create-release:
     needs: [build-android, build-windows, build-macos, build-linux]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
