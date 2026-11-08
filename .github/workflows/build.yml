@@ -7,9 +7,6 @@ on:
   workflow_dispatch:
     
 jobs:
-  push-gitcode:
-    runs-on: ubuntu-22.04
-
   build-android:
     runs-on: ubuntu-22.04
     strategy:
