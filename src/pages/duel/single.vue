@@ -167,7 +167,7 @@
 						timeLimit : 0
 					},
 					p2p
-						? `Deck=${selected[1]}`
+						? ''
 						: `Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
 				],
 				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : '',
@@ -179,7 +179,6 @@
 	onBeforeMount(async () : Promise<void> => {
 		page.list = ([[mainGame.get.text(I18N_KEYS.SINGLE_HOST), 'localhost', '']]  as Array<[string, string, string]>)
 			.concat(await invoke.bot.list());
-		page.list[0][2] = page.list[1]?.[2] ?? 'gugugu.zh-CN';
 		hotkeys('down, pagedown', () => {
 			const len = page.list.length - 1;
 			page.selected = page.selected >= len ? 0 : page.selected + 1;

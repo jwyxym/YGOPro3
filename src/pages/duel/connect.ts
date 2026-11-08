@@ -296,7 +296,7 @@ const connect = reactive({
 										.write.str(pass, 40));
 									if (local_server && port) {
 										connect.duel.ai = async () => await invoke.bot.start(`${i.args[1]} Port=${port}`, i.deck);
-										if (!i.args[1].startsWith('Deck'))
+										if (i.args[1])
 											await connect.duel.ai();
 									} else
 										connect.duel.ai = async () => await connect.send?.(new Msg()

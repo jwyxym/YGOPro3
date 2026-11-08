@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - '[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
     
 jobs:
   push-gitcode:
@@ -140,29 +141,6 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y wget unzip
 
-    - name: Download so
-      run: |
-        cd kotlin/jniLibs
-        mkdir x86
-        mkdir x86_64
-        mkdir arm64-v8a
-        mkdir armeabi-v7a
-
-        cd x86_64
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-x86_64.zip
-        unzip windbot-android-x86_64.zip
-        rm -r *.zip
-
-        cd ../arm64-v8a
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-arm64-v8a.zip
-        unzip windbot-android-arm64-v8a.zip
-        rm -r *.zip
-
-        cd ../armeabi-v7a
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-armeabi-v7a.zip
-        unzip windbot-android-armeabi-v7a.zip
-        rm -r *.zip
-
     - name: Android build (${{ matrix.artifact_abi }})
       run: |
         npm run copy:sh
@@ -241,20 +219,6 @@ jobs:
 
     - name: Install wget and unzip
       run: choco install wget unzip -y
-
-    - name: Download Windbot
-      if: matrix.target == 'aarch64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-arm64.zip
-        unzip windbot-win-arm64.zip
-
-    - name: Download Windbot
-      if: matrix.target == 'x86_64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
-        unzip windbot-win-x64.zip
 
     - name: Write Tauri Config
       shell: cmd
@@ -344,12 +308,6 @@ jobs:
         
     - name: Rename assets
       run: mv ./src-tauri/assets.zip ./src-tauri/assets
-
-    - name: Download Windbot
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-macos-universal.zip
-        unzip windbot-macos-universal.zip
 
     - name: Write Tauri Config
       run: |
@@ -472,20 +430,6 @@ jobs:
           pkg-config \
           libgtk-3-dev \
           xdg-utils
-
-    - name: Download Windbot
-      if: matrix.target == 'aarch64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
-        unzip windbot-linux-arm64.zip
-
-    - name: Download Windbot
-      if: matrix.target == 'x86_64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-x64.zip
-        unzip windbot-linux-x64.zip
 
     - name: Write Tauri Config
       run: |

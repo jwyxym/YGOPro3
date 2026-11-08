@@ -1,0 +1,5 @@
+[target.'cfg(all(target_os = "windows", target_env = "msvc"))']
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.'cfg(any(target_os = "linux", target_os = "android"))']
+rustflags = ["-C", "link-arg=-Wl,-z,nostart-stop-gc"]

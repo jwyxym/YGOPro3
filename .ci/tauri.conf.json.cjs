@@ -63,13 +63,7 @@ const tauriConfig = {
 
 if (os === 'dev')
 	tauriConfig.bundle.resources = [];
-else if (os === 'macos')
-	tauriConfig.bundle.resources = ["assets", "WindBot.dylib", "libe_sqlite3.dylib"];
-else if (os === 'linux')
-	tauriConfig.bundle.resources = ["assets", "WindBot.so", "libe_sqlite3.so"];
-else if (os === 'windows')
-	tauriConfig.bundle.resources = ["assets", "WindBot.dll", "e_sqlite3.dll"];
-else 
+else
 	tauriConfig.bundle.resources = ["assets"];
 
 if (os === 'linux' && linuxBundleTarget !== 'all')
