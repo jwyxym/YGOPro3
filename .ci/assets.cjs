@@ -1,6 +1,4 @@
 const fs = require('fs');
-const path = require('path');
-const zlib = require('zlib');
 const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
 
@@ -12,34 +10,6 @@ const LOCAL_ASSETS = [
 	'./src-tauri/gen/android/app/src/main/assets/assets',
 	'./src-tauri/target/debug/assets'
 ];
-const WINDBOT_ANDROID = [
-	{
-		abi: 'x86_64',
-		url: 'https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-x86_64.zip'
-	},
-	{
-		abi: 'arm64-v8a',
-		url: 'https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-arm64-v8a.zip'
-	},
-	{
-		abi: 'armeabi-v7a',
-		url: 'https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-armeabi-v7a.zip'
-	}
-];
-const WINDBOT_DESKTOP = {
-	win32: {
-		archives: { x64: 'windbot-win-x64.zip', arm64: 'windbot-win-arm64.zip' },
-		files: ['WindBot.dll', 'e_sqlite3.dll']
-	},
-	linux: {
-		archives: { x64: 'windbot-linux-x64.zip', arm64: 'windbot-linux-arm64.zip' },
-		files: ['WindBot.so', 'libe_sqlite3.so']
-	},
-	darwin: {
-		archives: { x64: 'windbot-macos-universal.zip', arm64: 'windbot-macos-universal.zip' },
-		files: ['WindBot.dylib', 'libe_sqlite3.dylib']
-	}
-};
 
 async function download(url, dest) {
 	try {
@@ -90,129 +60,6 @@ function copyLocalAsset(dest) {
 	return false;
 }
 
-function findEndOfCentralDirectory(buffer) {
-	for (let i = buffer.length - 22; i >= 0; i--) {
-		if (buffer.readUInt32LE(i) === 0x06054b50) {
-			return i;
-		}
-	}
-
-	throw new Error('Invalid zip: end of central directory not found');
-}
-
-function safeOutputPath(outputDir, fileName) {
-	const outputPath = path.resolve(outputDir, fileName);
-	const root = path.resolve(outputDir);
-	if (outputPath !== root && !outputPath.startsWith(root + path.sep)) {
-		throw new Error(`Invalid zip entry path: ${fileName}`);
-	}
-
-	return outputPath;
-}
-
-function unzip(zipFile, outputDir) {
-	const buffer = fs.readFileSync(zipFile);
-	const eocd = findEndOfCentralDirectory(buffer);
-	const totalEntries = buffer.readUInt16LE(eocd + 10);
-	const centralDirectoryOffset = buffer.readUInt32LE(eocd + 16);
-
-	let offset = centralDirectoryOffset;
-	for (let i = 0; i < totalEntries; i++) {
-		if (buffer.readUInt32LE(offset) !== 0x02014b50) {
-			throw new Error('Invalid zip: central directory header not found');
-		}
-
-		const compressionMethod = buffer.readUInt16LE(offset + 10);
-		const compressedSize = buffer.readUInt32LE(offset + 20);
-		const fileNameLength = buffer.readUInt16LE(offset + 28);
-		const extraLength = buffer.readUInt16LE(offset + 30);
-		const commentLength = buffer.readUInt16LE(offset + 32);
-		const localHeaderOffset = buffer.readUInt32LE(offset + 42);
-		const fileName = buffer.subarray(offset + 46, offset + 46 + fileNameLength).toString('utf8');
-
-		offset += 46 + fileNameLength + extraLength + commentLength;
-		if (fileName.endsWith('/')) {
-			fs.mkdirSync(safeOutputPath(outputDir, fileName), { recursive: true });
-			continue;
-		}
-
-		if (buffer.readUInt32LE(localHeaderOffset) !== 0x04034b50) {
-			throw new Error(`Invalid zip: local file header not found for ${fileName}`);
-		}
-
-		const localNameLength = buffer.readUInt16LE(localHeaderOffset + 26);
-		const localExtraLength = buffer.readUInt16LE(localHeaderOffset + 28);
-		const dataStart = localHeaderOffset + 30 + localNameLength + localExtraLength;
-		const compressed = buffer.subarray(dataStart, dataStart + compressedSize);
-		let content;
-
-		if (compressionMethod === 0) {
-			content = compressed;
-		} else if (compressionMethod === 8) {
-			content = zlib.inflateRawSync(compressed);
-		} else {
-			throw new Error(`Unsupported zip compression method ${compressionMethod} for ${fileName}`);
-		}
-
-		const outputPath = safeOutputPath(outputDir, fileName);
-		fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-		fs.writeFileSync(outputPath, content);
-		console.log(`Extracted ${path.relative(outputDir, outputPath)}`);
-	}
-}
-
-async function downloadWindbotAndroid() {
-	const root = './kotlin/jniLibs';
-	fs.mkdirSync(root, { recursive: true });
-	fs.mkdirSync(path.join(root, 'x86'), { recursive: true });
-
-	for (const target of WINDBOT_ANDROID) {
-		const targetDir = path.join(root, target.abi);
-		const zipFile = path.join(targetDir, 'windbot.zip');
-		const windbotSo = path.join(targetDir, 'WindBot.so');
-		fs.mkdirSync(targetDir, { recursive: true });
-
-		if (fs.existsSync(windbotSo)) {
-			console.log(`WindBot already exists for ${target.abi}`);
-			continue;
-		}
-
-		await download(target.url, zipFile);
-
-		unzip(zipFile, targetDir);
-		fs.rmSync(zipFile, { force: true });
-	}
-}
-
-async function downloadWindbot() {
-	const target = WINDBOT_DESKTOP[process.platform];
-	const archive = target?.archives[process.arch];
-	if (!archive) {
-		throw new Error(`Unsupported WindBot platform: ${process.platform}/${process.arch}`);
-	}
-
-	const targetDir = './src-tauri/target/debug';
-	fs.mkdirSync(targetDir, { recursive: true });
-	if (target.files.every((file) => fs.existsSync(path.join(targetDir, file)))) {
-		console.log(`WindBot already exists for ${process.platform}/${process.arch}`);
-		return;
-	}
-
-	const zipFile = path.join(targetDir, archive);
-	const url = `https://github.com/jwyxym/windbot/releases/download/release-latest/${archive}`;
-	await download(url, zipFile);
-	try {
-		unzip(zipFile, targetDir);
-		for (const file of target.files) {
-			if (!fs.existsSync(path.join(targetDir, file))) {
-				throw new Error(`Missing ${file} in ${archive}`);
-			}
-		}
-	} finally {
-		fs.rmSync(zipFile, { force: true });
-	}
-}
-
 async function main () {
 	if (os === 'Android') {
 		const dest = './src-tauri/gen/android/app/src/main/assets/assets';
@@ -220,14 +67,12 @@ async function main () {
 		if (!fs.existsSync(dest) && !copyLocalAsset(dest)) {
 			await download(URL, dest);
 		}
-		await downloadWindbotAndroid();
 	} else {
 		const dest = './src-tauri/target/debug/assets';
 		fs.mkdirSync('./src-tauri/target/debug', { recursive: true });
 		if (!fs.existsSync(dest) && !copyLocalAsset(dest)) {
 			await download(URL, dest);
 		}
-		await downloadWindbot();
 	}
 }
 

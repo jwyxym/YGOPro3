@@ -6,7 +6,7 @@ on:
     
 jobs:
   build-android:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -71,6 +71,11 @@ jobs:
       with:
         node-version: '22.18.0'
 
+    - name: Install .NET 10 SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
@@ -107,29 +112,6 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y wget unzip
-
-    - name: Download so
-      run: |
-        cd kotlin/jniLibs
-        mkdir x86
-        mkdir x86_64
-        mkdir arm64-v8a
-        mkdir armeabi-v7a
-
-        cd x86_64
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-x86_64.zip
-        unzip windbot-android-x86_64.zip
-        rm -r *.zip
-
-        cd ../arm64-v8a
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-arm64-v8a.zip
-        unzip windbot-android-arm64-v8a.zip
-        rm -r *.zip
-
-        cd ../armeabi-v7a
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-android-armeabi-v7a.zip
-        unzip windbot-android-armeabi-v7a.zip
-        rm -r *.zip
 
     - name: Android build (${{ matrix.artifact_abi }})
       run: |
@@ -187,6 +169,11 @@ jobs:
       with:
         node-version: '22.18.0'
 
+    - name: Install .NET 10 SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
@@ -209,20 +196,6 @@ jobs:
 
     - name: Install wget and unzip
       run: choco install wget unzip -y
-
-    - name: Download Windbot
-      if: matrix.target == 'aarch64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-arm64.zip
-        unzip windbot-win-arm64.zip
-
-    - name: Download Windbot
-      if: matrix.target == 'x86_64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-win-x64.zip
-        unzip windbot-win-x64.zip
 
     - name: Write Tauri Config
       shell: cmd
@@ -292,6 +265,11 @@ jobs:
       with:
         node-version: '22.18.0'
 
+    - name: Install .NET 10 SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
+
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
       with:
@@ -312,12 +290,6 @@ jobs:
         
     - name: Rename assets
       run: mv ./src-tauri/assets.zip ./src-tauri/assets
-
-    - name: Download Windbot
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-macos-universal.zip
-        unzip windbot-macos-universal.zip
 
     - name: Write Tauri Config
       run: |
@@ -364,7 +336,7 @@ jobs:
       matrix:
         include:
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: deb
             bundle_dir: deb
             extension: deb
@@ -374,7 +346,7 @@ jobs:
             bundle_dir: deb
             extension: deb
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: rpm
             bundle_dir: rpm
             extension: rpm
@@ -384,7 +356,7 @@ jobs:
             bundle_dir: rpm
             extension: rpm
           - target: x86_64
-            run-on: ubuntu-latest
+            run-on: ubuntu-22.04
             bundle: appimage
             bundle_dir: appimage
             extension: AppImage
@@ -402,6 +374,11 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '22.18.0'
+
+    - name: Install .NET 10 SDK
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: '10.0.x'
 
     - name: Install Rust
       uses: dtolnay/rust-toolchain@master
@@ -441,20 +418,6 @@ jobs:
           libgtk-3-dev \
           xdg-utils
 
-    - name: Download Windbot
-      if: matrix.target == 'aarch64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-arm64.zip
-        unzip windbot-linux-arm64.zip
-
-    - name: Download Windbot
-      if: matrix.target == 'x86_64'
-      run: |
-        cd src-tauri
-        wget https://github.com/jwyxym/windbot/releases/download/release-latest/windbot-linux-x64.zip
-        unzip windbot-linux-x64.zip
-
     - name: Write Tauri Config
       run: |
         npm run json:build linux 2026.09.24 ${{ matrix.bundle }}
@@ -481,7 +444,7 @@ jobs:
 
   build-html:
     name: build-html
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - uses: actions/checkout@v4

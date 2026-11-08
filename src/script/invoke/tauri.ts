@@ -556,6 +556,31 @@ class Invoke extends BaseInvoke {
 			}
 		}
 	};
+	p2p = {
+		host : async (port : number) : Promise<string | undefined> => {
+			try {
+				return await _invoke<string>('p2p_host', { port });
+			} catch (error : unknown) {
+				await this.log.write(String(error));
+				return undefined;
+			}
+		},
+		join : async (code : string) : Promise<string | undefined> => {
+			try {
+				return await _invoke<string>('p2p_join', { code });
+			} catch (error : unknown) {
+				await this.log.write(String(error));
+				return undefined;
+			}
+		},
+		stop : async () : Promise<void> => {
+			try {
+				await _invoke<void>('p2p_stop');
+			} catch (error : unknown) {
+				await this.log.write(String(error));
+			}
+		}
+	};
 	bot = {
 		start : async (args : string, deck : string) : Promise<void> => {
 			try {

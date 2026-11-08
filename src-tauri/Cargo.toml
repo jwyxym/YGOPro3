@@ -10,17 +10,17 @@ name = "ygopro3"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.7", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
-tauri-plugin-opener = "2"
+tauri = { version = "2.12", features = ["protocol-asset"] }
+tauri-plugin-opener = "=2.7.2"
 tauri-plugin-fs = "2"
 tauri-plugin-os = "2"
 tauri-plugin-process = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-http = "2"
-tauri-plugin-websocket = "2"
+tauri-plugin-websocket = "=2.5.0"
 tauri-plugin-dialog = "2"
 tauri-plugin-dglab-ws-server = "0.1.1"
 tauri-plugin-sound-player = "0.1.1"
@@ -29,4 +29,4 @@ tauri-plugin-tcp = { git = "https://github.com/jwyxym/tauri-plugin-tcp.git" }
 
 [dependencies.tauri-plugin-ygopro3]
 path = "tauri-plugin-ygopro3"
-features = ["windbot", "duel", "plugin"]
+features = ["windbot", "duel", "plugin", "p2p"]

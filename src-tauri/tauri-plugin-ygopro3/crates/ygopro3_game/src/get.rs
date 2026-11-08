@@ -1,6 +1,9 @@
 use super::*;
 use super::game::*;
 use ygopro_lflist_reader::LFList;
+use parking_lot::MappedRwLockReadGuard;
+
+pub type SystemReadGuard = MappedRwLockReadGuard<'static, System>;
 
 pub async fn pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u8>)>), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
@@ -11,25 +14,25 @@ pub async fn pic (deck: Vec<u32>) -> Result<(Vec<(u32, String)>, Vec<(u32, Vec<u
 		if !pack.on {
 			continue;
 		}
-		for (k, v) in pack.pics.to_array().into_iter() {
-			if !deck.contains(&k)
-				|| path.contains_key(&k)
-				|| buffer.contains_key(&k) {
+		for (k, v) in pack.pics.content() {
+			if !deck.contains(k)
+				|| path.contains_key(k)
+				|| buffer.contains_key(k) {
 				continue;
 			}
 			match v {
 				PicContent::ZipFile(v) => {
 					if let Some(archive) = pack.archive.as_mut() {
 						let mut content: Vec<u8> = Vec::new();
-						if let Ok(mut file) = archive.by_index(v)
+						if let Ok(mut file) = archive.by_index(*v)
 							&& file.read_to_end(&mut content).is_ok()
 						{
-							buffer.insert(k, content);
+							buffer.insert(*k, content);
 						}
 					}
 				}
 				PicContent::Path(v) => {
-					path.insert(k, v);
+					path.insert(*k, v.clone());
 				}
 			}
 		}
@@ -75,7 +78,11 @@ script_reader!(script, Vec<u8>, read_to_end, std::fs::read);
 pub async fn sound () -> Result<Vec<(String, String)>, Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let game: RwLockReadGuard<'_, Game> = game.read();
-	Ok(game.sound.to_array())
+	Ok(game.sound.to_array().into_iter()
+		.map(|(key, value): (&String, &String)| -> (String, String) {
+			(key.clone(), value.clone())
+		})
+		.collect())
 }
 
 pub async fn textures () -> Result<Textures, Error> {
@@ -98,12 +105,15 @@ pub async fn cards () -> Result<Vec<Card>, Error> {
 				}
 			});
 		});
-	Ok(cards.values().cloned().collect())
+	Ok(cards.into_values().collect())
 }
-pub async fn system () -> Result<(Vec<(String, String)>, Vec<(String, bool)>, Vec<(String, f64)>, Vec<(String, Vec<String>)>), Error> {
-	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
-	let game: RwLockReadGuard<'_, Game> = game.read();
-	Ok(game.system.to_array())
+
+pub async fn system () -> Result<SystemReadGuard, Error> {
+	let game: &'static RwLock<Game> = GAME.get().ok_or(anyhow!("get game error"))?;
+	let game: RwLockReadGuard<'static, Game> = game.read();
+	Ok(RwLockReadGuard::map(game, |game: &Game| -> &System {
+		&game.system
+	}))
 }
 
 pub async fn server () -> Result<Vec<(String, String)>, Error> {
@@ -135,7 +145,7 @@ pub async fn lflist () -> Result<Vec<LFList>, Error> {
 				lflists.insert(k, v.clone());
 			}
 		});
-	Ok(lflists.values().cloned().collect())
+	Ok(lflists.into_values().collect())
 }
 
 pub async fn strings () -> Result<(Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>, Vec<(u32, String)>), Error> {
@@ -184,7 +194,6 @@ pub async fn info () -> Result<(
 	let pack: &GamePack = game.pack.get("./").ok_or(anyhow!(""))?;
 	Ok(pack
 		.card_info
-		.clone()
 		.to_array())
 }
 
@@ -193,34 +202,39 @@ pub async fn room () -> Result<Vec<(String, String)>, Error> {
 	let game: RwLockReadGuard<'_, Game> = game.read();
 	Ok(game
 		.room
-		.to_array())
+		.to_array()
+		.into_iter()
+		.map(|(key, value): (&String, &String)| -> (String, String) {
+			(key.clone(), value.clone())
+		})
+		.collect())
 }
 
 pub async fn server_args () -> Result<(String, String), Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let game: RwLockReadGuard<'_, Game> = game.read();
-	let i18n: String = game.system.i18n();
+	let i18n: &str = game.system.i18n();
 	let array: [&str; 2] = ["./expansions", "./"];
 	let pack: String = game.pack
 		.iter()
 		.filter_map(|i: (&String, &GamePack)| {
 			if i.1.on && !array.contains(&i.0.as_str()) {
-				Some(i.0.clone())
+				Some(i.0.as_str())
 			} else {
 				None
 			}
 		})
-		.collect::<Vec<String>>()
+		.collect::<Vec<&str>>()
 		.join("/");
-	Ok((i18n, pack))
+	Ok((i18n.to_owned(), pack))
 }
 
 pub async fn hash () -> Result<Vec<u8>, Error> {
 	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
 	let game: RwLockReadGuard<'_, Game> = game.read();
 	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
-	let hash: String = String::from(game.resource.recognizer()
-		.get("hash").ok_or(anyhow!("no hash data"))?);
+	let hash: &String = game.resource.recognizer()
+		.get("hash").ok_or(anyhow!("no hash data"))?;
 	let path: PathBuf = path
 		.join("recognizer")
 		.join(hash);

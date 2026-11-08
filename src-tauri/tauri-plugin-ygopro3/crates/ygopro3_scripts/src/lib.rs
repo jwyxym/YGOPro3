@@ -19,7 +19,7 @@ impl Script {
 		self.content.get(key)
 	}
 
-	pub fn to_array (&self) -> Vec<(String, usize)> {
-		self.content.clone().into_iter().collect()
+	pub fn to_array (&self) -> Vec<(&String, &usize)> {
+		self.content.iter().collect()
 	}
 }

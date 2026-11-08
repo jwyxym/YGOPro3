@@ -7,6 +7,7 @@
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
     <application
+		android:appCategory="game"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.ygo_pro3"

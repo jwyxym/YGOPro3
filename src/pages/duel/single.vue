@@ -61,6 +61,7 @@
 					</template>
 				</var-cell>
 				<var-cell
+					v-if = "page.list[page.selected]?.[1] !== 'localhost'"
 					:title = 'mainGame.get.text(I18N_KEYS.SINGLE_RPS)'
 				>
 					<template #extra>
@@ -83,13 +84,22 @@
 				</var-cell>
 				<div
 					class = 'select'
-					:class = "{ 'unshow' : page.list[page.selected]?.[1] !== 'Lucky' }"
+					v-if = "page.list[page.selected]?.[1] === 'Lucky'"
 				>
 					<Select
-						v-if = "page.list[page.selected]?.[1] === 'Lucky'"
 						name = 'deck'
 						v-model = 'page.deck'
 						:rules = 'page.rule'
+						:clearable = 'true'
+					/>
+				</div>
+				<div
+					class = 'select'
+					v-else-if = "page.list[page.selected]?.[1] === 'localhost'"
+				>
+					<Select
+						name = 'lflist'
+						v-model = 'page.lflist'
 						:clearable = 'true'
 					/>
 				</div>
@@ -120,6 +130,7 @@
 
 	const page = reactive({
 		deck : undefined as undefined | Deck,
+		lflist : undefined as undefined | string,
 		selected : -1,
 		name : mainGame.get.system(KEYS.SETTING_SERVER_PLAYER_NAME) as string,
 		list : [] as Array<[string, string, string]>,
@@ -139,10 +150,11 @@
 		connect : () => {
 			const selected = page.list[page.selected];
 			if (!selected || (selected[1] === 'Lucky' && !page.deck)) return;
+			const p2p = selected[1] === 'localhost' && mainGame.get.system(KEYS.SETTING_CHK_P2P) as boolean;
 			emit('connect', {
 				name : page.name,
 				args : [{
-						lflist : 0,
+						lflist : page.lflist ? mainGame.get.lflist(page.lflist).hash : 0,
 						rule : 5,
 						mode : 0,
 						replayMode : 0,
@@ -152,17 +164,21 @@
 						startLp : page.start_lp,
 						startHand : page.start_hand,
 						drawCount : page.draw,
-						timeLimit : 0,
+						timeLimit : 0
 					},
-					`Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
+					p2p
+						? ''
+						: `Name=${selected[0]} Deck=${selected[1]} Dialog=${selected[2]}${page.rps ? ' Hand=1' : ''}`
 				],
-				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : ''
+				deck : selected[1] === 'Lucky' ? page.deck?.name ?? '' : '',
+				p2p
 			});
 		}
 	});
 
 	onBeforeMount(async () : Promise<void> => {
-		page.list = await invoke.bot.list();
+		page.list = ([[mainGame.get.text(I18N_KEYS.SINGLE_HOST), 'localhost', '']]  as Array<[string, string, string]>)
+			.concat(await invoke.bot.list());
 		hotkeys('down, pagedown', () => {
 			const len = page.list.length - 1;
 			page.selected = page.selected >= len ? 0 : page.selected + 1;
@@ -183,6 +199,7 @@
 			name : string;
 			args : [any, string];
 			deck : string;
+			p2p : boolean;
 		}];
 	}>();
 </script>
@@ -273,9 +290,6 @@
 				:deep(.var-cell__extra) {
 					height: 40px;
 				}
-			}
-			.unshow {
-				opacity: 0;
 			}
 			.select {
 				width: 80%;

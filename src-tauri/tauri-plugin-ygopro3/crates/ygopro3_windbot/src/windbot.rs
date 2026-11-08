@@ -1,84 +1,30 @@
-use libloading::{Library, Symbol};
-use anyhow::{Error, Result, anyhow};
+use anyhow::{Error, Result};
 use std::{
-	os::raw::c_char,
-	sync::{Arc, Mutex},
-	path::Path,
-	ffi::{CString, CStr},
+	sync::Mutex,
 	thread::{self, JoinHandle}
 };
 use ygopro3_emit::progress::*;
 
 #[derive(Debug)]
 pub struct WindBot {
-	lib: Arc<Library>,
 	thread: Mutex<Option<JoinHandle<()>>>,
 }
 
 impl WindBot {
-	pub fn new<P: AsRef<Path>> (path: P) -> Result<Self, Error> {
-		let path: &Path = path.as_ref();
-
-		unsafe {
-			#[cfg(target_os = "windows")]
-			let lib: Library = Library::new(path.join("WindBot.dll"))?;
-
-			#[cfg(target_os = "linux")]
-			let lib = Library::new(path.join("WindBot.so"))?;
-
-			#[cfg(target_os = "macos")]
-			let lib = Library::new(path.join("WindBot.dylib"))?;
-			
-			#[cfg(target_os = "android")]
-			let lib = {
-				let _ = path;
-				Library::new("WindBot.so")
-			}?;
-
-			Ok(Self {
-				lib: Arc::new(lib),
-				thread: Mutex::new(None)
-			})
+	pub fn new () -> Self {
+		Self {
+			thread: Mutex::new(None)
 		}
 	}
 
-	pub fn get_list (&self) -> String {
-		|| -> Result<String, Error> {
-			unsafe {
-				let windbot_list: Symbol<unsafe extern "C" fn() -> *const c_char> = self.lib.get(b"windbot_list")?;
-				let windbot_free: Symbol<unsafe extern "C" fn(*const c_char)> = self.lib.get(b"windbot_free")?;
-
-				let ptr = windbot_list();
-
-				if !ptr.is_null() {
-					let s: &CStr = CStr::from_ptr(ptr);
-					let str: String = String::from(s.to_string_lossy());
-
-					windbot_free(ptr);
-					return Ok(str);
-				}
-				Ok(String::from(""))
-			}
-		}()
-			.unwrap_or(String::from(""))
+	pub fn get_list (&self) -> Result<String, Error> {
+		Ok(windbot_rs::list_bots()?)
 	}
 
-	pub fn start_bot (&self, args: String) {
-		let lib: Arc<Library> = self.lib.clone();
+	pub fn start_bot (&self, options: String) {
 		let handle: JoinHandle<()> = thread::spawn(move || {
-			if let Err(e) = || -> Result<(), Error> {
-				unsafe {
-					let start = lib
-						.get::<Symbol<unsafe extern "C" fn(*const c_char) -> i32>>(b"windbot_start")?;
-					let c_args: CString = CString::new(args)?;
-					if start(c_args.as_ptr()) == 0 {
-						Ok(())
-					} else {
-						Err(anyhow!("windbot start error"))
-					}
-				}
-			}() {
-				emit(Event::Debug, e.to_string());
+			if let Err(error) = windbot_rs::run(Some(&options)) {
+				emit(Event::Debug, error.to_string());
 			}
 		});
 		if let Ok(mut lock) = self.thread.lock() {

@@ -69,3 +69,24 @@ pub fn plugin (_attr: TokenStream, item: TokenStream) -> TokenStream {
 
 	TokenStream::from(quote!(#function))
 }
+
+#[proc_macro_attribute]
+pub fn p2p (_attr: TokenStream, item: TokenStream) -> TokenStream {
+	let mut function: ItemFn = parse_macro_input!(item as ItemFn);
+	let block: Box<Block> = function.block;
+
+	function.attrs.push(parse_quote!(#[allow(unused_variables)]));
+	function.block = parse_quote!({
+		#[cfg(not(feature = "p2p"))]
+		{
+			Err(String::from("p2p is forbidden by features"))
+		}
+
+		#[cfg(feature = "p2p")]
+		{
+			#block
+		}
+	});
+
+	TokenStream::from(quote!(#function))
+}

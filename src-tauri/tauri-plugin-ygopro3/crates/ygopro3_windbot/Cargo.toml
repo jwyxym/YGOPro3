@@ -4,10 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-libloading.workspace = true
 anyhow.workspace = true
 tokio.workspace = true
 serde_json.workspace = true
+windbot-rs.workspace = true
 
 ygopro3_const.workspace = true
 ygopro3_emit.workspace = true
+ygopro3_game.workspace = true

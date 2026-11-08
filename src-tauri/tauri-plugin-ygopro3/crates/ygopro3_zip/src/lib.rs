@@ -141,8 +141,8 @@ impl Zip {
 		}
 		Ok(archive)
 	}
-	pub fn name (&self) -> String {
-		String::from(&self.name)
+	pub fn name (&self) -> &str {
+		&self.name
 	}
 	pub fn scripts (&self) -> &BTreeMap<String, usize> {
 		&self.scripts
@@ -150,20 +150,23 @@ impl Zip {
 	pub fn pics (&self) -> &BTreeMap<u32, usize> {
 		&self.pics
 	}
-	pub fn db (&self) -> Vec<Cdb> {
-		self.db.clone()
+	pub fn db (&self) -> &[Cdb] {
+		&self.db
 	}
-	pub fn ini (&self) -> Vec<String> {
-		self.ini.clone()
+	pub fn take_db (&mut self) -> Vec<Cdb> {
+		std::mem::take(&mut self.db)
 	}
-	pub fn lflist (&self) -> Vec<String> {
-		self.lflist.clone()
+	pub fn ini (&self) -> &[String] {
+		&self.ini
 	}
-	pub fn strings (&self) -> Vec<String> {
-		self.strings.clone()
+	pub fn lflist (&self) -> &[String] {
+		&self.lflist
 	}
-	pub fn servers (&self) -> Vec<String> {
-		self.servers.clone()
+	pub fn strings (&self) -> &[String] {
+		&self.strings
+	}
+	pub fn servers (&self) -> &[String] {
+		&self.servers
 	}
 	pub fn archive (self) -> ZipArchive {
 		self.archive

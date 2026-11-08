@@ -45,7 +45,10 @@ impl Pic {
 			});
 		self
 	}
-	pub fn to_array (&self) -> Vec<(u32, PicContent)> {
-		self.content.clone().into_iter().collect()
+	pub fn to_array (&self) -> Vec<(&u32, &PicContent)> {
+		self.content.iter().collect()
+	}
+	pub fn content (&self) -> &BTreeMap<u32, PicContent> {
+		&self.content
 	}
 }

@@ -12,12 +12,14 @@ tauri-plugin = { version = "2", features = ["build"] }
 ygopro3_api.workspace = true
 
 [workspace.dependencies]
-tauri = { version = "2", features = ["protocol-asset"] }
+tauri = { version = "2.12", features = ["protocol-asset"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.143"
 anyhow = "1.0.100"
+base64 = "0.22.1"
+iroh = { version = "1.4.1", default-features = false, features = ["tls-ring", "portmapper"] }
 tokio = { version = "1.49.0", features = ["full"] }
-bincode = "2.0.0-rc.3"
+bincode = { version = "2.0.0-rc.3", features = ["serde"] }
 zip = "0.6"
 walkdir = "2.5.0"
 ureq = "3.1.2"
@@ -39,8 +41,9 @@ syn = { version = "3.0.4", features = ["full"] }
 quote = "1.0.47"
 ygopro_cdb_reader = { version = "0.1.6", features = ["bincode"] }
 ygopro_lflist_reader = { version = "0.1.0", features = ["bincode"] }
-ygopro-server = "0.1.4+3209cd866a"
-ygopro-yrp-decoding = "0.1.2+3209cd866a"
+ygopro-server = "0.1.5+3209cd866a"
+ygopro-yrp-decoding = "0.1.3+3209cd866a"
+windbot-rs = { git = "https://github.com/jwyxym/windbot.git", branch = "windbot-rs" }
 
 ygopro3_api = { path = "./crates/ygopro3_api", default-features = false }
 ygopro3_card = { path = "./crates/ygopro3_card" }
@@ -56,6 +59,7 @@ ygopro3_lflist = { path = "./crates/ygopro3_lflist" }
 ygopro3_log = { path = "./crates/ygopro3_log" }
 ygopro3_macros = { path = "./crates/ygopro3_macros" }
 ygopro3_network = { path = "./crates/ygopro3_network" }
+ygopro3_p2p = { path = "./crates/ygopro3_p2p" }
 ygopro3_picture = { path = "./crates/ygopro3_picture" }
 ygopro3_plugin = { path = "./crates/ygopro3_plugin" }
 ygopro3_resource = { path = "./crates/ygopro3_resource" }
@@ -87,6 +91,7 @@ members = [
 	"crates/ygopro3_log",
 	"crates/ygopro3_macros",
 	"crates/ygopro3_network",
+	"crates/ygopro3_p2p",
 	"crates/ygopro3_picture",
 	"crates/ygopro3_plugin",
 	"crates/ygopro3_resource",
@@ -107,3 +112,4 @@ default = []
 windbot = ["ygopro3_api/windbot"]
 duel = ["ygopro3_api/duel"]
 plugin = ["ygopro3_api/plugin"]
+p2p = ["ygopro3_api/p2p"]

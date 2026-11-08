@@ -1,11 +1,12 @@
 use ygopro3_const::*;
-use ygopro3_game::{game::{self, Game}, GAME};
+use ygopro3_game::{game::{self, Game}, get::SystemReadGuard, GAME};
 use ygopro3_log::log;
 use ygopro3_network::{Srv, srv};
+use ygopro3_p2p::SessionInfo;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
 
-use bincode::{encode_to_vec, decode_from_slice, config::{standard, Configuration}, error::DecodeError};
+use bincode::{encode_to_vec, decode_from_slice, config::Configuration, error::DecodeError};
 use serde_json::{Value::{self, Array}, Number};
 use std::{borrow::Cow, fs::metadata};
 use tauri::{
@@ -16,7 +17,6 @@ use parking_lot::{RwLock, RwLockReadGuard};
 use std::{path::PathBuf, fs::exists};
 use chrono::{DateTime, Utc};
 
-static CONFIG : Configuration = standard();
 
 fn default_response () -> Response {
 	Response::new(encode_to_vec(Vec::<u8>::new(), CONFIG).unwrap())
@@ -52,15 +52,11 @@ pub async fn reload (overwrite: bool) -> Result<(), String> {
 #[tauri::command]
 pub async fn download (url: String, name: String, chunk: usize) -> Result<String, String> {
 	let path: &PathBuf = PATH.get().ok_or(String::from("get path error"))?;
-	let (_, max_retries) = ygopro3_game::get::system()
-		.await
-		.map_err(|e| e.to_string())?
-		.2
-		.into_iter()
-		.find(|i|
-			i.0 == "CT_DOWNLOADCHUNKS_RETRIES"
-		)
-		.unwrap_or((String::new(), 8.0));
+	let max_retries: f64 = {
+		let system: SystemReadGuard = ygopro3_game::get::system().await
+			.map_err(|error: anyhow::Error| error.to_string())?;
+		system.number().get("CT_DOWNLOADCHUNKS_RETRIES").copied().unwrap_or(8.0)
+	};
 	ygopro3_network::download(path.join("expansions"), &url, &name, chunk, max_retries)
 		.await
 		.map_err(|e| e.to_string())
@@ -124,6 +120,32 @@ pub fn get_srv (url: String) -> Result<Srv, String> {
 	srv(url).map_err(|e| e.to_string())
 }
 
+#[ygopro3_macros::p2p]
+#[tauri::command]
+pub async fn p2p_host (port: u16) -> Result<String, String> {
+	ygopro3_p2p::host(port).await
+		.map_err(|error: anyhow::Error| error.to_string())
+}
+
+#[ygopro3_macros::p2p]
+#[tauri::command]
+pub async fn p2p_join (code: String) -> Result<String, String> {
+	ygopro3_p2p::join(code).await
+		.map_err(|error: anyhow::Error| error.to_string())
+}
+
+#[ygopro3_macros::p2p]
+#[tauri::command]
+pub async fn p2p_status () -> Option<SessionInfo> {
+	ygopro3_p2p::status().await
+}
+
+#[ygopro3_macros::p2p]
+#[tauri::command]
+pub async fn p2p_stop () {
+	ygopro3_p2p::stop().await;
+}
+
 #[tauri::command]
 pub async fn get_pic (request: Request<'_>) -> Result<Response, String> {
 	let bytes: Cow<'_, Vec<u8>> = request_bytes(&request)?;
@@ -167,7 +189,7 @@ pub async fn get_cards () -> Response {
 pub async fn get_system () -> Response {
 	ygopro3_game::get::system().await
 		.ok()
-		.and_then(|i| encode_to_vec(i, CONFIG).ok())
+		.and_then(|system: SystemReadGuard| encode_to_vec(system.to_array(), CONFIG).ok())
 		.map(Response::new)
 		.unwrap_or_else(default_response)
 }
