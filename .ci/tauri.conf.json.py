@@ -63,12 +63,6 @@ tauri_config = {
 
 if os == 'dev':
 	tauri_config["bundle"]["resources"] = []
-elif os == 'macos':
-	tauri_config["bundle"]["resources"] = ["assets", "WindBot.dylib", "libe_sqlite3.dylib"]
-elif os == 'linux':
-	tauri_config["bundle"]["resources"] = ["assets", "WindBot.so", "libe_sqlite3.so"]
-elif os == 'windows':
-	tauri_config["bundle"]["resources"] = ["assets", "WindBot.dll", "e_sqlite3.dll"]
 else:
 	tauri_config["bundle"]["resources"] = ["assets"]
 

@@ -543,9 +543,9 @@ dependencies = [
 
 [[package]]
 name = "binrw"
-version = "0.13.4"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "768230c3e8ce988f15f99af8d0d2c3afd0a656b88b35480fb1f924699e810e57"
+checksum = "6ad120d555272286c1017d25165ab8bd74806f13fc85b258484ec7e4ce75458f"
 dependencies = [
  "array-init",
  "binrw_derive",
@@ -554,15 +554,15 @@ dependencies = [
 
 [[package]]
 name = "binrw_derive"
-version = "0.13.4"
+version = "0.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08118044b6695ea0de85ecdaac53adeb0d5d024770a904f45b9453ad3c12898c"
+checksum = "6df92e0e9baae4dc82c7bad7715ca40c0a5c71539057bf2ea04a5c29c980410b"
 dependencies = [
  "either",
  "owo-colors",
  "proc-macro2",
  "quote",
- "syn 1.0.109",
+ "syn 2.0.106",
 ]
 
 [[package]]
@@ -661,6 +661,16 @@ checksum = "874bb8112abecc98cbd6d81ea4fa7e94fb9449648c93cc89aa40c81c24d7de03"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
+]
+
+[[package]]
+name = "bstr"
+version = "1.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6bb31b46c14244e20ee9984b11bf5c992b91fb6939fea616e3512c8baecdbe5f"
+dependencies = [
+ "memchr",
+ "serde_core",
 ]
 
 [[package]]
@@ -1154,7 +1164,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "windows 0.61.3",
+ "windows 0.62.2",
 ]
 
 [[package]]
@@ -3486,16 +3496,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "libloading"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "754ca22de805bb5744484a5b151a9e1a8e837d5dc232c2d7d8c2e3492edc8b60"
-dependencies = [
- "cfg-if",
- "windows-link 0.2.1",
-]
-
-[[package]]
 name = "libredox"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3735,6 +3735,33 @@ dependencies = [
  "libc",
  "wasi 0.11.1+wasi-snapshot-preview1",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "mlua"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a7ae6b65bf54b7fdd4cf5b6f44f60862350ebf3fe3779b3a9cc005e7fa14f81"
+dependencies = [
+ "bstr",
+ "either",
+ "libc",
+ "mlua-sys",
+ "num-traits",
+ "parking_lot",
+ "rustc-hash",
+]
+
+[[package]]
+name = "mlua-sys"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1631cda17bd6486410ab751d91f5fd4484f441589278cdad879eb3afc721a285"
+dependencies = [
+ "cc",
+ "cfg-if",
+ "libc",
+ "pkg-config",
 ]
 
 [[package]]
@@ -4651,9 +4678,9 @@ dependencies = [
 
 [[package]]
 name = "owo-colors"
-version = "3.5.0"
+version = "4.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1b04fb49957986fdce4d6ee7a65027d55d4b6d2265e5848bbb507b58ccfdb6f"
+checksum = "13c45bb4a6ae1280ec0803b1ef9d3455eb50f01efbbe1447ab020f1d54fba9d8"
 
 [[package]]
 name = "pango"
@@ -8565,6 +8592,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
+name = "windbot-rs"
+version = "0.1.0"
+source = "git+https://github.com/jwyxym/windbot.git?branch=windbot-rs#6a241758caef1438867f0208a5c28326d26fb1a7"
+dependencies = [
+ "serde_json",
+ "ygopro_cdb_reader",
+]
+
+[[package]]
 name = "window-vibrancy"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9254,8 +9290,8 @@ dependencies = [
  "log",
  "serde",
  "thiserror 2.0.16",
- "windows 0.61.3",
- "windows-core 0.61.2",
+ "windows 0.62.2",
+ "windows-core 0.62.2",
 ]
 
 [[package]]
@@ -9383,9 +9419,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro"
-version = "0.1.10"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00be70e04a4acc14107d129983a0059f4f4bad42a9be84f0b8fe9b03e29fc844"
+checksum = "4b335150ed1f208e94cddae31934814969d1c301d71ae2feb712c9d1a82f2d03"
 dependencies = [
  "anymap3",
  "arc-swap",
@@ -9399,6 +9435,7 @@ dependencies = [
  "hashbrown 0.17.1",
  "linkme",
  "log",
+ "mlua",
  "parking_lot",
  "rand 0.8.5",
  "semver",
@@ -9416,12 +9453,14 @@ dependencies = [
 
 [[package]]
 name = "ygopro-core-wrapper"
-version = "0.1.5+3209cd866a"
+version = "0.2.0+3209cd866a"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6943b8b57985762fc3cece3f31b0976305007777f6ec54db05f6333b958c5eff"
+checksum = "d1ea03477e6dcb552ed3a1295c69c4b0b89eaad0a764dd5e6c27b705b2f91761"
 dependencies = [
  "cc",
  "glob",
+ "mlua",
+ "mlua-sys",
  "modular-bitfield",
  "parking_lot",
  "rand 0.8.5",
@@ -9430,9 +9469,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-data"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b6cc4ab057ad9edd7de6f54c84573910c2b76e54827d4e974c167b3c0f2511f"
+checksum = "1fb009cfee8da458e3e8d24c8860f1d42dc539fca148f43ecc2d0920a051a8e4"
 dependencies = [
  "binrw",
  "bitflags 2.13.1",
@@ -9449,9 +9488,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-derive"
-version = "0.1.2"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0940cb4c9b36eb7f3166ce87e5565d37214521c341cb6cd99d6b84965fd10462"
+checksum = "d429b403b71e5f405589aa79a735234dcba6d4acb889329409f71b49a27ec944"
 dependencies = [
  "darling 0.14.4",
  "proc-macro2",
@@ -9461,9 +9500,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-handler"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a2d83e73896da4470f24d12b47787a287843831c7a561cec1bd6019463bf1e4f"
+checksum = "89b93470c8ced8891548bd972767d1dcacc8a856dfea4dcf9ca85b68f69689fa"
 dependencies = [
  "anymap3",
  "binrw",
@@ -9479,9 +9518,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-server"
-version = "0.1.4+3209cd866a"
+version = "0.1.5+3209cd866a"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aed0769983e91cb04cb6cccaca1b4ea510ae4cbd4693d1ea495492493a0623cc"
+checksum = "96358c9ca0504d17470fdc06c30fcd482263f6fec654eae0c960853a3476cc84"
 dependencies = [
  "parking_lot",
  "tokio",
@@ -9493,9 +9532,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro-yrp-decoding"
-version = "0.1.2+3209cd866a"
+version = "0.1.3+3209cd866a"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03e4d6961aee43f0e5afad61ac24c135ec75df580191e37636658256b8277a02"
+checksum = "5e26a31c3fac18e4010377a7a4af8f4007281d47c1febc23547841a079f4b767"
 dependencies = [
  "anyhow",
  "binrw",
@@ -9791,11 +9830,12 @@ name = "ygopro3_windbot"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "libloading 0.9.0",
  "serde_json",
  "tokio",
+ "windbot-rs",
  "ygopro3_const",
  "ygopro3_emit",
+ "ygopro3_game",
 ]
 
 [[package]]
