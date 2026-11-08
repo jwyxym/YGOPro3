@@ -5,7 +5,63 @@ on:
     branches: [test]
     
 jobs:
+  prepare-build-tools:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22.18.0'
+
+    - name: Cache build tool downloads
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/build-tools
+        key: build-tool-downloads-${{ hashFiles('package-lock.json', '.ci/prepare-build-tools.cjs') }}
+
+    - name: Download tools for all platforms
+      run: node .ci/prepare-build-tools.cjs fetch "${{ runner.temp }}/build-tools"
+
+    - name: Upload Android tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-tools-android
+        path: ${{ runner.temp }}/build-tools/android/
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 1
+
+    - name: Upload Windows tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-tools-windows
+        path: ${{ runner.temp }}/build-tools/windows/
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 1
+
+    - name: Upload Linux x86_64 tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-tools-linux-x86_64
+        path: ${{ runner.temp }}/build-tools/linux-x86_64/
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 1
+
+    - name: Upload Linux aarch64 tools
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-tools-linux-aarch64
+        path: ${{ runner.temp }}/build-tools/linux-aarch64/
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 1
+
   build-android:
+    needs: prepare-build-tools
     runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
@@ -108,6 +164,17 @@ jobs:
       run: |
         npm run tauri:android:init:sh
 
+    - name: Download prepared Android tools
+      uses: actions/download-artifact@v4
+      with:
+        name: build-tools-android
+        path: .build-tools
+
+    - name: Prepare Android build tools
+      env:
+        BUILD_TOOLS_ARTIFACT: ${{ github.workspace }}/.build-tools
+      run: node .ci/prepare-build-tools.cjs android
+
     - name: Install wget and unzip
       run: |
         sudo apt-get update
@@ -149,6 +216,7 @@ jobs:
         path: ./build/YGOPro3-${{ matrix.artifact_abi }}.apk
 
   build-windows:
+    needs: prepare-build-tools
     name: build-windows-${{ matrix.target }}
     runs-on: ${{ matrix.run-on }}
     strategy:
@@ -206,6 +274,17 @@ jobs:
       run: |
         npm ci
 
+    - name: Download prepared Windows tools
+      uses: actions/download-artifact@v4
+      with:
+        name: build-tools-windows
+        path: .build-tools
+
+    - name: Prepare Windows build tools
+      env:
+        BUILD_TOOLS_ARTIFACT: ${{ github.workspace }}/.build-tools
+      run: node .ci/prepare-build-tools.cjs windows
+
     - name: Windows build
       run: |
         npm run tauri:build
@@ -246,6 +325,7 @@ jobs:
         path: .\build\YGOPro3.msi
 
   build-macos:
+    needs: prepare-build-tools
     name: build-macos-${{ matrix.target }}
     runs-on: macos-latest
     strategy:
@@ -299,6 +379,9 @@ jobs:
       run: |
         npm ci
 
+    - name: Prepare macOS build tools
+      run: node .ci/prepare-build-tools.cjs macos
+
     - name: Macos build
       run: |
         npm run tauri:build
@@ -329,6 +412,7 @@ jobs:
         path: ./src-tauri/target/release/bundle/macos/YGOPro3.app.zip
 
   build-linux:
+    needs: prepare-build-tools
     name: build-linux-${{ matrix.target }}-${{ matrix.bundle }}
     runs-on: ${{ matrix.run-on }}
     strategy:
@@ -426,9 +510,21 @@ jobs:
       run: |
         npm ci
 
+    - name: Download prepared AppImage tools
+      if: matrix.bundle == 'appimage'
+      uses: actions/download-artifact@v4
+      with:
+        name: build-tools-linux-${{ matrix.target }}
+        path: .build-tools
+
+    - name: Prepare Linux build tools
+      env:
+        BUILD_TOOLS_ARTIFACT: ${{ github.workspace }}/.build-tools
+      run: node .ci/prepare-build-tools.cjs linux ${{ matrix.target }} ${{ matrix.bundle }}
+
     - name: Build
       run: |
-        npm run tauri:build
+        npm run tauri:build -- --verbose
 
     - name: Copy
       run: |
