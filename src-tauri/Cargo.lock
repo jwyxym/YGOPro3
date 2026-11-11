@@ -9670,9 +9670,9 @@ dependencies = [
 
 [[package]]
 name = "ygopro_cdb_reader"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16770d4566c7cce748c167620c3bc774f47a92a217837a6b7f1ff10ddaa69b0a"
+checksum = "7272916ee24c3191e1d0acaa2184c018054b32d21185c02eb1ebdc788f84a358"
 dependencies = [
  "bincode",
  "libsqlite3-sys",
