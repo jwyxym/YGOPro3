@@ -13,5 +13,6 @@ trust-dns-resolver.workspace = true
 content_disposition.workspace = true
 futures.workspace = true
 ureq.workspace = true
+system-resolver.workspace = true
 
 ygopro3_emit.workspace = true

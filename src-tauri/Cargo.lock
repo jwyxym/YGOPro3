@@ -6588,6 +6588,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "system-resolver"
+version = "0.2.6"
+source = "git+https://github.com/jwyxym/hclient.git#f5919c617489bd3acc2ef7e1ab81bfea187b2366"
+dependencies = [
+ "thiserror 2.0.16",
+ "windows-strings 0.100.0",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "tao"
 version = "0.37.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9509,6 +9519,7 @@ dependencies = [
  "content_disposition",
  "futures",
  "serde",
+ "system-resolver",
  "tauri",
  "tokio",
  "trust-dns-resolver",
