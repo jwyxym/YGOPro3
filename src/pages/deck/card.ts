@@ -133,7 +133,7 @@ const count = (
 	for (const el of els) {
 		const i = el.children[0] as HTMLElement;
 		if (!lflist) {
-			i.style.opacity = '0';
+			i.classList.remove('lf', 'gf');
 			continue;
 		}
 		const id = el.dataset.id!;

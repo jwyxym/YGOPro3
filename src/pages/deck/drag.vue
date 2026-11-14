@@ -34,7 +34,7 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { nextTick, onMounted, reactive, useTemplateRef, watch } from 'vue';
+	import { nextTick, onMounted, reactive, useTemplateRef, watch, type TemplateRef } from 'vue';
 
 	import mainGame from '@/script/game';
 	import LFList from '@/script/lflist';
@@ -56,7 +56,7 @@
 		lflist ?: LFList;
 	}>();
 
-	const group = useTemplateRef('group');
+	const group : TemplateRef<Array<HTMLDivElement>> = useTemplateRef<Array<HTMLDivElement>>('group');
 	const deck = useTemplateRef('deck');
 	let cards : [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>] = [[], [], []];
 
@@ -131,9 +131,6 @@
 			this.card = undefined;
 			this.list = undefined;
 			this.err = false;
-			cards = group.value!.map(list => (Array.from(list.children) as Array<HTMLElement>)
-					.filter(i => i.dataset.id) as Array<HTMLElement>
-				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
 			page.flush();
 		},
 		scroll : (e : DragEvent) : void => {
@@ -268,12 +265,18 @@
 		height : 0,
 		genesys : 0,
 		count : [0, 0, 0],
-		flush : function () {
-			this.genesys = group.value!
+		flush : function () : void {
+			if (!group.value)
+				return;
+			cards = group.value.map((list : HTMLDivElement) : Array<HTMLDivElement> =>
+				(Array.from(list.children) as Array<HTMLDivElement>)
+					.filter((item : HTMLDivElement) : boolean => !!item.dataset.id)
+			) as typeof cards;
+			this.genesys = cards
 				.flat()
-				.map(i => i.dataset.id && props.lflist?.genesys ? props.lflist.get.glist(i.dataset.id) : 0)
-				.reduce((acc, cur) => acc + cur, 0);
-			this.count = group.value!.map(i => i.children.length - 1);
+				.map((item : HTMLDivElement) : number => props.lflist?.genesys ? props.lflist.get.glist(item.dataset.id!) : 0)
+				.reduce((acc : number, cur : number) : number => acc + cur, 0);
+			this.count = cards.map((list : Array<HTMLDivElement>) : number => list.length);
 		},
 		callback : (i : HTMLDivElement) : void => {
 			if (!__ANDROID__)
@@ -289,7 +292,10 @@
 		}
 	});
 
-	watch(() => props.lflist, (n) => card.count(cards.flat(), n));
+	watch(() : LFList | undefined => props.lflist, (n : LFList | undefined) : void => {
+		card.count(cards.flat(), n);
+		page.flush();
+	});
 
 	onMounted(async () => {
 		await mainGame.load.pic(props.deck);
@@ -342,9 +348,6 @@
 					})
 					.forEach(i => list.appendChild(i));
 			});
-			cards = group.value!.map(list => (Array.from(list.children) as Array<HTMLElement>)
-					.filter(i => i.dataset.id) as Array<HTMLElement>
-				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
 			page.flush();
 		},
 		clear : () : void => {
@@ -353,7 +356,6 @@
 					.filter(i => i.dataset.id)
 					.forEach(i => i.remove());
 			});
-			cards = [[], [], []];
 			page.flush();
 		},
 		disrupt : () : void => {
@@ -366,9 +368,6 @@
 				}
 				deck.forEach(i => list.appendChild(i));
 			});
-			cards = group.value!.map(list => (Array.from(list.children) as Array<HTMLElement>)
-					.filter(i => i.dataset.id) as Array<HTMLElement>
-				) as [Array<HTMLDivElement>, Array<HTMLDivElement>, Array<HTMLDivElement>];
 			page.flush();
 		},
 		to_deck : (name : string) : Deck => new Deck({
@@ -424,7 +423,6 @@
 				const width = (props.width - 24) / props.count;
 				const height = width * 1.45;
 				const el = card.add(code, width, height, group.value![deck], page.callback);
-				cards[deck].push(el);
 				card.count([el], props.lflist);
 				page.flush();
 			}

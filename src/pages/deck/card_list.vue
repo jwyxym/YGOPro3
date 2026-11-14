@@ -81,7 +81,8 @@
 			card.append_list(
 				list.value!,
 				cards,
-				(i : HTMLDivElement) => {
+				(i : HTMLDivElement) : void => {
+					card.count([i], props.lflist);
 					if (!__ANDROID__)
 						i.addEventListener('contextmenu', (e) => {
 							e.preventDefault();
