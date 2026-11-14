@@ -174,13 +174,14 @@ class Client_Card {
 				img.appendChild(chain);
 				return chain;
 			},
-			border : () : HTMLDivElement => {
+			border : (kind : 'hint' | 'select' = 'hint') : HTMLDivElement => {
 				const img : HTMLCardsElement = this.get.el.img();
-				const existing : HTMLDivElement | null = img.querySelector('.ygopro3__duel__card__border');
+				const name : string = kind === 'select' ? 'ygopro3__duel__card__selection' : 'ygopro3__duel__card__border';
+				const existing : HTMLDivElement | null = img.querySelector('.' + name);
 				if (existing)
 					return existing;
 				const border : HTMLDivElement = document.createElement('div');
-				border.classList.add('ygopro3__duel__card__border');
+				border.classList.add(name);
 				img.appendChild(border);
 				return border;
 			},
@@ -240,6 +241,10 @@ class Client_Card {
 	};
 
 	set = {
+		selected : async () : Promise<void> => {
+			this.get.el.border('select').classList.toggle('show');
+			await mainGame.sleep(200);
+		},
 		owner : (owner : number) : Client_Card => {
 			this.need_change.z = this.need_change.z || this.owner !== owner;
 			this.owner = owner;
@@ -840,11 +845,17 @@ class Client_Card {
 	click = {
 		img : () : void => {
 			if (this.location & LOCATION.HAND) {
-				const z = Axis.computed.hand_z(this.seq);
-				const img = this.get.el.img();
+				const z : number = Axis.computed.hand_z(this.seq);
+				const img : HTMLCardsElement = this.get.el.img();
 				img.classList.contains('selected')
 					? img.classList.remove('selected')
 					: img.classList.add('selected');
+				gsap.to(img, {
+					y : this.clicked ? 0 : - SIZE.HEIGHT / 2,
+					duration : 0.2,
+					ease : 'power1.inOut',
+					overwrite : 'auto'
+				});
 				this.three.position.z = z + (this.clicked ? 0 : SIZE.GAP.HAND * 2);
 			}
 			this.clicked = !this.clicked;

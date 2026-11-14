@@ -34,13 +34,16 @@
 	</Selecter>
 </template>
 <script setup lang = 'ts'>
-	import { reactive, toRaw } from 'vue';
+	import { computed, onBeforeUnmount, reactive, toRaw, watch } from 'vue';
 	
 	import mainGame from '@/script/game';
 	import { I18N_KEYS } from '@/script/language/i18n';
 
 	import { LOCATION } from '@/pages/duel/ygo-protocol/network';
 	import Client_Card from '@/pages/duel/scene/client_card';
+	import Axis from '@/pages/duel/scene/axis';
+	import Plaid from '@/pages/duel/scene/plaid';
+	import { duel } from '@/pages/duel/scene/scene';
 	import Selecter from './selecter.vue';
 
 	const props = defineProps<{
@@ -53,24 +56,24 @@
 	}>();
 
 	const players = [I18N_KEYS.DUEL_PLAYER_SELF, I18N_KEYS.DUEL_PLAYER_OPPO];
-	const locs = new Map([
-		[LOCATION.HAND, I18N_KEYS.DUEL_LOCATION_HAND],
-		[LOCATION.DECK, I18N_KEYS.DUEL_LOCATION_DECK],
-		[LOCATION.EXTRA, I18N_KEYS.DUEL_LOCATION_EX_DECK],
-		[LOCATION.GRAVE, I18N_KEYS.DUEL_LOCATION_GRAVE],
-		[LOCATION.REMOVED, I18N_KEYS.DUEL_LOCATION_REMOVED],
-		[LOCATION.OVERLAY, I18N_KEYS.DUEL_LOCATION_OVERLAY],
-		[LOCATION.MZONE, I18N_KEYS.DUEL_LOCATION_MZONE],
-		[LOCATION.SZONE, I18N_KEYS.DUEL_LOCATION_SZONE]
-	]);
 
 	const page = reactive({
 		show : false,
 		cards : undefined as Client_Card | undefined,
+		target : computed(() : Plaid | Client_Card | undefined => {
+			const card : Client_Card | undefined = page.cards;
+			if (card?.location === LOCATION.HAND)
+				return card;
+			if (!card || !(card.location & LOCATION.ONFIELD) || (card.location & LOCATION.OVERLAY))
+				return undefined;
+			const axis : Axis | undefined = Axis.get(card.location | (card.seq << 16))?.[card.owner];
+			const data : number = axis ? Plaid.get.data(axis.x, axis.y, Plaid.chk()) : 0;
+			return duel.get.plaids().find((plaid : Plaid) : boolean => !!data && plaid.data === data);
+		}),
 		select : (card : Client_Card) => page.cards = page.cards === card ? undefined : card,
 		loc : (i : Client_Card) : string => {
 			let str = `[${mainGame.get.text(players[i.owner])}]`;
-			const loc = locs.get(i.location);
+			const loc : string = mainGame.get.location(i.location);
 			if (loc) {
 				const index = i.location & LOCATION.DECK ? props.select
 					.concat(props.unselect)
@@ -78,12 +81,23 @@
 						&& i.owner === c.owner)
 					.indexOf(i)
 					: i.location & LOCATION.OVERLAY ? i.overlay : i.seq;
-				str += `${mainGame.get.text(loc)}[${index}]`;
+				str += `${loc}[${index}]`;
 			}
 			if (i.chain)
 				str += `\n${mainGame.get.text(I18N_KEYS.DUEL_CAHIN_AT, i.chain)}`;
 			return str;
 		}
+	});
+
+	watch(() : Plaid | Client_Card | undefined => page.target, async (n : Plaid | Client_Card | undefined, o : Plaid | Client_Card | undefined) : Promise<void> => {
+		await Promise.all([
+			n?.set.selected() ?? Promise.resolve(),
+			o?.set.selected() ?? Promise.resolve()
+		]);
+	}, { flush : 'sync' });
+
+	onBeforeUnmount(async () : Promise<void> => {
+		await page.target?.set.selected();
 	});
 
 	const emit = defineEmits<{

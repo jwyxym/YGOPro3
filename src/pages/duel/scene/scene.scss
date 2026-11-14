@@ -238,9 +238,7 @@ $boder-color: #9ed3ff;
 				position: absolute;
 				width: var(--width);
 				height: var(--height);
-				// GSAP 控制 transform，手牌抬升使用独立的 translate。
-				translate: 0 0;
-				transition: opacity 0.2s ease, translate 0.2s ease;
+				transition: opacity 0.2s ease;
 				outline-color: blue;
 			}
 			.ygopro3__duel__card__img {
@@ -259,9 +257,6 @@ $boder-color: #9ed3ff;
 				}
 				&.disable {
 					filter: grayscale(100%);
-				}
-				&.selected {
-					translate: 0 calc(var(--height) / -2);
 				}
 				&.equip {
 					outline: 2px solid blue;
@@ -327,11 +322,17 @@ $boder-color: #9ed3ff;
 							1px  1px 0 black;
 					}
 				}
-				.ygopro3__duel__card__border {
+				.ygopro3__duel__card__border,
+				.ygopro3__duel__card__selection {
 					border: 5px solid yellow;
-					position: relative;
+					position: absolute;
+					inset: 0;
+					box-sizing: border-box;
 					width: 100%;
 					height: 100%;
+				}
+				.ygopro3__duel__card__selection {
+					border-width: 2px;
 				}
 			}
 			.ygopro3__duel__card__atk {
