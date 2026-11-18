@@ -88,13 +88,19 @@
 			const date = new Date();
 			const m = date.getMonth() + 1;
 			const d = date.getDate();
-			if (m === 10 && d === 31) {
-				const id = 77994337;
+			const special = (id : number) : Array<string> | undefined => {
 				const card = mainGame.get.card(id);
 				if (card === mainGame.unknown)
 					return new Array(count).fill(URL.PICS.join(id.toString()));
 				else
 					result = new Array(count).fill(card);
+			};
+			if (m === 10 && d === 31) {
+				const i = special(77994337);
+				if (i) return i;
+			} else if (m === 12 && d === 25) {
+				const i = special(46565218);
+				if (i) return i;
 			} else {
 				const values : Array<Card> = Array.from(mainGame.cards.values());
 				count = Math.min(count, values.length);
@@ -104,8 +110,8 @@
 				}
 				result = values.slice(0, count);
 			}
-			await mainGame.load.pic(result);
-			return result.map(i => i.pic);
+			await mainGame.load.pic(result!);
+			return result!.map(i => i.pic);
 		},
 		spawn_next : function () : void {
 			this.spawn_timer = undefined;
