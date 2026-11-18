@@ -7,6 +7,7 @@
 
 	import mainGame from '@/script/game';
 	import Card from '@/script/card';
+	import { URL } from '@/script/constant';
 
 	const canvas : TemplateRef<HTMLCanvasElement> = useTemplateRef('canvas');
 	const props = withDefaults(defineProps<{
@@ -82,16 +83,29 @@
 				});
 			});
 		},
-		cards : async (count : number) : Promise<Array<Card>> => {
-			const values : Array<Card> = Array.from(mainGame.cards.values());
-			count = Math.min(count, values.length);
-			for (let i : number = values.length - 1; i > 0; i--) {
-				const j : number = Math.floor(Math.random() * (i + 1));
-				[values[i], values[j]] = [values[j], values[i]];
+		cards : async (count : number) : Promise<Array<string>> => {
+			let result : Array<Card>;
+			const date = new Date();
+			const m = date.getMonth() + 1;
+			const d = date.getDate();
+			if (m === 10 && d === 31) {
+				const id = 77994337;
+				const card = mainGame.get.card(id);
+				if (card === mainGame.unknown)
+					return new Array(count).fill(URL.PICS.join(id.toString()));
+				else
+					result = new Array(count).fill(card);
+			} else {
+				const values : Array<Card> = Array.from(mainGame.cards.values());
+				count = Math.min(count, values.length);
+				for (let i : number = values.length - 1; i > 0; i--) {
+					const j : number = Math.floor(Math.random() * (i + 1));
+					[values[i], values[j]] = [values[j], values[i]];
+				}
+				result = values.slice(0, count);
 			}
-			const result : Array<Card> = values.slice(0, count);
 			await mainGame.load.pic(result);
-			return result;
+			return result.map(i => i.pic);
 		},
 		spawn_next : function () : void {
 			this.spawn_timer = undefined;
@@ -195,9 +209,9 @@
 				Matter.Bodies.rectangle(this.width + this.wall_size / 2, this.height / 2, this.wall_size, this.height + this.wall_size * 2, wall_options)
 			];
 
-			const cards : Array<HTMLImageElement> = (await this.cards(30)).map((card : Card) : HTMLImageElement => {
+			const cards : Array<HTMLImageElement> = (await this.cards(30)).map((pic : string) : HTMLImageElement => {
 				const image : HTMLImageElement = new Image();
-				image.src = card.pic;
+				image.src = pic;
 				return image;
 			});
 			await Promise.all(cards.map((image : HTMLImageElement) : Promise<void> => image.decode()));

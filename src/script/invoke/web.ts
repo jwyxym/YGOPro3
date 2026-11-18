@@ -64,8 +64,8 @@ class Invoke extends BaseInvoke {
 			try {
 				return deck.map(i => [i,
 					Math.floor(Math.log10(Math.abs(i))) < 8
-						? `https://cdn.233.momobako.com/ygopro/pics/${i}.jpg!half`
-						: `https://cdn02.moecube.com:444/ygopro-super-pre/data/pics/${i}.jpg`
+						? CONSTANT.URL.PICS.join(i.toString())
+						: CONSTANT.URL.SUPER_PRE_PICS.join(i.toString())
 				]);
 			} catch (error) {
 				await this.log.write(error);
@@ -161,21 +161,11 @@ class Invoke extends BaseInvoke {
 			try {
 				const version = await http.get<string>(CONSTANT.URL.SUPER_PRE_VERSION, 'text');
 				const [db, pre_db] = await Promise.all([
-					Promise.all([
-						http.get<ArrayBuffer>(CONSTANT.URL.CDB, 'arrayBuffer', { 'Range' : 'bytes=0-4999999' }),
-						http.get<ArrayBuffer>(CONSTANT.URL.CDB, 'arrayBuffer', { 'Range' : 'bytes=5000000-' })
-					]),
+					http.get<ArrayBuffer>(CONSTANT.URL.CDB, 'arrayBuffer'),
 					http.get<ArrayBuffer>(`${CONSTANT.URL.PRE_CDB}?v=${version}`, 'arrayBuffer')
 				]);
-				const len = db.reduce((a, b) => a + b.byteLength, 0);
-				const byte = new Uint8Array(len);
-				let offset = 0;
-				for (const buf of db) {
-					byte.set(new Uint8Array(buf), offset);
-					offset += buf.byteLength;
-				}
 				const cdb = new YGOProCdb(SQL)
-					.from(new Uint8Array(byte));
+					.from(new Uint8Array(db));
 				const pre_cdb = new YGOProCdb(SQL)
 					.from(new Uint8Array(pre_db));
 				const cards = cdb.find().concat(pre_cdb.find());
