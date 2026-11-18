@@ -10,6 +10,14 @@ use anyhow::{Error, Result, anyhow};
 use ygopro_server::defalut::*;
 use ygopro3_emit::progress::*;
 
+fn normalize_alias(code: u32, alias: u32) -> (u32, u32) {
+	if alias != 0 && code.abs_diff(alias) >= 20 {
+		(0, alias)
+	} else {
+		(alias, 0)
+	}
+}
+
 pub async fn init () -> Result<(
 	DataManager, DeckManager, ConfigManager,
 	Option<extern "C" fn(*const c_char, *mut c_int) -> *mut u8>,
@@ -20,12 +28,13 @@ pub async fn init () -> Result<(
 	let cards: Vec<ygopro3_card::Card> = ygopro3_game::get::cards().await?;
 	for i in cards {
 		let i: ygopro3_card::Card = i;
+		let (alias, rule_code): (u32, u32) = normalize_alias(i.code, i.alias);
 		data_manager.cards.insert(
 			i.code,
 			Card {
 				card: CoreCard {
 					code: i.code,
-					alias: i.alias,
+					alias,
 					setcode: i.setcode,
 					card_type: Type::from_bits_retain(i.card_type),
 					level: i.level,
@@ -36,7 +45,7 @@ pub async fn init () -> Result<(
 					left_scale: i.lscale,
 					right_scale: i.rscale,
 					link_marker: Linkmarkers::from_bits_retain(i.link_marker),
-					rule_code: 0,
+					rule_code,
 				},
 				ot: OT::from_bits_retain(i.ot),
 				category: Category::from_bits_retain(i.category),
