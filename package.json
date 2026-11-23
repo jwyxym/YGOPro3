@@ -30,6 +30,7 @@
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.4",
+		"@esotericsoftware/spine-pixi-v8": "4.2.120",
 		"@jwyxym/coin": "^0.0.2",
 		"@jwyxym/dice": "^0.0.2",
 		"@jwyxym/tauri-plugin-kcp": "^0.1.1",
@@ -58,6 +59,7 @@
 		"mathjs": "^15.1.0",
 		"matter-js": "^0.20.0",
 		"p-queue": "^9.1.0",
+		"pixi.js": "8.16.0",
 		"qrcode": "^1.5.4",
 		"shinycard": "^0.1.1",
 		"smol-toml": "^1.9.0",

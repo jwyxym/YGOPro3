@@ -433,3 +433,11 @@ pub async fn zip (name: String) -> Result<(), Error> {
 	}
 	Ok(())
 }
+
+pub async fn spine (path: &PathBuf) -> Spine {
+	let path: PathBuf = path
+		.join("config")
+		.join("spine.toml");
+	let text: String = read_to_string(path).await.unwrap_or(String::new());
+	Spine::new(text)
+}

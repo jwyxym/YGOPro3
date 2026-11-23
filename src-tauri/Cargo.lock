@@ -9375,6 +9375,7 @@ dependencies = [
  "ygopro3_network",
  "ygopro3_p2p",
  "ygopro3_plugin",
+ "ygopro3_spine",
  "ygopro3_windbot",
  "ygopro3_ypk",
  "ygopro3_yrp",
@@ -9472,6 +9473,7 @@ dependencies = [
  "ygopro3_scripts",
  "ygopro3_server_list",
  "ygopro3_sound",
+ "ygopro3_spine",
  "ygopro3_strings",
  "ygopro3_system",
  "ygopro3_zip",
@@ -9611,6 +9613,15 @@ version = "0.1.0"
 dependencies = [
  "serde",
  "walkdir",
+ "ygopro3_fs",
+]
+
+[[package]]
+name = "ygopro3_spine"
+version = "0.1.0"
+dependencies = [
+ "basic-toml",
+ "serde",
  "ygopro3_fs",
 ]
 

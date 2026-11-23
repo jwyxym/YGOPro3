@@ -1992,7 +1992,8 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1603, mainGame.get.name(code));
 			await Promise.all([
 				voice.play.sound_effect(KEYS.SOUND_EFFECT_SUMMON),
-				mainGame.load.pic([code ?? 0])
+				mainGame.load.pic([code ?? 0]),
+				duel.summon_ani.play(code ?? 0)
 			]);
 		}],
 		[MSG.SUMMONED, async () => {
@@ -2001,10 +2002,10 @@ class Protocol {
 		[MSG.SPSUMMONING, async (msg : Msg) => {
 			const code = msg.read.int32();
 			this.event = mainGame.get.strings.system(1605, mainGame.get.name(code));
-			await mainGame.load.pic([code ?? 0]);
 			await Promise.all([
 				voice.play.sound_effect(KEYS.SOUND_EFFECT_SPECIALSUMMON),
-				mainGame.load.pic([code ?? 0])
+				mainGame.load.pic([code ?? 0]),
+				duel.summon_ani.play(code ?? 0)
 			]);
 		}],
 		[MSG.SPSUMMONED, async () => {
@@ -2015,7 +2016,8 @@ class Protocol {
 			this.event = mainGame.get.strings.system(1607, mainGame.get.name(code));
 			await Promise.all([
 				voice.play.sound_effect(KEYS.SOUND_EFFECT_FLIP),
-				mainGame.load.pic([code ?? 0])
+				mainGame.load.pic([code ?? 0]),
+				duel.summon_ani.play(code ?? 0)
 			]);
 		}],
 		[MSG.FLIPSUMMONED, async () => {

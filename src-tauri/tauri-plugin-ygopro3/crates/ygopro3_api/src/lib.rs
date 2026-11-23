@@ -37,6 +37,7 @@ pub fn init () -> TauriPlugin<Wry> {
 			api::get_cards,
 			api::get_system,
 			api::get_hash,
+			api::get_spine,
 			api::get_server,
 			api::get_strings,
 			api::get_lflist,

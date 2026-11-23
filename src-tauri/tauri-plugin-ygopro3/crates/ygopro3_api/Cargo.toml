@@ -24,6 +24,7 @@ ygopro3_ypk.workspace = true
 ygopro3_duel = { workspace = true, optional = true }
 ygopro3_plugin = { workspace = true, optional = true }
 ygopro3_macros.workspace = true
+ygopro3_spine.workspace = true
 
 [target.'cfg(not(target_arch = "x86"))'.dependencies]
 ygopro3_windbot = { workspace = true, optional = true }

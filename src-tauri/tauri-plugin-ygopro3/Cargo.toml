@@ -67,6 +67,7 @@ ygopro3_room = { path = "./crates/ygopro3_room" }
 ygopro3_server_list = { path = "./crates/ygopro3_server_list" }
 ygopro3_scripts = { path = "./crates/ygopro3_scripts" }
 ygopro3_sound = { path = "./crates/ygopro3_sound" }
+ygopro3_spine = { path = "./crates/ygopro3_spine" }
 ygopro3_strings = { path = "./crates/ygopro3_strings" }
 ygopro3_system = { path = "./crates/ygopro3_system" }
 ygopro3_windbot = { path = "./crates/ygopro3_windbot" }
@@ -99,6 +100,7 @@ members = [
 	"crates/ygopro3_server_list",
 	"crates/ygopro3_scripts",
 	"crates/ygopro3_sound",
+	"crates/ygopro3_spine",
 	"crates/ygopro3_strings",
 	"crates/ygopro3_system",
 	"crates/ygopro3_windbot",

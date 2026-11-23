@@ -5,6 +5,7 @@ use ygopro3_network::{Srv, srv};
 use ygopro3_p2p::SessionInfo;
 use ygopro3_ypk::ypk;
 use ygopro3_yrp::yrp;
+use ygopro3_spine::SpineItem;
 
 use bincode::{encode_to_vec, decode_from_slice, config::Configuration, error::DecodeError};
 use serde_json::{Value::{self, Array}, Number};
@@ -418,6 +419,13 @@ pub async fn get_hash () -> Result<Response, String> {
 	Ok(Response::new(ygopro3_game::get::hash()
 		.await
 		.map_err(|e| e.to_string())?))
+}
+
+#[tauri::command]
+pub async fn get_spine (id: u32) -> Result<SpineItem, String> {
+	Ok(ygopro3_game::get::spine(id)
+		.await
+		.map_err(|e| e.to_string())?)
 }
 
 #[ygopro3_macros::plugin]

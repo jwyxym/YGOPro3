@@ -240,3 +240,16 @@ pub async fn hash () -> Result<Vec<u8>, Error> {
 		.join(hash);
 	Ok(read(path)?)
 }
+
+pub async fn spine (id: u32) -> Result<SpineItem, Error> {
+	let game: &RwLock<Game> = GAME.get().ok_or(anyhow!(""))?;
+	let game: RwLockReadGuard<'_, Game> = game.read();
+	let path: &PathBuf = PATH.get().ok_or(anyhow!("get path error"))?;
+	let path: PathBuf = path
+		.join("textures")
+		.join("spine");
+	let spine: SpineItem = game.spine
+		.get(id, path)
+		.ok_or(anyhow!("get spine error"))?;
+	Ok(spine)
+}

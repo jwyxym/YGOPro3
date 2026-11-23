@@ -22,6 +22,7 @@ ygopro3_zip.workspace = true
 ygopro3_resource.workspace = true
 ygopro3_scripts.workspace = true
 ygopro3_sound.workspace = true
+ygopro3_spine.workspace = true
 ygopro3_info.workspace = true
 ygopro3_lflist.workspace = true
 ygopro3_room.workspace = true

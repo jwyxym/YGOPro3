@@ -6,7 +6,7 @@ import Card from '@/script/card';
 import LFList from '@/script/lflist';
 import { KEYS } from '@/script/constant';
 import BaseInvoke from './base';
-import Srv from './type';
+import { Srv, Spine } from './type';
 
 const _invoke = async <T>(command : string, args ?: InvokeArgs) : Promise<T> => {
 	const api = await import('@tauri-apps/api/core');
@@ -421,6 +421,13 @@ class Invoke extends BaseInvoke {
 				return await _invoke<ArrayBuffer>('get_hash');
 			} catch (error) {
 				await this.log.write(error);
+				return undefined;
+			}
+		},
+		get_spine : async (id : number) : Promise<Spine | undefined> => {
+			try {
+				return await _invoke<Spine>('get_spine', { id });
+			} catch {
 				return undefined;
 			}
 		}

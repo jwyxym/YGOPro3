@@ -19,6 +19,7 @@ import Plaid from './plaid';
 import Btn from './btn';
 import Client_Card, { type HTMLCardsElement } from './client_card';
 import Activate from './activate';
+import { Summon } from './summon';
 
 
 class _Duel {
@@ -39,6 +40,7 @@ class _Duel {
 	back ?: CSS.CSS3DObject;
 	btn ?: Btn;
 	activate ?: Activate;
+	summon_ani : Summon = new Summon();
 	animation_id : number = 0;
 	time : number = 0;
 	interval : number = 0;
@@ -78,6 +80,7 @@ class _Duel {
 
 		this.scene.add(new THREE.AmbientLight('white', 1));
 		this.element!.appendChild(this.renderer.domElement);
+		this.summon_ani.mount(this.renderer.domElement);
 		const frame = mainGame.get.system(KEYS.SETTING_FRAME) as number;
 		if (frame)
 			this.interval = 1000 / frame;
@@ -539,6 +542,7 @@ class _Duel {
 
 	clear = {
 		self : () : void => {
+			this.summon_ani.destroy();
 			cancelAnimationFrame(this.animation_id);
 			this.renderer = new CSS.CSS3DRenderer();
 			this.scene = new THREE.Scene();

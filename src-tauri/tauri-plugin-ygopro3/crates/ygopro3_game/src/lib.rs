@@ -12,6 +12,7 @@ use ygopro3_server_list::*;
 use ygopro3_scripts::*;
 use ygopro3_sound::*;
 use ygopro3_strings::*;
+use ygopro3_spine::*;
 use ygopro3_system::*;
 use ygopro3_room::*;
 use ygopro3_zip::*;

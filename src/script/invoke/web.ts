@@ -12,6 +12,7 @@ import db from '@/script/db';
 import * as CONSTANT from '@/script/constant';
 import http from '@/script/http';
 import BaseInvoke from './base';
+import { Spine } from './type';
 
 const SQL = await initSqlJs({
 	locateFile : () => wasmUrl
@@ -459,6 +460,9 @@ class Invoke extends BaseInvoke {
 				await this.log.write(error);
 				return undefined;
 			}
+		},
+		get_spine : async (_id : number) : Promise<Spine | undefined> => {
+			return undefined;
 		}
 	};
 	deck = {

@@ -10,7 +10,8 @@ pub struct Game {
 	pub resource: Resource,
 	pub sound: Sound,
 	pub ex_code: SetCode,
-	pub pack: IndexMap<String, GamePack>
+	pub pack: IndexMap<String, GamePack>,
+	pub spine: Spine
 }
 
 #[derive(Debug)]
@@ -79,9 +80,10 @@ impl Game {
 		let (system, resource, lflist, server, room, setcode, mut tasks) = load::config(path, &config).await;
 		progress::emit(Event::Progress, 1);
 		
-		let (mut pack, (card_info, db, strings, task)) = join!(
+		let (mut pack, (card_info, db, strings, task), spine) = join!(
 			load::expansion(path, &system),
-			load::i18n(path, system.i18n(), &config)
+			load::i18n(path, system.i18n(), &config),
+			load::spine(path),
 		);
 		let db: Cdb = db.add_ex_code(setcode.code());
 		progress::emit(Event::Progress, 1);
@@ -128,7 +130,8 @@ impl Game {
 			sound: sound,
 			resource: resource,
 			ex_code: setcode,
-			pack: pack
+			pack: pack,
+			spine
 		})
 	}
 }

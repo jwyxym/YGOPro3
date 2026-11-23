@@ -1,6 +1,7 @@
 import type Deck from '@/pages/deck/deck';
 import type Card from '@/script/card';
 import type LFList from '@/script/lflist';
+import { Spine } from './type';
 
 abstract class BaseInvoke {
 	abstract game : {
@@ -54,6 +55,7 @@ abstract class BaseInvoke {
 		get_room : () => Promise<Array<[string, string]>>;
 		get_script : (id : number) => Promise<string>;
 		get_hash : () => Promise<ArrayBuffer | undefined>;
+		get_spine : (id : number) => Promise<Spine | undefined>;
 	};
 
 	abstract deck : {

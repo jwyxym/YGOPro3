@@ -60,6 +60,7 @@ export default defineConfig(({ mode } : ConfigEnv) : UserConfig => ({
 	define: {
 		__WEB__: JSON.stringify(mode === 'web'),
 		__YOLO__: loadEnv(mode, process.cwd(), 'YOLO').YOLO ?? 'true',
+		__SPINE__: loadEnv(mode, process.cwd(), 'SPINE').SPINE ?? 'true',
 		__VERSION__: JSON.stringify(version),
 		__ANDROID__: JSON.stringify(process.env.TAURI_ENV_PLATFORM === 'android'),
 		__DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
@@ -68,7 +69,7 @@ export default defineConfig(({ mode } : ConfigEnv) : UserConfig => ({
 	server: {
 		port: 1420,
 		strictPort: true,
-		host: host || false,
+		host: host,
 		hmr: host
 			? {
 				protocol: "ws",

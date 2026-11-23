@@ -18,6 +18,7 @@ import Ja_JP from './language/Ja-JP';
 import Ko_KR from './language/Ko-KR';
 import YGOPRO_STR from './language/string';
 import listenner from './listen';
+import { Spine } from './invoke/type';
 
 const track = async <T>(promise : Promise<T>): Promise<T> => {
 	const result = await promise;
@@ -282,7 +283,8 @@ class Game {
 		counter : (counter : number) : string => {
 			return this.get.textures(CONSTANT.KEYS.COUNTER, counter) as string | undefined
 				?? this.get.textures(CONSTANT.KEYS.COUNTER, 0) as string;
-		}
+		},
+		spine : async (id : number | string) : Promise<Spine | undefined> => invoke.game.get_spine(Number(id))
 	};
 
 	clear = () : void => {

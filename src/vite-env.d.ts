@@ -11,4 +11,5 @@ declare const __VERSION__: string;
 declare const __ANDROID__: boolean;
 declare const __WEB__: boolean;
 declare const __YOLO__: boolean;
+declare const __SPINE__: boolean;
 declare const __DEV__: boolean;

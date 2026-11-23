@@ -17,6 +17,7 @@ const COMMANDS: &[&str] = &[
 	"get_cards",
 	"get_system",
 	"get_hash",
+	"get_spine",
 	"get_server",
 	"get_strings",
 	"get_lflist",

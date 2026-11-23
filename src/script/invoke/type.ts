@@ -5,4 +5,11 @@ interface Srv {
 	target : string;
 };
 
-export default Srv;
+interface Spine {
+	skeleton : string;
+	atlas : string;
+	img ?: Record<string, string>;
+	animation ?: string;
+};
+
+export type {Srv, Spine};
