@@ -53,8 +53,9 @@
 	import Card from './pages/card/card_list.vue';
 	import Duel from './pages/duel/connect.vue';
 	import Setting from './pages/setting/setting.vue';
+	import setting from './pages/setting/setting';
 	import Loading from './pages/loading/loading.vue';
-	import Toast from './pages/toast/toast';
+	import Toast, { toast } from './pages/toast/toast';
 	import dialog from './ui/dialog';
 
 	import mainGame from './script/game';
@@ -142,6 +143,19 @@
 			page.ready = true;
 			page.show.menu = true;
 			landscape.to();
+			setting.versions.forEach((i, v) => i.chk()
+				.then(() => toast.info(
+					mainGame.get.text(
+						I18N_KEYS[
+							['SETTING_GAME_VERSION', 'SETTING_SUPER_PRE_VERSION']
+							[v] as keyof typeof I18N_KEYS
+						]
+					) + ':  ' + mainGame.get.text(i.loading
+						? I18N_KEYS.SETTING_LATEST
+						: I18N_KEYS.SETTING_UPDATE
+					)
+				)
+			));
 		}
 		else {
 			await dialog({
