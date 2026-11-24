@@ -87,6 +87,7 @@ impl System {
 			"HIDDEN_NAME",
 			"HIDDEN_CHAT",
 			"P2P",
+			"SPINE",
 			"PLUGIN_GET",
 			"PLUGIN_POST",
 			"PLUGIN_PUT",

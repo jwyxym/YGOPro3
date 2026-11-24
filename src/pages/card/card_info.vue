@@ -4,9 +4,16 @@
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.CARD_INFO) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.CARD_PIC) }}</var-tab>
 			<var-tab>{{ mainGame.get.text(I18N_KEYS.CARD_CODE) }}</var-tab>
+			<var-tab v-if = 'mainGame.get.system(KEYS.SETTING_CHK_SPINE)'>{{ mainGame.get.text(I18N_KEYS.CARD_SPINE) }}</var-tab>
 		</var-tabs>
 		<transition name = 'opacity'>
-			<div v-if = 'page._select === 2'>
+			<div v-if = 'page._select === 3'>
+				<div
+					:ref = 'page.spine.set_host'
+					class = 'spine'
+				/>
+			</div>
+			<div v-else-if = 'page._select === 2'>
 				<Code
 					v-if = 'page.code.value !== undefined'
 					v-model = 'page.code.value'
@@ -47,15 +54,19 @@
     </div>
 </template>
 <script setup lang = 'ts'>
-	import { computed, nextTick, onBeforeMount, reactive } from 'vue';
+	import { computed, nextTick, onBeforeUnmount, reactive, watch } from 'vue';
+	import type { ComponentPublicInstance } from 'vue';
 	import { ShinyCard } from 'shinycard';
 
 	import mainGame from '@/script/game';
+	import { KEYS } from '@/script/constant';
 	import { I18N_KEYS } from '@/script/language/i18n';
 	import Card, { TYPE } from '@/script/card';
 	import invoke from '@/script/invoke';
+	import { Spine } from '@/script/spine';
 
 	import Code from '@/ui/code.vue';
+	const spine : Spine = new Spine();
 
 	const page = reactive({
 		_select : 0,
@@ -72,9 +83,17 @@
 					case 2:
 						page.code.load();
 						break;
+					case 3:
+						break;
 				}
 			}
 		}),
+		spine : {
+			host : null as HTMLElement | null,
+			set_host : function (element : Element | ComponentPublicInstance | null) : void {
+				page.spine.host = element instanceof HTMLElement ? element : null;
+			}
+		},
 		pic : {
 			value : undefined as undefined | string,
 			loading : false,
@@ -129,8 +148,20 @@
 		card : Card;
 	}>();
 
-	onBeforeMount(() => {
-		
+	watch(
+		() : [number, number, HTMLElement | null] => [page._select, props.card.id, page.spine.host],
+		([select, id, host] : [number, number, HTMLElement | null]) : void => {
+			spine.destroy();
+			if (select === 3 && host instanceof HTMLElement) {
+				spine.mount(host);
+				spine.play(id, true);
+			}
+		},
+		{ flush : 'post' }
+	);
+
+	onBeforeUnmount(() : void => {
+		spine.destroy();
 	});
 </script>
 <style scoped lang = 'scss'>
@@ -151,6 +182,10 @@
 			> .card {
 				height: 80%;
 				width: 50%;
+			}
+			> .spine {
+				height: 90%;
+				width: 100%;
 			}
 		}
 		> .card-info {

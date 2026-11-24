@@ -98,6 +98,7 @@ En_US[I18N_KEYS.DECK_RELATED_CARD_TITLE] = 'Cards related to "{:?}"';
 En_US[I18N_KEYS.CARD_PIC] = 'Card Image';
 En_US[I18N_KEYS.CARD_INFO] = 'Information';
 En_US[I18N_KEYS.CARD_CODE] = 'Code';
+En_US[I18N_KEYS.CARD_SPINE] = 'Animation';
 
 En_US[I18N_KEYS.SERVER] = 'SERVER';
 En_US[I18N_KEYS.SERVER_ADDRESS] = 'Server Address';
@@ -181,6 +182,7 @@ En_US[I18N_KEYS.SETTING_CHK_CLEAR_DECK] = 'Prompt when clearing deck';
 En_US[I18N_KEYS.SETTING_CHK_SURRENDER] = 'Prompt when surrendering';
 En_US[I18N_KEYS.SETTING_CHK_EXIT_SERVER] = 'Prompt when disconnecting';
 En_US[I18N_KEYS.SETTING_CHK_P2P] = 'Enable P2P for local hosting';
+En_US[I18N_KEYS.SETTING_CHK_SPINE] = 'Spine animations';
 En_US[I18N_KEYS.SETTING_P2P_SERVER] = 'P2P relay server address';
 En_US[I18N_KEYS.SETTING_CHK_SWAP_BUTTON] = 'Confirm Button on Left';
 En_US[I18N_KEYS.SETTING_CHK_HIDDEN_NAME] = 'Hide Player Names';

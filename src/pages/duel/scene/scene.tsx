@@ -9,6 +9,7 @@ import mainGame from '@/script/game';
 import { KEYS } from '@/script/constant';
 import GLOBAL from '@/script/scale';
 import { I18N_KEYS } from '@/script/language/i18n';
+import { Spine } from '@/script/spine';
 
 import { COMMAND, LOCATION, POS } from '@/pages/duel/ygo-protocol/network';
 import connect from '@/pages/duel/connect';
@@ -19,8 +20,6 @@ import Plaid from './plaid';
 import Btn from './btn';
 import Client_Card, { type HTMLCardsElement } from './client_card';
 import Activate from './activate';
-import { Summon } from './summon';
-
 
 class _Duel {
 	element : HTMLDivElement | null = null;
@@ -40,7 +39,7 @@ class _Duel {
 	back ?: CSS.CSS3DObject;
 	btn ?: Btn;
 	activate ?: Activate;
-	summon_ani : Summon = new Summon();
+	summon_ani : Spine = new Spine();
 	animation_id : number = 0;
 	time : number = 0;
 	interval : number = 0;

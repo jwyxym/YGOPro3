@@ -286,6 +286,9 @@
 			bool.push('SETTING_CHK_P2P');
 			string.push(['SETTING_P2P_SERVER']);
 		}
+		if (__SPINE__) {
+			bool.push('SETTING_CHK_SPINE');
+		}
 		page.bool = bool.map(i => {
 			return {
 				i18n : I18N_KEYS[i as keyof typeof I18N_KEYS],

@@ -1,18 +1,21 @@
 import type { Application } from 'pixi.js';
-import type { Spine } from '@esotericsoftware/spine-pixi-v8';
-import mainGame from '@/script/game';
-import { Spine as Spine_Resource } from '@/script/invoke';
+import type { Spine as SpineV8 } from '@esotericsoftware/spine-pixi-v8';
+import mainGame from './game';
+import { Spine as Spine_Resource } from './invoke';
+import { KEYS } from './constant';
 
-class Summon {
+class Spine {
 	host ?: HTMLDivElement;
 	app ?: Application;
-	monster ?: Spine;
+	monster ?: SpineV8;
 	generation : number = 0;
 	finish ?: (() => void);
 	resize ?: ResizeObserver;
 
 	mount = (parent : HTMLElement) : void => {
 		if (__SPINE__) {
+			if (!mainGame.get.system(KEYS.SETTING_CHK_SPINE))
+				return;
 			this.destroy();
 			const host : HTMLDivElement = document.createElement('div');
 			host.className = 'ygopro3__summon-spine';
@@ -26,7 +29,7 @@ class Summon {
 		}
 	};
 
-	play = async (code : number) : Promise<void> => {
+	play = async (code : number, loop : boolean = false) : Promise<void> => {
 		if (!this.host || !code) return;
 		this.finish?.();
 		const generation : number = ++ this.generation;
@@ -50,15 +53,12 @@ class Summon {
 			settle();
 		};
 		this.finish = finish;
-		timer = setTimeout(finish, 12000);
-		this.render(code, generation, finish).catch((error : unknown) : void => {
-			console.error('Failed to load Spine summon:', error);
-			finish();
-		});
+		if (!loop) timer = setTimeout(finish, 12000);
+		this.render(code, generation, finish, loop).catch(finish);
 		await done;
 	};
 
-	render = async (code : number, generation : number, finish : () => void) : Promise<void> => {
+	render = async (code : number, generation : number, finish : () => void, loop : boolean) : Promise<void> => {
 		const current : () => boolean = () : boolean => generation === this.generation && this.host !== undefined;
 		const resource : Spine_Resource | undefined = await mainGame.get.spine(code);
 		if (!current() || !resource) { finish(); return; }
@@ -87,12 +87,12 @@ class Summon {
 			{ src : resource.atlas, data : { images : resource.img ?? {} } },
 		]);
 		if (!current()) return;
-		const monster : Spine = runtime.Spine.from({ skeleton, atlas });
+		const monster : SpineV8 = runtime.Spine.from({ skeleton, atlas });
 		this.monster = monster;
 		this.app.stage.addChild(monster);
 		const animation : string | undefined = resource.animation ?? monster.skeleton.data.animations[0]?.name;
 		if (!animation || !monster.skeleton.data.findAnimation(animation)) { finish(); return; }
-		const data : Spine['skeleton']['data'] = monster.skeleton.data;
+		const data : SpineV8['skeleton']['data'] = monster.skeleton.data;
 		const layout : () => void = () : void => {
 			if (!this.host || !this.app) return;
 			const width : number = Math.max(this.host.clientWidth, 1);
@@ -108,8 +108,9 @@ class Summon {
 		layout();
 		this.app.canvas.style.visibility = 'visible';
 		this.app.start();
-		monster.state.setAnimation(0, animation, false);
-		monster.state.addListener({ complete: () : void => { queueMicrotask(finish); } });
+		monster.state.setAnimation(0, animation, loop);
+		if (!loop)
+			monster.state.addListener({ complete: () : void => { queueMicrotask(finish); } });
 	};
 
 	destroy = () : void => {
@@ -127,4 +128,4 @@ class Summon {
 	};
 };
 
-export { Summon };
+export { Spine };

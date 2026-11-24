@@ -86,7 +86,6 @@ $boder-color: #9ed3ff;
 					display: none;
 				}
 				[media = 'mobile'] & {
-					// 手机端仅合成四条窄边，避免旋转整张场地大小的渐变。
 					overflow: visible;
 					clip-path: none;
 					&::after {
