@@ -1,10 +1,9 @@
 
 
 import { reactive,  ref } from 'vue';
-import { all, create } from 'mathjs';
 
 import { open } from '@/script/tauri';
-import { KEYS, REG, URL } from '@/script/constant';
+import { KEYS, URL } from '@/script/constant';
 import mainGame from '@/script/game';
 import { I18N_KEYS } from '@/script/language/i18n';
 import invoke from '@/script/invoke';
@@ -40,8 +39,6 @@ class Version {
 	};
 };
 
-const math = create(all);
-
 const setting = reactive({
 	versions : [
 		new Version({
@@ -63,10 +60,6 @@ const setting = reactive({
 			},
 			to_true : true
 		}),
-	],
-	reload : [
-		{ title : I18N_KEYS.SETTING_RESERT, click : async () => await mainGame.reload(true) },
-		{ title : I18N_KEYS.SETTING_RELOAD, click :  async () => await mainGame.reload() },
 	],
 	expansion : [] as Array<string>,
 	loaded_expansion : [] as Array<string>,
@@ -105,56 +98,6 @@ const setting = reactive({
 			]);
 		}
 		await mainGame.reload();
-	},
-	download : {
-		name : '',
-		url : '',
-		chunk : '',
-		rule : {
-			name : (name ?: string) : string | true => {
-				if (name === undefined || name.length === 0)
-					return true;
-				if (name.match(REG.NAME))
-					return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
-				return true;
-			},
-			url : (url ?: string) : string | true => {
-				if (url === undefined || url.length === 0)
-					return true;
-				if (!url.startsWith('http'))
-					return mainGame.get.text(I18N_KEYS.RULE_URL_UNLAWFUL);
-				return true;
-			},
-			chunk : (chunk ?: string) : string | true => {
-				if (chunk === undefined || chunk.length === 0)
-					return true;
-				try {
-					const i = math.evaluate(chunk);
-					if (i < 0)
-						return mainGame.get.text(I18N_KEYS.RULE_CHUNK_NEGATIVE);
-				} catch {
-					return mainGame.get.text(I18N_KEYS.RULE_CHUNK_UNLAWFUL);
-				}
-				return true;
-			}
-		},
-		start : async function () {
-			const name = this.name;
-			const url = this.url;
-			const chunk = this.chunk;
-			if (url.startsWith('http')
-				&& typeof this.rule.name(name) === 'boolean'
-				&& typeof this.rule.chunk(chunk) === 'boolean') {
-				this.name = '';
-				this.url = '';
-				const ypk = await invoke.game.download(url, name, math.evaluate(chunk));
-				if (ypk) {
-					await setting.change(ypk);
-					if (!setting.expansion.includes(ypk))
-						setting.expansion.push(ypk);
-				}
-			}
-		}
 	}
 });
 

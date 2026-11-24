@@ -1,7 +1,7 @@
 <template>
 	<div
 		class = 'expansions no-scrollbar'
-		:style = "{ '--ct' : (setting.versions.length + setting.reload.length + 1).toString()}"
+		:style = "{ '--ct' : (setting.versions.length + reload.length + 1).toString()}"
 		v-if = '!i18n'
 	>
 		<var-cell
@@ -23,7 +23,7 @@
 			</template>
 		</var-cell>
 		<var-cell
-			v-for = "i in setting.reload"
+			v-for = "i in reload"
 			:title = 'mainGame.get.text(i.title)'
 		>
 			<template #extra>
@@ -41,22 +41,22 @@
 					<div>
 						<Input
 							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_CUSTOM)'
-							v-model = 'setting.download.url'
-							:rules = 'setting.download.rule.url'
+							v-model = 'download.url'
+							:rules = 'download.rule.url'
 						/>
 					</div>
 					<div>
 						<Input
 							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_NAME)'
-							v-model = 'setting.download.name'
-							:rules = 'setting.download.rule.name'
+							v-model = 'download.name'
+							:rules = 'download.rule.name'
 						/>
 					</div>
 					<div>
 						<Input
 							:placeholder = 'mainGame.get.text(I18N_KEYS.SETTING_DOWNLOAD_CHUNK)'
-							v-model = 'setting.download.chunk'
-							:rules = 'setting.download.rule.chunk'
+							v-model = 'download.chunk'
+							:rules = 'download.rule.chunk'
 						/>
 					</div>
 				</div>
@@ -66,7 +66,7 @@
 				<var-icon
 					v-else
 					name = 'arrow-down'
-					@click = 'setting.download.start()'
+					@click = 'download.start()'
 				/>
 			</template>
 		</var-cell>
@@ -98,12 +98,13 @@
 	</div>
 </template>
 <script setup lang = 'ts'>
-	import { onBeforeMount } from 'vue';
+	import { onBeforeMount, reactive } from 'vue';
+	import { all, create } from 'mathjs';
 
 	import mainGame from '@/script/game';
 	import invoke from '@/script/invoke';
 	import { I18N_KEYS } from '@/script/language/i18n';
-	import { KEYS } from '@/script/constant';
+	import { KEYS, REG } from '@/script/constant';
 	import Input from '@/ui/input.vue';
 
 	import setting from './setting';
@@ -112,6 +113,63 @@
 		setting.expansion = await invoke.ypk.load() as Array<string>;
 		setting.loaded_expansion = mainGame.get.system(KEYS.SETTING_LOADING_EXPANSION) as Array<string>;
 	});
+
+	const math = create(all);
+	const download = reactive({
+		name : '',
+		url : '',
+		chunk : '',
+		rule : {
+			name : (name ?: string) : string | true => {
+				if (name === undefined || name.length === 0)
+					return true;
+				if (name.match(REG.NAME))
+					return mainGame.get.text(I18N_KEYS.RULE_NAME_UNLAWFUL);
+				return true;
+			},
+			url : (url ?: string) : string | true => {
+				if (url === undefined || url.length === 0)
+					return true;
+				if (!url.startsWith('http'))
+					return mainGame.get.text(I18N_KEYS.RULE_URL_UNLAWFUL);
+				return true;
+			},
+			chunk : (chunk ?: string) : string | true => {
+				if (chunk === undefined || chunk.length === 0)
+					return true;
+				try {
+					const i = math.evaluate(chunk);
+					if (i < 0)
+						return mainGame.get.text(I18N_KEYS.RULE_CHUNK_NEGATIVE);
+				} catch {
+					return mainGame.get.text(I18N_KEYS.RULE_CHUNK_UNLAWFUL);
+				}
+				return true;
+			}
+		},
+		start : async function () {
+			const name = this.name;
+			const url = this.url;
+			const chunk = this.chunk;
+			if (url.startsWith('http')
+				&& typeof this.rule.name(name) === 'boolean'
+				&& typeof this.rule.chunk(chunk) === 'boolean') {
+				this.name = '';
+				this.url = '';
+				const ypk = await invoke.game.download(url, name, math.evaluate(chunk));
+				if (ypk) {
+					await setting.change(ypk);
+					if (!setting.expansion.includes(ypk))
+						setting.expansion.push(ypk);
+				}
+			}
+		}
+	});
+
+	const reload = [
+		{ title : I18N_KEYS.SETTING_RESERT, click : async () => await mainGame.reload(true) },
+		{ title : I18N_KEYS.SETTING_RELOAD, click :  async () => await mainGame.reload() },
+	];
 
 	const props = defineProps<{
 		loading : boolean,
